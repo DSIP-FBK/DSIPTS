@@ -4,21 +4,23 @@ import matplotlib.pyplot as plt
 import copy
 from tqdm import tqdm
 
-def plot_test_rmse(net, path_best, path_last, dl, scaler, bs, lag, device):
+def plot_test_rmse(net, model_str, dl, scaler, lag, device):
 
     net_best = net
     net_last = copy.deepcopy(net)
 
+    path_best = './Tensorboard/models/'+model_str+'_best.pt'
     net_best.load_state_dict(torch.load(path_best, map_location=device))
     net_best.eval()
 
+    path_last = './Tensorboard/models/'+model_str+'_last.pt'
     net_last.load_state_dict(torch.load(path_last, map_location=device))
     net_last.eval()
-
+   
     y_data = []
     pred_best = []
     pred_last = []
-    for i,(ds,y,low) in enumerate(tqdm(dl, desc = "Plot Test RMSE - ")):
+    for _,(ds,y,low) in enumerate(tqdm(dl, desc = "Plot Test RMSE - ")):
         ds = ds.to(device)
         y = y.to(device)
         low = low.to(device)
@@ -47,17 +49,18 @@ def plot_test_rmse(net, path_best, path_last, dl, scaler, bs, lag, device):
     rmse_best = np.sqrt(np.mean((y_data-pred_best)**2, axis = 0))
     rmse_last = np.sqrt(np.mean((y_data-pred_last)**2, axis = 0))
 
-    path_str = path_best[:-11].split('/')[-1]
-    x=np.arange(lag)
-    plt.cla()
-    plt.plot(x, rmse_best, label = 'rmse_best')
-    plt.plot(x, rmse_last, label = 'rmse_last')
-    plt.legend()
-    plt.title('RMSE OVER LAG STEPS')
-    # plt.vlines(1, -100, 10000, linestyles ="dotted", colors ="k")
-    plt.ylim([0, 1000])
-    
-    # plt.show()
-    plt.savefig(path_best[:-11]+'_plot_rmse.png')
-    print(f' RMSE Plot of MODEL {path_str} saved') #[-11] to not print '_best_model'
+    x=np.arange(1,lag+1)
+
+    fig, ax = plt.subplots(1, 1, figsize=(18, 18))
+    fig.suptitle(model_str + ' - RMSE OVER LAG STEPS')
+    fig.supxlabel('Epochs')
+    fig.supylabel('Losses')
+
+    ax.plot(x, rmse_best, label = 'rmse_best')
+    ax.plot(x, rmse_last, label = 'rmse_last')
+    ax.grid(True)
+    ax.legend()
+
+    fig.savefig('./Tensorboard/models/'+model_str+'_rmse.png')
+    print(f' RMSE Plot of MODEL {model_str} saved')
     

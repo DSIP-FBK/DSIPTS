@@ -1,6 +1,7 @@
 import torch
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
+import pickle as pkl
 import sys
 
 def train_step(net, data_loader, lag, optimizer, cost_function, device): 
@@ -64,16 +65,13 @@ def test_step(net, data_loader, lag, cost_function, device):
             
     return cumulative_loss/(i+1)
 
-def training(net, device, loader_train, loader_val, path_best, path_last,
+def training(net, device, loader_train, loader_val, model_str,
         lag:int = 60, lr:float = 1e-06, wd:float = 0.00, scheduler_step:int = 150, epochs:int = 1000):
-    # import pdb
-    # pdb.set_trace()
-    path_str = path_best[:-11].split('/')
-    writer_log_dir = '/'.join(path_str[:-1])
-    writer_scalars = path_str[-1]
-    
-    writer = SummaryWriter(log_dir=writer_log_dir)
 
+    pck_str = './Tensorboard/models/'+model_str+'.pkl'
+    torch_save_last = './Tensorboard/models/'+model_str+'_last.pt'
+    torch_save_best = './Tensorboard/models/'+model_str+'_best.pt'
+    
     def get_cost_function():
         cost_function = torch.nn.L1Loss(reduction='mean')
         return cost_function
@@ -89,42 +87,51 @@ def training(net, device, loader_train, loader_val, path_best, path_last,
     print(f'\n---> Pre-Training <---')
     #* 
     pre_val_loss = test_step(net=net, data_loader=loader_val, lag=lag, cost_function=cost_function, device=device)
-    
     best_val_loss = pre_val_loss
 
-    last_model = torch.save(net.state_dict(), path_last)
-    best_model = torch.save(net.state_dict(), path_best)
+    last_model = torch.save(net.state_dict(), torch_save_last)
+    best_model = torch.save(net.state_dict(), torch_save_best)
     val_loss=pre_val_loss
     best_val_loss=float('inf')
     str_min = f'[{0}]: {pre_val_loss:.5f}'
 
+    res = ([],[])
+    # res[0] for train_loss
+    # res[1] for val_loss
+
+    
     print('-> TRAINING <-')
     for e in range(epochs):
 
         sys.stdout.flush()
-
+        # TRAIN
         train_loss = train_step(net=net, data_loader=loader_train, lag=lag, optimizer=optimizer, cost_function=cost_function, device=device)
         
-        if e%10 == 9:
+        # VALIDATION
+        if e%5 == 4:
             val_loss = test_step(net=net, data_loader=loader_val, lag=lag, cost_function=cost_function, device=device)
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
-                best_model = torch.save(net.state_dict(), path_best)
+                best_model = torch.save(net.state_dict(), torch_save_best)
                 str_min = f'[{e+1}]: {best_val_loss:.5f}'
-
-        writer.add_scalars(writer_scalars, {'train_loss':train_loss, 'val_loss':val_loss}, e+1)
-        last_model = torch.save(net.state_dict(), path_last)
+        last_model = torch.save(net.state_dict(), torch_save_last)
+        
+        # DUMP
+        res[0].append(train_loss)
+        res[1].append(val_loss)
+        with open(pck_str, 'wb') as f:
+            pkl.dump(res, f)
+            f.close()
     
         scheduler.step()
         print(f'Epoch: [{e+1}]: Training Loss: {train_loss:.5f}\tValidation Loss: {val_loss:.5f} (min->{str_min})')
 
-    print('\n-  AFTER TRAINING  ----------------------------------------------------')
+    print('\n-- AFTER TRAINING  ----------------------------------------------------')
     post_val_loss = test_step(net=net, data_loader=loader_val, lag=lag, cost_function=cost_function, device=device)
     
     print(f'\t Pre Validation loss = {pre_val_loss:.5f}. After {e+1} epochs -> {post_val_loss:.5f}')
-    print('-----------------------------------------------------')
+    print('-'*50)
     
-    writer.close()
 
 ## SAVING
     # torch.save({

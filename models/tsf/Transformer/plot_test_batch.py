@@ -7,15 +7,16 @@ from datetime import datetime
 import matplotlib.dates as mdates
 
 
-def plot_test_batch(net, path_best, path_last, dl, scaler,
-            lag, device):
+def plot_test_batch(net, model_str, dl, scaler, lag, device):
 
     net_best = net
     net_last = copy.deepcopy(net)
 
+    path_best = './Tensorboard/models/'+model_str+'_best.pt'
     net_best.load_state_dict(torch.load(path_best, map_location=device))
     net_best.eval()
 
+    path_last = './Tensorboard/models/'+model_str+'_last.pt'
     net_last.load_state_dict(torch.load(path_last, map_location=device))
     net_last.eval()
  
@@ -66,11 +67,11 @@ def plot_test_batch(net, path_best, path_last, dl, scaler,
     # import pdb
     # pdb.set_trace()
     #* -- PLOT -- 
-    path_str = path_best[:-11].split('/')[-1]
     
-    y_lim = [-100, 8000]
+    y_lim = [0, 6000]
+    plt.cla()
     fig, axs = plt.subplots(4, 1, figsize=(12, 12))
-    fig.suptitle(path_str)
+    fig.suptitle(model_str)
     fig.supxlabel('Time')
     fig.supylabel('Batches')
 
@@ -89,11 +90,11 @@ def plot_test_batch(net, path_best, path_last, dl, scaler,
         ax.set_xlim(datemin, datemax)
         ax.xaxis.set_major_locator(mdates.DayLocator(interval=3))
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y/%m/%d-%H'))
-        ax.vlines(ds_time[k,-lag], y_lim[0], y_lim[1], linestyles ="dotted", colors ="k", label='Start Predicting')
+        # ax.vlines(ds_time[k,-lag], y_lim[0], y_lim[1], linestyles ="dotted", colors ="k", label='Start Predicting')
 
         ax.grid(True)
         ax.legend()
     # plt.show()
-    fig.savefig(path_best[:-11]+'_plot.png')
+    fig.savefig('./Tensorboard/models/'+model_str+'_plot.png')
     
-    print(f' Prediction Plot of MODEL {path_str} saved')
+    print(f' Prediction Plot of MODEL {model_str} saved')
