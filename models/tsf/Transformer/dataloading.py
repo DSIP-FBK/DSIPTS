@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from datetime import datetime
 from time import time
 
-def dataloading(path='../data/processed.pkl', batch_size:int = 20, batch_size_test:int = 20, seq_len:int = 256, lag:int = 61, step:int = 1, load_all_seq:bool=True, train_bool:bool = True):
+def dataloading(path='./data/processed.pkl', batch_size:int = 20, batch_size_test:int = 20, seq_len:int = 256, lag:int = 61, step:int = 1, load_all_seq:bool=True, train_bool:bool = True):
     
     dictbound = {'start_train':'2017-11-15', #pd.to_datetime(dictbound['start_train'])
                 'end_train':'2020-01-01',
@@ -37,11 +37,11 @@ def dataloading(path='../data/processed.pkl', batch_size:int = 20, batch_size_te
     # val_data_y = scaler_y.transform(val_data_y.unsqueeze(1)).squeeze()
     # test_data_y = scaler_y.transform(test_data_y.unsqueeze(1)).squeeze()
     L = len(train) + len(val) + len(test)
-    print('------------------------------------')
-    print(f'Train portion: {len(train)/L*100:.4}%\t {len(train)}')
+    print('-'*50)
+    print(f'Train portion:      {len(train)/L*100:.4}%\t {len(train)}')
     print(f'Validation portion: {len(val)/L*100:.4}%\t {len(val)}')
-    print(f'Test portion: {len(test)/L*100:.4}%\t {len(test)}')
-    print('------------------------------------')
+    print(f'Test portion:       {len(test)/L*100:.4}%\t {len(test)}')
+    print('-'*50)
 
     class CustomDataset(torch.utils.data.Dataset):
         def __init__(self, df, seq_len=256, lag=60, step=1, load_all_seq=load_all_seq):
@@ -108,7 +108,7 @@ def dataloading(path='../data/processed.pkl', batch_size:int = 20, batch_size_te
         print(f'train_dl = None, val_dl = None, len_test_dl = {len(test_dl)}')
         
     print(f'Test Batch_size = {batch_size_test}')
-    print('------------------------------------')
+    print('-'*50)
     return train_dl, val_dl, test_dl, scaler_y
             
 
@@ -127,44 +127,3 @@ if __name__=='__main__':
     import pdb 
     pdb.set_trace()
     print('bocia scemo')
-
-'''
-bs -> to split the entire dataset into bs sequences of len {seq_len}=total_len/bs (//bs to drop last)
-      bs to parallelize computations
-
-seq_len = 228 -> predict next 60 hours using the last week
-                 In each sequence we want to predict the last 60 hours, but we use some starting_tokens
-                 Repeat the sequence {predicting}=60+starting_token times
-                 For each bs, into the tensor [predicting, seq_len], we mask [-predicting,:] to zero, because these values must be predicted
-                 computing_value=0
-                 The Transformer works before on [0,:] to predict the first item of predicting, say p_0 (not necessarily the first value of y, it could be the starting_token)
-                 We add this value in [:, - seq_len + computing_value]
-                 computing_value=1
-                 The Transformer works on [1,:] to predict the second item p_1 (not necessarily the first value of y, it could be the starting_token)
-                 We add this value in [:, - seq_len + computing_value]
-                 -- ! DETACH to block gradient 
-'''
-
-## STACK-OVERFLOW STANDARD DATALOADER
-# class TimeseriesDataset(torch.utils.data.Dataset):   
-#     def __init__(self, X, y, seq_len=1):
-#         self.X = X
-#         self.y = y
-#         self.seq_len = seq_len
-
-#     def __len__(self):
-#         return self.X.__len__() - (self.seq_len-1)
-
-#     def __getitem__(self, index):
-#         return (self.X[index:index+self.seq_len], self.y[index+self.seq_len-1])
-# And the usage looks like that:
-
-# train_dataset = TimeseriesDataset(X_lstm, y_lstm, seq_len=4)
-# train_loader = torch.utils.data.DataLoader(train_dataset, batch_size = 3, shuffle = False)
-
-# for i, d in enumerate(train_loader):
-#     print(i, d[0].shape, d[1].shape)
-
-# >>>
-# # shape: tuple((batch_size, seq_len, n_features), (batch_size))
-# 0 torch.Size([3, 4, 2]) torch.Size([3])

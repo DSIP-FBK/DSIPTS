@@ -10,8 +10,8 @@ conda activate TimeSeries
 echo .... Running on $(hostname) ....
 echo $CUDA_VISIBLE_DEVICES
 cd
-cd tsf_emb
-python Transformer/main.py -t -p -r -E 500 -bs 16 -bs_t 4 -enc 4 -dec 2 -xe 4 -ye 4 -fe 16 -he 2 -f 1 -lr 1e-04
+cd tsf
+python Transformer/main.py -t -l -p -r -E 500
 
 sleep 10
 echo Job Done!
