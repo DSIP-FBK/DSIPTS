@@ -80,7 +80,7 @@ class Transformer(nn.Module):
             
             # MASKS:
             encoder_mask = None
-            decoder_mask = None
+            decoder_mask = None # autoregressive model
             
             # Encoder
             enc_context = self.Encoder(past_x, encoder_mask)

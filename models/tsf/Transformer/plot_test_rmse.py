@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import copy
 from tqdm import tqdm
 
-def plot_test_rmse(net, model_str, dl, scaler, lag, device):
+def plot_test_rmse(net, model_str, dl, scaler, lag, actual_epochs, device):
 
     net_best = net
     net_last = copy.deepcopy(net)
@@ -24,21 +24,22 @@ def plot_test_rmse(net, model_str, dl, scaler, lag, device):
         ds = ds.to(device)
         y = y.to(device)
         low = low.to(device)
-        y_clone = y.detach().clone().to(device)
+        y_clone_best = y.detach().clone().to(device)
+        y_clone_last = y.detach().clone().to(device)
 
-        output_best = net_best(ds,y_clone,low).detach().cpu().numpy() 
-        output_last = net_last(ds,y_clone,low).detach().cpu().numpy() 
+        output_best = net_best(ds,y_clone_best,low).detach().cpu().numpy() 
+        output_last = net_last(ds,y_clone_last,low).detach().cpu().numpy() 
 
         # RESCALE THE OUTPUTS TO STORE Y_DATA,PRED_BEST, PRED_LAST
         y = scaler.inverse_transform(y[:,-lag:].cpu()).flatten()
         prediction_best = scaler.inverse_transform(output_best[:,-lag:].squeeze(2)).flatten()
         prediction_last = scaler.inverse_transform(output_last[:,-lag:].squeeze(2)).flatten()
 
-        y_data.append(y.reshape(-1,lag)) #= np.concatenate((y_data,y), axis=0)
-        pred_best.append(prediction_best.reshape(-1,lag)) #= np.concatenate((pred_best,prediction_best), axis=0)
-        pred_last.append(prediction_last.reshape(-1,lag)) #= np.concatenate((pred_best,prediction_best), axis=0)
+        y_data.append(y.reshape(-1,lag))
+        pred_best.append(prediction_best.reshape(-1,lag))
+        pred_last.append(prediction_last.reshape(-1,lag))
         
-        del y,y_clone,ds
+        del y,y_clone_best,y_clone_last,ds
         torch.cuda.empty_cache()
         
     y_data = np.vstack(y_data)
@@ -52,15 +53,15 @@ def plot_test_rmse(net, model_str, dl, scaler, lag, device):
     x=np.arange(1,lag+1)
 
     fig, ax = plt.subplots(1, 1, figsize=(18, 18))
-    fig.suptitle(model_str + ' - RMSE OVER LAG STEPS')
-    fig.supxlabel('Epochs')
-    fig.supylabel('Losses')
+    fig.suptitle(model_str + f' - {actual_epochs} - RMSE OVER LAG STEPS')
+    fig.supxlabel('LAG STEPS')
+    fig.supylabel('RMSE')
 
     ax.plot(x, rmse_best, label = 'rmse_best')
     ax.plot(x, rmse_last, label = 'rmse_last')
     ax.grid(True)
     ax.legend()
 
-    fig.savefig('./Tensorboard/models/'+model_str+'_rmse.png')
-    print(f' RMSE Plot of MODEL {model_str} saved')
+    fig.savefig('./Tensorboard/models/'+model_str+f'_rmse_{actual_epochs}.png')
+    print(f'\n RMSE Plot of MODEL {model_str} saved')
     

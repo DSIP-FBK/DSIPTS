@@ -15,31 +15,33 @@ class DecoderBlock(nn.Module):
         self.linear2 = nn.Linear(forward_expansion*full_embed_size,full_embed_size, bias = False)
         self.norm2 = nn.LayerNorm(full_embed_size)
         self.norm3 = nn.LayerNorm(full_embed_size)
-        # self.dropout = nn.Dropout(dropout)
+        self.dropout1 = nn.Dropout(dropout)
+        self.dropout2 = nn.Dropout(dropout)
+        self.dropout3 = nn.Dropout(dropout)
     
     def forward(self, decoding, enc_context, target_seq, encoder_mask, decoder_mask):
         
         # First Mask
         masked_query = self.masked_attention(decoding, decoding, decoding, decoder_mask)
+        masked_query = self.dropout1(masked_query)
         masked_query = decoding + masked_query
         masked_query = self.norm1(masked_query)
-        # masked_query = self.dropout(masked_query)
 
         # Second Mask
         target_att = self.target_attention(masked_query, enc_context, target_seq, encoder_mask)
+        target_att = self.dropout2(target_att)
         target_att = target_att + masked_query
         target_att = self.norm2(target_att)
-        # target_att = self.dropout(target_att)
 
         # FFN
         ffn = self.linear1(target_att.float())
         ffn = self.ReLU(ffn)
+        out = self.dropout3(ffn)
         ffn = self.linear2(ffn)
         ffn = ffn + target_att
         ffn = self.norm3(ffn)
-        # out = self.dropout(ffn)
         
-        return ffn # out
+        return out
 
 class Decoder(nn.Module):
     def __init__(self, full_embed_size, n_dec,

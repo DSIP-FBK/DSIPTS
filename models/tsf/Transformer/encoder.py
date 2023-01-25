@@ -15,24 +15,28 @@ class EncoderBlock(nn.Module):
         self.ReLU = nn.ReLU()
         self.linear2 = nn.Linear(forward_expansion*full_embed_size, full_embed_size, bias = False)
         self.norm2 = nn.LayerNorm(full_embed_size)
-        # self.dropout = nn.Dropout(dropout)
+        self.dropout1 = nn.Dropout(dropout)
+        self.dropout2 = nn.Dropout(dropout)
+        self.dropout3 = nn.Dropout(dropout)
         
     def forward(self, queries, keys, values, mask):
     
         # Self Att
         x = self.attention(queries, keys, values, mask)
+        x = self.dropout1(x)
         x = x + values
         x = self.norm1(x)
         
         # FFN
         ffn = self.linear1(x.float())
         ffn = self.ReLU(ffn)
+        ffn = self.dropout2(ffn)
         ffn = self.linear2(ffn)
+        ffn = self.dropout3(ffn)
         ffn = ffn + x
         ffn = self.norm2(ffn)
-        # out = self.dropout(ffn)
         
-        return ffn # out
+        return ffn
         
 class Encoder(nn.Module):
     def __init__(self, full_embed_size, n_enc, 
