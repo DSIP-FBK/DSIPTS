@@ -36,6 +36,26 @@ def main(
 
     device = torch.device("cuda" if torch.cuda.is_available() else 'cpu')
 
+    # paths of the model
+    if model_str=='':
+        model_str = f'{batch_size}_{epochs}_{seq_len}_{lag}_{lr}_{wd}_{n_enc}_{n_dec}_{time_emb}_{y_emb}_{full_emb}_{heads}_{forward_exp}_{dropout}'
+    else:
+        model_str_split = model_str.split('_')
+        batch_size = int(model_str_split[0])
+        epochs = int(model_str_split[1])
+        seq_len = int(model_str_split[2])
+        lag = int(model_str_split[3])
+        lr = float(model_str_split[4])
+        wd = float(model_str_split[5])
+        n_enc = int(model_str_split[6])
+        n_dec = int(model_str_split[7])
+        time_emb = int(model_str_split[8])
+        y_emb = int(model_str_split[9])
+        full_emb = int(model_str_split[10])
+        heads = int(model_str_split[11])
+        forward_exp= int(model_str_split[12])
+        dropout = float(model_str_split[13])
+
     # Initialize the net and send it to device
     #* TRANSFORMER
     net=Transformer(seq_len=seq_len, lag = lag, 
@@ -50,9 +70,6 @@ def main(
     print(f'\t total_params     = {total_params}')
     print(f'\t trainable_params = {trainable_params}\n') 
 
-    # paths of the model
-    if model_str=='':
-        model_str = f'{batch_size}_{epochs}_{seq_len}_{lag}_{lr}_{wd}_{n_enc}_{n_dec}_{time_emb}_{y_emb}_{full_emb}_{heads}_{forward_exp}_{dropout}'
     
     print('> MODEL: '+ model_str)
     
@@ -76,19 +93,22 @@ def main(
         print('-'*50)
 
     # Use the .pkl file to plot train and validation losses of the model
+    # Actual epochs value got from the length of loss lists: value saved to register it in plots and compare them at different phases of the training
+    actual_epochs = epochs
     #* LOSSES
     if plot_loss:
         print('> Start Plot Losses\n')
-        plot_loss_train(model_str=model_str, lag=lag)
+        actual_epochs = plot_loss_train(model_str=model_str, lag=lag)
         print('\n End Plot Losses\n')
         print('-'*50)
-    
+    print(f'\n> Actual Epochs = {actual_epochs}\n')
+    print('-'*50)
     # Wrt the value of 'plot' (bool var) save a plot of predictions of the corresponding model
     # In output we get the path of the plot
     #* BATCHES
     if plot_batch:
         print('> Start Plot Test Batch\n')
-        plot_test_batch(net, model_str=model_str, dl=test_dl, scaler=scaler_y, lag=lag, device=device)
+        plot_test_batch(net, model_str=model_str, dl=test_dl, scaler=scaler_y, lag=lag, actual_epochs=actual_epochs, device=device)
         print('\n End Plot Test Batch\n')
         print('-'*50)
 
@@ -96,7 +116,7 @@ def main(
     #* RMSE
     if plot_rmse:
         print('> Start Plot Test RMSE\n')
-        plot_test_rmse(net=net, model_str=model_str, dl=test_dl, scaler=scaler_y, lag=lag, device=device)
+        plot_test_rmse(net=net, model_str=model_str, dl=test_dl, scaler=scaler_y, lag=lag, actual_epochs=actual_epochs, device=device)
         print('\n End Plot Test RMSE\n')
         print('-'*50)
 
@@ -133,20 +153,21 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     print('\n> AIMS:')
-    print(f'   - load_all_seq={args.load_all_seq}')
-    print(f'   - train={args.train}')
-    print(f'   - plot={args.plot}')
-    print(f'   - rmse={args.rmse}')
+    print(f'   - load_all_seq = {args.load_all_seq}')
+    print(f'   - train = {args.train}')
+    print(f'   - losses = {args.loss}')
+    print(f'   - plot = {args.plot}')
+    print(f'   - rmse = {args.rmse}')
     #RUNNING MAIN
     main(
         load_all_seq=args.load_all_seq,                                                                                        # data params
-        train=args.train, plot_loss=args.loss, plot_batch=args.plot, plot_rmse=args.rmse,                                                           # aim bools
-        model_str=args.model_str,
-        batch_size=args.batch_size, batch_size_test=args.batch_size_test,
-        seq_len=args.sequence_length, lag=args.lag,                                                # parallelizing and sequence shapes
+        train=args.train, plot_loss=args.loss, plot_batch=args.plot, plot_rmse=args.rmse,                                      # aim bools
+        model_str=args.model_str,                                                                                              # DEFAULT PATH 16_500_256_60_1e-07_0.0_4_2_4_4_16_3_2_0.0
+        batch_size=args.batch_size, batch_size_test=args.batch_size_test,                                                      # batch sizes
+        seq_len=args.sequence_length, lag=args.lag,                                                                            # parallelizing and sequence shapes
         time_emb=args.x_emb, y_emb=args.y_emb, full_emb=args.full_emb,                                                         # emb params
         n_enc=args.encoder, n_dec=args.decoder, heads=args.heads, forward_exp=args.forward_expansion, dropout=args.dropout,    # model size
         lr=args.lr, wd=args.wd, scheduler_step=args.scheduler_step, epochs=args.epochs, early_stopping = args.early_stopping)  # learning params
 
 
-    # DEFAULT PATH 16_500_256_60_1e-07_0.0_4_2_4_4_16_3_2_0.0
+    

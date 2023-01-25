@@ -11,8 +11,8 @@ echo .... Running on $(hostname) ....
 echo $CUDA_VISIBLE_DEVICES
 
 cd
-cd tsf_emb
-python Transformer/main.py -r -bs 8 -bs_t 1 -E 2000 -enc 4 -dec 2 -xe 12 -ye 12 -fe 256 -he 3 -f 2 -lr 1e-07
+cd tsf
+python Transformer/main.py -l -p -r -mod 16_5000_256_60_1e-07_0.0_4_2_4_4_16_2_2_0.0
 
 sleep 10
 echo Job Done!
