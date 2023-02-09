@@ -1,0 +1,5 @@
+---
+path:
+  data: '/storage/DSIP/edison/data/edison/processed.pkl'
+  save: '/storage/DSIP/edison/anmartinelli/directTsf/direct_'
+  direct: 'direct_'

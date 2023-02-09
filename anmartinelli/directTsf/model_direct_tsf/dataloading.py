@@ -8,7 +8,8 @@ from sklearn.preprocessing import StandardScaler
 from datetime import datetime
 from time import time
 
-def dataloading(path='./data/processed.pkl', batch_size:int = 20, batch_size_test:int = 20, seq_len:int = 256, lag:int = 61, step:int = 1, load_all_seq:bool=True, train_bool:bool = True):
+def dataloading(path='../../data/edison/processed.pkl', batch_size:int = 20, batch_size_test:int = 20, 
+                seq_len:int = 256, lag:int = 61, step:int = 1, which_hour_seq:int=24, train_bool:bool = True):
     
     dictbound = {'start_train':'2017-11-15', #pd.to_datetime(dictbound['start_train'])
                 'end_train':'2020-01-01',
@@ -44,7 +45,7 @@ def dataloading(path='./data/processed.pkl', batch_size:int = 20, batch_size_tes
     print('-'*50)
 
     class CustomDataset(torch.utils.data.Dataset):
-        def __init__(self, df, seq_len=256, lag=60, step=1, load_all_seq=load_all_seq):
+        def __init__(self, df, seq_len=256, lag=60, step=1, which_hour_seq=which_hour_seq):
             X = []
             Y = []
             Is_Low = []
@@ -59,7 +60,7 @@ def dataloading(path='./data/processed.pkl', batch_size:int = 20, batch_size_tes
                 # if np.isfinite(df.y[i-seq_len:i].sum()):
                 if not (np.isnan(df.y[i-seq_len:i]).any()):
 
-                    if load_all_seq:
+                    if which_hour_seq==24:
                         # ALL SEQUENCES
                         X.append(x[i-seq_len:i])
                         Y.append(y[i-seq_len:i])
@@ -67,9 +68,7 @@ def dataloading(path='./data/processed.pkl', batch_size:int = 20, batch_size_tes
 
                     else:
                         # SEQUENCES WITH REDICTION STARTING FROM 'hour'
-                        hour = 12
-
-                        if x[i-lag,-2] == hour: # x is [y,m,d,h,dow]
+                        if x[i-lag,-2] == which_hour_seq: # x is [y,m,d,h,dow]
                             # x =  df.tempo[i-seq_len:i].apply(lambda x: x.strftime('%Y %m %d %H %w').split()).values
                             # y = torch.tensor(df.y[i-seq_len:i].values)
                             # is_low = torch.tensor(df.is_low[i-seq_len:i].values)
@@ -88,9 +87,9 @@ def dataloading(path='./data/processed.pkl', batch_size:int = 20, batch_size_tes
             return (self.x[index], self.y[index], self.is_low[index])
 
     if train_bool:
-        train_Ds = CustomDataset(train, step=step, load_all_seq=load_all_seq)
-        val_Ds = CustomDataset(val, step=step, load_all_seq=load_all_seq)
-        test_Ds = CustomDataset(test, step=step, load_all_seq=load_all_seq)
+        train_Ds = CustomDataset(train, step=step, which_hour_seq=which_hour_seq)
+        val_Ds = CustomDataset(val, step=step, which_hour_seq=which_hour_seq)
+        test_Ds = CustomDataset(test, step=step, which_hour_seq=which_hour_seq)
 
         train_dl = DataLoader(train_Ds, batch_size = batch_size, shuffle = True)
         val_dl = DataLoader(val_Ds, batch_size = batch_size, shuffle = True)
@@ -102,7 +101,7 @@ def dataloading(path='./data/processed.pkl', batch_size:int = 20, batch_size_tes
     else:
         train_dl = None
         val_dl = None
-        test_Ds = CustomDataset(test, step=step, load_all_seq=load_all_seq)
+        test_Ds = CustomDataset(test, step=step, which_hour_seq=which_hour_seq)
 
         test_dl = DataLoader(test_Ds, batch_size = batch_size_test, shuffle = True)
         print(f'train_dl = None, val_dl = None, len_test_dl = {len(test_dl)}')
@@ -114,7 +113,7 @@ def dataloading(path='./data/processed.pkl', batch_size:int = 20, batch_size_tes
 
 if __name__=='__main__':
     t = time()
-    train_dl, val_dl, test_dl, scaler_y = dataloading(batch_size=16, seq_len=256, lag=61, step=1, load_all_seq=True, train_bool=True)
+    train_dl, val_dl, test_dl, scaler_y = dataloading(batch_size=16, seq_len=256, lag=61, step=1, which_hour_seq=24, train_bool=True)
     print(f'time elapsed: {time()-t}')
     # bs = 16, las = True -> len_train_dl = 1150, len_val_dl = 487, len_test_dl = 580
     # bs = 1, las = True -> len_train_dl = 18392, len_val_dl = 7784, len_test_dl = 9272

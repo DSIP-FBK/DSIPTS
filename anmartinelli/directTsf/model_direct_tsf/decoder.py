@@ -36,10 +36,10 @@ class DecoderBlock(nn.Module):
         # FFN
         ffn = self.linear1(target_att.float())
         ffn = self.ReLU(ffn)
-        out = self.dropout3(ffn)
+        ffn = self.dropout3(ffn)
         ffn = self.linear2(ffn)
         ffn = ffn + target_att
-        ffn = self.norm3(ffn)
+        out = self.norm3(ffn)
         
         return out
 
@@ -55,7 +55,8 @@ class Decoder(nn.Module):
             forward_expansion=forward_expansion, dropout=dropout, device=device) for _ in range(self.num_layers_dec)] )
                
     def forward(self, target_seq, enc_context, past_y, encoder_mask, decoder_mask):
-        
+        # import pdb
+        # pdb.set_trace()
         decoding = target_seq
         for layer in self.layers_dec:
             decoding = layer(decoding, enc_context, past_y, encoder_mask, decoder_mask)

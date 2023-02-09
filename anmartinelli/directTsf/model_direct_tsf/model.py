@@ -30,6 +30,8 @@ class Transformer(nn.Module):
         self.given_embed = nn.Embedding(2, full_emb) # given = {0,1} wrt past or fututre
         # EMB OF Is_Low
         self.low = nn.Embedding(2, full_emb) # given = {0,1} wrt past or fututre
+        # EMB OF pred_pos
+        self.pred_pos = nn.Embedding(lag, full_emb) # given = {0,1} wrt past or fututre
         
         self.Encoder = Encoder(full_embed_size=full_emb, n_enc=n_enc,
                                 heads=heads, forward_expansion=forward_exp, dropout=dropout, device=device)
@@ -72,25 +74,27 @@ class Transformer(nn.Module):
         # VALUES OF Y FOR ALL STEPS:
         y = torch.unsqueeze(y,dim=2).to(self.device)
 
-        for i in range(self.lag):
-            past_x = x[:,:split+i,:]
-            past_y = y[:,:split+i,:]
+        past_x = x[:,:split,:]
+        past_y = y[:,:split,:]
 
-            future_x = x[:,split+i:split+i+1,:]
+        future_x = x[:,split:,:]
+        pred_pos = torch.arange(0,self.lag).repeat(bs,1).to(self.device)
+        emb_pred_pos = self.pred_pos(pred_pos)
+        future_x = (future_x + emb_pred_pos)/2
+
+        encoder_mask = None
+        decoder_mask = torch.triu(torch.full((future_x.shape[1], future_x.shape[1]), float('-inf'), device=self.device), diagonal=1)
+        
+        # import pdb
+        # pdb.set_trace()
+        
+        # Encoder
+        enc_context = self.Encoder(past_x, encoder_mask)
+
+        # Decoder
+        out = self.Decoder(future_x, enc_context, past_y, encoder_mask, decoder_mask)
+
+        # Linear
+        out = self.linear_out(out)
             
-            # MASKS:
-            encoder_mask = None
-            decoder_mask = None # autoregressive model
-            
-            # Encoder
-            enc_context = self.Encoder(past_x, encoder_mask)
-
-            # Decoder
-            out = self.Decoder(future_x, enc_context, past_y, encoder_mask, decoder_mask)
-
-            # Linear
-            out = self.linear_out(out)
-            
-            y[:,split+i,:] = out[:,0,:]
-
-        return y[:,-self.lag:]
+        return out

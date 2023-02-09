@@ -1,5 +1,4 @@
 import torch
-# from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 import pickle as pkl
 import sys
@@ -57,20 +56,14 @@ def test_step(net, data_loader, lag, cost_function, device):
             low.to('cpu')
             output.to('cpu')
 
-    print('-'*50)
-    print(f'PRED: \n{output[0]}')
-    print('-'*50)
-    print(f'REAL: \n{y[0]}')
-    print('-'*50)
-            
     return cumulative_loss/(i+1)
 
-def training(net, device, loader_train, loader_val, model_str,
-        lag:int = 60, lr:float = 1e-06, wd:float = 0.00, scheduler_step:int = 150, epochs:int = 1000):
+def training(path_save, net, device, loader_train, loader_val,
+                lag, lr, wd, scheduler_step, epochs):
 
-    pck_str = './Tensorboard/models/'+model_str+'.pkl'
-    torch_save_last = './Tensorboard/models/'+model_str+'_last.pt'
-    torch_save_best = './Tensorboard/models/'+model_str+'_best.pt'
+    pck_str = path_save+'.pkl'
+    torch_save_last = path_save+'_last.pt'
+    torch_save_best = path_save+'_best.pt'
     
     def get_cost_function():
         cost_function = torch.nn.L1Loss(reduction='mean')

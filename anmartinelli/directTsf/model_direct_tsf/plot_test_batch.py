@@ -12,11 +12,11 @@ def plot_test_batch(net, model_str, dl, scaler, lag, actual_epochs, device):
     net_best = net
     net_last = copy.deepcopy(net)
 
-    path_best = './Tensorboard/models/'+model_str+'_best.pt'
+    path_best = './Tensorboard/models/direct_'+model_str+'_best.pt'
     net_best.load_state_dict(torch.load(path_best, map_location=device))
     net_best.eval()
 
-    path_last = './Tensorboard/models/'+model_str+'_last.pt'
+    path_last = './Tensorboard/models/direct_'+model_str+'_last.pt'
     net_last.load_state_dict(torch.load(path_last, map_location=device))
     net_last.eval()
  
@@ -40,8 +40,6 @@ def plot_test_batch(net, model_str, dl, scaler, lag, actual_epochs, device):
         output_best = net_best(ds,y_clone_best,low).cpu().detach().numpy()
         output_last = net_last(ds,y_clone_last,low).cpu().detach().numpy()
 
-        # import pdb
-        # pdb.set_trace()
         # RESCALE THE OUTPUTS TO STORE Y_DATA,PRED_BEST, PRED_LAST
         y = scaler.inverse_transform(y[:,-lag:].cpu()).flatten()
         prediction_best = scaler.inverse_transform(output_best[:,-lag:].squeeze(2)).flatten()
@@ -72,7 +70,7 @@ def plot_test_batch(net, model_str, dl, scaler, lag, actual_epochs, device):
     y_lim = [0, 6000]
     plt.cla()
     fig, axs = plt.subplots(4, 1, figsize=(18, 18))
-    fig.suptitle(model_str+ f' - {actual_epochs} - PLOT OF BATCHES')
+    fig.suptitle(f'DIRECT - {model_str} - {actual_epochs} - PLOT OF BATCHES')
     fig.supxlabel('TIME')
     fig.supylabel('BATCHES')
 
@@ -93,6 +91,10 @@ def plot_test_batch(net, model_str, dl, scaler, lag, actual_epochs, device):
         ax.grid(True)
         ax.legend()
     # plt.show()
-    fig.savefig('./Tensorboard/models/'+model_str+f'_plot_{actual_epochs}.png')
+    fig.savefig('./Tensorboard/models/direct_'+model_str+f'_plot_{actual_epochs}.png')
     
     print(f'\n Prediction Plot of MODEL {model_str} saved')
+
+
+if __name__ == '__main__':
+    plot_test_batch('direct_128_1000_256_60_0.0001_0.2_6_8_16_16_32_3_2_0.2',60)
