@@ -1,0 +1,10 @@
+---
+cl:
+  data: '/storage/DSIP/edison/data/edison/processed.pkl'
+  folder_models: '/storage/DSIP/edison/anmartinelli/models/'
+  folder_works: '/storage/DSIP/edison/anmartinelli/works/'
+
+loc:
+  data: '/home/andrea/timeseries/data/edison/processed.pkl'
+  folder_models: '/home/andrea/timeseries/anmartinelli/models/'
+  folder_works: '/home/andrea/timeseries/anmartinelli/works/'
