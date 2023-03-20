@@ -36,9 +36,11 @@ spot = Categorical('spot',100,[7],1,'additive',[10])
 ts = TimeSeries('prova')
 ```
 The baseline tool timeseries is defined as:
-```math
+
+$$
 y(t) = (10\cos{t/(2\pi\cdot l/100)) + A(t)) * M(t) + Noise
-```
+$$
+
 where $l$ is the length of the signal, $A(t)$ correspond to all the contribution of the additive categorical variable and $M(t)$ all the multiplicative contributions.
 
 We can now generate a timeseries of length 5000 and the cateorical features described above:
