@@ -21,7 +21,7 @@ class Permute(nn.Module):
 class RNN(Base):
 
     
-    def __init__(self, seq_len,pred_len,channels_past,channels_future,embs,embedding_final,hidden_LSTM,num_layers,kernel_size_encoder,sum_embs,out_channels,use_quantiles=False,optim_config=None,scheduler_config=None):
+    def __init__(self, seq_len,pred_len,channels_past,channels_future,embs,embedding_final,hidden_LSTM,num_layers,kernel_size_encoder,sum_embs,out_channels,quantiles=[],optim_config=None,scheduler_config=None):
         super(RNN, self).__init__()
         self.save_hyperparameters(logger=False)
         #self.device = get_device()
@@ -34,7 +34,12 @@ class RNN(Base):
         self.channels_future = channels_future 
         self.embs = nn.ModuleList()
         self.sum_embs = sum_embs
-        self.use_quantiles = use_quantiles
+        assert (len(quantiles) ==0) or (len(quantiles)==3)
+        if len(quantiles)>0:
+            self.use_quantiles = True
+        else:
+            self.use_quantiles = False
+        
         emb_channels = 0
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
@@ -72,7 +77,7 @@ class RNN(Base):
 
   
         if  self.use_quantiles:
-            self.loss = QuantileLoss([0.25,0.5,0.75])
+            self.loss = QuantileLoss(quantiles)
         else:
             self.loss = nn.L1Loss()
         #self.device = get_device()

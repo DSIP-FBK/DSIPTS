@@ -10,6 +10,8 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 import pytorch_lightning as pl
 from pytorch_lightning import Callback
 from pytorch_lightning.loggers import CSVLogger
+from typing import Optional
+
 pd.options.mode.chained_assignment = None 
 import pickle
 
@@ -141,6 +143,14 @@ class TimeSeries():
     
     '''
     name: str
+    past_variables: Optional(List(str)) = []
+    future_variables: Optional(List(str)) = []  
+    cat_var: Optional(List(str)) = []
+    target_variables: Optional(List(str)) = []
+    out_vars:  Optional(int) = 0
+    num_var:  Optional(int) = 0
+    def __str__(self) -> str:
+        return f"Timeseries named {self.name} with\n categorical variable\n: {self.cat_var},\n future variables\n {self.future_variables},\n past variables\n {self.past_variables},\n and target variables\n {self.target_variables}"
     
     def _generate_base(self,length,type=0):
         if type==0:
@@ -347,15 +357,16 @@ class TimeSeries():
         if (self.out_vars>1 ) and quantile:
             print('care multioutoput with quantile not tested')
         self.config = config
-    def train_model(self,dirpath,perc_train=0.6, perc_valid=0.2,past_steps = 100,future_steps=20,shift = 0,batch_size=100,num_workers=4,max_epochs=500,auto_lr_find=True,starting_point=None):
-        self.split_params = {'perc_train':perc_train,
-                             'perc_valid':perc_valid,
+    def train_model(self,dirpath,perc_train=0.6, perc_valid=0.2, range_train=None, range_validation=None, range_test=None,past_steps = 100,future_steps=20,shift = 0,batch_size=100,num_workers=4,max_epochs=500,auto_lr_find=True,starting_point=None):
+        self.split_params = {'perc_train':perc_train,'perc_valid':perc_valid,
+                              'range_train':range_train, 'range_validation':range_validation, 'range_test':range_test,
                              'past_steps':past_steps,
                              'future_steps':future_steps,
                              'shift':shift,
                              'starting_point':starting_point
                              }
-        train,validation,test = self.split_for_train(perc_train=perc_train, perc_valid=perc_valid,past_steps = past_steps,future_steps=future_steps,shift = shift,starting_point=starting_point)
+        train,validation,test = self.split_for_train(**self.split_params)
+        
         print(f'train:{len(train)}, validation:{len(validation)}, test:{len(test)}')
         train_dl = DataLoader(train, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers)
         valid_dl = DataLoader(validation, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers)

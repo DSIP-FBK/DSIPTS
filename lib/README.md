@@ -8,8 +8,83 @@ This library allows to:
 
 ##How to
 
-In a pre-generated environment install pytorch and pytorch-lightning (`pip install pytorch-lightning`) 
+In a pre-generated environment install pytorch and pytorch-lightning (`pip install pytorch-lightning`) then go inside the lib folder and execute:
 
 ``
 python setup.py install --force
 ``
+
+##Test 
+You can test your model using a tool timeseries
+
+``
+##import modules
+from dsipts import Categorical,TimeSeries, RNN, Attention
+
+###########3#define some categorical features##########
+
+##weekly, multiplicative
+settimana = Categorical('settimanale',1,[1,1,1,1,1,1,1],7,'multiplicative',[0.9,0.8,0.7,0.6,0.5,0.99,0.99])
+
+##montly, additive (here there are only 5 month)
+mese = Categorical('mensile',1,[31,28,20,10,33],5,'additive',[10,20,-10,20,0])
+
+##spot categorical variables: in this case it occurs every 100 days and it lasts 7 days adding 10 to the original timeseries
+spot = Categorical('spot',100,[7],1,'additive',[10])
+
+##initizate a timeseries object
+ts = TimeSeries('prova')
+```
+The baseline tool timeseries is defined as:
+```math
+y(t) = (10\cos{t/(2\pi\cdot l/100)) + A(t)) * M(t) + Noise
+```
+where $l$ is the length of the signal, $A(t)$ correspond to all the contribution of the additive categorical variable and $M(t)$ all the multiplicative contributions.
+
+We can now generate a timeseries of length 5000 and the cateorical features described above:
+```
+ts.generate_signal(noise_mean=1,categorical_variables=[settimana,mese,spot],length=5000,type=0)
+``
+`type=0` is the base function used. In this case the name of the time variable is `time` and the timeseries is called `signal`.
+
+Now we can define a forecasting problem, for example using the last 100 steps for predicting the 20 steps in the future. In this case we have one time series so:
+```
+past_steps = 100
+future_steps = 20
+multioutput = False
+```
+
+Let suppose to use a RNN encoder-decoder sturcture, then the model has the following parameters:
+```
+
+config = dict(model_configs =dict(
+                                    embedding_final = 16,
+                                    hidden_LSTM = 256,
+                                    num_layers = 2,
+                                    sum_embs = True,
+                                    kernel_size_encoder = 20,
+                                    seq_len = past_steps,
+                                    pred_len = future_steps,
+                                    channels_past = len(ts.num_var),
+                                    channels_future = len(ts.future_variables),
+                                    embs = [ts.dataset[c].nunique() for c in ts.cat_var],
+                                    use_quantiles=False if multioutput else True,
+                                    out_channels = 2 if multioutput else 1),
+                scheduler_config = dict(gamma=0.1,step_size=100),
+                optim_config = dict(lr = 0.0005,weight_decay=0.01))
+model_sum = RNN(**config['model_configs'],optim_config = config['optim_config'],scheduler_config =config['scheduler_config'] )
+ts.set_model(model_sum,quantile = config['model_configs']['use_quantiles'],config=config )
+
+```
+
+Notice that there are some free parameters: `embedding_final` for example represent the dimension of the embedded categorical variable, `sum_embs` will sum all the categorical contribution otherwise it will concatenate them. It is possible to use a quantile loss, specify some parameters of the scheduler (StepLR) and optimizer parameters (Adam). 
+**TODO** Use omegaconf!
+
+Now we are ready to train our model using:
+```
+
+ts.train_model(dirpath=<path to weights>,perc_train=0.6, perc_valid=0.2,past_steps = past_steps,future_steps=future_steps,shift = 0,batch_size=100,num_workers=4,max_epochs=40,auto_lr_find=True,starting_point=None)
+```
+
+
+

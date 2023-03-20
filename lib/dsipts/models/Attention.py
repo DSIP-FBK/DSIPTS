@@ -36,12 +36,16 @@ class PositionalEncoding(nn.Module):
 class Attention(Base):
 
 
-    def __init__(self, channels_past,channels_future,n_embd, num_heads,seq_len,pred_len,dropout,n_layer_encoder,n_layer_decoder,embs,embedding_final,out_channels,use_quantiles=False,optim_config=None,scheduler_config=None):
+    def __init__(self, channels_past,channels_future,n_embd, num_heads,seq_len,pred_len,dropout,n_layer_encoder,n_layer_decoder,embs,embedding_final,out_channels,quantiles=[],optim_config=None,scheduler_config=None):
         self.save_hyperparameters(logger=False)
         # n_embd: embedding dimension, n_head: the number of heads we'd like
         super().__init__()
         self.pred_len = pred_len
-        self.use_quantiles = use_quantiles
+        assert (len(quantiles) ==0) or (len(quantiles)==3)
+        if len(quantiles)>0:
+            self.use_quantiles = True
+        else:
+            self.use_quantiles = False
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
 
@@ -68,7 +72,7 @@ class Attention(Base):
 
   
         if  self.use_quantiles:
-            self.loss = QuantileLoss([0.25,0.5,0.75])
+            self.loss = QuantileLoss(quantiles)
         else:
             self.loss = nn.L1Loss()
         
@@ -93,13 +97,18 @@ class Attention(Base):
         src = self.encoder(x)
 
         ##decoder part
-        x_future = batch['x_num_future'].to(self.device)
-        tmp = [x_future,self.pe(x_future[:,:,0])]
+        if 'x_num_future' in batch.keys():
+            x_future = batch['x_num_future'].to(self.device)
+            tmp = [x_future,self.pe(x_future[:,:,0])]
+        else:
+            tmp = []
         if 'x_cat_future' in batch.keys():
             x_cat_future = batch['x_cat_future'].to(self.device)
             for i in range(len(self.emb_list)):
                 tmp.append(self.emb_list[i](x_cat_future[:,:,i]))
-        
+            tmp.append(self.pe(x_cat_future[:,:,i]))
+        if len(tmp)==0:
+            SystemError('Please give me something for the future')
         y = torch.cat(tmp,2)
         
         y = self.initial_layer_decoder( y.permute(0,2,1)).permute(0,2,1)       
