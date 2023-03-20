@@ -17,7 +17,7 @@ python setup.py install --force
 ##Test 
 You can test your model using a tool timeseries
 
-``
+```
 ##import modules
 from dsipts import Categorical,TimeSeries, RNN, Attention
 
@@ -80,11 +80,15 @@ ts.set_model(model_sum,quantile = config['model_configs']['use_quantiles'],confi
 Notice that there are some free parameters: `embedding_final` for example represent the dimension of the embedded categorical variable, `sum_embs` will sum all the categorical contribution otherwise it will concatenate them. It is possible to use a quantile loss, specify some parameters of the scheduler (StepLR) and optimizer parameters (Adam). 
 **TODO** Use omegaconf!
 
-Now we are ready to train our model using:
+Now we are ready to split and train our model using:
 ```
-
-ts.train_model(dirpath=<path to weights>,perc_train=0.6, perc_valid=0.2,past_steps = past_steps,future_steps=future_steps,shift = 0,batch_size=100,num_workers=4,max_epochs=40,auto_lr_find=True,starting_point=None)
+ts.train_model(dirpath=<path to weights>,perc_train=0.6, perc_valid=0.2,past_steps = past_steps,future_steps=future_steps, range_train=None, range_validation=None, range_test=None,shift = 0,batch_size=100,num_workers=4,max_epochs=40,auto_lr_find=True,starting_point=None)
 ```
+It is possble to split the data indicating the percentage of data to use in train, validation, test or the ranges. The `shift` parameters indicates if there is a shift
 
 
 
+
+
+ATTENTION: se metto shift 0 e non metto il target nelle feature future lui non usa la y per predirre se stesso
+se metto shift 1 e metto nel target lui usa le info categoriche del timestamp prima il che non mi sembra ragionevole ma non ho molte idee migliori per ora
