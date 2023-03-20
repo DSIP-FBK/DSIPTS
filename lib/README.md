@@ -38,7 +38,7 @@ ts = TimeSeries('prova')
 The baseline tool timeseries is defined as:
 
 $$
-y(t) = (A(t) + 10\cos{\left(\frac{50}{l \cdot \pi}\right)} ) * M(t) + Noise
+y(t) = \left[A(t) + 10\cos{\left(\frac{50}{l \cdot \pi}\right)} \right] * M(t) + Noise
 $$
 
 where $l$ is the length of the signal, $A(t)$ correspond to all the contribution of the additive categorical variable and $M(t)$ all the multiplicative contributions.
