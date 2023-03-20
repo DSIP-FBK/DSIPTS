@@ -1,8 +1,0 @@
-Questo dataset contiene i dati del progetto edison parzialmente gia' processati.VARIABILE DA PREDIRRE: y (energia elettrica) nella prossima release anche quella termica
-SCHEMA DI PREDIZIONE: 60 timestamp nel futuro a partire da un punto qualsiasi del giorno
-COVARIATE PASSATE: tutte le altre colonne, generalmente sensori dell'impianto di generazione
-COVARIATE FUTURE: nessuna se non quelle relative al giorno/ora
-
-DETTAGLI: ci sono dei nan, dei periodi anche lunghi di mancanza dati, per il resto sembra una classica TS, non sembrano esseci trend di crescita/decrescita ma molti pattern locali che dipendono dal periodo dell'anno (natale e ferragosto in primis) ma anche le ore del giorno hanno il loro peso
-
-MODELLI: testato neural prophet (metto nella cartella esperimenti la prova) usando pero' solo y senza covariate. Da provare encoder-decoder LSTM o transformer (anche su questo ho cominciato a lavorarci)
