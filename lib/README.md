@@ -46,7 +46,8 @@ where $l$ is the length of the signal, $A(t)$ correspond to all the contribution
 We can now generate a timeseries of length 5000 and the cateorical features described above:
 ```
 ts.generate_signal(noise_mean=1,categorical_variables=[settimana,mese,spot],length=5000,type=0)
-``
+```
+
 `type=0` is the base function used. In this case the name of the time variable is `time` and the timeseries is called `signal`.
 
 Now we can define a forecasting problem, for example using the last 100 steps for predicting the 20 steps in the future. In this case we have one time series so:
