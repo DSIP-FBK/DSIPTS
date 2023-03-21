@@ -13,6 +13,7 @@ Let $X(t)$ be a multivariate timeseries, e.g. $\forall t, X(t)\in \mathbf{R}^k$ 
 $$
 F(\mathcal{C}(t-K,\ldots,t+\tau),\mathcal{F}(t-K,\ldots,t+\tau),\mathcal{T}(t-K,\ldots,t) ) = \mathcal{T}(t+1,\ldots,t+\tau)
 $$
+for some K that represent the maximum past context.
 
 In the library we adopt some convention that must be used when developing a new model:
 ```
@@ -24,7 +25,7 @@ x_cat_future: the categorical future variables
 ```
 by default, during the dataset construction, the target variable will be added to the `x_num_past` list. Moreover the set of categorical variable will be the same in the past and the future but we choose to distinguish the two parts during the forward loop for seek of generability.
 
-
+During the forward process, the batch is a dictionary with some of the key showed above, remember that not all keys are always present (check it please) and build a model accordlying. The shape of such tensor are in the form $[B,L,C]$ where $B$ indicates the batch size, $L$ the length and $C$ the number of channels.
 ## How to
 
 In a pre-generated environment install pytorch and pytorch-lightning (`pip install pytorch-lightning`) then go inside the lib folder and execute:
@@ -110,7 +111,7 @@ It is possble to split the data indicating the percentage of data to use in trai
 
 
 
-
+# Models
 
 ATTENTION: se metto shift 0 e non metto il target nelle feature future lui non usa la y per predirre se stesso
 se metto shift 1 e metto nel target lui usa le info categoriche del timestamp prima il che non mi sembra ragionevole ma non ho molte idee migliori per ora

@@ -43,7 +43,7 @@ class RNN(Base):
         emb_channels = 0
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
-        if (out_channels>1) and use_quantiles:
+        if (out_channels>1) and self.use_quantiles:
             print('THis is not implemented, please adjust the code for multiputput quantile')
         for k in embs:
             self.embs.append(nn.Embedding(k+1,embedding_final))
