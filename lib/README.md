@@ -8,7 +8,8 @@ This library allows to:
 
 ## Background
 
-Let $X(t)$ be a multivariate timeseries, e.g. $\forall t, X(t)\in \mathbf{R}^k$ for some $k$. The vector space $\mathbf{R}^k$ can be partitioned into two disjoint sets: the categorical features $\mathcal{C}\subset \mathbf{N}^c$ and continuous features $\mathcal{W}\subset \mathbf{R}^{k-c}$. We assume that $\mathcal{C}$ is known for each $t$. Let $\mathcal{F}\mathbf{R}^{f}$ be the set of the known variable for each $t$ and  $\mathcal{T}\mathbf{R}^{s}$ the target variables. Let also define $\tau\in N$ as the number of lag for wich we want a forecast, then the aim of a predictive model is to find a function $F:\mathbf{R}^k\rightarrow\mathbf{R}^{s \times \tau}$ such as:
+Let $X(t)$ be a multivariate timeseries, e.g. $\forall t, X(t)\in \mathbf{R}^k$ for some $k$. The vector space $\mathbf{R}^k$ can be partitioned into two disjoint sets: the categorical features $\mathcal{C}\subset \mathbf{N}^c$ and continuous features $\mathcal{W}\subset \mathbf{R}^{k-c}$. We assume that $\mathcal{C}$ is known for each $t$. Let $\mathcal{F}\subset\mathbf{R}^{f}$ be the set of the known variable for each $t$ and  $\mathcal{T}\subset\mathbf{R}^{s}$ the target variables. Let also define $\tau\in N$ as the number of lag for wich we want a forecast, then the aim of a predictive model is to find a function $F:\mathbf{R}^k\rightarrow\mathbf{R}^{s \times \tau}$ such as:
+
 $$
 F(\mathcal{C}(t-K,\ldots,t+\tau),\mathcal{F}(t-K,\ldots,t+\tau),\mathcal{T}(t-K,\ldots,t) ) = \mathcal{T}(t+1,\ldots,t+\tau)
 $$
