@@ -6,6 +6,23 @@ This library allows to:
 3- load public timeseries
 4- train a predictive model using different pytroch architectures
 
+##Background
+Let $X(t)$ be a multivariate timeseries, e.g. $\forall t, X(t)\in \mathcal{R}^k$ for some $k$. The vector space $\mathcal{R}^k$ can be partitioned into two disjoint sets: the categorical features $\mathcal{C}\subset \mathcal{N}^c$ and continuous features $\mathcal{W}\subset \mathcal{R}^{k-c}$. We assume that $\mathcal{C}$ is known for each $t$. Let $\mathcal{F}\mathcal{R}^{f}$ be the set of the known variable for each $t$ and  $\mathcal{T}\mathcal{R}^{s}$ the target variables. Let also define $\tau\in N$ as the number of lag for wich we want a forecast, then the aim of a predictive model is to find a function $F:\mathcal{R}^k\rightarrow\mathcal{R}^{s \times \tau}$ such as:
+$$
+F(\mathcal{C}(t-K,\ldots,t+\tau),\mathcal{F}(t-K,\ldots,t+\tau),\mathcal{T}(t-K,\ldots,t) ) = \mathcal{T}(t+1,\ldots,t+\tau)
+$$
+
+In the library we adopt some convention that must be used when developing a new model:
+```
+y : the target variable(s)
+x_num_past: the numerical past variables
+x_num_future: the numerical future variables
+x_cat_past: the categorical past variables
+x_cat_future: the categorical future variables
+```
+by default, during the dataset construction, the target variable will be added to the `x_num_past` list. Moreover the set of categorical variable will be the same in the past and the future but we choose to distinguish the two parts during the forward loop for seek of generability.
+
+
 ##How to
 
 In a pre-generated environment install pytorch and pytorch-lightning (`pip install pytorch-lightning`) then go inside the lib folder and execute:
@@ -71,12 +88,12 @@ config = dict(model_configs =dict(
                                     channels_past = len(ts.num_var),
                                     channels_future = len(ts.future_variables),
                                     embs = [ts.dataset[c].nunique() for c in ts.cat_var],
-                                    use_quantiles=False if multioutput else True,
+                                    quantiles=[] if multioutput else [0.1,0.5,0.9],
                                     out_channels = 2 if multioutput else 1),
                 scheduler_config = dict(gamma=0.1,step_size=100),
                 optim_config = dict(lr = 0.0005,weight_decay=0.01))
 model_sum = RNN(**config['model_configs'],optim_config = config['optim_config'],scheduler_config =config['scheduler_config'] )
-ts.set_model(model_sum,quantile = config['model_configs']['use_quantiles'],config=config )
+ts.set_model(model_sum,quantile = model_sum.use_quantiles,config=config )
 
 ```
 

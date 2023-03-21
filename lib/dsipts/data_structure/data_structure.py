@@ -143,14 +143,11 @@ class TimeSeries():
     
     '''
     name: str
-    past_variables: Optional(List(str)) = []
-    future_variables: Optional(List(str)) = []  
-    cat_var: Optional(List(str)) = []
-    target_variables: Optional(List(str)) = []
-    out_vars:  Optional(int) = 0
-    num_var:  Optional(int) = 0
+
     def __str__(self) -> str:
-        return f"Timeseries named {self.name} with\n categorical variable\n: {self.cat_var},\n future variables\n {self.future_variables},\n past variables\n {self.past_variables},\n and target variables\n {self.target_variables}"
+        return f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables}"
+    def __repr__(self) -> str:
+        return f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables}"
     
     def _generate_base(self,length,type=0):
         if type==0:
