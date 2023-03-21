@@ -7,6 +7,7 @@ This library allows to:
 4- train a predictive model using different pytroch architectures
 
 ##Background
+
 Let $X(t)$ be a multivariate timeseries, e.g. $\forall t, X(t)\in \mathcal{R}^k$ for some $k$. The vector space $\mathcal{R}^k$ can be partitioned into two disjoint sets: the categorical features $\mathcal{C}\subset \mathcal{N}^c$ and continuous features $\mathcal{W}\subset \mathcal{R}^{k-c}$. We assume that $\mathcal{C}$ is known for each $t$. Let $\mathcal{F}\mathcal{R}^{f}$ be the set of the known variable for each $t$ and  $\mathcal{T}\mathcal{R}^{s}$ the target variables. Let also define $\tau\in N$ as the number of lag for wich we want a forecast, then the aim of a predictive model is to find a function $F:\mathcal{R}^k\rightarrow\mathcal{R}^{s \times \tau}$ such as:
 $$
 F(\mathcal{C}(t-K,\ldots,t+\tau),\mathcal{F}(t-K,\ldots,t+\tau),\mathcal{T}(t-K,\ldots,t) ) = \mathcal{T}(t+1,\ldots,t+\tau)
