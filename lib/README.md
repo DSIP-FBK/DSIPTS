@@ -13,7 +13,8 @@ Let $X(t)$ be a multivariate timeseries, e.g. $\forall t, X(t)\in \mathbf{R}^k$ 
 $$
 F(\mathcal{C}(t-K,\ldots,t+\tau),\mathcal{F}(t-K,\ldots,t+\tau),\mathcal{T}(t-K,\ldots,t) ) = \mathcal{T}(t+1,\ldots,t+\tau)
 $$
-for some K that represent the maximum past context.
+
+for some K representing the maximum past context.
 
 In the library we adopt some convention that must be used when developing a new model:
 ```
