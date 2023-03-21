@@ -414,24 +414,28 @@ class TimeSeries():
         real = np.vstack(real)
         time = train_dl.dataset.t
 
+        ## BxLxCx3
+        
         if self.return_quantile:
-            ##qui sono sicuro che sia single output
-            real = real[:,:,0]
-            c = self.target_variables[0]
+            
             time = pd.DataFrame(time,columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':'time'})
-            real = pd.DataFrame(real,columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':c}).drop(columns=['variable'])
-            median = pd.DataFrame(res[:,:,1],columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':'median'}).drop(columns=['variable'])
-            low = pd.DataFrame(res[:,:,0],columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':'low'}).drop(columns=['variable'])
-            high = pd.DataFrame(res[:,:,2],columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':'high'}).drop(columns=['variable'])
+            tot = [time]
+            for i, c in enumerate(self.target_variables):
+                tot.append(pd.DataFrame(real[:,:,i,0],columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':c}).drop(columns=['variable']))
+                tot.append(pd.DataFrame(res[:,:,i,0],columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':c+'_low'}).drop(columns=['variable']))
+                tot.append(pd.DataFrame(res[:,:,i,1],columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':c+'_median'}).drop(columns=['variable']))
+                tot.append(pd.DataFrame(res[:,:,i,2],columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':c+'_high'}).drop(columns=['variable']))
+
+            res = pd.concat(tot,axis=1)
+        
             
-            res = pd.concat([time,real,median,low,high],axis=1)
-            
+        ## BxLxCx1
         else:
             time = pd.DataFrame(time,columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':'time'})
             tot = [time]
             for i, c in enumerate(self.target_variables):
-                tot.append(pd.DataFrame(real[:,:,i],columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':c}).drop(columns=['variable']))
-                tot.append(pd.DataFrame(res[:,:,i],columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':c+'_pred'}).drop(columns=['variable']))
+                tot.append(pd.DataFrame(real[:,:,i,0],columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':c}).drop(columns=['variable']))
+                tot.append(pd.DataFrame(res[:,:,i,0],columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':c+'_pred'}).drop(columns=['variable']))
             res = pd.concat(tot,axis=1)
 
             

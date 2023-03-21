@@ -74,6 +74,43 @@ ts.generate_signal(noise_mean=1,categorical_variables=[settimana,mese,spot],leng
 
 `type=0` is the base function used. In this case the name of the time variable is `time` and the timeseries is called `signal`.
 
+In a real application generally we have a pandas data frame with a temporal column and a set of numerical/categorical features. In this case we can define a timeseries object as:
+
+```
+ts.load_signal(dataset,past_variables =[list of past variables],target_variables =[list of target variables],cat_var = [categorical variables], future_variables = [list of future variables],enrich_cat=[automatic categorical variables extracted from the time column])
+```
+Up to now, the automathic categorical features extracted can be: `'hour','dow','month','minute'`.
+If you want to use a public dataset there is a wrapper in the library for downloading some datasets using [Monarch](https://forecastingdata.org/).
+```
+from disipts Monarch
+import pandas as pd
+m = Monarch(filename='monarch',baseUrl='https://forecastingdata.org/', rebuild=True)
+```
+This code will scrap the website and save the URLs connected to the dataset. After downloading it will save a file using the `filename` and, the next time you use it you can set `rebuild=False` avoinding the scraping procedure. 
+After that `m.table` contains the table. Each dataset has an ID, you can downloadthe data:
+
+```
+m.download_dataset(path='data',id=4656144,rebuild=True)
+m.save()##remember to save after each download in order to update the class for following uses.
+```
+In the attribute `m.downloaded` you can see a dictionary with an association ID--> folder. Finally, you can get the data from the downloaded files:
+
+```
+loaded_data,frequency,forecast_horizon,contain_missing_values,contain_equal_length = m.generate_dataset(4656144)
+```
+and create a timeseries object using the auxiliary function `get_freq`:
+```
+serie = pd.DataFrame({'signal':loaded_data.series_value.iloc[0]})
+serie['time'] = pd.date_range(start = loaded_data.start_timestamp.iloc[0], periods=  serie.shape[0],freq=get_freq(frequency))
+serie['cum'] = serie.time.dt.minute  + serie.time.dt.hour 
+starting_point = {'cum':0} ##this can be used for creating the dataset: only samples with cum=0 in the first future lag will be used as samples! 
+ts = TimeSeries('4656144')
+ts.load_signal(serie.iloc[0:8000],enrich_cat=['dow','hour'],target_variables=['signal'])
+
+```
+
+
+
 Now we can define a forecasting problem, for example using the last 100 steps for predicting the 20 steps in the future. In this case we have one time series so:
 ```
 past_steps = 100
