@@ -181,5 +181,7 @@ if __name__ == '__main__':
     print(f'   - Know Y in t-1 = {args.prec}')
     print(f'   - Variable selection(TFT) = {args.tft}')
 
+    print('DAJE ROMAAAA')
+
     main(cluster=args.cluster, train=args.train, mix=args.mixed, prec=args.prec, tft=args.tft,
          model_str=args.model_str, bs_test=args.batch_size_test, hour_test=args.hour_test)
