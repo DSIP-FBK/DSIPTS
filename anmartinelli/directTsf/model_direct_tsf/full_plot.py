@@ -6,16 +6,17 @@ from tqdm import tqdm
 from datetime import datetime
 import matplotlib.dates as mdates
 import pickle as pkl
+import seaborn as sns
 
 
 def full_plot(net, path, dl, scaler, lag, device):
-
+    sns.set(rc={'figure.facecolor':'lightgray'}) # 'axes.facecolor':'black',
     fig,axs = plt.subplots(3, 2, figsize=(18, 18))
     title = path.split('/')[-1]
-    fig.suptitle(title)
+    fig.suptitle(title, fontsize=25, fontweight='bold')
 
-    import pdb
-    pdb.set_trace()
+    # import pdb
+    # pdb.set_trace()
 
     plots = axs.flat
     loss_plot = plots[0]
@@ -28,8 +29,8 @@ def full_plot(net, path, dl, scaler, lag, device):
     path_pkl = path+'.pkl'
     with open(path_pkl, 'rb') as f:
         losses = pkl.load(f)
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
     
         train_loss = losses[0]
         val_loss = losses[1]
@@ -113,7 +114,7 @@ def full_plot(net, path, dl, scaler, lag, device):
     rmse_plot.plot(x, rmse_best, label = 'rmse_best')
     rmse_plot.plot(x, rmse_last, label = 'rmse_last')
     rmse_plot.grid(True)
-    rmse_plot.set_title(f' BEST: mean {min_rmse_best:.2f}, min {mean_rmse_best:.2f}, max {max_rmse_best:.2f}\n LAST: mean {min_rmse_last:.2f}, min {mean_rmse_last:.2f}, max {max_rmse_last:.2f}')
+    rmse_plot.set_title(f' BEST: min {min_rmse_best:.2f}, mean {mean_rmse_best:.2f}, max {max_rmse_best:.2f}\n LAST: min {min_rmse_last:.2f}, meann {mean_rmse_last:.2f}, max {max_rmse_last:.2f}')
     rmse_plot.legend()
         
     for k, ax in enumerate(batch_plot):

@@ -10,7 +10,7 @@ conda activate TimeSeries
 echo .... Running on $(hostname) ....
 echo $CUDA_VISIBLE_DEVICES
 
-python tsf_direct/main.py -l -p -r -mod 12_3000_256_60_0.0001_0.0_4_2_8_8_32_4_2_0.0
+python mj_plot.py
 
 sleep 10
 echo Job Done!

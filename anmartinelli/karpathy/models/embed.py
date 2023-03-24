@@ -50,7 +50,7 @@ class Embed(nn.Module):
         # is future or not
         pos_is_fut = torch.cat((torch.zeros((T-self.lag), dtype=torch.long),torch.ones((self.lag), dtype=torch.long)))
         pos_is_fut = pos_is_fut.repeat(B,1).to(self.device)
-        emb_is_fut = self.emb_future_pos(pos_is_fut).unsqueeze(2)
+        emb_is_fut = self.emb_is_future(pos_is_fut).unsqueeze(2)
         # low
         emb_low = self.emb_low(x[:,:,5]).unsqueeze(2)
         emb_x = torch.cat(
@@ -70,52 +70,178 @@ class Embed_tft(nn.Module):
     def __init__(self, mix, prec, tft, seq_len, lag, n_embd, device) -> None:
         super().__init__()
         self.mix = mix
-        self.pewc = prec
+        self.prec = prec
         self.tft = tft
         self.lag = lag
         self.device = device
-        # time
-        self.module_list = nn.ModuleList([
-        nn.Embedding(12+1, n_embd), #emb_m
-        nn.Embedding(31+1, n_embd), #emb_d
-        nn.Embedding(24, n_embd), # emb_h
-        nn.Embedding(7, n_embd), # emb_dow
-        nn.Embedding(seq_len, n_embd), # emb_pos
-        nn.Embedding(2, n_embd), # emb_past_or_fut
-        nn.Embedding(lag+1, n_embd), # emb_future_pos
-        nn.Embedding(2, n_embd), # emb_is_future
-        nn.Embedding(3, n_embd), # emb_low
-        nn.Linear(1,n_embd) # y_lin
-    ])
+        self.dropout = 0.3
+        self.emb_init = 1 # or 2
+
+        self.embeds = [12+1, 31+1, 24, 7, 3, seq_len, lag+1, 2]
+        
+        self.module_n_embd = nn.ModuleList([
+            nn.Embedding(emb_dim, n_embd) for emb_dim in self.embeds
+        ])
+        self.GRN_n_embd = nn.ModuleList([
+        GRN(n_embd, self.dropout) for _ in self.module_n_embd
+        ])
+        self.y_lin_n_embd = nn.Linear(1, n_embd, bias = False) # y_lin
+
+        #only for variable selection weights
+        self.module_1 = nn.ModuleList([
+            nn.Embedding(emb_dim, 1) for emb_dim in self.embeds
+        ])
+        self.GRN_1 = nn.ModuleList([
+        GRN(1, self.dropout) for _ in self.module_1
+        ])
+        self.y_lin_1 = nn.Linear(1, 1, bias = False)
+
+        self.num_layers = 3
+        self.hidden_size = n_embd
+        self.LSTM_enc = nn.LSTM(input_size=n_embd, hidden_size=self.hidden_size, num_layers=self.num_layers, batch_first = True)
+        self.LSTM_enc_dropout = nn.Dropout(self.dropout)
+        self.LSTM_enc_GLU = GLU(n_embd)
+        self.enc_norm = nn.LayerNorm(n_embd)
+        # self.GRN_enc = GRN(n_embd, self.dropout)
+
+        self.LSTM_dec = nn.LSTM(input_size=n_embd, hidden_size=self.hidden_size, num_layers=self.num_layers, batch_first = True)
+        self.LSTM_dec_dropout = nn.Dropout(self.dropout)
+        self.LSTM_dec_GLU = GLU(n_embd)
+        self.dec_norm = nn.LayerNorm(n_embd)
+        # self.GRN_dec = GRN(n_embd, self.dropout)
+
+        self.softmax_past = nn.Softmax(dim=2)
+        self.softmax_fut = nn.Softmax(dim=2)
+
     def forward(self, x, y):
         B, T, C = x.shape
+
+        #* Starting Emb
+        # emb_*_1: dislike?
+
         pos_seq = torch.arange(0,T)
-        pos_seq = pos_seq.repeat(B,1).unsqueeze(2)
-
-        pos_fut = torch.cat((torch.zeros((T-lag), dtype=torch.long),torch.arange(1,lag+1)))
-        pos_fut = pos_fut.repeat(B,1).unsqueeze(2)
-
-        pos_is_fut = torch.cat((torch.zeros((T-lag), dtype=torch.long),torch.ones((lag), dtype=torch.long)))
-        pos_is_fut = pos_is_fut.repeat(B,1).unsqueeze(2)
-
+        pos_seq = pos_seq.repeat(B,1).unsqueeze(2).to(self.device)
+        pos_fut = torch.cat((torch.zeros((T-self.lag), dtype=torch.long),torch.arange(1,self.lag+1)))
+        pos_fut = pos_fut.repeat(B,1).unsqueeze(2).to(self.device)
+        pos_is_fut = torch.cat((torch.zeros((T-self.lag), dtype=torch.long),torch.ones((self.lag), dtype=torch.long)))
+        pos_is_fut = pos_is_fut.repeat(B,1).unsqueeze(2).to(self.device)
         to_be_emb = torch.cat((x[:,:,1:], pos_seq, pos_fut, pos_is_fut),dim=2)
-        print(f'to_be_emb.shape = {to_be_emb.shape}')
-        embedded = torch.Tensor()
-        import pdb
-        pdb.set_trace()
-        for index, layer in enumerate(self.module_list):
-            print(index)
-            if index < 9:
-                emb = layer(to_be_emb[:, :, index])
-            else:
-                emb = layer(y).unsqueeze(2)
-            embedded = torch.cat((embedded, emb),dim=2)
-        print('FLATTEN IMPLEMENTED')
-        return embedded
+        # print(f'to_be_emb.shape = {to_be_emb.shape}')
 
+        #todo: 
+        # embed all
+        # Variable Selection + LSTM + GRN only on past
+        # return variables embedded
+        # Decoder part is better if completely in model_tft.py, easier to recall for inference
+        # Move LSTM full net to model_tft.py
+        # .
+        
+        # only X
+        emb_x_n_embd = torch.Tensor().to(self.device)
+        for index, layer in enumerate(self.module_n_embd):
+            emb = layer(to_be_emb[:, :, index])
+            emb = self.GRN_n_embd[index](emb)
+            emb_x_n_embd = torch.cat((emb_x_n_embd, emb.unsqueeze(2)),dim=2)
+
+        emb_x_1 = torch.Tensor().to(self.device)
+        for index, layer in enumerate(self.module_1):
+            emb = layer(to_be_emb[:, :, index])
+            emb = self.GRN_1[index](emb)
+            emb_x_1 = torch.cat((emb_x_1, emb),dim=2)
+        
+        # only Y
+        emb_y_n_embd = self.y_lin_n_embd(y.unsqueeze(2).float())
+        emb_y_1 = self.y_lin_1(y.unsqueeze(2).float())
+        
+        #PAST
+        # x
+        emb_x_n_embd_past = emb_x_n_embd[:,:-self.lag,:,:] # ([8, 191, 8, 4])
+        emb_x_1_past = emb_x_1[:,:-self.lag,:] # ([8, 191, 8])
+        # y
+        emb_y_n_embd_past = emb_y_n_embd[:,:-self.lag,:] # ([8, 191, 4])
+        emb_y_1_past = emb_y_1[:,:-self.lag,:] # ([8, 191, 1])
+
+        #FUT
+        # x 
+        emb_x_n_embd_fut = emb_x_n_embd[:,-self.lag:,:,:] # ([8, 65, 8, 4])
+        emb_x_1_fut = emb_x_1[:,-self.lag:,:] # ([8, 65, 8])
+        # y 
+        emb_y_n_embd_fut = emb_y_n_embd[:,-self.lag-1:-1,:] # ([8, 65, 4]) ## ONLY IF PREC = TRUE
+        emb_y_1_fut = emb_y_1[:,-self.lag-1:-1,:] # ([8, 65, 1]) ## ONLY IF PREC = TRUE
+
+        # MIX 
+        #* Variable Selection Encoder
+        if self.mix:
+            emb_x_n_embd_past = torch.cat((emb_x_n_embd_past, emb_y_n_embd_past.unsqueeze(2)),dim=2)
+            emb_x_1_past = torch.cat((emb_x_1_past, emb_y_1_past),dim=2)
+        emb_x_1_past = self.softmax_past(emb_x_1_past)
+        emb_past = emb_x_n_embd_past*emb_x_1_past.unsqueeze(3) # ([8, 191, 9, 4])
+        emb_past = torch.sum(emb_past, 2)/emb_past.size(2) # ([8, 191, 4])
+
+        #PREC
+        #* Variable Selection Decoder
+        if self.prec:
+            emb_x_n_embd_fut = torch.cat((emb_x_n_embd_fut, emb_y_n_embd_fut.unsqueeze(2)),dim=2)
+            emb_x_1_fut = torch.cat((emb_x_1_fut, emb_y_1_fut),dim=2)
+        emb_x_1_fut = self.softmax_fut(emb_x_1_fut)
+        emb_fut = emb_x_n_embd_fut*emb_x_1_fut.unsqueeze(3) # ([8, 65, 9, 4])
+        emb_fut = torch.sum(emb_fut, 2)/emb_fut.size(2) # ([8, 65, 4])
+
+        # LSTM ENCODER + dropout, gate (GLU), add & norm
+        h_0_enc = torch.zeros(self.num_layers, emb_past.size(0), emb_past.size(2)).to(self.device)
+        c_0_enc = torch.zeros(self.num_layers, emb_past.size(0), emb_past.size(2)).to(self.device)
+        lstm_enc, _ = self.LSTM_enc(emb_past, (h_0_enc,c_0_enc))
+        
+        lstm_enc = self.LSTM_enc_dropout(lstm_enc) # dropout
+        output_enc = self.enc_norm(self.LSTM_enc_GLU(lstm_enc) + emb_past) 
+
+        # LSTM DECODER + dropout, gate (GLU), add & norm
+        h_0_dec = torch.zeros(self.num_layers, emb_fut.size(0), emb_fut.size(2)).to(self.device)
+        c_0_dec = torch.zeros(self.num_layers, emb_fut.size(0), emb_fut.size(2)).to(self.device)
+        lstm_dec, _ = self.LSTM_dec(emb_fut, (h_0_dec,c_0_dec))
+        
+        lstm_dec = self.LSTM_dec_dropout(lstm_dec) # dropout
+        output_dec = self.dec_norm(self.LSTM_dec_GLU(lstm_dec) + emb_fut)
+
+        if self.mix:
+            return output_enc, output_dec
+        else:
+            return emb_y_n_embd_past, output_enc, output_dec
+
+    def dec_emb(self, x_fut, predictions):
+        # todo: emb x_fut and predictions for each step of iter_forward
+        emb_x_n_embd = torch.Tensor().to(self.device)
+        for index, layer in enumerate(self.module_n_embd):
+            emb = layer(to_be_emb[:, :, index])
+            emb = self.GRN_n_embd[index](emb)
+            emb_x_n_embd = torch.cat((emb_x_n_embd, emb.unsqueeze(2)),dim=2)
+
+        emb_x_1 = torch.Tensor().to(self.device)
+        for index, layer in enumerate(self.module_1):
+            emb = layer(to_be_emb[:, :, index])
+            emb = self.GRN_1[index](emb)
+            emb_x_1 = torch.cat((emb_x_1, emb),dim=2)
+
+        emb_pred_n_embd = self.y_lin_n_embd(predictions.unsqueeze(2).float())
+        emb_pred_1 = self.y_lin_1(predictions.unsqueeze(2).float())
+
+        emb_x_n_embd_fut = torch.cat((emb_x_n_embd_fut, emb_pred_n_embd.unsqueeze(2)),dim=2)
+        emb_x_1_fut = torch.cat((emb_x_1_fut, emb_pred_1),dim=2)
+        emb_fut = emb_x_n_embd_fut*emb_x_1_fut.unsqueeze(3) # ([8, 65, 9, 4])
+        emb_fut = torch.sum(emb_fut, 2)/emb_fut.size(2) # ([8, 65, 4])
+        # used for prec = True
+        # x_fut and prediction already [:, :tau, :]
+        h_0_dec = torch.zeros(self.num_layers, x_fut.size(0), x_fut.size(2)).to(self.device)
+        c_0_dec = torch.zeros(self.num_layers, x_fut.size(0), x_fut.size(2)).to(self.device)
+        lstm_dec, (hn_dec,cn_dec) = self.LSTM_dec(x_fut, (h_0_dec,c_0_dec))
+        # dropout, gate (GLU), add & norm
+        lstm_dec = self.LSTM_dec_dropout(lstm_dec) # dropout
+        output_dec = self.dec_norm(self.LSTM_dec_GLU(lstm_dec) + x_fut)
+
+        return output_dec
 
 class GLU(nn.Module):
-    # sub net of GRN
+    # sub net of GRN 
     def __init__(self, n_embd) :
         super().__init__()
         self.linear1 = nn.Linear(n_embd, n_embd)
@@ -125,7 +251,7 @@ class GLU(nn.Module):
     def forward(self, x):
         x1 = self.sigmoid(self.linear1(x))
         x2 = self.linear2(x)
-        out = x1*x2
+        out = x1*x2 #element-wise multiplication
         return out
     
 class GRN(nn.Module):
@@ -135,14 +261,14 @@ class GRN(nn.Module):
         self.norm = nn.LayerNorm(n_embd)
         self.glu = GLU(n_embd)
         self.elu = nn.ELU()
-        self.linear1 = nn.Linear(n_embd,n_embd) 
+        self.linear1 = nn.Linear(n_embd, n_embd) 
         self.linear2 = nn.Linear(n_embd, n_embd)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
-        eta2 = self.elu(self.linear2(x))
-        eta1 = self.dropout(self.linear1(eta2))
-        out = self.norm(x + self.glu(eta1))
+        eta1 = self.elu(self.linear1(x))
+        eta2 = self.dropout(self.linear2(eta1))
+        out = self.norm(x + self.glu(eta2))
         return out
     
 
@@ -152,7 +278,7 @@ if __name__=='__main__':
     bs = 8
     bs_test = 4
     seq_len = 256
-    lag = 60
+    lag = 65
     hour = 24
     hour_test = 24
     train = True
@@ -169,11 +295,11 @@ if __name__=='__main__':
     mix = True
     prec = True
     tft = True
-    n_embd = 1
+    n_embd = 4
     device = 'cpu'
     TFT = Embed_tft(mix, prec, tft, seq_len, lag, n_embd, device)
     emb = TFT(x, y)
-    print(emb.shape)
+    # print(emb.shape)
     import pdb
     pdb.set_trace()
 

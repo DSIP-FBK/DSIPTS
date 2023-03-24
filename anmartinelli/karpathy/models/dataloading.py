@@ -24,8 +24,6 @@ def dataloading(batch_size, batch_size_test, seq_len, lag,
         df_el.tempo = pd.to_datetime(df_el.tempo)
 
     df = df_el[['tempo','is_low','y']]
-    # import pdb
-    # pdb.set_trace()
     df.y[df.y < 0] = np.nan
     
     train_df = df[df.tempo.between( to_datetime(dictbound['start_train']), to_datetime(dictbound['end_train']) )][:-1]
@@ -38,11 +36,6 @@ def dataloading(batch_size, batch_size_test, seq_len, lag,
     scaler_y.fit(train_y.unsqueeze(1))
     
     print('-'*50+'\n')
-    # L = len(train_df) + len(val_df) + len(test_df)
-    # print(f'Train:      {len(train_df)/L*100:.4}%\t {len(train_df)}')
-    # print(f'Validation: {len(val_df)/L*100:.4}%\t {len(val_df)}')
-    # print(f'Test:       {len(test_df)/L*100:.4}%\t {len(test_df)}\n')
-
     if train_bool:
         train_Ds = CustomDataset(train_df, scaler_y, seq_len, lag, step, hour=hour_learning)
         val_Ds = CustomDataset(val_df, scaler_y, seq_len, lag, step, hour=hour_learning)
@@ -50,11 +43,13 @@ def dataloading(batch_size, batch_size_test, seq_len, lag,
 
         train_dl = DataLoader(train_Ds, batch_size = batch_size, shuffle = True)
         val_dl = DataLoader(val_Ds, batch_size = batch_size, shuffle = True)
-        test_dl = DataLoader(test_Ds, batch_size = batch_size_test, shuffle = True)
+        test_dl = DataLoader(test_Ds, batch_size = batch_size_test, shuffle = False)
 
         print('Learning & Testing')
         print(f'Hour Learning = {hour_learning}, Hour Testing = {hour_inference}')
-        print(f'len_train_dl = {len(train_dl)}\nlen_val_dl = {len(val_dl)}\nlen_test_dl = {len(test_dl)}')
+        print(f'> len_train_dl = {len(train_dl)}')
+        print(f'> len_val_dl   = {len(val_dl)}')
+        print(f'> len_test_dl  = {len(test_dl)}')
         print(f'Train & Val Batch_size = {batch_size}')
         
     else:
@@ -62,7 +57,7 @@ def dataloading(batch_size, batch_size_test, seq_len, lag,
 
         train_dl = None
         val_dl = None
-        test_dl = DataLoader(test_Ds, batch_size = batch_size_test, shuffle = True)
+        test_dl = DataLoader(test_Ds, batch_size = batch_size_test, shuffle = False)
 
         print('Only Testing')
         print(f'Hour Testing = {hour_inference}')
@@ -83,12 +78,9 @@ class CustomDataset(torch.utils.data.Dataset):
         is_low = torch.tensor(df.is_low.values)
 
         for i in range(seq_len,len(df),step):
-            # if np.isfinite(df.y[i-seq_len:i].sum()):
             if not (np.isnan(df.y[i-seq_len:i]).any()):
                 if not 0 in is_low[i-lag:i]:
                     if hour==24:
-                        # import pdb
-                        # pdb.set_trace()
                         # ALL SEQUENCES
                         X.append(torch.cat((x[i-seq_len:i],is_low[i-seq_len:i].unsqueeze(1)), dim=1))
                         Y.append(y[i-seq_len:i])
@@ -101,10 +93,8 @@ class CustomDataset(torch.utils.data.Dataset):
                             # is_low = torch.tensor(df.is_low[i-seq_len:i].values)
                             X.append(torch.cat((x[i-seq_len:i],is_low[i-seq_len:i].unsqueeze(1)), dim=1))
                             Y.append(y[i-seq_len:i])
-        # import pdb
-        # pdb.set_trace()
 
-        self.x = np.stack(X) # %Y %m %d %H %w
+        self.x = np.stack(X) # %Y %m %d %H %w is_low
         self.y = np.stack(Y)
         
     def __len__(self):
@@ -131,19 +121,3 @@ if __name__=='__main__':
                                                         path=path_data)
     # import pdb
     # pdb.set_trace()
-
-# >
-# {0, 1, 2}
-# True
-# True
-#  deleted = 811
-# >
-# {0, 1, 2}
-# True
-# True
-#  deleted = 516
-# >
-# {0, 1, 2}
-# True
-# True
-#  deleted = 427
