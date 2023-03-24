@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import copy
 import numpy as np
 
-class Full_Model(nn.Module):
+class Base_Model(nn.Module):
     def __init__(self, mix, prec, tft, seq_len, lag, n_enc, n_dec, n_embd, num_heads, head_size, fw_exp, dropout, device) :
         super().__init__()
         self.mix = mix
@@ -30,13 +30,7 @@ class Full_Model(nn.Module):
 
     def forward(self, x, y):
 
-        # if self.tft:
-        #     pass # other way to compute emb_past and emb_future, depend also on self.mix
-        # import pdb
-        # pdb.set_trace()
         emb_x, emb_y_past, emb_y_fut, y_lin = self.embed(x, y)
-        # emb_y_past => y[:,:-self.lag,:]
-        # emb_y_fut => y[:,-self.lag-1:-1,:] SHIFT!
         emb_x_past = emb_x[:,:-self.lag,:,:]
         emb_x_fut = emb_x[:,-self.lag:,:,:]
 
@@ -79,8 +73,6 @@ class Full_Model(nn.Module):
                 val_cumulative_loss = 0.
                 with torch.no_grad():
                     for i, (ds, y) in enumerate(tqdm(val_dl, desc = "val step")):
-                        # import pdb
-                        # pdb.set_trace()
                         y = y.to(self.device)
                         ds = ds.to(self.device)
                         output = self(ds, y)
@@ -136,8 +128,6 @@ class Full_Model(nn.Module):
         #     pass # other way to compute emb_past and emb_future, depend also on self.mix
 
         emb_x, emb_y_past, emb_y_fut, y_lin = self.embed(x, y)
-        # emb_y_past => y[:,:-self.lag,:]
-        # emb_y_fut => y[:,-self.lag-1:-1,:] SHIFT!
         emb_x_past = emb_x[:,:-self.lag,:,:]
         emb_x_future = emb_x[:,-self.lag:,:,:]
         predictions = y.unsqueeze(2)[:,-self.lag-1:,:]
@@ -146,14 +136,10 @@ class Full_Model(nn.Module):
         if self.mix:
             emb_past = emb_past + emb_y_past
             for tau in range(1,self.lag+1):
-                # import pdb
-                # pdb.set_trace()
                 future = torch.sum(emb_x_future[:,:tau,:,:], dim=2, keepdim=False) + y_lin(predictions[:,:tau,:].float())
                 encoding = self.encoder(emb_past, emb_past, emb_past)
                 decoding = self.decoder(future, encoding, encoding)
                 out = self.out_linear(decoding)
-                # import pdb
-                # pdb.set_trace()
                 predictions[:,tau,:] = out[:,-1,:]
         else:
             for tau in range(1,self.lag+1):
@@ -168,15 +154,16 @@ class Full_Model(nn.Module):
     def inference(self, path_model, dl, scaler):
 
         sns.set(rc={'figure.facecolor':'lightgray'}) # 'axes.facecolor':'black',
-        fig,axs = plt.subplots(3, 2, figsize=(18, 18))
-        title = path_model.split('/')[-1]
+        fig, axs = plt.subplots(3, 2, figsize=(18, 18))
+        title = path_model.split('/')[-1]+self.save_str
         fig.suptitle(title, fontsize=25, fontweight='bold')
 
         # assign figure's slot
         plots = axs.flat
         loss_plot = plots[0]
         rmse_plot = plots[1]
-        batch_plot = plots[2:]
+        batch_plot = plots[2:4]
+        shift_plot = plots[4:]
 
         #* LOSS
         path_pkl = path_model + self.save_str + '.pkl' #! PATH
@@ -267,7 +254,14 @@ class Full_Model(nn.Module):
         rmse_plot.grid(True)
         rmse_plot.set_title(f' BEST: min {min_rmse_best:.2f}, mean {mean_rmse_best:.2f}, max {max_rmse_best:.2f}\n LAST: min {min_rmse_last:.2f}, mean {mean_rmse_last:.2f}, max {max_rmse_last:.2f}')
         rmse_plot.legend()
-            
+
+        #TODO: 
+        # - ax[2] plot of the first batch
+        # - ax[3] plot of distribution error
+        # - ax[4] plot of lag 10 predictions (y_data[:300, 9]...)
+        # - ax[5] plot of lag 30 predictions (y_data[:300, 29]...)
+        # last two could be grouped togethr 
+
         for k, ax in enumerate(batch_plot):
             ax.cla()
             y_lim = [0, 6000]
@@ -277,6 +271,28 @@ class Full_Model(nn.Module):
             ax.set_ylim(y_lim)
             ax.grid(True)
             ax.legend()
+
+        shift_10, shift_30 = shift_plot
+
+        shift_10.cla()
+        y_lim = [0, 6000]
+        shift_10.plot(pred_best[:150,9], 'p' ,label = 'yhat_best_10')
+        shift_10.plot(pred_last[:150,9], 'p', label = 'yhat_last_10')
+        shift_10.plot(y_data[:150,9], label = ' y_10')
+        shift_10.set_ylim(y_lim)
+        shift_10.set_title('SHIFT 10 - 150 VALUES')
+        shift_10.grid(True)
+        shift_10.legend()
+
+        shift_30.cla()
+        y_lim = [0, 6000]
+        shift_30.plot(pred_best[:150,29], 'p' ,label = 'yhat_best_30')
+        shift_30.plot(pred_last[:150,29], 'p', label = 'yhat_last_30')
+        shift_30.plot(y_data[:150,29], label = ' y_30')
+        shift_30.set_ylim(y_lim)
+        shift_30.set_title('SHIFT 30 - 150 VALUES')
+        shift_30.grid(True)
+        shift_30.legend()
 
         fig.savefig(path_model + self.save_str + f'_plot_{actual_epochs}.png') #! PATH
 

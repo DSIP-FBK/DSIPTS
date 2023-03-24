@@ -30,7 +30,7 @@ class MultiHeadEnc(nn.Module):
 
     def __init__(self, n_embd, num_heads, head_size, dropout) :
         super().__init__()
-
+        self.num_heads = num_heads
         self.heads = nn.ModuleList([Head_selfEnc(n_embd, head_size, dropout) for _ in range(num_heads)])
         self.proj = nn.Linear(num_heads * head_size, n_embd)
         
@@ -38,6 +38,8 @@ class MultiHeadEnc(nn.Module):
         out = torch.cat([h(q, k, v) for h in self.heads], dim=-1)
         out = self.proj(out)
         return out
+        # out = torch.sum([h(q, k, v) for h in self.heads], dim=-1)/self.num_heads
+        # return out
 
 class FFN(nn.Module):
 

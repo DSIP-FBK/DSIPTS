@@ -9,7 +9,8 @@ from datetime import datetime
 from time import time
 
 def dataloading(path='../../data/edison/processed.pkl', batch_size:int = 20, batch_size_test:int = 20, 
-                seq_len:int = 256, lag:int = 61, step:int = 1, which_hour_seq:int=24, train_bool:bool = True):
+                seq_len:int = 256, lag:int = 61, step:int = 1,
+                which_hour_seq:int=24, which_hour_seq_test:int=12, train_bool:bool = True):
     
     dictbound = {'start_train':'2017-11-15', #pd.to_datetime(dictbound['start_train'])
                 'end_train':'2020-01-01',
@@ -34,9 +35,6 @@ def dataloading(path='../../data/edison/processed.pkl', batch_size:int = 20, bat
     train_y = torch.tensor(train['y'].values)
     scaler_y.fit(train_y.unsqueeze(1))
 
-    # train_data_y = scaler_y.transform(train_data_y.unsqueeze(1)).squeeze()
-    # val_data_y = scaler_y.transform(val_data_y.unsqueeze(1)).squeeze()
-    # test_data_y = scaler_y.transform(test_data_y.unsqueeze(1)).squeeze()
     L = len(train) + len(val) + len(test)
     print('-'*50)
     print(f'Train portion:      {len(train)/L*100:.4}%\t {len(train)}')
@@ -89,21 +87,23 @@ def dataloading(path='../../data/edison/processed.pkl', batch_size:int = 20, bat
     if train_bool:
         train_Ds = CustomDataset(train, step=step, which_hour_seq=which_hour_seq)
         val_Ds = CustomDataset(val, step=step, which_hour_seq=which_hour_seq)
-        test_Ds = CustomDataset(test, step=step, which_hour_seq=which_hour_seq)
+        test_Ds = CustomDataset(test, step=step, which_hour_seq=which_hour_seq_test)
 
         train_dl = DataLoader(train_Ds, batch_size = batch_size, shuffle = True)
         val_dl = DataLoader(val_Ds, batch_size = batch_size, shuffle = True)
         test_dl = DataLoader(test_Ds, batch_size = batch_size_test, shuffle = True)
 
+        print(f'which_hour_seq = {which_hour_seq}, which_hour_seq_test = {which_hour_seq}')
         print(f'len_train_dl = {len(train_dl)}, len_val_dl = {len(val_dl)}, len_test_dl = {len(test_dl)}')
         print(f'Train & Val Batch_size = {batch_size}')
         
     else:
         train_dl = None
         val_dl = None
-        test_Ds = CustomDataset(test, step=step, which_hour_seq=which_hour_seq)
+        test_Ds = CustomDataset(test, step=step, which_hour_seq=which_hour_seq_test)
 
         test_dl = DataLoader(test_Ds, batch_size = batch_size_test, shuffle = True)
+        print(f'which_hour_seq = None, which_hour_seq_test = {which_hour_seq}')
         print(f'train_dl = None, val_dl = None, len_test_dl = {len(test_dl)}')
         
     print(f'Test Batch_size = {batch_size_test}')

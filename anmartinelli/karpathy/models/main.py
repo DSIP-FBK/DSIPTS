@@ -1,6 +1,7 @@
 import torch
 from omegaconf import OmegaConf
-from model import Full_Model
+from model import Base_Model
+from model_tft import Full_Model
 import os
 import argparse
 from dataloading import dataloading
@@ -35,11 +36,19 @@ def main(cluster, train, mix, prec, tft, model_str, bs_test, hour_test):
     #       -m   (MIX) : mixing x and y during embed process or maintaining them separated during encoder-selfAtt
     #       -p   (PREC): allow for Decoder embeddinged to know y_{\tau-1} 
     #       -tft (TFT) : use variable selection taken from the tft paper
-    
-    model = Full_Model(mix, prec, tft, seq_len, lag, n_enc, n_dec, n_embd, 
+    if tft:
+        model = Full_Model(mix, prec, tft, seq_len, lag, n_enc, n_dec, n_embd, 
                        num_heads, head_size, fw_exp, dropout, device).to(device)
+    else:
+        model = Base_Model(mix, prec, tft, seq_len, lag, n_enc, n_dec, n_embd, 
+                       num_heads, head_size, fw_exp, dropout, device).to(device)
+    #only to count parameters and compare different structures
+    def count_parameters(model):
+        return sum(p.numel() for p in model.parameters() if p.requires_grad)
+    
     print('-'*50+'\n')
     print(f'> MODEL SELECTED')
+    print(f'Model trainable params: {count_parameters(model)}')
     
     #* ADAPT PATH
     # cluster: /storage/DSIP/edison/anmartinelli/ with:
@@ -132,9 +141,9 @@ def main(cluster, train, mix, prec, tft, model_str, bs_test, hour_test):
     path_model = path_work_model + model_str
     dl = test_dl
     scaler = scaler_y
-    
-    model.inference(path_model, dl, scaler)
     print('-'*50+'\n')
+    print(f'> INFERENCE START')
+    model.inference(path_model, dl, scaler)
     print(f'> INFERENCE DONE')
 
 
@@ -151,11 +160,11 @@ if __name__ == '__main__':
     parser.add_argument("-tft", "--tft", action="store_true", help="Model with variable selection as tft or not")
 
     # which model and testing
-    parser.add_argument("-mod", "--model_str", type=str, default='', help='String to fetch the model: SeqLen_Lag_Enc_Dec_Embd_Head_HeadSize_FwExp_Dropout_LR_WD_E_BS_Hour_SchedStep')
-        #  -mod: SeqLen_Lag_Enc_Dec_Embd_Head_HeadSize_FwExp_Dropout_LR_WD_E_BS_Hour_SchedStep
+    parser.add_argument("-mod", "--model_str", type=str, default='265_65_2_2_8_2_4_2_0.2_1e-04_0.00_2_16_24_100', help='String to fetch the model: SeqLen_Lag_Enc_Dec_Embd_Head_HeadSize_FwExp_Dropout_LR_WD_E_BS_Hour_SchedStep')
+        #  -mod SeqLen_Lag_Enc_Dec_Embd_Head_HeadSize_FwExp_Dropout_LR_WD_E_BS_Hour_SchedStep
         #  -mod 256_60_2_2_16_4_4_3_0.1_1e-05_0.01_500_64_24_200
-        #  -mod 256_60_2_2_8_2_4_1_0.1_1e-04_0.01_2_64_24_200
-    parser.add_argument("-hr_t", "--hour_test", default=12, type=int, help="Hour to start the training/prediction (24 = all)")
+        #  -mod 256_65_2_2_8_2_4_2_0.2_1e-04_0.00_2_16_24_100
+    parser.add_argument("-hr_t", "--hour_test", default=24, type=int, help="Hour to start the training/prediction (24 = all)")
     parser.add_argument("-bs_t", "--batch_size_test", default=2, type=int, help="Number of batch compiled simultaneously ON TEST SET")
 
     args = parser.parse_args()

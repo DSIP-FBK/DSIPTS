@@ -60,6 +60,7 @@ class MultiHead_selfDec(nn.Module):
 
     def __init__(self, n_embd, num_heads, head_size, lag, dropout) :
         super().__init__()
+        self.num_heads = num_heads
         self.heads = nn.ModuleList([Head_selfDec(n_embd, head_size, lag, dropout) for _ in range(num_heads)])
         self.proj = nn.Linear(num_heads*head_size, n_embd)
         
@@ -67,12 +68,15 @@ class MultiHead_selfDec(nn.Module):
         out = torch.cat([h(x) for h in self.heads], dim=-1)
         out = self.proj(out)
         return out
+        # out = torch.sum([h(q, k, v) for h in self.heads], dim=-1)/self.num_heads
+        # return out
 
 #   MULTIHEAD crossDECODER    #
 class MultiHead_crossDec(nn.Module):
 
     def __init__(self, n_embd, num_heads, head_size, dropout) :
         super().__init__()
+        self.num_heads = num_heads
         self.heads = nn.ModuleList([Head_crossDec(n_embd, head_size, dropout) for _ in range(num_heads)])
         self.proj = nn.Linear(num_heads*head_size, n_embd)
         
@@ -80,6 +84,8 @@ class MultiHead_crossDec(nn.Module):
         out = torch.cat([h(q, k, v) for h in self.heads], dim=-1)
         out = self.proj(out)
         return out
+        # out = torch.sum([h(q, k, v) for h in self.heads], dim=-1)/self.num_heads
+        # return out
 
 #   FFN    #
 class FFN(nn.Module):
