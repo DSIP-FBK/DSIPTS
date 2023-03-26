@@ -77,6 +77,8 @@ class CustomDataset(torch.utils.data.Dataset):
         y = scaler.transform(y.unsqueeze(1)).squeeze()
         is_low = torch.tensor(df.is_low.values)
 
+        import pdb
+        pdb.set_trace()
         for i in range(seq_len,len(df),step):
             if not (np.isnan(df.y[i-seq_len:i]).any()):
                 if not 0 in is_low[i-lag:i]:
@@ -119,5 +121,4 @@ if __name__=='__main__':
                                                         hour_inference=hour_test, 
                                                         train_bool=train,
                                                         path=path_data)
-    # import pdb
-    # pdb.set_trace()
+    
