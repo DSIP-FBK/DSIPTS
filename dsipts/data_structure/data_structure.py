@@ -382,7 +382,12 @@ class TimeSeries():
         
         
         logger = CSVLogger("logs", name=dirpath)
-        trainer = pl.Trainer(logger = logger,max_epochs=max_epochs,callbacks=[checkpoint_callback,MetricsCallback()],auto_lr_find=auto_lr_find, accelerator='gpu' if torch.cuda.is_available() else "cpu")
+        accelerator = 'gpu' if torch.cuda.is_available() else "cpu"
+        if accelerator == 'gpu':
+            torch.set_float32_matmul_precision('medium')
+            print('setting multiplication precision to medium')
+        
+        trainer = pl.Trainer(logger = logger,max_epochs=max_epochs,callbacks=[checkpoint_callback,MetricsCallback()],auto_lr_find=auto_lr_find, accelerator=accelerator)
 
         if auto_lr_find:
             trainer.tune(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)
