@@ -396,10 +396,12 @@ class TimeSeries():
 
 
         trainer.fit(self.model, train_dl,valid_dl)
-        import pdb
-        pdb.set_trace()
         self.checkpoint_file_best = checkpoint_callback.best_model_path
-        self.checkpoint_file_last = checkpoint_callback.last_model_path
+        self.checkpoint_file_last = checkpoint_callback.last_model_path 
+        if self.checkpoint_file_last=='':
+            print('There is a bug on saving last model I will try to fix it')
+            self.checkpoint_file_last = checkpoint_callback.best_model_path.replace('checkpoint','last')
+
         self.dirpath = dirpath
         for c in trainer.callbacks:
             if 'metrics' in dir(c):
