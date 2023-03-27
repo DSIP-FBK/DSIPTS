@@ -41,7 +41,7 @@ python setup_local.py install --force
 Alternatively, you can install it from the package registry:
 
 ```
-pip install dsipts --index-url https://dsipts:<glpat-98SR11neR7hzxy__SueG>@gitlab.fbk.eu/api/v4/projects/4571/packages/pypi/simple
+pip install --force dsipts --index-url https://dsipts:glpat-98SR11neR7hzxy__SueG@gitlab.fbk.eu/api/v4/projects/4571/packages/pypi/simple
 ```
 In this case it will installed the last version submitted to the package registry. For testing pourpose please use the first method (in local). For using the latter method ask to `agobbi@fbk.eu`.
 
