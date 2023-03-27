@@ -12,6 +12,7 @@ from pytorch_lightning import Callback
 from pytorch_lightning.loggers import CSVLogger
 from typing import Optional
 import os
+import torch
 
 pd.options.mode.chained_assignment = None 
 import pickle
@@ -381,7 +382,7 @@ class TimeSeries():
         
         
         logger = CSVLogger("logs", name=dirpath)
-        trainer = pl.Trainer(logger = logger,max_epochs=max_epochs,callbacks=[checkpoint_callback,MetricsCallback()],auto_lr_find=auto_lr_find)
+        trainer = pl.Trainer(logger = logger,max_epochs=max_epochs,callbacks=[checkpoint_callback,MetricsCallback()],auto_lr_find=auto_lr_find, accelerator='gpu' if torch.cuda.is_available() else "cpu")
 
         if auto_lr_find:
             trainer.tune(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)

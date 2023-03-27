@@ -32,7 +32,7 @@ The output of a new model must be $[B,L,C,1]$ in case of single prediction or $[
 
 ## How to
 
-In a pre-generated environment install pytorch and pytorch-lightning (`pip install pytorch-lightning`) then go inside the lib folder and execute:
+In a pre-generated environment install pytorch and pytorch-lightning (`pip install pytorch-lightning==1.9.4`) then go inside the lib folder and execute:
 
 ``
 python setup_local.py install --force
