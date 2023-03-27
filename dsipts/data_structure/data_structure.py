@@ -423,7 +423,7 @@ class TimeSeries():
         self.model.eval()
         res = []
         real = []
-        print(f'Device used: {self.model.device()}')
+        print(f'Device used: {self.model.device}')
         for batch in train_dl:
             res.append(self.model.inference(batch).detach().numpy())
             real.append(batch['y'].detach().numpy())
