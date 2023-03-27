@@ -423,7 +423,7 @@ class TimeSeries():
         self.model.eval()
         res = []
         real = []
-        self.model.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.model.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
         
         print(f'Device used: {self.model.device}')
         for batch in train_dl:
