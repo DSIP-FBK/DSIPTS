@@ -35,13 +35,17 @@ The output of a new model must be $[B,L,C,1]$ in case of single prediction or $[
 In a pre-generated environment install pytorch and pytorch-lightning (`pip install pytorch-lightning`) then go inside the lib folder and execute:
 
 ``
-python setup.py install --force
+python setup_local.py install --force
 ``
 
 Alternatively, you can install it from the package registry:
+
 ```
 pip install dsipts --index-url https://dsipts:<glpat-98SR11neR7hzxy__SueG>@gitlab.fbk.eu/api/v4/projects/4571/packages/pypi/simple
 ```
+In this case it will installed the last version submitted to the package registry. For testing pourpose please use the first method (in local). For using the latter method ask to `agobbi@fbk.eu`.
+
+
 
 ## Test 
 You can test your model using a tool timeseries
