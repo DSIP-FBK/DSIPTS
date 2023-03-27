@@ -11,6 +11,7 @@ import pytorch_lightning as pl
 from pytorch_lightning import Callback
 from pytorch_lightning.loggers import CSVLogger
 from typing import Optional
+import os
 
 pd.options.mode.chained_assignment = None 
 import pickle
@@ -37,9 +38,10 @@ class MetricsCallback(Callback):
 
 
 class MyDataset(Dataset):
-    def __init__(self, data,t=None):
+    def __init__(self, data,t=None,idx_target=None):
         self.data = data
         self.t = t
+        self.idx_target = np.array(idx_target)
     def __len__(self):
         return len(self.data['y'])
 
@@ -47,6 +49,8 @@ class MyDataset(Dataset):
         sample = {}
         for k in self.data:
             sample[k] = self.data[k][idxs]
+        if self.idx_target is not None:
+            sample['idx_target'] = self.idx_target
         return sample
 
 class ActionEnum(Enum):
@@ -198,10 +202,13 @@ class TimeSeries():
         ##some checks!
         
         dataset = data.copy()
+        print('I will drop duplicates, I dont like them')
+        dataset.drop_duplicates(subset=['time'],  keep='first', inplace=True, ignore_index=True)
+
         if dataset.time.diff()[1:].nunique()>1:
             print("There are holes in the dataset i will try to extend the dataframe inserting NAN")
             freq = pd.to_timedelta(np.diff(dataset.time).min())
-            
+            print(f'Detected minumum frequency: {freq}')
             dataset = extend_df(dataset.time,freq).merge(dataset,how='left')
             
 
@@ -244,7 +251,7 @@ class TimeSeries():
         fig = px.line(tmp,x='time',y='value',color='variable',title=self.name)
         fig.show()
         
-    def create_data_loader(self,dataset,past_steps,future_steps,shift,starting_point=None):
+    def create_data_loader(self,dataset,past_steps,future_steps,shift,starting_point,skip_step):
         x_num_past_samples = []
         x_num_future_samples = []
         x_cat_past_samples = []
@@ -256,6 +263,10 @@ class TimeSeries():
             dataset[c] = self.scaler_cat[c].transform(dataset[c].values.ravel()).flatten()
         for c in self.num_var: 
             dataset[c] = self.scaler_num[c].transform(dataset[c].values.reshape(-1,1)).flatten()
+        
+        idx_target = []
+        for c in self.target_variables:
+            idx_target.append(self.past_variables.index(c))
          
         
         x_num_past = dataset[self.past_variables].values
@@ -272,7 +283,7 @@ class TimeSeries():
         else:
             check = [True]*len(y_target)
         
-        for i in range(past_steps,dataset.shape[0]-future_steps):
+        for i in range(past_steps,dataset.shape[0]-future_steps,skip_step):
             if check[i]:
 
                 if len(self.future_variables)>0:
@@ -309,9 +320,9 @@ class TimeSeries():
         if len(self.future_variables)>0:
             dd['x_num_future'] = x_num_future_samples.astype(np.float32)
         
-        return MyDataset(dd,t_samples)
+        return MyDataset(dd,t_samples,idx_target)
     
-    def split_for_train(self,perc_train=0.6, perc_valid=0.2, range_train=None, range_validation=None, range_test=None,past_steps = 100,future_steps=20,shift = 0,starting_point=None):
+    def split_for_train(self,perc_train=0.6, perc_valid=0.2, range_train=None, range_validation=None, range_test=None,past_steps = 100,future_steps=20,shift = 0,starting_point=None,skip_step=1):
         try:
             l = self.dataset.shape[0]
         except:
@@ -342,26 +353,19 @@ class TimeSeries():
             self.scaler_cat[c].fit(train[c].values.reshape(-1,1))  
                                       
     
-        dl_train = self.create_data_loader(train,past_steps,future_steps,shift,starting_point)
-        dl_validation = self.create_data_loader(validation,past_steps,future_steps,shift,starting_point)
-        dl_test = self.create_data_loader(test,past_steps,future_steps,shift,starting_point)
+        dl_train = self.create_data_loader(train,past_steps,future_steps,shift,starting_point,skip_step)
+        dl_validation = self.create_data_loader(validation,past_steps,future_steps,shift,starting_point,skip_step)
+        dl_test = self.create_data_loader(test,past_steps,future_steps,shift,starting_point,skip_step)
 
         return dl_train,dl_validation,dl_test
             
-    def set_model(self,model,quantile = False,config=None):
+    def set_model(self,model,config=None):
         self.model = model
-        self.return_quantile = quantile
-        if (self.out_vars>1 ) and quantile:
-            print('care multioutoput with quantile not tested')
         self.config = config
-    def train_model(self,dirpath,perc_train=0.6, perc_valid=0.2, range_train=None, range_validation=None, range_test=None,past_steps = 100,future_steps=20,shift = 0,batch_size=100,num_workers=4,max_epochs=500,auto_lr_find=True,starting_point=None):
-        self.split_params = {'perc_train':perc_train,'perc_valid':perc_valid,
-                              'range_train':range_train, 'range_validation':range_validation, 'range_test':range_test,
-                             'past_steps':past_steps,
-                             'future_steps':future_steps,
-                             'shift':shift,
-                             'starting_point':starting_point
-                             }
+        
+            
+    def train_model(self,dirpath,split_params,batch_size=100,num_workers=4,max_epochs=500,auto_lr_find=True):
+        self.split_params = split_params
         train,validation,test = self.split_for_train(**self.split_params)
         
         print(f'train:{len(train)}, validation:{len(validation)}, test:{len(test)}')
@@ -385,8 +389,8 @@ class TimeSeries():
 
         trainer.fit(self.model, train_dl,valid_dl)
         self.checkpoint_file_best = checkpoint_callback.best_model_path
-        self.checkpoint_file_last =checkpoint_callback.last_model_path
-
+        self.checkpoint_file_last = checkpoint_callback.last_model_path
+        self.dirpath = dirpath
         for c in trainer.callbacks:
             if 'metrics' in dir(c):
                 self.losses = c.metrics
@@ -416,26 +420,26 @@ class TimeSeries():
 
         ## BxLxCx3
         
-        if self.return_quantile:
-            
-            time = pd.DataFrame(time,columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':'time'})
+        if self.model.use_quantiles:
+            ##i+1 
+            time = pd.DataFrame(time,columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':'time','variable':'lag'})
             tot = [time]
             for i, c in enumerate(self.target_variables):
-                tot.append(pd.DataFrame(real[:,:,i,0],columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':c}).drop(columns=['variable']))
-                tot.append(pd.DataFrame(res[:,:,i,0],columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':c+'_low'}).drop(columns=['variable']))
-                tot.append(pd.DataFrame(res[:,:,i,1],columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':c+'_median'}).drop(columns=['variable']))
-                tot.append(pd.DataFrame(res[:,:,i,2],columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':c+'_high'}).drop(columns=['variable']))
+                tot.append(pd.DataFrame(real[:,:,i],columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':c}).drop(columns=['variable']))
+                tot.append(pd.DataFrame(res[:,:,i,0],columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':c+'_low'}).drop(columns=['variable']))
+                tot.append(pd.DataFrame(res[:,:,i,1],columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':c+'_median'}).drop(columns=['variable']))
+                tot.append(pd.DataFrame(res[:,:,i,2],columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':c+'_high'}).drop(columns=['variable']))
 
             res = pd.concat(tot,axis=1)
         
             
         ## BxLxCx1
         else:
-            time = pd.DataFrame(time,columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':'time'})
+            time = pd.DataFrame(time,columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':'time','variable':'lag'})
             tot = [time]
             for i, c in enumerate(self.target_variables):
-                tot.append(pd.DataFrame(real[:,:,i,0],columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':c}).drop(columns=['variable']))
-                tot.append(pd.DataFrame(res[:,:,i,0],columns=[f'lag_{i+1}' for i in range(res.shape[1])]).melt().rename(columns={'value':c+'_pred'}).drop(columns=['variable']))
+                tot.append(pd.DataFrame(real[:,:,i],columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':c}).drop(columns=['variable']))
+                tot.append(pd.DataFrame(res[:,:,i,0],columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':c+'_pred'}).drop(columns=['variable']))
             res = pd.concat(tot,axis=1)
 
             
@@ -452,14 +456,28 @@ class TimeSeries():
                     _ = params.pop(k)
             pickle.dump(params,f)
 
-    def load(self,model, filename,load_last=True):
+    def load(self,model, filename,load_last=True,dirpath=None,weight_path=None):
         print('Loading')
         with open(filename+'.pkl','rb') as f:
             params = pickle.load(f)
             for p in params:
                 setattr(self,p, params[p])    
         self.model = model(**self.config['model_configs'],optim_config = self.config['optim_config'],scheduler_config =self.config['scheduler_config'] )
-        if load_last:
-            self.model = self.model.load_from_checkpoint(self.checkpoint_file_last)
+        
+        if weight_path is not None:
+            self.model = self.model.load_from_checkpoint(weight_path)
+          
         else:
-            self.model = self.model.load_from_checkpoint(self.checkpoint_file_best)
+            if self.dirpath is not None:
+                if load_last:
+                    tmp_path = os.path.join(self.dirpath,self.checkpoint_file_last.split('/')[-1])
+                    self.model = self.model.load_from_checkpoint(tmp_path)
+                else:
+                    tmp_path = os.path.join(self.dirpath,self.checkpoint_file_best.split('/')[-1])
+                    self.model = self.model.load_from_checkpoint(tmp_path)
+            else:
+                
+                if load_last:
+                    self.model = self.model.load_from_checkpoint(self.checkpoint_file_last)
+                else:
+                    self.model = self.model.load_from_checkpoint(self.checkpoint_file_best)

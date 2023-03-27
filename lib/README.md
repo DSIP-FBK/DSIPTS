@@ -82,7 +82,7 @@ ts.load_signal(dataset,past_variables =[list of past variables],target_variables
 Up to now, the automathic categorical features extracted can be: `'hour','dow','month','minute'`.
 If you want to use a public dataset there is a wrapper in the library for downloading some datasets using [Monarch](https://forecastingdata.org/).
 ```
-from disipts Monarch
+from dsipts Monarch
 import pandas as pd
 m = Monarch(filename='monarch',baseUrl='https://forecastingdata.org/', rebuild=True)
 ```
@@ -115,7 +115,6 @@ Now we can define a forecasting problem, for example using the last 100 steps fo
 ```
 past_steps = 100
 future_steps = 20
-multioutput = False
 ```
 
 Let suppose to use a RNN encoder-decoder sturcture, then the model has the following parameters:
@@ -132,12 +131,12 @@ config = dict(model_configs =dict(
                                     channels_past = len(ts.num_var),
                                     channels_future = len(ts.future_variables),
                                     embs = [ts.dataset[c].nunique() for c in ts.cat_var],
-                                    quantiles=[] if multioutput else [0.1,0.5,0.9],
-                                    out_channels = 2 if multioutput else 1),
+                                    quantiles=[0.1,0.5,0.9],
+                                    out_channels = len(ts.target_variables),
                 scheduler_config = dict(gamma=0.1,step_size=100),
                 optim_config = dict(lr = 0.0005,weight_decay=0.01))
 model_sum = RNN(**config['model_configs'],optim_config = config['optim_config'],scheduler_config =config['scheduler_config'] )
-ts.set_model(model_sum,quantile = model_sum.use_quantiles,config=config )
+ts.set_model(model_sum,config=config )
 
 ```
 

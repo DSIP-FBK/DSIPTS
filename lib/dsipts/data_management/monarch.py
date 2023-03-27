@@ -244,11 +244,12 @@ class Monarch():
         if os.path.exists(os.path.join(path,str(id))):
             if rebuild:
                 file = self._download(url = self.table.Download[self.table.id== id].values[0], path = os.path.join(path,str(id)))
+                self.downloaded[id] = f'{path}/{id}/{file}'
             else:
                 pass
         else:
             file = self._download(url = self.table.Download[self.table.id== id].values[0] , path = os.path.join(path,str(id)))
-        self.downloaded[id] = f'{path}/{id}/{file}'
+            self.downloaded[id] = f'{path}/{id}/{file}'
     def _download(self,url, path):
         with requests.Session() as s:
             r = s.get(url)

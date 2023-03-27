@@ -1,22 +1,10 @@
 
-from torch import optim, nn
+from torch import  nn
 import torch
-import pickle
-import pytorch_lightning as pl
-from torch.optim.lr_scheduler import StepLR
-from .base import QuantileLoss, Base
-def get_device():
-    return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+from .base import Base
+from .utils import QuantileLossMO,Permute, get_device
 
 
-
-
-class Permute(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, input):
-        return torch.permute(input,(0,2,1))
 
 class RNN(Base):
 
@@ -37,14 +25,15 @@ class RNN(Base):
         assert (len(quantiles) ==0) or (len(quantiles)==3)
         if len(quantiles)>0:
             self.use_quantiles = True
+            self.mul = 3
         else:
             self.use_quantiles = False
+            self.mul = 1
         
         emb_channels = 0
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
-        if (out_channels>1) and self.use_quantiles:
-            print('THis is not implemented, please adjust the code for multiputput quantile')
+
         for k in embs:
             self.embs.append(nn.Embedding(k+1,embedding_final))
             emb_channels+=embedding_final
@@ -69,7 +58,7 @@ class RNN(Base):
         self.Encoder = nn.LSTM(input_size= hidden_LSTM//8,hidden_size=hidden_LSTM,num_layers = num_layers,batch_first=True)
         self.Decoder = nn.LSTM(input_size= hidden_LSTM//8,hidden_size=hidden_LSTM,num_layers = num_layers,batch_first=True)
         self.final_linear = nn.ModuleList()
-        for _ in range(3 if self.use_quantiles else out_channels):
+        for _ in range(out_channels*self.mul):
             self.final_linear.append(nn.Sequential(nn.Linear(hidden_LSTM,hidden_LSTM//2), 
                                             nn.PReLU(),nn.Dropout(0.2),nn.Linear(hidden_LSTM//2,hidden_LSTM//4),
                                             nn.PReLU(),nn.Dropout(0.2),nn.Linear(hidden_LSTM//4,hidden_LSTM//8),
@@ -77,7 +66,7 @@ class RNN(Base):
 
   
         if  self.use_quantiles:
-            self.loss = QuantileLoss(quantiles)
+            self.loss = QuantileLossMO(quantiles)
         else:
             self.loss = nn.L1Loss()
         #self.device = get_device()
@@ -133,6 +122,9 @@ class RNN(Base):
       
         for j in range(len(self.final_linear)):
             res.append(self.final_linear[j](out))
-
-        return torch.cat(res,2)
+            
+        res = torch.cat(res,2)
+        ##BxLxC
+        B,L,_ = res.shape
+        return res.reshape(B,L,-1,self.mul)
     

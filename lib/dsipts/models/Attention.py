@@ -1,13 +1,9 @@
 
-from torch import optim, nn
+from torch import  nn
 import torch
-import pickle
-import pytorch_lightning as pl
-from torch.optim.lr_scheduler import StepLR
-from .base import QuantileLoss, Base
+from .base import  Base
+from .utils import get_device, QuantileLossMO
 import math
-def get_device():
-    return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 
@@ -44,8 +40,10 @@ class Attention(Base):
         assert (len(quantiles) ==0) or (len(quantiles)==3)
         if len(quantiles)>0:
             self.use_quantiles = True
+            self.mul = 3 
         else:
             self.use_quantiles = False
+            self.mul = 1
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
 
@@ -67,12 +65,15 @@ class Attention(Base):
  
         
         self.final_linear = nn.ModuleList()
-        for _ in range(3 if self.use_quantiles else out_channels):
-            self.final_linear.append(nn.Sequential(nn.Linear(n_embd,n_embd//2),nn.ReLU(),nn.Linear(n_embd//2,1)))
+        for _ in range(out_channels*self.mul):
+            self.final_linear.append(nn.Sequential(nn.Linear(n_embd,n_embd*2),nn.ReLU(),nn.Dropout(0,2),
+                                                   nn.Linear(n_embd*2,n_embd),nn.ReLU(),nn.Dropout(0,2),
+                                                   nn.Linear(n_embd,n_embd//2),nn.ReLU(),nn.Dropout(0,2),
+                                                   nn.Linear(n_embd//2,1)))
 
   
         if  self.use_quantiles:
-            self.loss = QuantileLoss(quantiles)
+            self.loss = QuantileLossMO(quantiles)
         else:
             self.loss = nn.L1Loss()
         
@@ -139,8 +140,12 @@ class Attention(Base):
         for j in range(len(self.final_linear)):
             res.append(self.final_linear[j](decoder_output))
        
-        ##check
-        return torch.cat(res,2)
+        ##BxLxC
+        res = torch.cat(res,2)
+        B,L,_ = res.shape
+
+        return res.reshape(B,L,-1,self.mul)
+
     
     
     
@@ -172,16 +177,16 @@ class Attention(Base):
                 y_i = self(tmp)
                 ##quantile loss!
                 if self.use_quantiles:
-                    pred = y_i[:,-1:,1:2]
+                    pred = y_i[:,-1:,:,1]
                 else:
-                    pred = y_i[:,-1:,:]
+                    pred = y_i[:,-1:,:,0]
                 if tmp_x_future is not None:
-                    ##TODO questo funziona solo senza meteo! 
+                    ##TODO questo funziona solo senza meteo a meno che non decida di mettere un ordine alle variabili
                     tmp['x_num_future'] =torch.cat([tmp['x_num_future'].to(self.device),pred],1)
                 count+=1
                 if tmp_cat_future is not None:
                     tmp['x_cat_future'] = tmp_cat_future[:,0:count+1,:]
                 
-                y.append(y_i[:,-1:,:])#.detach().cpu().numpy())
+                y.append(y_i[:,-1:,:,:])#.detach().cpu().numpy())
             
             return torch.cat(y,1)     

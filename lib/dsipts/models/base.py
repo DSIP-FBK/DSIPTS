@@ -6,49 +6,6 @@ import pytorch_lightning as pl
 from torch.optim.lr_scheduler import StepLR
 from abc import ABCMeta, abstractmethod
 
-def get_device():
-    return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-
-class QuantileLoss(nn.Module):
-    def __init__(self, quantiles):
-        super().__init__()
-        self.quantiles = quantiles
-        
-    def forward(self, preds, target):
-
-        assert not target.requires_grad
-        assert preds.size(0) == target.size(0)
-        losses = []
-        for i, q in enumerate(self.quantiles):
-            errors = target.squeeze() - preds[:,:, i]
-            
-            losses.append(torch.max((q-1) * errors,q * errors))
-
-        loss = torch.mean(torch.sum(torch.cat(losses, dim=1), dim=1))
-        return loss
-
-class QuantileLossMO(nn.Module):
-    def __init__(self, quantiles):
-        super().__init__()
-        self.quantiles = quantiles
-        
-    def forward(self, preds, target):
-
-        assert not target.requires_grad
-        assert preds.size(0) == target.size(0)
-        tot_loss = 0
-        for j in range(preds.shape[2]):
-            losses = []
-            ##suppose BxLxCxMUL
-            for i, q in enumerate(self.quantiles):
-                errors = target[:,:,j] - preds[:,:,j, i]
-                
-                losses.append(torch.max((q-1) * errors,q * errors))
-
-            loss = torch.mean(torch.sum(torch.cat(losses, dim=1), dim=1))
-            tot_loss+=loss
-        return loss
 
 
 class Base(pl.LightningModule):
