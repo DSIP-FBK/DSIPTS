@@ -366,6 +366,7 @@ class TimeSeries():
         
             
     def train_model(self,dirpath,split_params,batch_size=100,num_workers=4,max_epochs=500,auto_lr_find=True):
+        print('TRAINING')
         self.split_params = split_params
         train,validation,test = self.split_for_train(**self.split_params)
         accelerator = 'gpu' if torch.cuda.is_available() else "cpu"
@@ -395,6 +396,8 @@ class TimeSeries():
 
 
         trainer.fit(self.model, train_dl,valid_dl)
+        import pdb
+        pdb.set_trace()
         self.checkpoint_file_best = checkpoint_callback.best_model_path
         self.checkpoint_file_last = checkpoint_callback.last_model_path
         self.dirpath = dirpath
