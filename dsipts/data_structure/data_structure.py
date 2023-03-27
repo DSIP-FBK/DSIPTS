@@ -427,8 +427,8 @@ class TimeSeries():
         
         print(f'Device used: {self.model.device}')
         for batch in train_dl:
-            res.append(self.model.inference(batch).detach().numpy())
-            real.append(batch['y'].detach().numpy())
+            res.append(self.model.inference(batch).cpu().detach().numpy())
+            real.append(batch['y'].cpu().detach().numpy())
         res = np.vstack(res)
         real = np.vstack(real)
         time = train_dl.dataset.t
