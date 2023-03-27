@@ -164,3 +164,6 @@ It is possble to split the data indicating the percentage of data to use in trai
 
 ATTENTION: se metto shift 0 e non metto il target nelle feature future lui non usa la y per predirre se stesso
 se metto shift 1 e metto nel target lui usa le info categoriche del timestamp prima il che non mi sembra ragionevole ma non ho molte idee migliori per ora
+
+# Usage 
+[Here](https://gitlab.fbk.eu/dsip/dsip_dlresearch/dlf/-/tree/main/scripts) you can find an example in wich the library is used for training a model from command line using OmegaConf.
