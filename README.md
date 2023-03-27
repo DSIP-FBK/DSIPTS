@@ -38,6 +38,11 @@ In a pre-generated environment install pytorch and pytorch-lightning (`pip insta
 python setup.py install --force
 ``
 
+Alternatively, you can install it from the package registry:
+```
+pip install dsipts --index-url https://dsipts:<glpat-98SR11neR7hzxy__SueG>@gitlab.fbk.eu/api/v4/projects/4571/packages/pypi/simple
+```
+
 ## Test 
 You can test your model using a tool timeseries
 
