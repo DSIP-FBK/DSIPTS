@@ -47,10 +47,10 @@ class Base(pl.LightningModule):
     def validation_epoch_end(self, outs):
         #print('logging val')
         loss = torch.stack(outs).mean()
-        self.log("val_loss", loss.item())
+        self.log("val_loss", loss.item(),sync_dist=True)
         
 
     def training_epoch_end(self, outs):
         #print('logging train')
         loss = sum(outs['loss'] for outs in outs) / len(outs)
-        self.log("train_loss", loss.item())
+        self.log("train_loss", loss.item(),sync_dist=True)
