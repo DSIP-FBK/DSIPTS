@@ -368,10 +368,11 @@ class TimeSeries():
     def train_model(self,dirpath,split_params,batch_size=100,num_workers=4,max_epochs=500,auto_lr_find=True):
         self.split_params = split_params
         train,validation,test = self.split_for_train(**self.split_params)
+        accelerator = 'gpu' if torch.cuda.is_available() else "cpu"
+
         if accelerator == 'gpu':
             torch.set_float32_matmul_precision('medium')
             print('setting multiplication precision to medium')
-            
         print(f'train:{len(train)}, validation:{len(validation)}, test:{len(test)}')
         train_dl = DataLoader(train, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=accelerator=='gpu')
         valid_dl = DataLoader(validation, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=accelerator=='gpu')
@@ -385,7 +386,6 @@ class TimeSeries():
         
         
         logger = CSVLogger("logs", name=dirpath)
-        accelerator = 'gpu' if torch.cuda.is_available() else "cpu"
 
         
         trainer = pl.Trainer(logger = logger,max_epochs=max_epochs,callbacks=[checkpoint_callback,MetricsCallback()],auto_lr_find=auto_lr_find, accelerator=accelerator)
