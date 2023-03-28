@@ -32,11 +32,11 @@ class PositionalEncoding(nn.Module):
 class Attention(Base):
 
 
-    def __init__(self, channels_past,channels_future,n_embd, num_heads,seq_len,pred_len,dropout,n_layer_encoder,n_layer_decoder,embs,embedding_final,out_channels,quantiles=[],optim_config=None,scheduler_config=None):
+    def __init__(self, past_channels,future_channels,d_model, num_heads,past_steps,future_steps,dropout,n_layer_encoder,n_layer_decoder,embs,cat_emb_dim,out_channels,quantiles=[],optim_config=None,scheduler_config=None):
         self.save_hyperparameters(logger=False)
-        # n_embd: embedding dimension, n_head: the number of heads we'd like
+        # d_model: embedding dimension, n_head: the number of heads we'd like
         super().__init__()
-        self.pred_len = pred_len
+        self.future_steps = future_steps
         assert (len(quantiles) ==0) or (len(quantiles)==3)
         if len(quantiles)>0:
             self.use_quantiles = True
@@ -47,29 +47,29 @@ class Attention(Base):
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
 
-        self.pe = PositionalEncoding( embedding_final, dropout=dropout, max_len=seq_len+pred_len+1)
+        self.pe = PositionalEncoding( cat_emb_dim, dropout=dropout, max_len=past_steps+future_steps+1)
         self.emb_list = nn.ModuleList()
         if embs is not None:
             for k in embs:
-                self.emb_list.append(nn.Embedding(k+1,embedding_final))
+                self.emb_list.append(nn.Embedding(k+1,cat_emb_dim))
 
-        self.initial_layer_decoder = nn.Conv1d(in_channels=len(embs)*embedding_final+embedding_final+channels_future, out_channels= n_embd, kernel_size=1, stride=1,padding='same')
-        self.initial_layer_encoder = nn.Conv1d(in_channels=len(embs)*embedding_final+embedding_final+channels_past, out_channels= n_embd, kernel_size=1, stride=1,padding='same')
+        self.initial_layer_decoder = nn.Conv1d(in_channels=len(embs)*cat_emb_dim+cat_emb_dim+future_channels, out_channels= d_model, kernel_size=1, stride=1,padding='same')
+        self.initial_layer_encoder = nn.Conv1d(in_channels=len(embs)*cat_emb_dim+cat_emb_dim+past_channels, out_channels= d_model, kernel_size=1, stride=1,padding='same')
 
 
-        encoder_layer = nn.TransformerEncoderLayer( d_model=n_embd, nhead=num_heads, dim_feedforward=n_embd, dropout=dropout,batch_first=True ,norm_first=True)
+        encoder_layer = nn.TransformerEncoderLayer( d_model=d_model, nhead=num_heads, dim_feedforward=d_model, dropout=dropout,batch_first=True ,norm_first=True)
         self.encoder = nn.TransformerEncoder( encoder_layer=encoder_layer, num_layers=n_layer_encoder, norm=None)
-        decoder_layer = nn.TransformerDecoderLayer( d_model=n_embd, nhead=num_heads, dim_feedforward=n_embd, dropout=dropout,batch_first=True ,norm_first=True)
+        decoder_layer = nn.TransformerDecoderLayer( d_model=d_model, nhead=num_heads, dim_feedforward=d_model, dropout=dropout,batch_first=True ,norm_first=True)
         self.decoder = nn.TransformerDecoder(decoder_layer=decoder_layer,num_layers=n_layer_decoder,norm=None)
         
  
         
         self.final_linear = nn.ModuleList()
         for _ in range(out_channels*self.mul):
-            self.final_linear.append(nn.Sequential(nn.Linear(n_embd,n_embd*2),nn.ReLU(),nn.Dropout(0,2),
-                                                   nn.Linear(n_embd*2,n_embd),nn.ReLU(),nn.Dropout(0,2),
-                                                   nn.Linear(n_embd,n_embd//2),nn.ReLU(),nn.Dropout(0,2),
-                                                   nn.Linear(n_embd//2,1)))
+            self.final_linear.append(nn.Sequential(nn.Linear(d_model,d_model*2),nn.ReLU(),nn.Dropout(0,2),
+                                                   nn.Linear(d_model*2,d_model),nn.ReLU(),nn.Dropout(0,2),
+                                                   nn.Linear(d_model,d_model//2),nn.ReLU(),nn.Dropout(0,2),
+                                                   nn.Linear(d_model//2,1)))
 
   
         if  self.use_quantiles:
@@ -93,7 +93,7 @@ class Attention(Base):
         x = torch.cat(tmp,2)
         ##BS x L x channels
         x = self.initial_layer_encoder( x.permute(0,2,1)).permute(0,2,1)       
-        enc_seq_len = x.shape[1]
+        enc_past_steps = x.shape[1]
 
         src = self.encoder(x)
 
@@ -126,7 +126,7 @@ class Attention(Base):
 
         src_mask = generate_square_subsequent_mask(
             dim1=forecast_window,
-            dim2=enc_seq_len
+            dim2=enc_past_steps
             ).to(self.device)
         
         decoder_output = self.decoder(
@@ -173,7 +173,7 @@ class Attention(Base):
         with torch.set_grad_enabled(False):
             y = []
             count = 0 
-            for i in range(self.pred_len):
+            for i in range(self.future_steps):
                 y_i = self(tmp)
                 ##quantile loss!
                 if self.use_quantiles:

@@ -9,7 +9,7 @@ from .utils import QuantileLossMO,Permute, get_device
 class RNN(Base):
 
     
-    def __init__(self, past_steps,future_steps,past_channels,future_channels,embs,embedding_final,hidden_LSTM,num_layers,kernel_size_encoder,sum_embs,out_channels,quantiles=[],optim_config=None,scheduler_config=None):
+    def __init__(self, past_steps,future_steps,past_channels,future_channels,embs,cat_emb_dim,hidden_LSTM,num_layers,kernel_size_encoder,sum_emb,out_channels,quantiles=[],optim_config=None,scheduler_config=None):
         super(RNN, self).__init__()
         self.save_hyperparameters(logger=False)
         #self.device = get_device()
@@ -21,7 +21,7 @@ class RNN(Base):
         self.past_channels = past_channels 
         self.future_channels = future_channels 
         self.embs = nn.ModuleList()
-        self.sum_embs = sum_embs
+        self.sum_emb = sum_emb
         assert (len(quantiles) ==0) or (len(quantiles)==3)
         if len(quantiles)>0:
             self.use_quantiles = True
@@ -35,12 +35,12 @@ class RNN(Base):
         self.scheduler_config = scheduler_config
 
         for k in embs:
-            self.embs.append(nn.Embedding(k+1,embedding_final))
-            emb_channels+=embedding_final
+            self.embs.append(nn.Embedding(k+1,cat_emb_dim))
+            emb_channels+=cat_emb_dim
             
             
-        if sum_embs and (emb_channels>0):
-            emb_channels = embedding_final
+        if sum_emb and (emb_channels>0):
+            emb_channels = cat_emb_dim
             print('Using sum')
         else:
             print('Using stacked')
@@ -85,14 +85,14 @@ class RNN(Base):
         tmp = [self.initial_linear_encoder(x)]
         
         for i in range(len(self.embs)):
-            if self.sum_embs:
+            if self.sum_emb:
                 if i>0:
                     tmp_emb+=self.embs[i](cat_past[:,:,i])
                 else:
                     tmp_emb=self.embs[i](cat_past[:,:,i])
             else:
                 tmp.append(self.embs[i](cat_past[:,:,i]))
-        if self.sum_embs and (len(self.embs)>0):
+        if self.sum_emb and (len(self.embs)>0):
             tmp.append(tmp_emb)
         tot = torch.cat(tmp,2)
             
@@ -100,14 +100,14 @@ class RNN(Base):
 
         tmp = []
         for i in range(len(self.embs)):
-            if self.sum_embs:
+            if self.sum_emb:
                 if i>0:
                     tmp_emb+=self.embs[i](cat_future[:,:,i])
                 else:
                     tmp_emb=self.embs[i](cat_future[:,:,i])
             else:
                 tmp.append(self.embs[i](cat_future[:,:,i]))   
-        if self.sum_embs and (len(self.embs)):
+        if self.sum_emb and (len(self.embs)):
             tmp.append(tmp_emb)
             
         if x_future is not None:

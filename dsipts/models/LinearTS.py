@@ -38,21 +38,20 @@ class series_decomp(nn.Module):
         return res, moving_mean
 
 
-
 class LinearTS(Base):
 
     
-    def __init__(self, seq_len,pred_len,channels_past,channels_future,embs,embedding_final,kernel_size_encoder,sum_embs,out_channels,hidden_size,kind='linar',quantiles=[],optim_config=None,scheduler_config=None):
+    def __init__(self, past_steps,future_steps,past_channels,future_channels,embs,cat_emb_dim,kernel_size_encoder,sum_emb,out_channels,hidden_size,kind='linar',quantiles=[],optim_config=None,scheduler_config=None):
         super(LinearTS, self).__init__()
         self.save_hyperparameters(logger=False)
         #self.device = get_device()
-        self.seq_len = seq_len
-        self.pred_len = pred_len
+        self.past_steps = past_steps
+        self.future_steps = future_steps
         self.kind = kind
-        self.channels_past = channels_past 
-        self.channels_future = channels_future 
+        self.past_channels = past_channels 
+        self.future_channels = future_channels 
         self.embs = nn.ModuleList()
-        self.sum_embs = sum_embs
+        self.sum_emb = sum_emb
         assert (len(quantiles) ==0) or (len(quantiles)==3)
         if len(quantiles)>0:
             self.use_quantiles = True
@@ -65,12 +64,12 @@ class LinearTS(Base):
 
 
         for k in embs:
-            self.embs.append(nn.Embedding(k+1,embedding_final))
-            emb_channels+=embedding_final
+            self.embs.append(nn.Embedding(k+1,cat_emb_dim))
+            emb_channels+=cat_emb_dim
             
             
-        if sum_embs and (emb_channels>0):
-            emb_channels = embedding_final
+        if sum_emb and (emb_channels>0):
+            emb_channels = cat_emb_dim
             print('Using sum')
         else:
             print('Using stacked')
@@ -88,11 +87,11 @@ class LinearTS(Base):
             self.decompsition = series_decomp(kernel_size_encoder)    
             self.Linear_Trend = nn.ModuleList()
             for _ in range(out_channels):
-                self.Linear_Trend.append(nn.Linear(seq_len,pred_len))
+                self.Linear_Trend.append(nn.Linear(past_steps,future_steps))
             
         
         for _ in range(out_channels):
-            self.linear.append(nn.Sequential(nn.Linear(embedding_final*(seq_len+pred_len)+seq_len*channels_past+channels_future*pred_len,hidden_size),
+            self.linear.append(nn.Sequential(nn.Linear(cat_emb_dim*(past_steps+future_steps)+past_steps*past_channels+future_channels*future_steps,hidden_size),
                                                 nn.PReLU(),
                                                 nn.Dropout(0.2),    
                                                 nn.Linear(hidden_size,hidden_size//2), 
@@ -104,7 +103,7 @@ class LinearTS(Base):
                                                 nn.Linear(hidden_size//4,hidden_size//8),
                                                 nn.PReLU(),
                                                 nn.Dropout(0.2),
-                                                nn.Linear(hidden_size//8,self.pred_len*self.mul)))
+                                                nn.Linear(hidden_size//8,self.future_steps*self.mul)))
                                
 
     def forward(self, batch):
@@ -145,14 +144,14 @@ class LinearTS(Base):
         tmp = [x]
         
         for i in range(len(self.embs)):
-            if self.sum_embs:
+            if self.sum_emb:
                 if i>0:
                     tmp_emb+=self.embs[i](cat_past[:,:,i])
                 else:
                     tmp_emb=self.embs[i](cat_past[:,:,i])
             else:
                 tmp.append(self.embs[i](cat_past[:,:,i]))
-        if self.sum_embs and (len(self.embs)>0):
+        if self.sum_emb and (len(self.embs)>0):
             tmp.append(tmp_emb)
         ##BxLxC
         tot_past = torch.cat(tmp,2).flatten(1)
@@ -161,14 +160,14 @@ class LinearTS(Base):
 
         tmp = []
         for i in range(len(self.embs)):
-            if self.sum_embs:
+            if self.sum_emb:
                 if i>0:
                     tmp_emb+=self.embs[i](cat_future[:,:,i])
                 else:
                     tmp_emb=self.embs[i](cat_future[:,:,i])
             else:
                 tmp.append(self.embs[i](cat_future[:,:,i]))   
-        if self.sum_embs and (len(self.embs)):
+        if self.sum_emb and (len(self.embs)):
             tmp.append(tmp_emb)
             
         if x_future is not None:
