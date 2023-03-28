@@ -54,6 +54,5 @@ class Base(pl.LightningModule):
     def training_epoch_end(self, outs):
         #print('logging train')
         #import pdb;pdb.set_trace()
-
         loss = sum(outs['loss'] for outs in outs) / len(outs)
         self.log("train_loss", loss.item(),sync_dist=False)
