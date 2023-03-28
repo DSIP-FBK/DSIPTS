@@ -37,8 +37,7 @@ class MetricsCallback(Callback):
 
     def on_train_end(self, trainer, pl_module):
         print("Training is ending")
-        import pdb
-        pdb.set_trace()
+        print(self.metrics)
 
 
 class MyDataset(Dataset):
