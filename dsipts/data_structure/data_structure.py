@@ -13,7 +13,6 @@ from pytorch_lightning.loggers import CSVLogger
 from typing import Optional
 import os
 import torch
-
 pd.options.mode.chained_assignment = None 
 import pickle
 
@@ -36,7 +35,13 @@ class MetricsCallback(Callback):
             self.metrics[c].append(trainer.callback_metrics[c].item())
 
     def on_train_end(self, trainer, pl_module):
-        print("Training is ending")
+        losses = self.metrics
+        ##non so perche' le prime due le chiama prima del train
+        losses['val_loss'] = losses['val_loss'][2:]
+        losses = pd.DataFrame(losses)
+        ##accrocchio per quando ci sono piu' gpu!
+        losses.to_csv(f'{np.random.randint(10000)}__losses__.csv',index=False)
+        print("Saving losses because multigpu not working")
         print(self.metrics)
 
 
@@ -395,7 +400,8 @@ class TimeSeries():
         logger = CSVLogger("logs", name=dirpath)
 
         mc = MetricsCallback()
-        trainer = pl.Trainer(logger = logger,max_epochs=max_epochs,callbacks=[checkpoint_callback,mc],auto_lr_find=auto_lr_find, accelerator=accelerator,devices=1)
+        ## TODO se ci sono 2 o piu gpu MetricsCallback non funziona (secondo me fa una istanza per ogni dataparallel che lancia e poi non riesce a recuperare info)
+        trainer = pl.Trainer(logger = logger,max_epochs=max_epochs,callbacks=[checkpoint_callback,mc],auto_lr_find=auto_lr_find, accelerator=accelerator)#,devices=1)
 
         if auto_lr_find:
             trainer.tune(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)
@@ -411,10 +417,19 @@ class TimeSeries():
         self.dirpath = dirpath
         
         self.losses = mc.metrics
-        ##non so perche' le prime due le chiama prima del train
-        self.losses['val_loss'] = self.losses['val_loss'][2:]
-        self.losses = pd.DataFrame(self.losses)
-                
+        if len(self.losses['val_loss'])>0:
+        
+            self.losses['val_loss'] = self.losses['val_loss'][2:]
+            self.losses = pd.DataFrame(self.losses)
+        else:
+            ##accrocchio
+            files = os.listdir()
+            for f in files:
+                if '__losses__.csv' in f:
+                    self.losses = pd.read_csv(f)
+                    os.remove(f)
+                    
+                    
         self.model = self.model.load_from_checkpoint(self.checkpoint_file_last)
 
     def inference_test(self,batch_size=100,num_workers=4,split_params=None):
