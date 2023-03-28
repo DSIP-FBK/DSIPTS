@@ -432,25 +432,33 @@ class TimeSeries():
                     
         self.model = self.model.load_from_checkpoint(self.checkpoint_file_last)
 
-    def inference_test(self,batch_size=100,num_workers=4,split_params=None):
+    def inference_on_set(self,batch_size=100,num_workers=4,split_params=None,set='test'):
         if split_params is None:
             print(f'splitting using train parameters {self.split_params}')
-            _,_,test = self.split_for_train(**self.split_params)
+            train,validation,test = self.split_for_train(**self.split_params)
         else:
-            _,_,test = self.split_for_train(**split_params)
-        train_dl = DataLoader(test, batch_size = batch_size , shuffle=False,drop_last=False,num_workers=num_workers)
+            train,validation,test = self.split_for_train(**split_params)
+        
+        if set=='test':
+            dl = DataLoader(test, batch_size = batch_size , shuffle=False,drop_last=False,num_workers=num_workers)
+        elif set=='validation':
+            dl = DataLoader(validation, batch_size = batch_size , shuffle=False,drop_last=False,num_workers=num_workers)
+        elif set=='train':
+            dl = DataLoader(train, batch_size = batch_size , shuffle=False,drop_last=False,num_workers=num_workers)    
+        else:
+            print('select one of train, test, or validation set')
         self.model.eval()
         res = []
         real = []
         self.model.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
         
         print(f'Device used: {self.model.device}')
-        for batch in train_dl:
+        for batch in dl:
             res.append(self.model.inference(batch).cpu().detach().numpy())
             real.append(batch['y'].cpu().detach().numpy())
         res = np.vstack(res)
         real = np.vstack(real)
-        time = train_dl.dataset.t
+        time = dl.dataset.t
 
         ## BxLxCx3
         
