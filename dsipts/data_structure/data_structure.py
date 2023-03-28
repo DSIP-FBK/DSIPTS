@@ -28,11 +28,12 @@ class MetricsCallback(Callback):
     def __init__(self):
         super().__init__()
         self.metrics = {'val_loss':[],'train_loss':[]}
-        print('CAAAAAAAAAAAAAAAAAAL')
+
         
 
     def on_validation_end(self, trainer, pl_module):
         #import pdb;pdb.set_trace()
+        print(self.metrics)
         for c in trainer.callback_metrics:
             self.metrics[c].append(trainer.callback_metrics[c].item())
 
