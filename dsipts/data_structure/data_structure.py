@@ -31,7 +31,7 @@ class MetricsCallback(Callback):
         
 
     def on_validation_end(self, trainer, pl_module):
-
+        import pdb;pdb.set_trace()
         for c in trainer.callback_metrics:
             self.metrics[c].append(trainer.callback_metrics[c].item())
 
