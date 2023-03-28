@@ -12,6 +12,7 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 from torch_geometric.data import Dataset, Data
 from torch_geometric.loader import DataLoader
+from torch_geometric.nn import Sequential
 
 import argparse
 
@@ -55,28 +56,31 @@ def train(config: ConfigParser) -> None:
 
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    hidden = int(config['model']['hidden'])
-    in_head = int(config['model']['in_head'])
-    out_head = int(config['model']['out_head'])
-    drop = config.getfloat('model', 'drop_out')
+    params_model = {}
+    for key in ['hidden', 'in_head', 'out_head', 'num_layer1', 'num_layer2', 'hid_out_features1', 'hid_out_features2']:
+        params_model[key] = config.getint('model', key)
+    params_model['drop_out'] =  config.getfloat('model', 'drop_out')
+
     in_feat = ds["train"][0].num_features
     id_model = config['model']['id_model']
-    print(f'{f" Configuration (hidden,in_head,out_head) = ({id_model})":=^60s}')
+    print(f'{f" Configuration (hidden, in_head, out_head, drop_out) = ({id_model})":=^60s}')
     A = np.triu(np.ones((265,265)))-np.diag(np.ones(265))
 
     model = GAT(in_feat = in_feat, 
-                out_feat = 1,
-                hid = hidden,
-                in_head = in_head,
-                out_head = out_head, 
-                drop_out = drop,  
+                hid = params_model["hidden"],
+                in_head = params_model["in_head"],
+                out_head = params_model["out_head"], 
+                drop_out = params_model["drop_out"],
+                num_layer1=params_model["num_layer1"],
+                num_layer2=params_model["num_layer2"],
+                hid_out_features1=params_model["hid_out_features1"],
+                hid_out_features2=params_model["hid_out_features2"],
                 emb = emb,
                 past = 200, 
                 future = 65, 
                 A = torch.tensor(A, device = device), 
                 device = device)
-    
-    id_model = config['model']['id_model']
+
     model.to(model.device)
     optimizer = torch.optim.Adam(model.parameters(),    
                              lr = config.getfloat('optimizer','lr'), 
@@ -100,10 +104,12 @@ def train(config: ConfigParser) -> None:
         pickle.dump(losses, f) 
 
     print(f'{" Creating the plot for the LAG ":=^60s}')
-    model = torch.load(os.path.join(config['paths']['net_weights_train'], f'GNN_{id_model}.pt'))
+
+    path = os.path.join(config['paths']['net_weights_train'], f"GNN_{config['model']['id_model']}.pt")
+    model.load_state_dict(torch.load(path))
     get_plot(model = model, 
             ds = ds, 
-            dates=dates,
+            dates = dates,
             losses = losses, 
             config = config,
             show = False)
@@ -122,8 +128,7 @@ def test(config: ConfigParser, name_model:str) -> None:
     for key in ds.keys():
         config['dataset'][f'n_obs_{key}']=f"{len(ds[key])}"
 
-    
-    model = torch.load(os.path.join(config['paths']['net_weights_train'], name_model))
+    model = torch.load(os.path.join(config['paths']['net_weights_train'], "GNN_64_4_2_0.2.pt"))
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
     plot = True
@@ -133,6 +138,7 @@ def test(config: ConfigParser, name_model:str) -> None:
     config['model']['in_head'] = f"{model.in_head}"
     config['model']['out_head'] = f"{model.out_head}"
     config['model']['drop_out'] = f"{model.drop}"
+    print(model.drop)
 
     for i, key in enumerate(["hidden", "in_head", "out_head", "drop_out"]):
         if i ==0:
@@ -166,8 +172,8 @@ if __name__ == "__main__":
     parser.add_argument("-hl", "--hidden", type=str, help="hidden layer")
     parser.add_argument("-ih", "--in_head", type=str, help="number of head in the input")
     parser.add_argument("-oh", "--out_head", type=str, help="number of head in the second conv")
-    parser.add_argument("-dr", "--drop_out", type=str, help = "data manipulation")
-
+    parser.add_argument("-dr", "--drop_out", type=str, help = "drop out in GAT")
+    parser.add_argument("-nl", "--num_layer", type=str, help = "number of layer of GAT")
 
     # non posso avere più di un'operazione alla volta
     parser.add_argument("-d", "--dataset", action="store_true", help = "data manipulation")
@@ -195,8 +201,15 @@ if __name__ == "__main__":
     print(f'{" Setting new possible parameters for the model ":=^60s}')
     config['model']['id_model'] = ""
     for i, key in enumerate(["hidden", "in_head", "out_head", "drop_out"]):
-        if getattr(args, key) is not None:
-            config['model'][key] = f"{getattr(args, key)}"
+        exists = True
+        try:
+            getattr(args, key)
+        except:
+            exists = False
+        if exists:
+            if getattr(args, key) is not None:
+                config['model'][key] = f"{getattr(args, key)}"
+ 
         if i ==0:
             config['model']['id_model'] = f"{config['model'][key]}" 
         else:

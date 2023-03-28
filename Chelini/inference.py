@@ -23,10 +23,10 @@ def get_results(model,
     out_pred = torch.tensor([], device="cpu")
     
     for graph in tqdm(iter(dataloader)):
-        yh = model(graph.to(model.device)).detach().reshape(-1,65).to("cpu")
+        yh = model(graph.to(model.device)).detach().to("cpu")
         yh = yh*(scaler.data_max_[-1]-scaler.data_min_[-1])+scaler.data_min_[-1]
         
-        y = graph.y.reshape(-1).reshape(-1,65).to("cpu")
+        y = graph.y.to("cpu")
         y = y*(scaler.data_max_[-1]-scaler.data_min_[-1])+scaler.data_min_[-1]
         out_real = torch.cat((out_real, y[:,hour]), 0)
         out_pred = torch.cat((out_pred, yh[:,hour]), 0)
@@ -37,10 +37,12 @@ def get_lag(model,
             dataloader,
             scaler):
     model.eval()
-    y, yh = get_results(model = model, dataloader=dataloader, scaler=scaler, hour = range(65))
+    y, yh = get_results(model = model, 
+                        dataloader = dataloader, 
+                        scaler = scaler, 
+                        hour = range(65))
     err = torch.sqrt(torch.mean((y-yh)**2,0))
     return err.cpu().numpy()
-
 
 
 def get_plot(model,

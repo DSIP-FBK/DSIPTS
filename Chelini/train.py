@@ -52,20 +52,26 @@ def training(model,
     loss_train = []
     loss_validation = []
     be = np.Inf
-    k = 3
+    k = 20
+    id_model = config['model']['id_model']
+    saving_path = os.path.join(config['paths']['net_weights_train'],f"GNN_{id_model}.pt")
+
     if config.getboolean('optimizer','custom_loss'):
         path_scaler = os.path.join(config['paths']['dataset'], 'scaler_min_max.pkl') 
         with open(path_scaler, 'rb') as f :
             scaler = pickle.load(f)
         m1 = scaler.data_max_[-1]-scaler.data_min_[-1]    
         
+        
         def my_loss(input, target):
-            crit = nn.L1Loss(reduction='sum')
-            loss = crit(input = input, target = target)*m1
+            crit = nn.MSELoss(reduction='sum')
+            m1 = scaler.data_max_[-1]-scaler.data_min_[-1] 
+            varh = (torch.diff(input)/(input[:,:-1] + scaler.data_min_[-1]/m1)).sort().values
+            var = (torch.diff(target)/(target[:,:-1] + scaler.data_min_[-1]/m1)).sort().values
+            loss = crit(input = input, target = target)*(m1)**2 + torch.sum((torch.mean((var-varh)**2,1))**0.5)
             return loss
         loss_function = my_loss
     
-    id_model = config['model']['id_model']
     # IN QUESTO MODO ELIMINO IL PROBLEMA DEL BUFFERING DATO CHE TQDM STAMPA OGNI RIGA
     with tqdm(total=epoch) as progress_bar: 
         for e in range(epoch):
@@ -98,8 +104,7 @@ def training(model,
                     progress_bar.update(k)
                 sys.stdout.flush()
 
-
-            torch.save(model, os.path.join(config['paths']['net_weights_train'],f"GNN_{id_model}.pt"))
+            torch.save(model.state_dict(), saving_path)
             """if loss_validation[-1] < be:
                 be = loss_validation[-1]
                 torch.save(model, os.path.join(config['paths']['net_weights_train'],f"GNN_{id_model}.pt"))"""            
