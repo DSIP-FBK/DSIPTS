@@ -35,7 +35,10 @@ class MetricsCallback(Callback):
         for c in trainer.callback_metrics:
             self.metrics[c].append(trainer.callback_metrics[c].item())
 
-
+    def on_train_end(self, trainer, pl_module):
+        print("Training is ending")
+        import pdb
+        pdb.set_trace()
 
 
 class MyDataset(Dataset):
@@ -407,16 +410,12 @@ class TimeSeries():
             self.checkpoint_file_last = checkpoint_callback.best_model_path.replace('checkpoint','last')
 
         self.dirpath = dirpath
-        for c in trainer.callbacks:
-            import pdb
-            pdb.set_trace()
-            if 'metrics' in dir(c):
-                self.losses = c.metrics
+        
+        self.losses = mc.metrics
+        ##non so perche' le prime due le chiama prima del train
+        self.losses['val_loss'] = self.losses['val_loss'][2:]
+        self.losses = pd.DataFrame(self.losses)
                 
-                ##non so perche' le prime due le chiama prima del train
-                self.losses['val_loss'] = self.losses['val_loss'][2:]
-                self.losses = pd.DataFrame(self.losses)
-                break
         self.model = self.model.load_from_checkpoint(self.checkpoint_file_last)
 
     def inference_test(self,batch_size=100,num_workers=4,split_params=None):
