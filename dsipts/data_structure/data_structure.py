@@ -41,8 +41,8 @@ class MetricsCallback(Callback):
         losses = pd.DataFrame(losses)
         ##accrocchio per quando ci sono piu' gpu!
         losses.to_csv(f'{np.random.randint(10000)}__losses__.csv',index=False)
-        print("Saving losses because multigpu not working")
-        print(self.metrics)
+        print("Saving losses on file because multigpu not working")
+       
 
 
 class MyDataset(Dataset):
