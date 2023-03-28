@@ -404,6 +404,8 @@ class TimeSeries():
 
         self.dirpath = dirpath
         for c in trainer.callbacks:
+            import pdb
+            pdb.set_trace()
             if 'metrics' in dir(c):
                 self.losses = c.metrics
                 
