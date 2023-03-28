@@ -32,8 +32,6 @@ class MetricsCallback(Callback):
         
 
     def on_validation_end(self, trainer, pl_module):
-        #import pdb;pdb.set_trace()
-        print(self.metrics)
         for c in trainer.callback_metrics:
             self.metrics[c].append(trainer.callback_metrics[c].item())
 
@@ -394,8 +392,8 @@ class TimeSeries():
         
         logger = CSVLogger("logs", name=dirpath)
 
-        
-        trainer = pl.Trainer(logger = logger,max_epochs=max_epochs,callbacks=[checkpoint_callback,MetricsCallback()],auto_lr_find=auto_lr_find, accelerator=accelerator)
+        mc = MetricsCallback()
+        trainer = pl.Trainer(logger = logger,max_epochs=max_epochs,callbacks=[checkpoint_callback,mc],auto_lr_find=auto_lr_find, accelerator=accelerator)
 
         if auto_lr_find:
             trainer.tune(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)
