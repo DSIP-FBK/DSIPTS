@@ -9,17 +9,17 @@ from .utils import QuantileLossMO,Permute, get_device
 class RNN(Base):
 
     
-    def __init__(self, seq_len,pred_len,channels_past,channels_future,embs,embedding_final,hidden_LSTM,num_layers,kernel_size_encoder,sum_embs,out_channels,quantiles=[],optim_config=None,scheduler_config=None):
+    def __init__(self, past_steps,future_steps,past_channels,future_channels,embs,embedding_final,hidden_LSTM,num_layers,kernel_size_encoder,sum_embs,out_channels,quantiles=[],optim_config=None,scheduler_config=None):
         super(RNN, self).__init__()
         self.save_hyperparameters(logger=False)
         #self.device = get_device()
-        self.seq_len = seq_len
-        self.pred_len = pred_len
+        self.past_steps = past_steps
+        self.future_steps = future_steps
 
         self.num_layers = num_layers
         self.hidden_LSTM = hidden_LSTM
-        self.channels_past = channels_past 
-        self.channels_future = channels_future 
+        self.past_channels = past_channels 
+        self.future_channels = future_channels 
         self.embs = nn.ModuleList()
         self.sum_embs = sum_embs
         assert (len(quantiles) ==0) or (len(quantiles)==3)
@@ -45,15 +45,15 @@ class RNN(Base):
         else:
             print('Using stacked')
     
-        self.initial_linear_encoder =  nn.Sequential(nn.Linear(channels_past,4),nn.PReLU(),nn.Linear(4,8),nn.PReLU(),nn.Linear(8,hidden_LSTM//8))
-        self.initial_linear_decoder =  nn.Sequential(nn.Linear(channels_future,4),nn.PReLU(),nn.Linear(4,8),nn.PReLU(),nn.Linear(8,hidden_LSTM//8))
+        self.initial_linear_encoder =  nn.Sequential(nn.Linear(past_channels,4),nn.PReLU(),nn.Linear(4,8),nn.PReLU(),nn.Linear(8,hidden_LSTM//8))
+        self.initial_linear_decoder =  nn.Sequential(nn.Linear(future_channels,4),nn.PReLU(),nn.Linear(4,8),nn.PReLU(),nn.Linear(8,hidden_LSTM//8))
         self.conv_encoder = nn.Sequential(Permute(), nn.Conv1d(emb_channels+hidden_LSTM//8, hidden_LSTM//8, kernel_size_encoder, stride=1,padding='same'),Permute(),nn.Dropout(0.3))
         
-        if channels_future+emb_channels>0:
+        if future_channels+emb_channels>0:
             ## occhio che vuol dire che non ho passato , per ora ci metto una pezza e uso hidden dell'encoder
-            self.conv_decoder =  nn.Sequential(nn.Linear(channels_future+emb_channels,hidden_LSTM//4),  nn.PReLU(),nn.Dropout(0.2),nn.Linear(hidden_LSTM//4, hidden_LSTM//8),nn.Dropout(0.3))
+            self.conv_decoder =  nn.Sequential(nn.Linear(future_channels+emb_channels,hidden_LSTM//4),  nn.PReLU(),nn.Dropout(0.2),nn.Linear(hidden_LSTM//4, hidden_LSTM//8),nn.Dropout(0.3))
         else:
-            self.conv_decoder =  nn.Sequential(Permute(),nn.Linear(seq_len,seq_len*2),  nn.PReLU(),nn.Dropout(0.2),nn.Linear(seq_len*2, pred_len),nn.Dropout(0.3),nn.Conv1d(hidden_LSTM, hidden_LSTM//8, 3, stride=1,padding='same'),   Permute())
+            self.conv_decoder =  nn.Sequential(Permute(),nn.Linear(past_steps,past_steps*2),  nn.PReLU(),nn.Dropout(0.2),nn.Linear(past_steps*2, future_steps),nn.Dropout(0.3),nn.Conv1d(hidden_LSTM, hidden_LSTM//8, 3, stride=1,padding='same'),   Permute())
 
         self.Encoder = nn.LSTM(input_size= hidden_LSTM//8,hidden_size=hidden_LSTM,num_layers = num_layers,batch_first=True)
         self.Decoder = nn.LSTM(input_size= hidden_LSTM//8,hidden_size=hidden_LSTM,num_layers = num_layers,batch_first=True)
