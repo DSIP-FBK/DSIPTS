@@ -28,9 +28,11 @@ class MetricsCallback(Callback):
     def __init__(self):
         super().__init__()
         self.metrics = {'val_loss':[],'train_loss':[]}
+        print('CAAAAAAAAAAAAAAAAAAL')
         
 
     def on_validation_end(self, trainer, pl_module):
+        #import pdb;pdb.set_trace()
         for c in trainer.callback_metrics:
             self.metrics[c].append(trainer.callback_metrics[c].item())
 
@@ -407,14 +409,11 @@ class TimeSeries():
 
         self.dirpath = dirpath
         for c in trainer.callbacks:
-
+            import pdb
+            pdb.set_trace()
             if 'metrics' in dir(c):
                 self.losses = c.metrics
-                if len(self.losses['val_loss'])==0:
-                    print('recovering loss from csv logger, there is a bug when multiprocess are used')
-                    import pdb
-                    pdb.set_trace()
-                    
+                
                 ##non so perche' le prime due le chiama prima del train
                 self.losses['val_loss'] = self.losses['val_loss'][2:]
                 self.losses = pd.DataFrame(self.losses)
