@@ -30,6 +30,40 @@ During the forward process, the batch is a dictionary with some of the key showe
 
 The output of a new model must be $[B,L,C,1]$ in case of single prediction or $[B,L,C,3]$ in case you are using quantile loss.
 
+
+Try to reuse some of the common keyworks while building your model. After the initialization of the model you can use whatever variable you want but during the initialization please use the following conventions.
+This frist block maybe is common between several architectures:
+
+- **past_steps** = int. THIS IS CRUCIAL and self explanatory
+- **future_steps** = int. THIS IS CRUCIAL and self explanatory
+- **past_channels** = len(ts.num_var). THIS IS CRUCIAL and self explanatory
+- **future_channels** = len(ts.future_variables). THIS IS CRUCIAL and self explanatory
+- **embs** = [ts.dataset[c].nunique() for c in ts.cat_var]. THIS IS CRUCIAL and self explanatory. 
+- **out_channels** = len(ts.target_variables). THIS IS CRUCIAL and self explanatory
+- **cat_emb_dim** = int. Dimension of embedded categorical variables, the choice here is to use a constant value and let the user chose if concatenate or sum the variables
+- **sum_emb** = boolean. If true the contribution of each categorical variable is summed
+- **quantiles**=[0.1,0.5,0.9]. Quantiles for quantile loss
+
+
+some are more specific for RNN-CONV architectures:
+
+- **hidden_LSTM** = int. If there are some LSTM use this and the following
+- **num_layers_LSTM** = int.
+- **kernel_size_encoder** = int. If there are some convolutional layers
+
+linear:
+- **hidden_size** = int. Usually the hidden dimension, for some architecture maybe you can pass the list of the dimensions
+- **kind** =str. Type of linear approach
+
+or attention based models:
+
+- **d_model** = int .d_model of a typical attention layer
+- **num_heads** = int .Heads
+- **dropout** = float. dropout
+- **n_layer_encoder** = int. encoder layers
+- **n_layer_decoder** = int. decoder layers
+
+
 ## How to
 
 In a pre-generated environment install pytorch and pytorch-lightning (`pip install pytorch-lightning==1.9.4`) then go inside the lib folder and execute:
@@ -54,7 +88,7 @@ You can test your model using a tool timeseries
 ##import modules
 from dsipts import Categorical,TimeSeries, RNN, Attention
 
-###########3#define some categorical features##########
+#############define some categorical features##########
 
 ##weekly, multiplicative
 settimana = Categorical('settimanale',1,[1,1,1,1,1,1,1],7,'multiplicative',[0.9,0.8,0.7,0.6,0.5,0.99,0.99])
@@ -128,17 +162,16 @@ future_steps = 20
 
 Let suppose to use a RNN encoder-decoder sturcture, then the model has the following parameters:
 ```
-
 config = dict(model_configs =dict(
-                                    embedding_final = 16,
+                                    cat_emb_dim = 16,
                                     hidden_LSTM = 256,
-                                    num_layers = 2,
-                                    sum_embs = True,
+                                    num_layers_LSTM = 2,
+                                    sum_emb = True,
                                     kernel_size_encoder = 20,
-                                    seq_len = past_steps,
-                                    pred_len = future_steps,
-                                    channels_past = len(ts.num_var),
-                                    channels_future = len(ts.future_variables),
+                                    past_steps = past_steps,
+                                    future_steps = future_steps,
+                                    past_channels = len(ts.num_var),
+                                    future_channels = len(ts.future_variables),
                                     embs = [ts.dataset[c].nunique() for c in ts.cat_var],
                                     quantiles=[0.1,0.5,0.9],
                                     out_channels = len(ts.target_variables),
@@ -166,4 +199,5 @@ ATTENTION: se metto shift 0 e non metto il target nelle feature future lui non u
 se metto shift 1 e metto nel target lui usa le info categoriche del timestamp prima il che non mi sembra ragionevole ma non ho molte idee migliori per ora
 
 # Usage 
-[Here](https://gitlab.fbk.eu/dsip/dsip_dlresearch/dlf/-/tree/main/scripts) you can find an example in wich the library is used for training a model from command line using OmegaConf.
+[Here](https://gitlab.fbk.eu/dsip/dsip_dlresearch/dlf/-/tree/main/scripts) you can find an example in wich the library is used for training a model from command line using OmegaConf with more update models and examples
+

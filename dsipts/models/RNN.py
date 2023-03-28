@@ -9,14 +9,14 @@ from .utils import QuantileLossMO,Permute, get_device
 class RNN(Base):
 
     
-    def __init__(self, past_steps,future_steps,past_channels,future_channels,embs,cat_emb_dim,hidden_LSTM,num_layers,kernel_size_encoder,sum_emb,out_channels,quantiles=[],optim_config=None,scheduler_config=None):
+    def __init__(self, past_steps,future_steps,past_channels,future_channels,embs,cat_emb_dim,hidden_LSTM,num_layers_LSTM,kernel_size_encoder,sum_emb,out_channels,quantiles=[],optim_config=None,scheduler_config=None):
         super(RNN, self).__init__()
         self.save_hyperparameters(logger=False)
         #self.device = get_device()
         self.past_steps = past_steps
         self.future_steps = future_steps
 
-        self.num_layers = num_layers
+        self.num_layers_LSTM = num_layers_LSTM
         self.hidden_LSTM = hidden_LSTM
         self.past_channels = past_channels 
         self.future_channels = future_channels 
@@ -55,8 +55,8 @@ class RNN(Base):
         else:
             self.conv_decoder =  nn.Sequential(Permute(),nn.Linear(past_steps,past_steps*2),  nn.PReLU(),nn.Dropout(0.2),nn.Linear(past_steps*2, future_steps),nn.Dropout(0.3),nn.Conv1d(hidden_LSTM, hidden_LSTM//8, 3, stride=1,padding='same'),   Permute())
 
-        self.Encoder = nn.LSTM(input_size= hidden_LSTM//8,hidden_size=hidden_LSTM,num_layers = num_layers,batch_first=True)
-        self.Decoder = nn.LSTM(input_size= hidden_LSTM//8,hidden_size=hidden_LSTM,num_layers = num_layers,batch_first=True)
+        self.Encoder = nn.LSTM(input_size= hidden_LSTM//8,hidden_size=hidden_LSTM,num_layers_LSTM = num_layers_LSTM,batch_first=True)
+        self.Decoder = nn.LSTM(input_size= hidden_LSTM//8,hidden_size=hidden_LSTM,num_layers_LSTM = num_layers_LSTM,batch_first=True)
         self.final_linear = nn.ModuleList()
         for _ in range(out_channels*self.mul):
             self.final_linear.append(nn.Sequential(nn.Linear(hidden_LSTM,hidden_LSTM//2), 
