@@ -410,7 +410,7 @@ class TimeSeries():
 
             if 'metrics' in dir(c):
                 self.losses = c.metrics
-                if self.losses.shape[0]==0:
+                if len(self.losses['val_loss'])==0:
                     print('recovering loss from csv logger, there is a bug when multiprocess are used')
                     import pdb
                     pdb.set_trace()
