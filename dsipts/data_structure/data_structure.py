@@ -400,7 +400,8 @@ class TimeSeries():
         if auto_lr_find:
             trainer.tune(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)
 
-
+        import pdb
+        pdb.set_trace()
         trainer.fit(self.model, train_dl,valid_dl)
         self.checkpoint_file_best = checkpoint_callback.best_model_path
         self.checkpoint_file_last = checkpoint_callback.last_model_path 
