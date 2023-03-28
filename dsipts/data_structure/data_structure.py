@@ -395,7 +395,7 @@ class TimeSeries():
         logger = CSVLogger("logs", name=dirpath)
 
         mc = MetricsCallback()
-        trainer = pl.Trainer(logger = logger,max_epochs=max_epochs,callbacks=[checkpoint_callback,mc],auto_lr_find=auto_lr_find, accelerator=accelerator,devices=0)
+        trainer = pl.Trainer(logger = logger,max_epochs=max_epochs,callbacks=[checkpoint_callback,mc],auto_lr_find=auto_lr_find, accelerator=accelerator,devices=1)
 
         if auto_lr_find:
             trainer.tune(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)
