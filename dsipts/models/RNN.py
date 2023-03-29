@@ -8,7 +8,6 @@ from .utils import QuantileLossMO,Permute, get_device
 
 class RNN(Base):
 
-    
     def __init__(self, past_steps,future_steps,past_channels,future_channels,embs,cat_emb_dim,hidden_LSTM,num_layers_LSTM,kernel_size_encoder,sum_emb,out_channels,quantiles=[],optim_config=None,scheduler_config=None):
         super(RNN, self).__init__()
         self.save_hyperparameters(logger=False)
