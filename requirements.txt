@@ -7,3 +7,5 @@ ipdb==0.13.13
 html-table-parser-python3==0.3.1
 Omegaconf
 plotly
+plotly-express
+kaleido

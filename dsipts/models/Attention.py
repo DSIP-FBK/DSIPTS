@@ -101,13 +101,17 @@ class Attention(Base):
         if 'x_num_future' in batch.keys():
             x_future = batch['x_num_future'].to(self.device)
             tmp = [x_future,self.pe(x_future[:,:,0])]
+            add_pe = False
+
         else:
             tmp = []
+            add_pe = True
         if 'x_cat_future' in batch.keys():
             x_cat_future = batch['x_cat_future'].to(self.device)
             for i in range(len(self.emb_list)):
                 tmp.append(self.emb_list[i](x_cat_future[:,:,i]))
-            tmp.append(self.pe(x_cat_future[:,:,i]))
+            if add_pe:
+                tmp.append(self.pe(x_cat_future[:,:,i]))
         if len(tmp)==0:
             SystemError('Please give me something for the future')
         y = torch.cat(tmp,2)
