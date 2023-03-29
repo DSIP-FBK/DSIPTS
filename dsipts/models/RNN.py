@@ -8,7 +8,7 @@ from .utils import QuantileLossMO,Permute, get_device
 
 class RNN(Base):
 
-    def __init__(self, past_steps,future_steps,past_channels,future_channels,embs,cat_emb_dim,hidden_RNN,num_layers_RNN,kernel_size_encoder,sum_emb,out_channels,quantiles=[],optim_config=None,scheduler_config=None):
+    def __init__(self, past_steps,future_steps,past_channels,future_channels,embs,cat_emb_dim,hidden_RNN,num_layers_RNN,kind,kernel_size_encoder,sum_emb,out_channels,quantiles=[],optim_config=None,scheduler_config=None):
         super(RNN, self).__init__()
         self.save_hyperparameters(logger=False)
         #self.device = get_device()
@@ -21,6 +21,8 @@ class RNN(Base):
         self.future_channels = future_channels 
         self.embs = nn.ModuleList()
         self.sum_emb = sum_emb
+        self.kind = kind
+        
         assert (len(quantiles) ==0) or (len(quantiles)==3)
         if len(quantiles)>0:
             self.use_quantiles = True
@@ -53,9 +55,14 @@ class RNN(Base):
             self.conv_decoder =  nn.Sequential(nn.Linear(future_channels+emb_channels,hidden_RNN//4),  nn.PReLU(),nn.Dropout(0.2),nn.Linear(hidden_RNN//4, hidden_RNN//8),nn.Dropout(0.3))
         else:
             self.conv_decoder =  nn.Sequential(Permute(),nn.Linear(past_steps,past_steps*2),  nn.PReLU(),nn.Dropout(0.2),nn.Linear(past_steps*2, future_steps),nn.Dropout(0.3),nn.Conv1d(hidden_RNN, hidden_RNN//8, 3, stride=1,padding='same'),   Permute())
-
-        self.Encoder = nn.LSTM(input_size= hidden_RNN//8,hidden_size=hidden_RNN,num_layers = num_layers_RNN,batch_first=True)
-        self.Decoder = nn.LSTM(input_size= hidden_RNN//8,hidden_size=hidden_RNN,num_layers = num_layers_RNN,batch_first=True)
+        if self.kind=='lstm':
+            self.Encoder = nn.LSTM(input_size= hidden_RNN//8,hidden_size=hidden_RNN,num_layers = num_layers_RNN,batch_first=True)
+            self.Decoder = nn.LSTM(input_size= hidden_RNN//8,hidden_size=hidden_RNN,num_layers = num_layers_RNN,batch_first=True)
+        elif self.kind=='gru':
+            self.Encoder = nn.GRU(input_size= hidden_RNN//8,hidden_size=hidden_RNN,num_layers = num_layers_RNN,batch_first=True)
+            self.Decoder = nn.GRU(input_size= hidden_RNN//8,hidden_size=hidden_RNN,num_layers = num_layers_RNN,batch_first=True)
+        else:
+            print('Speciky kind= lstm or gru please')
         self.final_linear = nn.ModuleList()
         for _ in range(out_channels*self.mul):
             self.final_linear.append(nn.Sequential(nn.Linear(hidden_RNN,hidden_RNN//2), 
