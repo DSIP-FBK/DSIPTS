@@ -43,12 +43,12 @@ This frist block maybe is common between several architectures:
 - **cat_emb_dim** = int. Dimension of embedded categorical variables, the choice here is to use a constant value and let the user chose if concatenate or sum the variables
 - **sum_emb** = boolean. If true the contribution of each categorical variable is summed
 - **quantiles**=[0.1,0.5,0.9]. Quantiles for quantile loss
-
+- **kind** =str. If there are some similar architectures with small differences maybe is better to use the same code specifying some properties (e.g. GRU vs LSTM)
 
 some are more specific for RNN-CONV architectures:
 
-- **hidden_LSTM** = int. If there are some LSTM use this and the following
-- **num_layers_LSTM** = int.
+- **hidden_RNN** = int. If there are some RNN use this and the following
+- **num_layers_RNN** = int.
 - **kernel_size_encoder** = int. If there are some convolutional layers
 
 linear:
