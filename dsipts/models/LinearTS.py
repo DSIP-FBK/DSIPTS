@@ -111,7 +111,8 @@ class LinearTS(Base):
         x =  batch['x_num_past'].to(self.device)
         if self.kind=='nlinear':
             idx_target = batch['idx_target'][0]
-            x_start = x[:,-1,idx_target]
+
+            x_start = x[:,-1,idx_target].unsqueeze(1)
             ##BxC
             x[:,:,idx_target]-=x_start
         
@@ -187,8 +188,9 @@ class LinearTS(Base):
         res = torch.stack(res,2)
 
         if self.kind=='nlinear':
-            #BxC
-            res+=x_start.unsqueeze(1).unsqueeze(3)
+            #res BxLxCx3
+            #start BxCx1
+            res+=x_start.unsqueeze(1)
         
 
         if self.kind=='dlinear':
