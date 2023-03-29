@@ -54,8 +54,8 @@ class RNN(Base):
         else:
             self.conv_decoder =  nn.Sequential(Permute(),nn.Linear(past_steps,past_steps*2),  nn.PReLU(),nn.Dropout(0.2),nn.Linear(past_steps*2, future_steps),nn.Dropout(0.3),nn.Conv1d(hidden_LSTM, hidden_LSTM//8, 3, stride=1,padding='same'),   Permute())
 
-        self.Encoder = nn.LSTM(input_size= hidden_LSTM//8,hidden_size=hidden_LSTM,num_layers_LSTM = num_layers_LSTM,batch_first=True)
-        self.Decoder = nn.LSTM(input_size= hidden_LSTM//8,hidden_size=hidden_LSTM,num_layers_LSTM = num_layers_LSTM,batch_first=True)
+        self.Encoder = nn.LSTM(input_size= hidden_LSTM//8,hidden_size=hidden_LSTM,num_layers = num_layers_LSTM,batch_first=True)
+        self.Decoder = nn.LSTM(input_size= hidden_LSTM//8,hidden_size=hidden_LSTM,num_layers = num_layers_LSTM,batch_first=True)
         self.final_linear = nn.ModuleList()
         for _ in range(out_channels*self.mul):
             self.final_linear.append(nn.Sequential(nn.Linear(hidden_LSTM,hidden_LSTM//2), 
