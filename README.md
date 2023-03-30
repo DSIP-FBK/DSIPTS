@@ -187,7 +187,7 @@ Notice that there are some free parameters: `embedding_final` for example repres
 
 Now we are ready to split and train our model using:
 ```
-ts.train_model(dirpath=<path to weights>,perc_train=0.6, perc_valid=0.2,past_steps = past_steps,future_steps=future_steps, range_train=None, range_validation=None, range_test=None,shift = 0,batch_size=100,num_workers=4,max_epochs=40,auto_lr_find=True,starting_point=None)
+ts.train_model(dirpath=<path to weights>,split_params=dict(perc_train=0.6, perc_valid=0.2,past_steps = past_steps,future_steps=future_steps, range_train=None, range_validation=None, range_test=None,shift = 0,starting_point=None),batch_size=100,num_workers=4,max_epochs=40,auto_lr_find=True,devices='auto')
 ```
 It is possble to split the data indicating the percentage of data to use in train, validation, test or the ranges. The `shift` parameters indicates if there is a shift
 
