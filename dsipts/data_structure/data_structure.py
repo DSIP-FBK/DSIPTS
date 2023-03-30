@@ -372,7 +372,7 @@ class TimeSeries():
         self.config = config
         
             
-    def train_model(self,dirpath,split_params,batch_size=100,num_workers=4,max_epochs=500,auto_lr_find=True):
+    def train_model(self,dirpath,split_params,batch_size=100,num_workers=4,max_epochs=500,auto_lr_find=True,devices='auto'):
         print('TRAINING')
         self.split_params = split_params
         train,validation,test = self.split_for_train(**self.split_params)
@@ -401,7 +401,7 @@ class TimeSeries():
 
         mc = MetricsCallback()
         ## TODO se ci sono 2 o piu gpu MetricsCallback non funziona (secondo me fa una istanza per ogni dataparallel che lancia e poi non riesce a recuperare info)
-        trainer = pl.Trainer(logger = logger,max_epochs=max_epochs,callbacks=[checkpoint_callback,mc],auto_lr_find=auto_lr_find, accelerator=accelerator)#,devices=1)
+        trainer = pl.Trainer(logger = logger,max_epochs=max_epochs,callbacks=[checkpoint_callback,mc],auto_lr_find=auto_lr_find, accelerator=accelerator,devices=devices)#,devices=1)
 
         if auto_lr_find:
             trainer.tune(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)
