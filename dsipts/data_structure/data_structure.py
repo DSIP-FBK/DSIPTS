@@ -421,17 +421,16 @@ class TimeSeries():
         self.dirpath = dirpath
         
         self.losses = mc.metrics
-        #import pdb
-        #pdb.set_trace()
-        if len(self.losses['val_loss'])>0:
-            self.losses = pd.DataFrame(self.losses)
-        else:
-            ##accrocchio
-            files = os.listdir()
-            for f in files:
-                if '__losses__.csv' in f:
+
+        files = os.listdir()
+        ##accrocchio per multi gpu
+        for f in files:
+            if '__losses__.csv' in f:
+                if len(self.losses['val_loss'])>0:
+                    self.losses = pd.DataFrame(self.losses)
+                else:
                     self.losses = pd.read_csv(f)
-                    os.remove(f)
+                os.remove(f)
                     
                     
         self.model = self.model.load_from_checkpoint(self.checkpoint_file_last)
