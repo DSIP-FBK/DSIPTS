@@ -382,14 +382,14 @@ class TimeSeries():
             strategy = "auto" ##TODO in future investigate on this
             torch.set_float32_matmul_precision('medium')
             print('setting multiplication precision to medium')
-
+        else:
+            devices = 'auto'
         print(f'train:{len(train)}, validation:{len(validation)}, test:{len(test)}')
         if (accelerator=='gpu') and (num_workers>0):
             persistent_workers = True
-
         else:
             persistent_workers = False
-            devices = 'auto'
+            
         train_dl = DataLoader(train, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
         valid_dl = DataLoader(validation, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
         checkpoint_callback = ModelCheckpoint(dirpath=dirpath,
