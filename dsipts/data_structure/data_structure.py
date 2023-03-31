@@ -464,7 +464,13 @@ class TimeSeries():
         time = dl.dataset.t
 
         ## BxLxCx3
-        
+        print('Scaling back')
+        for i, c in enumerate(self.target_variables):
+            real[:,:,i] = self.scaler_num[c].inverse_transform(real[:,:,i].reshape(-1,1)).reshape(-1,real.shape[1])
+            for j in range(res.shape[3]):
+                res[:,:,i,j] = self.scaler_num[c].inverse_transform(res[:,:,i,j].reshape(-1,1)).reshape(-1,res.shape[1])
+
+
         if self.model.use_quantiles:
             ##i+1 
             time = pd.DataFrame(time,columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':'time','variable':'lag'})
