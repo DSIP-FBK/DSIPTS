@@ -183,21 +183,20 @@ ts.set_model(model_sum,config=config )
 ```
 
 Notice that there are some free parameters: `embedding_final` for example represent the dimension of the embedded categorical variable, `sum_embs` will sum all the categorical contribution otherwise it will concatenate them. It is possible to use a quantile loss, specify some parameters of the scheduler (StepLR) and optimizer parameters (Adam). 
-**TODO** Use omegaconf!
+
 
 Now we are ready to split and train our model using:
 ```
-ts.train_model(dirpath=<path to weights>,split_params=dict(perc_train=0.6, perc_valid=0.2,past_steps = past_steps,future_steps=future_steps, range_train=None, range_validation=None, range_test=None,shift = 0,starting_point=None),batch_size=100,num_workers=4,max_epochs=40,auto_lr_find=True,devices='auto')
+ts.train_model(dirpath=<path to weights>,split_params=dict(perc_train=0.6, perc_valid=0.2,past_steps = past_steps,future_steps=future_steps, range_train=None, range_validation=None, range_test=None,shift = 0,starting_point=None,skip_step=1),batch_size=100,num_workers=4,max_epochs=40,auto_lr_find=True,devices='auto')
 ```
-It is possble to split the data indicating the percentage of data to use in train, validation, test or the ranges. The `shift` parameters indicates if there is a shift
+It is possble to split the data indicating the percentage of data to use in train, validation, test or the ranges. The `shift` parameters indicates if there is a shift constucting the y array. It is used for the attention model where we need to know the first value of the timeseries to predict. The `skip_step` parameters indicates how many temporal steps there are between samples.
 
 
 
 # Models
-
 ATTENTION: se metto shift 0 e non metto il target nelle feature future lui non usa la y per predirre se stesso
 se metto shift 1 e metto nel target lui usa le info categoriche del timestamp prima il che non mi sembra ragionevole ma non ho molte idee migliori per ora
 
 # Usage 
-[Here](https://gitlab.fbk.eu/dsip/dsip_dlresearch/dlf/-/tree/main/scripts) you can find an example in wich the library is used for training a model from command line using OmegaConf with more update models and examples
+[Here](https://gitlab.fbk.eu/dsip/dsip_dlresearch/dlf/-/tree/main/scripts) you can find an example in wich the library is used for training a model from command line using OmegaConf and Hydra with more updated models and examples.
 
