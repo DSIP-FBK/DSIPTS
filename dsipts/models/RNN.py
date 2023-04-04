@@ -3,48 +3,49 @@ from torch import  nn
 import torch
 from .base import Base
 from .utils import QuantileLossMO,Permute, get_device
-
+from typing import List
 
 
 class RNN(Base):
-    """
 
-    Recurrent model with an encoder decoder structure
+    
+    def __init__(self, 
+                 past_steps:int,
+                 future_steps:int,
+                 past_channels:int,
+                 future_channels:int,
+                 embs:List[int],
+                 cat_emb_dim:int,
+                 hidden_RNN:int,
+                 num_layers_RNN:int,
+                 kind:str,
+                 kernel_size_encoder:int,
+                 sum_emb:bool,
+                 out_channels:int,
+                 quantiles:List[int]=[],
+                 optim_config:dict=None,
+                 scheduler_config:dict=None)->None:
+        """ Recurrent model with an encoder decoder structure
 
-        Parameters:
-        ----------
-            past_channels : int
-                number of numeric past variables, must be >0
-            future_channels : int
-                number of future numeric variables 
-            past_steps : int
-                number of past datapoints used 
-            future_steps : int
-                number of future lag to predict
-            embs : [int]
-                list of the initial dimension of the categorical variables
-            cat_emb_dim : int
-                final dimension of each categorical variable
-            sum_emb : bolean
-                if true the contribution of each embedding will be summed-up otherwise stacked
-            out_channels : int
-                number of output channels
-            num_layers_RNN : int
-                number of RNN layers
-            hidden_RNN : int
-                hidden size of the RNN block
-            kind : str
-                one among linear, dlinear (de-trending), nlinear (differential)
-            quantiles : [int] 
-                we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0
-            optim_config : dict
-                configuration for Adam optimizer
-            scheduler_config : dict
-                configuration for stepLR scheduler
-    
-    """
-    
-    def __init__(self, past_steps,future_steps,past_channels,future_channels,embs,cat_emb_dim,hidden_RNN,num_layers_RNN,kind,kernel_size_encoder,sum_emb,out_channels,quantiles=[],optim_config=None,scheduler_config=None):
+        Args:
+            past_steps (int):  number of past datapoints used 
+            future_steps (int): number of future lag to predict
+            past_channels (int): number of numeric past variables, must be >0
+            future_channels (int): number of future numeric variables 
+            embs (List): list of the initial dimension of the categorical variables
+            cat_emb_dim (int): final dimension of each categorical variable
+            hidden_RNN (int): hidden size of the RNN block
+            num_layers_RNN (int): number of RNN layers
+            kind (str): one among GRU or LSTM
+            kernel_size_encoder (int): kernel size in the encoder convolutional block
+            sum_emb (bool): if true the contribution of each embedding will be summed-up otherwise stacked
+            out_channels (int):  number of output channels
+            quantiles (List[int], optional): we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
+            optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
+            scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
+        """
+        
+        
         super(RNN, self).__init__()
         self.save_hyperparameters(logger=False)
         #self.device = get_device()
@@ -113,8 +114,13 @@ class RNN(Base):
             self.loss = nn.L1Loss()
         #self.device = get_device()
     def forward(self, batch):
-        """
-        Forward method
+        """It is mandatory to implement this method
+
+        Args:
+            batch (dict): batch of the dataloader
+
+        Returns:
+            torch.tensor: result
         """
         x =  batch['x_num_past'].to(self.device)
 

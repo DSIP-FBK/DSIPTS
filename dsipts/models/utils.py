@@ -10,6 +10,8 @@ def get_device():
 
 
 class QuantileLossMO(nn.Module):
+    """Copied from git
+    """
     def __init__(self, quantiles):
         super().__init__()
         self.quantiles = quantiles

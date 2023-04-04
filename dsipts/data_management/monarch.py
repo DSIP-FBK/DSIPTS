@@ -16,20 +16,24 @@ from typing import Union
 # replace_missing_vals_with - a term to indicate the missing values in series in the returning dataframe
 # value_column_name - Any name that is preferred to have as the name of the column containing series values in the returning dataframe
 def convert_tsf_to_dataframe(
-    full_file_path_and_name,
-    replace_missing_vals_with="NaN",
-    value_column_name="series_value",
+    full_file_path_and_name:str,
+    replace_missing_vals_with:str="NaN",
+    value_column_name:str="series_value",
 )-> pd.DataFrame:
     """I copied this function from the repo
+
 
     Args:
         full_file_path_and_name (str): path
         replace_missing_vals_with (str, optional): replace not valid numbers. Defaults to "NaN".
         value_column_name (str, optional):. Defaults to "series_value". 
 
+    Raises:
+        Exception:  see https://forecastingdata.org/ for more information
+       
 
     Returns:
-        pd.DataFrame: output data frame
+        pd.DataFrame: the selected timserie
     """
     col_names = []
     col_types = []
@@ -212,8 +216,7 @@ class Monarch():
             self.save(filename)
 
     def get_table(self, baseUrl):
-        """    
-        Used in the init
+        """   get table
         :meta private:
         """
         with requests.Session() as s:

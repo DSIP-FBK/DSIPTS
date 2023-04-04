@@ -15,36 +15,46 @@ pd.options.mode.chained_assignment = None
 import pickle
 from .utils import extend_df,MetricsCallback, MyDataset, ActionEnum
 from datetime import datetime
-from models import Base
+from ..models.base import Base
 
-@dataclass
+
+      
 class Categorical():
     
-    """
-    Create a categorical signal it can act as mutliplicative or additive. You can control the number of classesm the duration and the level 
-    """
-    name: str
-    frequency: int
-    duration: List[int]
-    classes: int
-    action: ActionEnum
-    level: List[float]
+    def __init__(self,name:str, frequency: int,duration: List[int], classes: int, action: ActionEnum,  level: List[float]):
+        """Class for generating toy categorical data
+
+        Args:
+            name (str): name of the categorical signal
+            frequency (int): frequency of the signal
+            duration (List[int]): duration of each class
+            classes (int): number of classes
+            action (str): one between additive or multiplicative
+            level (List[float]): intensity of each class
+
+        """
+
+        self.name = name 
+        self.frequency = frequency
+        self.duration = duration
+        self.classes = classes
+        self.action = action
+        self.level = level
+
+        self.validate()
     
     def validate(self):
-        """
+        """Validate, maybe there will be other checks in the future
+        
         :meta private:
         """
         if len(self.level) == self.classes:
-            return True
+            pass
         else:
-            return False
-        
-    def __post_init__(self):
-        """
-        :meta private:
-        """
-        if not self.validate():
             raise ValueError("Length must match")
+        
+
+            
 
     
     def generate_signal(self,length:int)->None:
@@ -93,33 +103,31 @@ class Categorical():
         fig = px.scatter(tmp,x='time',y='signal',color='class',title=self.name)
         fig.show()
 
-
  
-@dataclass
 class TimeSeries():
-    """
-    Class for generating time series object. If you don't have any time series you can build one fake timeseries using some
-    helping classes (Categorical for instance).
+    
+    def __init__(self,name:str):
+        """Class for generating time series object. If you don't have any time series you can build one fake timeseries using some helping classes (Categorical for instance).
 
-        Parameters:
-        ----------
-        name : str
-            name of the series
-    
-    
-    For example we can generate a toy timeseries:
-    #- add a multiplicative categorical feature (weekly)
-    >>> settimana = Categorical('settimanale',1,[1,1,1,1,1,1,1],7,'multiplicative',[0.9,0.8,0.7,0.6,0.5,0.99,0.99])
-    #- an additive montly feature (here a year is composed by 5 months)
-    >>> mese = Categorical('mensile',1,[31,28,20,10,33],5,'additive',[10,20,-10,20,0])
-    #- a spotted categorical variable that happens every 100 days and lasts 1 day
-    >>> spot = Categorical('spot',100,[7],1,'additive',[10])
-    >>> ts = TimeSeries('prova')
-    >>> ts.generate_signal(length = 5000,categorical_variables = [settimana,mese,spot],noise_mean=1,type=0) ##we can add also noise
-    >>> ts.plot()
-    
-    """
-    name: str
+
+        Args:
+            name (str): name of the series
+                
+                
+        Usage:
+            For example we can generate a toy timeseries:\n
+            - add a multiplicative categorical feature (weekly)\n
+            >>> settimana = Categorical('settimanale',1,[1,1,1,1,1,1,1],7,'multiplicative',[0.9,0.8,0.7,0.6,0.5,0.99,0.99])\n
+            - an additive montly feature (here a year is composed by 5 months)\n
+            >>> mese = Categorical('mensile',1,[31,28,20,10,33],5,'additive',[10,20,-10,20,0])\n
+            - a spotted categorical variable that happens every 100 days and lasts 1 day\n
+            >>> spot = Categorical('spot',100,[7],1,'additive',[10])\n
+            >>> ts = TimeSeries('prova')\n
+            >>> ts.generate_signal(length = 5000,categorical_variables = [settimana,mese,spot],noise_mean=1,type=0) ##we can add also noise\n
+            >>> ts.plot()\n
+        """
+        
+        self.name = name
 
     def __str__(self) -> str:
         return f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables}"
@@ -246,14 +254,11 @@ class TimeSeries():
         self.out_vars = len(target_variables)
         self.num_var = list(set(self.past_variables).union(set(self.future_variables)).union(set(self.target_variables)))
         
-    def plot(self)-> px.figure:
+    def plot(self):
         """  
         Easy way to control the loaded data
-        
-        
-
         Returns:
-            px.figure: figure of the target variables
+            plotly.graph_objects._figure.Figure: figure of the target variables
         """
       
         print('plotting only target variables')
@@ -358,9 +363,18 @@ class TimeSeries():
     
           
     
-    def split_for_train(self,perc_train:Union[float,None]=0.6, perc_valid:Union[float,None]=0.2,
-                        range_train:Union[List[Union[datetime, str]],None]=None, range_validation:Union[List[Union[datetime, str]],None]=None, range_test:Union[List[Union[datetime, str]],None]=None,
-                        past_steps:int = 100,future_steps:int=20,shift:int = 0,starting_point:Union[None, dict]=None,skip_step:int=1)->List[DataLoader,DataLoader,DataLoader]:
+    def split_for_train(self,
+                        perc_train:Union[float,None]=0.6,
+                        perc_valid:Union[float,None]=0.2,
+                        range_train:Union[List[Union[datetime, str]],None]=None,
+                        range_validation:Union[List[Union[datetime, str]],None]=None,
+                        range_test:Union[List[Union[datetime, str]],None]=None,
+                        past_steps:int = 100,
+                        future_steps:int=20,
+                        shift:int = 0,
+                        starting_point:Union[None, dict]=None,
+                        skip_step:int=1
+                        )->List[DataLoader]:
         """Split the data and create the datasets.
 
         Args:

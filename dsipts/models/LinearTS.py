@@ -39,42 +39,7 @@ class series_decomp(nn.Module):
 
 
 class LinearTS(Base):
-    """
 
-    
-
-        Parameters:
-        ----------
-            past_channels : int
-                
-            future_channels : int
-                
-            kernel_size_encoder : int
-                
-            past_steps : int
-               
-            future_steps : int
-                
-            embs : [int]
-                
-            cat_emb_dim : int
-                
-            sum_emb : bolean
-                if true the contribution of each embedding will be summed-up otherwise stacked
-            out_channels : int
-                number of output channels
-            hidden_size : int
-                hidden size of the lienar block
-            kind : str
-                one among linear, dlinear (de-trending), nlinear (differential)
-            quantiles : [int] 
-                we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0
-            optim_config : dict
-                configuration for Adam optimizer
-            scheduler_config : dict
-                configuration for stepLR scheduler
-    
-    """
     
     def __init__(self, 
                  past_steps:int,
@@ -101,13 +66,13 @@ class LinearTS(Base):
             embs (List[int]): list of the initial dimension of the categorical variables
             cat_emb_dim (int): final dimension of each categorical variable
             kernel_size_encoder (int): kernel dimension for initial moving average
-            sum_emb (bool): _description_
-            out_channels (int): _description_
-            hidden_size (int): _description_
-            kind (str, optional): _description_. Defaults to 'linear'.
-            quantiles (List[int], optional): _description_. Defaults to [].
-            optim_config (dict, optional): _description_. Defaults to None.
-            scheduler_config (dict, optional): _description_. Defaults to None.
+            sum_emb (bool): if true the contribution of each embedding will be summed-up otherwise stacked
+            out_channels (int): number of output channels
+            hidden_size (int): hidden size of the lienar block
+            kind (str, optional): one among linear, dlinear (de-trending), nlinear (differential). Defaults to 'linear'.
+            quantiles (List[int], optional):  we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
+            optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
+            scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
         """
         
         
@@ -177,8 +142,13 @@ class LinearTS(Base):
                                
 
     def forward(self, batch):
-        """
-        Forward method
+        """It is mandatory to implement this method
+
+        Args:
+            batch (dict): batch of the dataloader
+
+        Returns:
+            torch.tensor: result
         """
         x =  batch['x_num_past'].to(self.device)
         if self.kind=='nlinear':

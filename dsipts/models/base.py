@@ -52,6 +52,7 @@ class Base(pl.LightningModule):
     def configure_optimizers(self):
         """
         Each model has optim_config and scheduler_config
+        
         :meta private:
         """
         optimizer = optim.Adam(self.parameters(),  **self.optim_config)
@@ -66,6 +67,7 @@ class Base(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         """
         pythotrch lightening stuff
+        
         :meta private:
         """
         y_hat = self(batch)
@@ -76,6 +78,7 @@ class Base(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         """
         pythotrch lightening stuff
+        
         :meta private:
         """
         y_hat = self(batch)
@@ -86,6 +89,7 @@ class Base(pl.LightningModule):
     def validation_epoch_end(self, outs):
         """
         pythotrch lightening stuff
+        
         :meta private:
         """
         #print('logging val')
@@ -97,6 +101,7 @@ class Base(pl.LightningModule):
     def training_epoch_end(self, outs):
         """
         pythotrch lightening stuff
+        
         :meta private:
         """
         #print('logging train')

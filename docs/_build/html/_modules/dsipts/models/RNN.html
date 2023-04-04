@@ -1,83 +1,121 @@
-
 <!DOCTYPE html>
-
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dsipts.models.RNN &#8212; DSIPTS  documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
-    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/doctools.js"></script>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>dsipts.models.RNN &mdash; DISIPTS 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
-    <link rel="search" title="Search" href="../../../search.html" />
-   
-  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
 
-  </head><body>
-  
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
           
+          
+          <a href="../../../index.html" class="icon icon-home">
+            DISIPTS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">dsipts</a></li>
+</ul>
 
-          <div class="body" role="main">
-            
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">DISIPTS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">dsipts.models.RNN</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
   <h1>Source code for dsipts.models.RNN</h1><div class="highlight"><pre>
 <span></span>
 <span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span>  <span class="n">nn</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">Base</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">QuantileLossMO</span><span class="p">,</span><span class="n">Permute</span><span class="p">,</span> <span class="n">get_device</span>
-
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
 
 
 <div class="viewcode-block" id="RNN"><a class="viewcode-back" href="../../../dsipts.models.html#dsipts.models.RNN.RNN">[docs]</a><span class="k">class</span> <span class="nc">RNN</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 
-<span class="sd">    Recurrent model with an encoder decoder structure</span>
-
-<span class="sd">        Parameters:</span>
-<span class="sd">        ----------</span>
-<span class="sd">            past_channels : int</span>
-<span class="sd">                number of numeric past variables, must be &gt;0</span>
-<span class="sd">            future_channels : int</span>
-<span class="sd">                number of future numeric variables </span>
-<span class="sd">            past_steps : int</span>
-<span class="sd">                number of past datapoints used </span>
-<span class="sd">            future_steps : int</span>
-<span class="sd">                number of future lag to predict</span>
-<span class="sd">            embs : [int]</span>
-<span class="sd">                list of the initial dimension of the categorical variables</span>
-<span class="sd">            cat_emb_dim : int</span>
-<span class="sd">                final dimension of each categorical variable</span>
-<span class="sd">            sum_emb : bolean</span>
-<span class="sd">                if true the contribution of each embedding will be summed-up otherwise stacked</span>
-<span class="sd">            out_channels : int</span>
-<span class="sd">                number of output channels</span>
-<span class="sd">            num_layers_RNN : int</span>
-<span class="sd">                number of RNN layers</span>
-<span class="sd">            hidden_RNN : int</span>
-<span class="sd">                hidden size of the RNN block</span>
-<span class="sd">            kind : str</span>
-<span class="sd">                one among linear, dlinear (de-trending), nlinear (differential)</span>
-<span class="sd">            quantiles : [int] </span>
-<span class="sd">                we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0</span>
-<span class="sd">            optim_config : dict</span>
-<span class="sd">                configuration for Adam optimizer</span>
-<span class="sd">            scheduler_config : dict</span>
-<span class="sd">                configuration for stepLR scheduler</span>
-<span class="sd">    </span>
-<span class="sd">    &quot;&quot;&quot;</span>
     
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">past_steps</span><span class="p">,</span><span class="n">future_steps</span><span class="p">,</span><span class="n">past_channels</span><span class="p">,</span><span class="n">future_channels</span><span class="p">,</span><span class="n">embs</span><span class="p">,</span><span class="n">cat_emb_dim</span><span class="p">,</span><span class="n">hidden_RNN</span><span class="p">,</span><span class="n">num_layers_RNN</span><span class="p">,</span><span class="n">kind</span><span class="p">,</span><span class="n">kernel_size_encoder</span><span class="p">,</span><span class="n">sum_emb</span><span class="p">,</span><span class="n">out_channels</span><span class="p">,</span><span class="n">quantiles</span><span class="o">=</span><span class="p">[],</span><span class="n">optim_config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">scheduler_config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">past_steps</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">future_steps</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">past_channels</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">future_channels</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">embs</span><span class="p">:</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+                 <span class="n">cat_emb_dim</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">hidden_RNN</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">num_layers_RNN</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">kind</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span>
+                 <span class="n">kernel_size_encoder</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">sum_emb</span><span class="p">:</span><span class="nb">bool</span><span class="p">,</span>
+                 <span class="n">out_channels</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">quantiles</span><span class="p">:</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="p">[],</span>
+                 <span class="n">optim_config</span><span class="p">:</span><span class="nb">dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">scheduler_config</span><span class="p">:</span><span class="nb">dict</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Recurrent model with an encoder decoder structure</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            past_steps (int):  number of past datapoints used </span>
+<span class="sd">            future_steps (int): number of future lag to predict</span>
+<span class="sd">            past_channels (int): number of numeric past variables, must be &gt;0</span>
+<span class="sd">            future_channels (int): number of future numeric variables </span>
+<span class="sd">            embs (List): list of the initial dimension of the categorical variables</span>
+<span class="sd">            cat_emb_dim (int): final dimension of each categorical variable</span>
+<span class="sd">            hidden_RNN (int): hidden size of the RNN block</span>
+<span class="sd">            num_layers_RNN (int): number of RNN layers</span>
+<span class="sd">            kind (str): one among GRU or LSTM</span>
+<span class="sd">            kernel_size_encoder (int): kernel size in the encoder convolutional block</span>
+<span class="sd">            sum_emb (bool): if true the contribution of each embedding will be summed-up otherwise stacked</span>
+<span class="sd">            out_channels (int):  number of output channels</span>
+<span class="sd">            quantiles (List[int], optional): we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].</span>
+<span class="sd">            optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.</span>
+<span class="sd">            scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        
         <span class="nb">super</span><span class="p">(</span><span class="n">RNN</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">save_hyperparameters</span><span class="p">(</span><span class="n">logger</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="c1">#self.device = get_device()</span>
@@ -146,8 +184,13 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">L1Loss</span><span class="p">()</span>
         <span class="c1">#self.device = get_device()</span>
 <div class="viewcode-block" id="RNN.forward"><a class="viewcode-back" href="../../../dsipts.models.html#dsipts.models.RNN.RNN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Forward method</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;It is mandatory to implement this method</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            batch (dict): batch of the dataloader</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.tensor: result</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x</span> <span class="o">=</span>  <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;x_num_past&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
@@ -208,69 +251,31 @@
     
 </pre></div>
 
+           </div>
           </div>
-          
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andrea Gobbi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../../index.html">DSIPTS</a></h1>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
 
-
-
-
-
-
-
-
-<h3>Navigation</h3>
-<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">dsipts</a></li>
-</ul>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="../../../index.html">Documentation overview</a><ul>
-  <li><a href="../../index.html">Module code</a><ul>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>$('#searchbox').show(0);</script>
-
-
-
-
-
-
-
-
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2023, Andrea Gobbi.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
-      
-    </div>
-
-    
-
-    
-  </body>
+</body>
 </html>

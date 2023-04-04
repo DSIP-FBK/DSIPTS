@@ -11,6 +11,8 @@ def generate_square_subsequent_mask(dim1: int, dim2: int):
     return torch.triu(torch.ones(dim1, dim2) * float('-inf'), diagonal=1)
 
 class PositionalEncoding(nn.Module):
+    """Copied from git
+    """
 
     def __init__(self, d_model, dropout=0.1, max_len=500):
         super(PositionalEncoding, self).__init__()

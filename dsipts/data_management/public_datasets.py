@@ -1,11 +1,11 @@
 import pandas as pd
 import os
 import numpy as np
-from typing import List
+from typing import List, Tuple
 
 
 
-def read_public_dataset(path:str,dataset:str)->List[pd.DataFrame,List[str]]:
+def read_public_dataset(path:str,dataset:str)->Tuple[pd.DataFrame,List[str]]:
     """    Returns the public dataset chosen. Pleas download the dataset from here https://drive.google.com/drive/folders/1ZOYpTUa82_jCcxIdTmyr0LXQfvaM9vIy or ask to agobbi@fbk.eu. 
     Extract the data and leave the name all_six_datasets in the path folder
 
@@ -14,7 +14,7 @@ def read_public_dataset(path:str,dataset:str)->List[pd.DataFrame,List[str]]:
         dataset (str): dataset (one of 'electricity','etth1','etth2','ettm1','ettm2','exchange_rate','illness','traffic','weather')
 
     Returns:
-        List[pd.DataFrame,List[str]]: The target variable is *y* and the time index is *time* and the list of the covariates
+        Tuple[pd.DataFrame,List[str]]: The target variable is *y* and the time index is *time* and the list of the covariates
     """
     
     
