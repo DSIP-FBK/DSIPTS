@@ -22,6 +22,10 @@ pip install --force dsipts --index-url https://dsipts:glpat-98SR11neR7hzxy__SueG
 ```
 
 
+# Configuration
+
+##copy the file
+
 
 # Hydra
 
@@ -41,7 +45,7 @@ Hydra is used for composing configuration files. In our case most of the paramet
 ```
 dataset:
   dataset: 'weather'
-  path: '/home/agobbi/Projects/TT/dlf/data' ##path to data. In the folder data must be present the folder six_dataset
+  path: '/home/agobbi/Projects/ExpTS/data' ##path to data. In the folder data must be present the folder six_dataset
 
 scheduler_config:
   gamma: 0.1
@@ -73,13 +77,13 @@ split_params:
   future_steps: model_configs@future_steps
 
 train_config:
-  dirpath: "/home/agobbi/Projects/TT/dlf/weights"
+  dirpath: "/home/agobbi/Projects/ExpTS"
   num_workers: 0
   auto_lr_find: true
   devices: [0]                   
 
 inference:
-  output_path: "/home/agobbi/Projects/TT/dlf/csv"
+  output_path: "/home/agobbi/Projects/ExpTS"
   load_last: true
   batch_size: 200 
   num_workers: 4
