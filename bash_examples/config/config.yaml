@@ -43,7 +43,7 @@ inference:
   batch_size: 200 
   num_workers: 4
   set: "validation"
-  rescaling: false
+  rescaling: true
 
 defaults:
   - _self_

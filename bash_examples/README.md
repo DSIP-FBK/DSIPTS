@@ -91,6 +91,7 @@ inference:
   batch_size: 200 
   num_workers: 4
   set: "validation"
+  rescaling: false (sometimes you want to get the errors on normalized datasets)
 
 #since now standard things, these two sessions are the most crucial and useful
 
@@ -162,4 +163,6 @@ Once the models are trained, the relative full configurations are saved in `conf
 python compare.py -c config/compare.yaml
 
 ```
+In the `dirpath` folder `/home/agobbi/Projects/ExpTS/` there are three folder now: `weights` containing the model and the weights, `plots` containing some plots coming from the `compare` script and the `csv` forder containing the files.
 
+A typical example 
