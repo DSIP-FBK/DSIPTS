@@ -68,7 +68,7 @@ def inference(conf):
         errors.append(pd.merge(tmp,tmp2))
     errors = pd.concat(errors,ignore_index=True)
     print(errors)
-    filename = os.path.join(conf.inference.output_path,f'{conf.model.type}_{ts.name}_{conf.ts.version}_{conf.inference.set}.csv')
+    filename = os.path.join(conf.inference.output_path,'csv',f'{conf.model.type}_{ts.name}_{conf.ts.version}_{conf.inference.set}.csv')
 
     errors.to_csv(filename,index=False)
     return errors,res, ts.losses

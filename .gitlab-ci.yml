@@ -9,6 +9,7 @@ run:
 
 pages:
   script:
+    - ./make_doc.sh
     - mkdir .public
     - cp -r docs/_build/html/* .public
     - mv .public public
