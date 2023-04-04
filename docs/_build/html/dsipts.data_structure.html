@@ -139,15 +139,21 @@
 </dl>
 <dl>
 <dt>Usage:</dt><dd><p>For example we can generate a toy timeseries:</p>
-<p>#- add a multiplicative categorical feature (weekly)</p>
+<ul class="simple">
+<li><p>add a multiplicative categorical feature (weekly)</p></li>
+</ul>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">settimana</span> <span class="o">=</span> <span class="n">Categorical</span><span class="p">(</span><span class="s1">&#39;settimanale&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span><span class="mi">7</span><span class="p">,</span><span class="s1">&#39;multiplicative&#39;</span><span class="p">,[</span><span class="mf">0.9</span><span class="p">,</span><span class="mf">0.8</span><span class="p">,</span><span class="mf">0.7</span><span class="p">,</span><span class="mf">0.6</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.99</span><span class="p">,</span><span class="mf">0.99</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>#- an additive montly feature (here a year is composed by 5 months)</p>
+<ul class="simple">
+<li><p>an additive montly feature (here a year is composed by 5 months)</p></li>
+</ul>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mese</span> <span class="o">=</span> <span class="n">Categorical</span><span class="p">(</span><span class="s1">&#39;mensile&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">,[</span><span class="mi">31</span><span class="p">,</span><span class="mi">28</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">33</span><span class="p">],</span><span class="mi">5</span><span class="p">,</span><span class="s1">&#39;additive&#39;</span><span class="p">,[</span><span class="mi">10</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>#- a spotted categorical variable that happens every 100 days and lasts 1 day</p>
+<ul class="simple">
+<li><p>a spotted categorical variable that happens every 100 days and lasts 1 day</p></li>
+</ul>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spot</span> <span class="o">=</span> <span class="n">Categorical</span><span class="p">(</span><span class="s1">&#39;spot&#39;</span><span class="p">,</span><span class="mi">100</span><span class="p">,[</span><span class="mi">7</span><span class="p">],</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;additive&#39;</span><span class="p">,[</span><span class="mi">10</span><span class="p">])</span>
 </pre></div>
 </div>

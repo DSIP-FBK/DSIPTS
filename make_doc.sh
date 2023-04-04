@@ -1,3 +1,6 @@
+sphinx-apidoc -o docs dsipts/
+sphinx-apidoc -o docs bash_examples/
+
 cd docs
 make clean html
 cd ..

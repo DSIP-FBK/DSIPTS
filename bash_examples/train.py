@@ -14,6 +14,11 @@ import plotly.express as px
 
 @hydra.main(version_base=None, config_path="config", config_name="config")
 def train(conf: DictConfig) -> None:
+    """Train a DL model
+
+    Args:
+        conf (DictConfig): dictionary whit all the parameters (split, normalization and training). Some of the parameters required will be filled looking to the timeserie definition. See the examples in the repo.
+    """
     print(OmegaConf.to_yaml(conf))  
     print(f"{''.join(['#']*100)}")
     print(f"{HydraConfig.get()['runtime']['choices']['architecture']:^100}")  

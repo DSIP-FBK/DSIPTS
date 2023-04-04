@@ -186,11 +186,11 @@
 <span class="sd">                </span>
 <span class="sd">        Usage:</span>
 <span class="sd">            For example we can generate a toy timeseries:\n</span>
-<span class="sd">            #- add a multiplicative categorical feature (weekly)\n</span>
+<span class="sd">            - add a multiplicative categorical feature (weekly)\n</span>
 <span class="sd">            &gt;&gt;&gt; settimana = Categorical(&#39;settimanale&#39;,1,[1,1,1,1,1,1,1],7,&#39;multiplicative&#39;,[0.9,0.8,0.7,0.6,0.5,0.99,0.99])\n</span>
-<span class="sd">            #- an additive montly feature (here a year is composed by 5 months)\n</span>
+<span class="sd">            - an additive montly feature (here a year is composed by 5 months)\n</span>
 <span class="sd">            &gt;&gt;&gt; mese = Categorical(&#39;mensile&#39;,1,[31,28,20,10,33],5,&#39;additive&#39;,[10,20,-10,20,0])\n</span>
-<span class="sd">            #- a spotted categorical variable that happens every 100 days and lasts 1 day\n</span>
+<span class="sd">            - a spotted categorical variable that happens every 100 days and lasts 1 day\n</span>
 <span class="sd">            &gt;&gt;&gt; spot = Categorical(&#39;spot&#39;,100,[7],1,&#39;additive&#39;,[10])\n</span>
 <span class="sd">            &gt;&gt;&gt; ts = TimeSeries(&#39;prova&#39;)\n</span>
 <span class="sd">            &gt;&gt;&gt; ts.generate_signal(length = 5000,categorical_variables = [settimana,mese,spot],noise_mean=1,type=0) ##we can add also noise\n</span>

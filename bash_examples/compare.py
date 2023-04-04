@@ -1,7 +1,7 @@
 
 import argparse
 import pandas as pd
-from omegaconf import  OmegaConf
+from omegaconf import DictConfig, OmegaConf
 import os
 import numpy as np
 import plotly.express as px
@@ -11,8 +11,12 @@ from inference import inference
 
 
 
+def compare(conf:DictConfig)-> None:
+    """Compare all the models specified
 
-def compare(conf):
+    Args:
+        conf (DictConfig): a config with a list of models to compare, the ouput folder and other parameters. See the examples in the repo
+    """
     res = []
     tot_losses = []
     tot_predictions = []
