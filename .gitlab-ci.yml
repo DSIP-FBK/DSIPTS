@@ -8,7 +8,7 @@ run:
 
 
 pages:
-  sctipt:
+  script:
     - mkdir .public
     - cp -r docs .public
     - mv .public public
