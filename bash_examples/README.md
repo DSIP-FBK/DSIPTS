@@ -165,4 +165,6 @@ python compare.py -c config/compare.yaml
 ```
 In the `dirpath` folder `/home/agobbi/Projects/ExpTS/` there are three folder now: `weights` containing the model and the weights, `plots` containing some plots coming from the `compare` script and the `csv` forder containing the files.
 
-A typical example 
+A typical example of plot is displayed below and shows the MSE at different lags in the test set for different models:
+
+![plot](figures/weather_test_MSE.jpeg)
