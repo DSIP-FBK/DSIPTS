@@ -19,6 +19,8 @@ def compare(conf):
     for conf_tmp in conf.models:
         conf_tmp =  OmegaConf.load(conf_tmp) 
         conf_tmp.inference.set = conf.set
+        conf_tmp.inference.rescaling = conf.rescaling
+
         tmp,predictions, losses = inference(conf_tmp)
         tmp['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
         predictions['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
@@ -52,14 +54,14 @@ def compare(conf):
 
 
     fig_ass.update_layout(title = {'text':f'MSE {conf.set} set', 'x':0.5},
-                          xaxis_title={'text':'Future hours'},
+                          xaxis_title={'text':'Future step'},
                           yaxis_title={'text':'MSE'},
                         
                             )
     fig_ass.write_image(os.path.join(conf.dirpath,'plots',f'{conf.name}_{conf.set}_MSE.jpeg'),width=1000,scale=10)
     
     fig_rel.update_layout(title = {'text':f'MAPE {conf.set} set', 'x':0.5},
-                          xaxis_title={'text':'Future hours'},
+                          xaxis_title={'text':'Future step'},
                           yaxis_title={'text':'MAPE'},
                         
                             )
