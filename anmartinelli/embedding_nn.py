@@ -11,7 +11,7 @@ class embedding_cat_variables(nn.Module):
             lag (int): number of future step to be predicted
             d_model (int): dimension of all variables after they are embedded
             emb_dims (list): size of the dictionary for embedding. One dimension for each categorical variable
-            device : device for computations
+            device : -
         """
         super().__init__()
         self.seq_len = seq_len
@@ -69,7 +69,7 @@ class embedding_target(nn.Module):
         """Class for embedding target variable (Only one)
 
         Args:
-            d_model (int): dimension of 
+            d_model (int): -
         """
         super().__init__()
         self.y_lin = nn.Linear(1, d_model, bias = False)
@@ -88,51 +88,70 @@ class embedding_target(nn.Module):
 
 class GLU(nn.Module):
     # sub net of GRN 
-    def __init__(self, n_embd: int) :
+    def __init__(self, d_model: int):
+        """Gated Linear Unit, 'Gate' block in TFT paper 
+
+        Args:
+            d_model (int): -
+        """
         super().__init__()
-        self.linear1 = nn.Linear(n_embd, n_embd)
-        self.linear2 = nn.Linear(n_embd, n_embd)
+        self.linear1 = nn.Linear(d_model, d_model)
+        self.linear2 = nn.Linear(d_model, d_model)
         self.sigmoid = nn.Sigmoid()
 
-    def forward(self, x: torch.Tensor):
-        '''
-        TFT net called 'Gate' in the paper\n
-        No change of dimensions
-        '''
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Gated Linear Unit
+
+        Args:
+            x (torch.Tensor): [bs, seq_len, d_model]
+
+        Returns:
+            torch.Tensor: [bs, seq_len, d_model]
+        """
         x1 = self.sigmoid(self.linear1(x))
         x2 = self.linear2(x)
         out = x1*x2 #element-wise multiplication
         return out
     
 class GRN(nn.Module):
-    def __init__(self, n_embd, dropout) :
-        super().__init__()
-        self.linear1 = nn.Linear(n_embd, n_embd) 
-        self.elu = nn.ELU()
-        self.linear2 = nn.Linear(n_embd, n_embd)
-        self.dropout = nn.Dropout(dropout)
-        self.glu = GLU(n_embd)
-        self.norm = nn.LayerNorm(n_embd)
+    def __init__(self, d_model: int, dropout: float):
+        """Gated Residual Network
 
-    def forward(self, x):
-        '''
-        Gated Residual Network of TFT\n
-        No change of dimensions
-        '''
+        Args:
+            d_model (int): -
+            dropout (float): -
+        """
+        super().__init__()
+        self.linear1 = nn.Linear(d_model, d_model) 
+        self.elu = nn.ELU()
+        self.linear2 = nn.Linear(d_model, d_model)
+        self.dropout = nn.Dropout(dropout)
+        self.glu = GLU(d_model)
+        self.norm = nn.LayerNorm(d_model)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Gated Residual Network
+
+        Args:
+            x (torch.Tensor): [bs, seq_len, d_model]
+
+        Returns:
+            torch.Tensor: [bs, seq_len, d_model]
+        """
         eta1 = self.elu(self.linear1(x))
         eta2 = self.dropout(self.linear2(eta1))
         out = self.norm(x + self.glu(eta2))
         return out
 
 class flatten_GRN(nn.Module):
-    def __init__(self, emb_dims, dropout):
-        super().__init__()
-        # flatten, hidden dim, output_dim=n_var -> softmax
+    def __init__(self, emb_dims: list, dropout: float):
+        """Modified GRN for flattened variables 
 
-        # expected the list emb_dims of length 3: 
-        # - n_embd
-        # - intermediate_dim
-        # - number of different variables flattened
+        Args:
+            emb_dims (list): [start_emb: int, mid_emb: int, end_emb: int] list of int for dimensions
+            dropout (float): -
+        """
+        super().__init__()
         start_emb, mid_emb, end_emb = emb_dims
         self.res_conn = nn.Linear(start_emb, end_emb, bias = False)
         self.dropout_res_conn = nn.Dropout(dropout)
@@ -144,14 +163,14 @@ class flatten_GRN(nn.Module):
         self.norm = nn.LayerNorm(end_emb)
         self.softmax = nn.Softmax(dim=2)
 
-    def forward(self, x):
-        """
-        Part of Variable Selection producing Variable Selection Weights
-        Input: categorical, y=None
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Modified GRN for flattened variables
 
-        If y!=None means I'm using y in th epast and it is added(cat) and selected
+        Args:
+            x (torch.Tensor): [bs, seq_len, emb_dims[0]]
 
-        [bs, past_len, n_var, n_embd] -> torch.Size([bs, past_len, n_var])
+        Returns:
+            torch.Tensor: [bs, seq_len, emb_dims[-1]]
         """
         res_conn = self.dropout_res_conn(self.res_conn(x))
         eta1 = self.elu(self.linear1(x))
@@ -161,52 +180,52 @@ class flatten_GRN(nn.Module):
         return out
 
 class Encoder_Var_Selection(nn.Module): # input already embedded
-    def __init__(self, mix, seq_len, lag, n_cat_var, n_num_var, n_embd, dropout, device):
-        """_summary_
+    def __init__(self, use_target_past: bool, n_past_cat_var: int, n_past_tar_var: int, d_model: int, dropout: float, device):
+        """Variable Selection Network 
 
         Args:
-            mix (boolean): _description_
-            seq_len int: daje
-            lag (int): desc
-            n_cat_var (_type_): _description_
-            n_num_var (_type_): _description_
-            n_embd (_type_): _description_
-            dropout (_type_): _description_
-            device (_type_): _description_
+            use_target_past (bool): True if we want to use the past target variable mixing it to past variables, False to use only past vars
+            n_past_cat_var (int): number of categorical variables for past steps
+            n_past_tar_var (int): number of target variables for past steps. If use_target_past==False it is ignored
+            d_model (int): -
+            dropout (float): -
+            device: -
         """
         super().__init__()
-        self.mix = mix
+        self.use_target_past = use_target_past
         self.device = device
-        self.len = seq_len-lag
         #categorical
-        self.n_grn_cat = n_cat_var
+        self.n_grn_cat = n_past_cat_var
         self.GRNs_cat = nn.ModuleList([
-            GRN(n_embd, dropout) for _ in range(self.n_grn_cat)
+            GRN(d_model, dropout) for _ in range(self.n_grn_cat)
         ])
-        tot_var = n_cat_var
-        #numerical
-        if mix:
-            self.n_grn_num = n_num_var
+        tot_var = n_past_cat_var
+        # if using target past
+        if use_target_past:
+            self.n_grn_tar = n_past_tar_var
             self.GRNs_num = nn.ModuleList([
-                GRN(n_embd, dropout) for _ in range(self.n_grn_num)
+                GRN(d_model, dropout) for _ in range(self.n_grn_tar)
             ])
-            tot_var = tot_var + n_num_var
+            tot_var = tot_var + n_past_tar_var
         #flatten
-        emb_dims = [n_embd*tot_var, int((n_embd+tot_var)/2), tot_var]
+        emb_dims = [d_model*tot_var, int((d_model+tot_var)/2), tot_var]
         self.flatten_GRN = flatten_GRN(emb_dims, dropout)
 
-    def forward(self, categorical, y=None):
-        """
-        *var_sel for GRNed variables\n
-        'to_be_flat' for VariableSelection Weights\n
-        Computed for cat_vars\n
-        Concatenating y if y is not None
+    def forward(self, categorical: torch.Tensor, y: torch.Tensor=None) -> torch.Tensor:
+        """NN for Selecting Importance of Past Variables passed to the Model
+
+        Args:
+            categorical (torch.Tensor): [bs, past_steps, n_cat_var, d_model] past_cat_variables to be selected
+            y (torch.Tensor, optional): [bs, past_steps, d_model]. Defaults to None.
+
+        Returns:
+            torch.Tensor: [bs, past_steps, d_model]
         """
         # categorical var_selection
         var_sel = self.get_cat_GRN(categorical)
         to_be_flat = categorical
         if y is not None:
-            assert self.mix==True # you don't have y if mix is not True
+            assert self.use_target_past==True # you don't have y if mix is not True
             num_var_sel = self.get_num_GRN(y)
             var_sel = torch.cat((var_sel, num_var_sel), dim = 2)
             to_be_flat = torch.cat((to_be_flat, y), dim=2)
@@ -216,70 +235,80 @@ class Encoder_Var_Selection(nn.Module): # input already embedded
         out = torch.sum(out, 2)/out.shape[2]
         return out
 
-    def get_cat_GRN(self, x):
+    def get_cat_GRN(self, x: torch.Tensor) -> torch.Tensor:
         cat_after_GRN = torch.Tensor().to(self.device)
         for index, layer in enumerate(self.GRNs_cat):
             grn = layer(x[:,:,index,:])
             cat_after_GRN = torch.cat((cat_after_GRN, grn.unsqueeze(2)), dim=2)
         return cat_after_GRN
     
-    def get_num_GRN(self, x):
+    def get_num_GRN(self, x: torch.Tensor) -> torch.Tensor:
         num_after_GRN = torch.Tensor().to(self.device)
         for index, layer in enumerate(self.GRNs_num):
             grn = layer(x[:,:,index,:])
             num_after_GRN = torch.cat((num_after_GRN, grn.unsqueeze(2)), dim=2)
         return num_after_GRN
     
-    def get_flat_GRN(self, to_be_flat):
-        emb = torch.flatten(to_be_flat, start_dim=2) # [bs, seq_len, num_var*n_embd]
+    def get_flat_GRN(self, to_be_flat: torch.Tensor) -> torch.Tensor:
+        emb = torch.flatten(to_be_flat, start_dim=2)
         var_sel_wei = self.flatten_GRN(emb)
         return var_sel_wei
     
 class Encoder_LSTM(nn.Module):
-    def __init__(self, n_layers, n_embd, dropout, device) :
+    def __init__(self, n_layers_LSTM: int, d_model: int, dropout: float, device):
+        """LSTM Encoder with GLU, Add and Norm
+
+        Args:
+            n_layers_EncLSTM (int): number of layers involved by LSTM 
+            d_model (int): -
+            dropout (float): -
+            device: -
+        """
         super().__init__()
         self.device = device
-        self.num_layers = n_layers
-        self.hidden_size = n_embd
-        self.LSTM = nn.LSTM(input_size=n_embd, hidden_size=self.hidden_size, num_layers=self.num_layers, batch_first = True)
+        self.n_layers_EncLSTM = n_layers_LSTM
+        self.hidden_size = d_model
+        self.LSTM = nn.LSTM(input_size=d_model, hidden_size=self.hidden_size, num_layers=self.n_layers_EncLSTM, batch_first = True)
         self.dropout = nn.Dropout(dropout)
-        self.LSTM_enc_GLU = GLU(n_embd)
-        self.norm = nn.LayerNorm(n_embd)
+        self.LSTM_enc_GLU = GLU(d_model)
+        self.norm = nn.LayerNorm(d_model)
 
-    def forward(self, x):
-        '''
-        After Variable Selection, its output goes through:
-         - Lstm_Enc+GLU+Add+Norm\n
-        Return output and the last hn and cn that must be used in LSTM_Dec
-        '''
-        h0 = torch.zeros(self.num_layers, x.size(0), x.size(2)).to(self.device)
-        c0 = torch.zeros(self.num_layers, x.size(0), x.size(2)).to(self.device)
+    def forward(self, x: torch.Tensor) -> list:
+        """LSTM Encoder with GLU, Add and Norm
+
+        Args:
+            x (torch.Tensor): [bs, past_steps, d_model]
+
+        Returns:
+            list of tensors: [output_enc, hn, cn] where hn and cn must be used for Decoder_LSTM. 
+        """
+        h0 = torch.zeros(self.n_layers_EncLSTM, x.size(0), x.size(2)).to(self.device)
+        c0 = torch.zeros(self.n_layers_EncLSTM, x.size(0), x.size(2)).to(self.device)
         lstm_enc, (hn, cn) = self.LSTM(x, (h0,c0))
         lstm_enc = self.dropout(lstm_enc)
         output_enc = self.norm(self.LSTM_enc_GLU(lstm_enc) + x)
-        return output_enc, hn, cn
+        return [output_enc, hn, cn]
     
 class Decoder_Var_Selection(nn.Module): # input already embedded
-    def __init__(self, prec, seq_len, lag, n_cat_var, n_num_var, n_embd, dropout, device) -> None:
+    def __init__(self, use_yprec: bool, n_fut_cat_var: int, n_fut_tar_var: int, d_model: int, dropout: float, device):
         super().__init__()
-        self.prec = prec
+        self.use_yprec = use_yprec
         self.device = device
-        self.len = seq_len-lag
         #categorical
-        self.n_grn_cat = n_cat_var
+        self.n_grn_cat = n_fut_cat_var
         self.GRNs_cat = nn.ModuleList([
-            GRN(n_embd, dropout) for _ in range(self.n_grn_cat)
+            GRN(d_model, dropout) for _ in range(self.n_grn_cat)
         ])
-        tot_var = n_cat_var
+        tot_var = n_fut_cat_var
         #numerical
         if prec:
-            self.n_grn_num = n_num_var
+            self.n_grn_num = n_fut_tar_var
             self.GRNs_num = nn.ModuleList([
-                GRN(n_embd, dropout) for _ in range(self.n_grn_num)
+                GRN(d_model, dropout) for _ in range(self.n_grn_num)
             ])
-            tot_var = tot_var+n_num_var
+            tot_var = tot_var+n_fut_tar_var
         #flatten
-        emb_dims = [n_embd*tot_var, int((n_embd+tot_var)/2), tot_var]
+        emb_dims = [d_model*tot_var, int((d_model+tot_var)/2), tot_var]
         self.flatten_GRN = flatten_GRN(emb_dims, dropout)
 
     def forward(self, categorical, y=None):
@@ -288,7 +317,7 @@ class Decoder_Var_Selection(nn.Module): # input already embedded
         var_sel = self.get_cat_GRN(categorical)
         to_be_flat = categorical
         if y is not None:
-            assert self.prec==True
+            assert self.use_yprec==True
             num_after_GRN = self.get_num_GRN(y)
             var_sel = torch.cat((var_sel, num_after_GRN), dim = 2)
             to_be_flat = torch.cat((to_be_flat, y), dim=2)
@@ -313,7 +342,7 @@ class Decoder_Var_Selection(nn.Module): # input already embedded
     
     def get_flat_GRN(self, to_be_flat):
         # apply flatten_GRN and softmax
-        emb = torch.flatten(to_be_flat, start_dim=2) # [bs, seq_len, num_var*n_embd]
+        emb = torch.flatten(to_be_flat, start_dim=2)
         var_sel_wei = self.flatten_GRN(emb)
         return var_sel_wei
     
