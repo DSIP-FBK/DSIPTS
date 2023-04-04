@@ -4,7 +4,7 @@ import torch
 import pytorch_lightning as pl
 from .base import  Base
 from .utils import QuantileLossMO, get_device
-
+from typing import List
 class moving_avg(nn.Module):
     """
     Moving average block to highlight the trend of time series
@@ -39,9 +39,79 @@ class series_decomp(nn.Module):
 
 
 class LinearTS(Base):
+    """
 
     
-    def __init__(self, past_steps,future_steps,past_channels,future_channels,embs,cat_emb_dim,kernel_size_encoder,sum_emb,out_channels,hidden_size,kind='linar',quantiles=[],optim_config=None,scheduler_config=None):
+
+        Parameters:
+        ----------
+            past_channels : int
+                
+            future_channels : int
+                
+            kernel_size_encoder : int
+                
+            past_steps : int
+               
+            future_steps : int
+                
+            embs : [int]
+                
+            cat_emb_dim : int
+                
+            sum_emb : bolean
+                if true the contribution of each embedding will be summed-up otherwise stacked
+            out_channels : int
+                number of output channels
+            hidden_size : int
+                hidden size of the lienar block
+            kind : str
+                one among linear, dlinear (de-trending), nlinear (differential)
+            quantiles : [int] 
+                we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0
+            optim_config : dict
+                configuration for Adam optimizer
+            scheduler_config : dict
+                configuration for stepLR scheduler
+    
+    """
+    
+    def __init__(self, 
+                 past_steps:int,
+                 future_steps:int,
+                 past_channels:int,
+                 future_channels:int,
+                 embs:List[int],
+                 cat_emb_dim:int,
+                 kernel_size_encoder:int,
+                 sum_emb:bool,
+                 out_channels:int,
+                 hidden_size:int,
+                 kind:str='linear',
+                 quantiles:List[int]=[],
+                 optim_config:dict=None,
+                 scheduler_config:dict=None)->None:
+        """Linear model from https://github.com/cure-lab/LTSF-Linear/blob/main/run_longExp.py
+
+        Args:
+            past_steps (int): number of past datapoints used 
+            future_steps (int): number of future lag to predict
+            past_channels (int):  number of numeric past variables, must be >0
+            future_channels (int): number of future numeric variables 
+            embs (List[int]): list of the initial dimension of the categorical variables
+            cat_emb_dim (int): final dimension of each categorical variable
+            kernel_size_encoder (int): kernel dimension for initial moving average
+            sum_emb (bool): _description_
+            out_channels (int): _description_
+            hidden_size (int): _description_
+            kind (str, optional): _description_. Defaults to 'linear'.
+            quantiles (List[int], optional): _description_. Defaults to [].
+            optim_config (dict, optional): _description_. Defaults to None.
+            scheduler_config (dict, optional): _description_. Defaults to None.
+        """
+        
+        
+        
         super(LinearTS, self).__init__()
         self.save_hyperparameters(logger=False)
         #self.device = get_device()
@@ -107,7 +177,9 @@ class LinearTS(Base):
                                
 
     def forward(self, batch):
-        
+        """
+        Forward method
+        """
         x =  batch['x_num_past'].to(self.device)
         if self.kind=='nlinear':
             idx_target = batch['idx_target'][0]

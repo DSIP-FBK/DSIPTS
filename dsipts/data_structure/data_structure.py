@@ -1,79 +1,28 @@
 import numpy as np
 from dataclasses import dataclass
-from enum import Enum
 import plotly.express as px
 import pandas as pd
 from typing import List
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-from torch.utils.data import Dataset,DataLoader
+from torch.utils.data import DataLoader
 from pytorch_lightning.callbacks import ModelCheckpoint
 import pytorch_lightning as pl
-from pytorch_lightning import Callback
 from pytorch_lightning.loggers import CSVLogger
-from typing import Optional
+from typing import Optional, Union
 import os
 import torch
 pd.options.mode.chained_assignment = None 
 import pickle
-
-def extend_df(x,freq):
-    empty = pd.DataFrame({'time':pd.date_range(x.min(),x.max(),freq=freq)})
-    return empty
-
-
-class MetricsCallback(Callback):
-    """PyTorch Lightning metric callback."""
-
-    def __init__(self):
-        super().__init__()
-        self.metrics = {'val_loss':[],'train_loss':[]}
-
-        
-
-    def on_validation_end(self, trainer, pl_module):
-        for c in trainer.callback_metrics:
-            self.metrics[c].append(trainer.callback_metrics[c].item())
-
-    def on_train_end(self, trainer, pl_module):
-        losses = self.metrics
-        ##non so perche' le prime due le chiama prima del train
-        losses['val_loss'] = losses['val_loss'][2:]
-        losses = pd.DataFrame(losses)
-        ##accrocchio per quando ci sono piu' gpu!
-        losses.to_csv(f'{np.random.randint(10000)}__losses__.csv',index=False)
-        print("Saving losses on file because multigpu not working")
-       
-
-
-class MyDataset(Dataset):
-    def __init__(self, data,t=None,idx_target=None):
-        self.data = data
-        self.t = t
-        self.idx_target = np.array(idx_target)
-    def __len__(self):
-        return len(self.data['y'])
-
-    def __getitem__(self, idxs):
-        sample = {}
-        for k in self.data:
-            sample[k] = self.data[k][idxs]
-        if self.idx_target is not None:
-            sample['idx_target'] = self.idx_target
-        return sample
-
-class ActionEnum(Enum):
-    """
-    action of categorical variable
-    """
-    multiplicative: str = 'multiplicative'
-    additive: str = 'additive'
+from .utils import extend_df,MetricsCallback, MyDataset, ActionEnum
+from datetime import datetime
+from models import Base
 
 @dataclass
 class Categorical():
     
-    '''
+    """
     Create a categorical signal it can act as mutliplicative or additive. You can control the number of classesm the duration and the level 
-    '''
+    """
     name: str
     frequency: int
     duration: List[int]
@@ -82,17 +31,28 @@ class Categorical():
     level: List[float]
     
     def validate(self):
+        """
+        :meta private:
+        """
         if len(self.level) == self.classes:
             return True
         else:
             return False
         
     def __post_init__(self):
+        """
+        :meta private:
+        """
         if not self.validate():
             raise ValueError("Length must match")
 
     
-    def generate_signal(self,length:int):
+    def generate_signal(self,length:int)->None:
+        """Generate the resposne signal
+
+        Args:
+            length (int): length of the signal
+        """
         if self.action  == 'multiplicative':
             signal = np.ones(length)
         elif self.action == 'additive':
@@ -126,7 +86,9 @@ class Categorical():
         self.classes_array = classes
         self.signal_array = signal
 
-    def plot(self):
+    def plot(self)->None:
+        """Plot the series
+        """
         tmp = pd.DataFrame({'time':range(len(self.classes_array)),'signal':self.signal,'class':self.classes_array})
         fig = px.scatter(tmp,x='time',y='signal',color='class',title=self.name)
         fig.show()
@@ -135,25 +97,28 @@ class Categorical():
  
 @dataclass
 class TimeSeries():
-    '''
-        Class for generating time series object. If you don't have any time series you can build one fake timeseries using some
-        helping classes (Categorical for instance).
-    
-            Parameters:
-                    name (str): name of the series
+    """
+    Class for generating time series object. If you don't have any time series you can build one fake timeseries using some
+    helping classes (Categorical for instance).
+
+        Parameters:
+        ----------
+        name : str
+            name of the series
     
     
     For example we can generate a toy timeseries:
     #- add a multiplicative categorical feature (weekly)
-    settimana = Categorical('settimanale',1,[1,1,1,1,1,1,1],7,'multiplicative',[0.9,0.8,0.7,0.6,0.5,0.99,0.99])
+    >>> settimana = Categorical('settimanale',1,[1,1,1,1,1,1,1],7,'multiplicative',[0.9,0.8,0.7,0.6,0.5,0.99,0.99])
     #- an additive montly feature (here a year is composed by 5 months)
-    mese = Categorical('mensile',1,[31,28,20,10,33],5,'additive',[10,20,-10,20,0])
+    >>> mese = Categorical('mensile',1,[31,28,20,10,33],5,'additive',[10,20,-10,20,0])
     #- a spotted categorical variable that happens every 100 days and lasts 1 day
-    spot = Categorical('spot',100,[7],1,'additive',[10])
-    ts = TimeSeries('prova')
-    ts.generate_signal(length = 5000,categorical_variables = [settimana,mese,spot],noise_mean=1,type=0) ##we can add also noise
+    >>> spot = Categorical('spot',100,[7],1,'additive',[10])
+    >>> ts = TimeSeries('prova')
+    >>> ts.generate_signal(length = 5000,categorical_variables = [settimana,mese,spot],noise_mean=1,type=0) ##we can add also noise
+    >>> ts.plot()
     
-    '''
+    """
     name: str
 
     def __str__(self) -> str:
@@ -161,16 +126,33 @@ class TimeSeries():
     def __repr__(self) -> str:
         return f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables}"
     
-    def _generate_base(self,length,type=0):
+    def _generate_base(self,length:int,type:int=0)-> None:
+        """Generate a basic timeseries 
+
+        Args:
+            length (int): length
+            type (int, optional): Type of the generated timeseries. Defaults to 0.
+        """
         if type==0:
             self.base_signal = 10*np.cos(np.arange(length)/(2*np.pi*length/100))
             self.out_vars = 1
         else:
             print('please implement your own method')
-    def generate_signal(self,length=5000,categorical_variables=[],noise_mean=1,type=0):
-        '''
-        This will generate a syntetic signal with a selected length, a noise level and some categorical variables. The additive series are added at the end while the multiplicative series axt 
-        '''
+        """
+        
+        """    
+    def generate_signal(self,length:int=5000,categorical_variables:List[Categorical]=[],noise_mean:int=1,type:int=0)->None:
+        """This will generate a syntetic signal with a selected length, a noise level and some categorical variables. The additive series are added at the end while the multiplicative series acts on the original signal
+        The TS structure will be populated
+
+        Args:
+            length (int, optional): length of the signal. Defaults to 5000.
+            categorical_variables (List[Categorical], optional): list of Categorical variables. Defaults to [].
+            noise_mean (int, optional): variance of the noise to add at the end. Defaults to 1.
+            type (int, optional): type of the timeseries (only type=0 available right now). Defaults to 0.
+        """
+        
+       
         dataset = pd.DataFrame({'time':range(length)})
         self._generate_base(length,type)
         signal = self.base_signal.copy()
@@ -199,24 +181,35 @@ class TimeSeries():
         self.target_variables = ['signal']
         self.num_var = list(set(self.past_variables).union(set(self.future_variables)).union(set(self.target_variables)))
         
-    def load_signal(self,data,enrich_cat = [],past_variables=[],future_variables=[],target_variables=[],cat_var=[],check_past=True):
-        '''
-        This is a crucial point in the data structure. We expect here to have a dataset with time as timestamp and signal as y
-        The other columns can represent covariates, categorical features, know and unknow variables in the future
-        The categorical variables will be processed with an label encoder in the function create_data_loader
-        If enrich cat is provided it will added automatically some temporal categorical features
-        '''
         
-        ##some checks!
+        
+    def load_signal(self,data:pd.DataFrame,enrich_cat:List[str] = [],past_variables:List[str]=[],future_variables:List[str]=[],target_variables:List[str]=[],cat_var:List[str]=[],check_past:bool=True)->None:
+        """ This is a crucial point in the data structure. We expect here to have a dataset with time as timestamp.
+            There are some checks:
+                1- the duplicates will tbe removed taking the first instance
+                2- the frequency will the inferred taking the minumum time distance between samples
+                3- the dataset will be filled completing the missing timestamps
+
+        Args:
+            data (pd.DataFrame): input dataset the column indicating the time must be called `time`
+            enrich_cat (List[str], optional): it is possible to let this function enrich the dataset for example adding the standard columns: hour, dow, month and minute. Defaults to [].
+            past_variables (List[str], optional): list of column names of past variables not available for future times . Defaults to [].
+            future_variables (List[str], optional): list of future variables available for tuture times. Defaults to [].
+            target_variables (List[str], optional): list of the target variables. They will added to past_variables by default unless `check_past` is false. Defaults to [].
+            cat_var (List[str], optional): list of the categortial variables (same for past and future). Defaults to [].
+            check_past (bool, optional): see `target_variables`. Defaults to True.
+        """
+        
+        
         
         dataset = data.copy()
-        print('I will drop duplicates, I dont like them')
+        print('################I will drop duplicates, I dont like them###################')
         dataset.drop_duplicates(subset=['time'],  keep='first', inplace=True, ignore_index=True)
 
         if dataset.time.diff()[1:].nunique()>1:
-            print("There are holes in the dataset i will try to extend the dataframe inserting NAN")
+            print("#########There are holes in the dataset i will try to extend the dataframe inserting NAN#############3")
             freq = pd.to_timedelta(np.diff(dataset.time).min())
-            print(f'Detected minumum frequency: {freq}')
+            print(f'#############Detected minumum frequency: {freq}#############')
             dataset = extend_df(dataset.time,freq).merge(dataset,how='left')
             
 
@@ -225,7 +218,7 @@ class TimeSeries():
         assert 'time'  in dataset.columns, f'The temporal column must be called time'
         if set(target_variables).intersection(set(past_variables))!= set(target_variables): 
             if check_past:
-                print('I will update past column adding all target columns, if you want to avoid this beahviour please use check_pass as false')
+                print('##########I will update past column adding all target columns, if you want to avoid this beahviour please use check_pass as false############')
                 past_variables = list(set(past_variables).union(set(target_variables)))
         
         self.cat_var = cat_var
@@ -234,7 +227,7 @@ class TimeSeries():
             self.cat_var = list(set(self.cat_var+[c]))
                 
             if c in dataset.columns:
-                print('categorical {c} already present, it will be added to categorical variable but not recomputed') 
+                print('#########Categorical {c} already present, it will be added to categorical variable but not recomputed#########') 
             else:
                 if c =='hour':
                     dataset[c] = dataset.time.dt.hour
@@ -253,13 +246,46 @@ class TimeSeries():
         self.out_vars = len(target_variables)
         self.num_var = list(set(self.past_variables).union(set(self.future_variables)).union(set(self.target_variables)))
         
-    def plot(self):
+    def plot(self)-> px.figure:
+        """  
+        Easy way to control the loaded data
+        
+        
+
+        Returns:
+            px.figure: figure of the target variables
+        """
+      
         print('plotting only target variables')
         tmp = self.dataset[['time']+self.target_variables].melt(id_vars=['time'])
         fig = px.line(tmp,x='time',y='value',color='variable',title=self.name)
         fig.show()
+        return fig
+    
         
-    def create_data_loader(self,dataset,past_steps,future_steps,shift,starting_point,skip_step):
+    def create_data_loader(self,data:pd.DataFrame,past_steps:int,future_steps:int,shift:int=0,starting_point:Union[None,dict]=None,skip_step:int=1)->MyDataset:
+        """ Create the dataset for the training/inference step
+
+        Args:
+            data (pd.DataFrame): input dataset, usually a subset of self.data
+            past_steps (int): past context length
+            future_steps (int): future lags to predict
+            shift (int, optional): if >0 the future input variables will be shifted (categorical and numerical). For example for attention model it is better to start with a know value of y and use it during the process. Defaults to 0.
+            starting_point (Union[None,dict], optional): a dictionary indicating if a sample must be considered. It is checked for the first lag in the future (useful in the case your model has to predict only starting from hour 12). Defaults to None.
+            skip_step (int, optional): list of the categortial variables (same for past and future). Usual there is a skip of one between two saples but for debugging  or training time purposes you can skip some samples. Defaults to 1.
+
+        Returns:
+            MyDataset: class thath extends torch.utils.data.Dataset (see utils)
+                keys of a batch:
+                y : the target variable(s)
+                x_num_past: the numerical past variables
+                x_num_future: the numerical future variables
+                x_cat_past: the categorical past variables
+                x_cat_future: the categorical future variables
+                idx_target: index of target features in the past array
+        """
+
+        
         x_num_past_samples = []
         x_num_future_samples = []
         x_cat_past_samples = []
@@ -268,30 +294,30 @@ class TimeSeries():
         t_samples = []
         
         for c in self.cat_var:
-            dataset[c] = self.scaler_cat[c].transform(dataset[c].values.ravel()).flatten()
+            data[c] = self.scaler_cat[c].transform(data[c].values.ravel()).flatten()
         for c in self.num_var: 
-            dataset[c] = self.scaler_num[c].transform(dataset[c].values.reshape(-1,1)).flatten()
+            data[c] = self.scaler_num[c].transform(data[c].values.reshape(-1,1)).flatten()
         
         idx_target = []
         for c in self.target_variables:
             idx_target.append(self.past_variables.index(c))
          
         
-        x_num_past = dataset[self.past_variables].values
+        x_num_past = data[self.past_variables].values
         if len(self.future_variables)>0:
-            x_num_future = dataset[self.future_variables].values
+            x_num_future = data[self.future_variables].values
         if len(self.cat_var)>0:
-            x_cat = dataset[self.cat_var].values
-        y_target = dataset[self.target_variables].values
-        t = dataset.time.values
+            x_cat = data[self.cat_var].values
+        y_target = data[self.target_variables].values
+        t = data.time.values
 
         ##questo serve a forzare di iniziare i samples alla stessa ora per esempio (controllo sul primo indice della y)
         if starting_point is not None:
-            check = dataset[list(starting_point.keys())[0]].values == starting_point[list(starting_point.keys())[0]]
+            check = data[list(starting_point.keys())[0]].values == starting_point[list(starting_point.keys())[0]]
         else:
             check = [True]*len(y_target)
         
-        for i in range(past_steps,dataset.shape[0]-future_steps,skip_step):
+        for i in range(past_steps,data.shape[0]-future_steps,skip_step):
             if check[i]:
 
                 if len(self.future_variables)>0:
@@ -330,12 +356,36 @@ class TimeSeries():
         
         return MyDataset(dd,t_samples,idx_target)
     
-    def split_for_train(self,perc_train=0.6, perc_valid=0.2, range_train=None, range_validation=None, range_test=None,past_steps = 100,future_steps=20,shift = 0,starting_point=None,skip_step=1):
+          
+    
+    def split_for_train(self,perc_train:Union[float,None]=0.6, perc_valid:Union[float,None]=0.2,
+                        range_train:Union[List[Union[datetime, str]],None]=None, range_validation:Union[List[Union[datetime, str]],None]=None, range_test:Union[List[Union[datetime, str]],None]=None,
+                        past_steps:int = 100,future_steps:int=20,shift:int = 0,starting_point:Union[None, dict]=None,skip_step:int=1)->List[DataLoader,DataLoader,DataLoader]:
+        """Split the data and create the datasets.
+
+        Args:
+            perc_train (Union[float,None], optional): fraction of the training set. Defaults to 0.6.
+            perc_valid (Union[float,None], optional): fraction of the test set. Defaults to 0.2.
+            range_train (Union[List[Union[datetime, str]],None], optional): a list of two elements indicating the starting point and end point of the training set (string date style or datetime). Defaults to None.
+            range_validation (Union[List[Union[datetime, str]],None], optional):a list of two elements indicating the starting point and end point of the validation set (string date style or datetime). Defaults to None.
+            range_test (Union[List[Union[datetime, str]],None], optional): a list of two elements indicating the starting point and end point of the test set (string date style or datetime). Defaults to None.
+            past_steps (int, optional): past step to consider for making the prediction. Defaults to 100.
+            future_steps (int, optional): future step to predict. Defaults to 20.
+            shift (int, optional): see `create_data_loader`. Defaults to 0.
+            starting_point (Union[None, dict], optional):  see `create_data_loader`. Defaults to None.
+            skip_step (int, optional):  see `create_data_loader`. Defaults to 1.
+
+        Returns:
+            List[DataLoader,DataLoader,DataLoader]: three dataloader used for training or inference
+        """
+
+        
+        
         try:
             l = self.dataset.shape[0]
         except:
-            print('I will call generate signal because it is not initialized')
-            self.generate_signal()
+            print('Empty dataset')
+            return None, None, None
         
 
         if range_train is None:
@@ -353,6 +403,10 @@ class TimeSeries():
                                       
         self.scaler_cat = {}
         self.scaler_num = {}
+        print('######################################################################################################')
+        print('######Scaling numerical (standard scaler) and categorical (label encorer) on the training data! ######')
+        print('######################################################################################################')
+
         for c in self.num_var:
             self.scaler_num[c] =  StandardScaler()
             self.scaler_num[c].fit(train[c].values.reshape(-1,1))
@@ -367,13 +421,32 @@ class TimeSeries():
 
         return dl_train,dl_validation,dl_test
             
-    def set_model(self,model,config=None):
+    def set_model(self,model:Base,config:dict=None):
+        """Set the model to train
+
+        Args:
+            model (Base): see `models`
+            config (dict, optional): usually the configuration used by the model. Defaults to None.
+        """
         self.model = model
         self.config = config
-        
-            
-    def train_model(self,dirpath,split_params,batch_size=100,num_workers=4,max_epochs=500,auto_lr_find=True,devices='auto'):
-        print('TRAINING')
+              
+    def train_model(self,dirpath:str,split_params:dict,batch_size:int=100,num_workers:int=4,max_epochs:int=500,auto_lr_find:bool=True,devices:Union[str,List[int]]='auto')-> None:
+        """Train the model
+
+        Args:
+            dirpath (str): path where to put all the useful things
+            split_params (dict): see `split_for_train`
+            batch_size (int, optional): batch size. Defaults to 100.
+            num_workers (int, optional): num_workers for the dataloader. Defaults to 4.
+            max_epochs (int, optional): maximum epochs to perform. Defaults to 500.
+            auto_lr_find (bool, optional): find initial learning rate, see  `pytorch-lightening`. Defaults to True.
+            devices (Union[str,List[int]], optional): devices to use. Use auto if cpu or the list of gpu to use otherwise. Defaults to 'auto'.
+        """
+
+        print('###############################################################################')
+        print('############################TRAINING###########################################')
+        print('###############################################################################')
         self.split_params = split_params
         train,validation,test = self.split_for_train(**self.split_params)
         accelerator = 'gpu' if torch.cuda.is_available() else "cpu"
@@ -435,7 +508,22 @@ class TimeSeries():
                     
         self.model = self.model.load_from_checkpoint(self.checkpoint_file_last)
 
-    def inference_on_set(self,batch_size=100,num_workers=4,split_params=None,set='test'):
+
+    def inference_on_set(self,batch_size:int=100,num_workers:int=4,split_params:Union[None,dict]=None,set:str='test',rescaling:bool=True)->pd.DataFrame:
+        """This function allows to get the prediction on a particular set (train, test or validation). TODO add inference on a custom dataset
+
+        Args:
+            batch_size (int, optional): barch sise. Defaults to 100.
+            num_workers (int, optional): num workers. Defaults to 4.
+            split_params (Union[None,dict], optional): if not None  the spliting procedure will use the given data otherwise it will use the same configuration used in train. Defaults to None.
+            set (str, optional): trai, validation or test. Defaults to 'test'.
+            rescaling (bool, optional):  If rescaling is true the output will be rescaled to the initial values. . Defaults to True.
+
+        Returns:
+            pd.DataFrame: the predicted values in a pandas format
+        """
+     
+        
         if split_params is None:
             print(f'splitting using train parameters {self.split_params}')
             train,validation,test = self.split_for_train(**self.split_params)
@@ -464,11 +552,12 @@ class TimeSeries():
         time = dl.dataset.t
 
         ## BxLxCx3
-        print('Scaling back')
-        for i, c in enumerate(self.target_variables):
-            real[:,:,i] = self.scaler_num[c].inverse_transform(real[:,:,i].reshape(-1,1)).reshape(-1,real.shape[1])
-            for j in range(res.shape[3]):
-                res[:,:,i,j] = self.scaler_num[c].inverse_transform(res[:,:,i,j].reshape(-1,1)).reshape(-1,res.shape[1])
+        if rescaling:
+            print('Scaling back')
+            for i, c in enumerate(self.target_variables):
+                real[:,:,i] = self.scaler_num[c].inverse_transform(real[:,:,i].reshape(-1,1)).reshape(-1,real.shape[1])
+                for j in range(res.shape[3]):
+                    res[:,:,i,j] = self.scaler_num[c].inverse_transform(res[:,:,i,j].reshape(-1,1)).reshape(-1,res.shape[1])
 
 
         if self.model.use_quantiles:
@@ -496,9 +585,15 @@ class TimeSeries():
             
         return res
     def inference():
+        ##TODO implement!
         pass
         
-    def save(self, filename):
+    def save(self, filename:str)->None:
+        """save the timeseries object
+
+        Args:
+            filename (str): name of the file
+        """
         print('Saving')
         with open(f'{filename}.pkl','wb') as f:
             params =  self.__dict__.copy()
@@ -507,8 +602,22 @@ class TimeSeries():
                     _ = params.pop(k)
             pickle.dump(params,f)
 
-    def load(self,model, filename,load_last=True,dirpath=None,weight_path=None):
-        print('Loading')
+     
+
+    def load(self,model:Base, filename:str,load_last:bool=True,dirpath:Union[str,None]=None,weight_path:Union[str, None]=None)->None:
+        """ Load a saved model
+
+        Args:
+            model (Base): class of the model to load (it will be initiated by pytorch-lightening)
+            filename (str): filename of the saved model
+            load_last (bool, optional): if true the last checkpoint will be loaded otherwise the best (in the validation set). Defaults to True.
+            dirpath (Union[str,None], optional): if None we asssume that the model is loaded from the same pc where it has been trained, otherwise we can pass the dirpath where all the stuff has been saved . Defaults to None.
+            weight_path (Union[str, None], optional): if None the standard path will be used. Defaults to None.
+        """
+
+            
+        
+        print('################Loading#################################')
         with open(filename+'.pkl','rb') as f:
             params = pickle.load(f)
             for p in params:
@@ -529,6 +638,8 @@ class TimeSeries():
             else:
                 
                 if load_last:
-                    self.model = self.model.load_from_checkpoint(self.checkpoint_file_last)
+                    tmp_path = os.path.join(dirpath,self.checkpoint_file_last.split('/')[-1])
+                    self.model = self.model.load_from_checkpoint(tmp_path)
                 else:
-                    self.model = self.model.load_from_checkpoint(self.checkpoint_file_best)
+                    tmp_path = os.path.join(dirpath,self.checkpoint_file_best.split('/')[-1])
+                    self.model = self.model.load_from_checkpoint(tmp_path)

@@ -7,7 +7,43 @@ from .utils import QuantileLossMO,Permute, get_device
 
 
 class RNN(Base):
+    """
 
+    Recurrent model with an encoder decoder structure
+
+        Parameters:
+        ----------
+            past_channels : int
+                number of numeric past variables, must be >0
+            future_channels : int
+                number of future numeric variables 
+            past_steps : int
+                number of past datapoints used 
+            future_steps : int
+                number of future lag to predict
+            embs : [int]
+                list of the initial dimension of the categorical variables
+            cat_emb_dim : int
+                final dimension of each categorical variable
+            sum_emb : bolean
+                if true the contribution of each embedding will be summed-up otherwise stacked
+            out_channels : int
+                number of output channels
+            num_layers_RNN : int
+                number of RNN layers
+            hidden_RNN : int
+                hidden size of the RNN block
+            kind : str
+                one among linear, dlinear (de-trending), nlinear (differential)
+            quantiles : [int] 
+                we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0
+            optim_config : dict
+                configuration for Adam optimizer
+            scheduler_config : dict
+                configuration for stepLR scheduler
+    
+    """
+    
     def __init__(self, past_steps,future_steps,past_channels,future_channels,embs,cat_emb_dim,hidden_RNN,num_layers_RNN,kind,kernel_size_encoder,sum_emb,out_channels,quantiles=[],optim_config=None,scheduler_config=None):
         super(RNN, self).__init__()
         self.save_hyperparameters(logger=False)
@@ -77,6 +113,9 @@ class RNN(Base):
             self.loss = nn.L1Loss()
         #self.device = get_device()
     def forward(self, batch):
+        """
+        Forward method
+        """
         x =  batch['x_num_past'].to(self.device)
 
         if 'x_cat_future' in batch.keys():

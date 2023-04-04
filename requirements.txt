@@ -9,3 +9,4 @@ Omegaconf
 plotly
 plotly-express
 kaleido
+sphinx

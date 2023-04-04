@@ -4,7 +4,7 @@ import torch
 from .base import  Base
 from .utils import get_device, QuantileLossMO
 import math
-
+from typing import List
 
 
 def generate_square_subsequent_mask(dim1: int, dim2: int):
@@ -29,12 +29,48 @@ class PositionalEncoding(nn.Module):
         return  self.pe[:,:x.size(1), :].repeat(x.shape[0],1,1)
 
 
-class Attention(Base):
+class Attention(Base):              
+    
+    def __init__(self,
+                 past_channels:int,
+                 future_channels:int,
+                 d_model:int,
+                 num_heads:int,
+                 past_steps:int,
+                 future_steps:int,
+                 dropout:float,
+                 n_layer_encoder:int,
+                 n_layer_decoder:int,
+                 embs:List[int],
+                 cat_emb_dim:int,
+                 out_channels:int,
+                 quantiles:List[int]=[],
+                 optim_config:dict=None
+                 ,scheduler_config:dict=None)->None:
+        """ Attention model. Using an encoder (past) decoder (future) with cross attention and masks. 
+            helping classes (Categorical for instance).
 
-
-    def __init__(self, past_channels,future_channels,d_model, num_heads,past_steps,future_steps,dropout,n_layer_encoder,n_layer_decoder,embs,cat_emb_dim,out_channels,quantiles=[],optim_config=None,scheduler_config=None):
+        Args:
+            past_channels (int): number of numeric past variables, must be >0
+            future_channels (int):  number of future numeric variables 
+            d_model (int):  dimension of the attention model
+            num_heads (int): heads equal in the encoder and encoder
+            past_steps (int): number of past datapoints used 
+            future_steps (int): number of future lag to predict
+            dropout (float):  dropout used in the attention layers and positional encoder
+            n_layer_encoder (int):  layers to use in the encoder
+            n_layer_decoder (int):  layers to use in the decoder
+            embs (List[int]): list of the initial dimension of the categorical variables
+            cat_emb_dim (int): final dimension of each categorical variable
+            out_channels (int): number of output channels
+            quantiles (List[int], optional): we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
+            optim_config (dict, optional):  configuration for Adam optimizer. Defaults to None.
+            scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
+        """
+        
+        ##pytotch lightening stuff
         self.save_hyperparameters(logger=False)
-        # d_model: embedding dimension, n_head: the number of heads we'd like
+        
         super().__init__()
         self.future_steps = future_steps
         assert (len(quantiles) ==0) or (len(quantiles)==3)
@@ -80,7 +116,16 @@ class Attention(Base):
  
      
         
-    def forward(self,batch):
+    def forward(self,batch:dict)->torch.tensor:
+        """It is mandatory to implement this method
+
+        Args:
+            batch (dict): batch of the dataloader
+
+        Returns:
+            torch.tensor: result
+        """
+   
         x_past = batch['x_num_past'].to(self.device)
 
         tmp = [x_past,self.pe(x_past[:,:,0])]
@@ -151,9 +196,18 @@ class Attention(Base):
         return res.reshape(B,L,-1,self.mul)
 
     
+
     
-    
-    def inference(self, batch):
+    def inference(self, batch:dict)->torch.tensor:
+        """Care here, we need to implement it because for predicting the N-step it will use the prediction at step N-1. TODO fix if because I did not implement the
+        know continuous variable presence here
+
+        Args:
+            batch (dict): batch of the dataloader
+
+        Returns:
+            torch.tensor: result
+        """
         tmp_x_past= batch.get('x_num_past',None)    
         tmp_cat_past= batch.get('x_cat_past',None)
         tmp_x_future= batch.get('x_num_future',None)    

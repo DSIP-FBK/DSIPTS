@@ -6,7 +6,7 @@ import os
 import shutil
 from datetime import datetime
 from distutils.util import strtobool
-
+from typing import Union
 
 
 # Converts the contents in a .tsf file into a dataframe and returns it along with other meta-data of the dataset: frequency, horizon, whether the dataset contains missing values and whether the series have equal lengths
@@ -19,7 +19,18 @@ def convert_tsf_to_dataframe(
     full_file_path_and_name,
     replace_missing_vals_with="NaN",
     value_column_name="series_value",
-):
+)-> pd.DataFrame:
+    """I copied this function from the repo
+
+    Args:
+        full_file_path_and_name (str): path
+        replace_missing_vals_with (str, optional): replace not valid numbers. Defaults to "NaN".
+        value_column_name (str, optional):. Defaults to "series_value". 
+
+
+    Returns:
+        pd.DataFrame: output data frame
+    """
     col_names = []
     col_types = []
     all_data = {}
@@ -160,7 +171,15 @@ def convert_tsf_to_dataframe(
         )
         
         
-def get_freq(freq):
+def get_freq(freq)->str:
+    """Get the frequency based on the string reported. I don't think there are all the possibilities here
+
+    Args:
+        freq (str): string coming from 
+
+    Returns:
+        str: pandas frequency format
+    """
     if freq =='10_minutes':
         return '600s'
     elif freq == 'hourly':
@@ -170,7 +189,15 @@ def get_freq(freq):
         
         
 class Monarch():
-    def __init__(self,filename,baseUrl='https://forecastingdata.org/', rebuild=False):
+    
+    def __init__(self,filename:str,baseUrl:str ='https://forecastingdata.org/', rebuild:bool =False):
+        """Class for downloading datasets listed here https://forecastingdata.org/ 
+
+        Args:
+            filename (str):  name of the class, used for saving
+            baseUrl (str, optional): url to the source page. Defaults to 'https://forecastingdata.org/'.
+            rebuild (bool, optional):  if true the table will be loaded from the webpage otherwise it will be loaded from the saved file. Defaults to False.
+        """
         self.baseUrl = baseUrl
         self.downloaded = {}
         if rebuild==False:
@@ -185,7 +212,10 @@ class Monarch():
             self.save(filename)
 
     def get_table(self, baseUrl):
-        
+        """    
+        Used in the init
+        :meta private:
+        """
         with requests.Session() as s:
             r = s.get(baseUrl)
         soup = bs(r.content)
@@ -221,7 +251,12 @@ class Monarch():
         tot['id']  = tot.Download.apply(lambda x:int(x.split('/')[-1]))
         self.table = tot.copy()
    
-    def save(self, filename):
+    def save(self, filename:str)-> None:
+        """Save the monarch structure
+
+        Args:
+            filename (str): name of the file to generate
+        """
         print('Saving')
         with open(f'{filename}.pkl','wb') as f:
             params =  self.__dict__.copy()
@@ -229,14 +264,27 @@ class Monarch():
             #    if k in params.keys():
             #        _ = params.pop(k)
             pickle.dump(params,f)
-    def load(self, filename):
+    def load(self, filename:str)-> None:
+        """Load a monarch structure
+
+        Args:
+            filename (str): filename to load
+        """
         print('Loading')
         with open(filename+'.pkl','rb') as f:
             params = pickle.load(f)
             for p in params:
                 setattr(self,p, params[p])    
-                
-    def download_dataset(self,path,id,rebuild=False):
+   
+    def download_dataset(self,path: str,id:int ,rebuild=False)->None:
+        """download a specific dataset 
+
+        Args:
+            path (str): path in which save the data
+            id (int): id of the dataset
+            rebuild (bool, optional): if true the dataset will be re-downloaded. Defaults to False.
+        """
+            
         if os.path.exists(path):
             pass
         else:
@@ -250,7 +298,11 @@ class Monarch():
         else:
             file = self._download(url = self.table.Download[self.table.id== id].values[0] , path = os.path.join(path,str(id)))
             self.downloaded[id] = f'{path}/{id}/{file}'
-    def _download(self,url, path):
+            
+    def _download(self,url, path)->str:
+        """ get data
+        :meta private:
+        """
         with requests.Session() as s:
             r = s.get(url)
             soup = bs(r.content)
@@ -263,8 +315,17 @@ class Monarch():
         shutil.unpack_archive(path+'.zip', path)
         os.remove(path+'.zip')
         return os.listdir(path)[0]
-    
-    def generate_dataset(self, id):
+       
+    def generate_dataset(self, id:int)-> Union[None, pd.DataFrame]:
+        """Parse the id-th dataset in a convient format and return a pandas dataset
+
+        Args:
+            id (int): id of the dataset
+
+        Returns:
+            None or pd.DataFrame: dataframe
+        """
+
         if id not in self.downloaded.keys():
             print('please call first download dataset')
             return None

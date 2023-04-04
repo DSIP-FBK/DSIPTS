@@ -23,6 +23,7 @@ x_num_past: the numerical past variables
 x_num_future: the numerical future variables
 x_cat_past: the categorical past variables
 x_cat_future: the categorical future variables
+idx_target: index containing the y variables in the past dataset. Can be used during the training for train a differential model
 ```
 by default, during the dataset construction, the target variable will be added to the `x_num_past` list. Moreover the set of categorical variable will be the same in the past and the future but we choose to distinguish the two parts during the forward loop for seek of generability.
 
@@ -200,3 +201,8 @@ se metto shift 1 e metto nel target lui usa le info categoriche del timestamp pr
 # Usage 
 [Here](https://gitlab.fbk.eu/dsip/dsip_dlresearch/dlf/-/tree/main/scripts) you can find an example in wich the library is used for training a model from command line using OmegaConf and Hydra with more updated models and examples.
 
+# TODO
+- use logging instead of print
+- add more sintetic data
+- more versatility during the data loading process
+- automatic doc generation I follow [this](https://towardsdatascience.com/documenting-python-code-with-sphinx-554e1d6c4f6d)

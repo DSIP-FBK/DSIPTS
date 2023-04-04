@@ -11,18 +11,49 @@ from abc import ABCMeta, abstractmethod
 class Base(pl.LightningModule):
     @abstractmethod
     def __init__(self):
+        """
+        This is the basic model, each model implemented must overwrite the init method and the forward method. The inference step is optional, by default it uses the forward method but for recurrent 
+        network you should implement your own method
+        """
+        
         super(Base, self).__init__()
         self.save_hyperparameters(logger=False)
         
     @abstractmethod
-    def forward(self, batch):
-       return None
+    def forward(self, batch:dict)-> torch.tensor:
+        """Forlward method used during the training loop
+
+        Args:
+            batch (dict): the batch structure. The keys are:
+                y : the target variable(s). This is always present
+                x_num_past: the numerical past variables. This is always present
+                x_num_future: the numerical future variables
+                x_cat_past: the categorical past variables
+                x_cat_future: the categorical future variables
+                idx_target: index of target features in the past array
+            
+
+        Returns:
+            torch.tensor: output of the mode;
+        """
+        return None
     
-    def inference(self, batch):
+    def inference(self, batch:dict)->torch.tensor:
+        """Usually it is ok to return the output of the forward method but sometimes not (e.g. RNN)
+
+        Args:
+            batch (dict): batch
+
+        Returns:
+            torch.tensor: result
+        """
         return self(batch)
         
-    ##questi metodi li posso sovrascrivere o ereditare :-)
     def configure_optimizers(self):
+        """
+        Each model has optim_config and scheduler_config
+        :meta private:
+        """
         optimizer = optim.Adam(self.parameters(),  **self.optim_config)
         self.lr = self.optim_config['lr']
         if self.scheduler_config is not None:
@@ -33,18 +64,30 @@ class Base(pl.LightningModule):
 
 
     def training_step(self, batch, batch_idx):
+        """
+        pythotrch lightening stuff
+        :meta private:
+        """
         y_hat = self(batch)
         loss = self.loss(y_hat, batch['y'].to(self.device))
         #self.log('train_loss', loss)
         return loss
     
     def validation_step(self, batch, batch_idx):
+        """
+        pythotrch lightening stuff
+        :meta private:
+        """
         y_hat = self(batch)
         loss = self.loss(y_hat, batch['y'].to(self.device))
         #self.log('val_loss', loss)
         return loss
 
     def validation_epoch_end(self, outs):
+        """
+        pythotrch lightening stuff
+        :meta private:
+        """
         #print('logging val')
         #import pdb;pdb.set_trace()
         loss = torch.stack(outs).mean()
@@ -52,6 +95,10 @@ class Base(pl.LightningModule):
         
 
     def training_epoch_end(self, outs):
+        """
+        pythotrch lightening stuff
+        :meta private:
+        """
         #print('logging train')
         #import pdb;pdb.set_trace()
         loss = sum(outs['loss'] for outs in outs) / len(outs)

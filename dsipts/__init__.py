@@ -4,3 +4,4 @@ from .models.RNN import RNN
 from .models.Attention import Attention
 from .models.LinearTS import LinearTS
 from .data_management.public_datasets import read_public_dataset
+from .models.base import Base
