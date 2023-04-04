@@ -1,0 +1,22 @@
+# @package _global_
+  
+model:
+  type: 'rnn'
+  
+ts:
+  name: 'weather_lstm'
+  version: 1
+  enrich: ['hour']
+
+model_configs:
+  cat_emb_dim: 16
+  hidden_RNN: 512
+  num_layers_RNN: 3
+  kernel_size_encoder: 5
+  kind: 'lstm'
+  sum_emb: true
+
+train_config:
+  batch_size: 256
+  max_epochs: 250
+              

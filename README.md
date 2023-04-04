@@ -199,7 +199,7 @@ ATTENTION: se metto shift 0 e non metto il target nelle feature future lui non u
 se metto shift 1 e metto nel target lui usa le info categoriche del timestamp prima il che non mi sembra ragionevole ma non ho molte idee migliori per ora
 
 # Usage 
-[Here](https://gitlab.fbk.eu/dsip/dsip_dlresearch/dlf/-/tree/main/scripts) you can find an example in wich the library is used for training a model from command line using OmegaConf and Hydra with more updated models and examples.
+In the folder `bash_examples` you can find an example in wich the library is used for training a model from command line using OmegaConf and Hydra with more updated models and examples.
 
 # TODO
 - use logging instead of print
@@ -209,6 +209,6 @@ se metto shift 1 e metto nel target lui usa le info categoriche del timestamp pr
 
 
 ## Documentation
-You can find the documentation [here] ():
+You can find the documentation [here] (https://dsip.pages.fbk.eu/dsip_dlresearch/timeseries/):
 or  in the folder `docs/_build/html/index.html`
 For user only: see ci file and enable [public pages] (https://roneo.org/en/gitlab-public-pages-private-repo/)
