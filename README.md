@@ -206,3 +206,9 @@ se metto shift 1 e metto nel target lui usa le info categoriche del timestamp pr
 - add more sintetic data
 - more versatility during the data loading process
 - automatic doc generation I follow [this](https://towardsdatascience.com/documenting-python-code-with-sphinx-554e1d6c4f6d)
+
+
+## Documentation
+You can find the documentation [here] ():
+or  in the folder `docs/_build/html/index.html`
+For user only: see ci file and enable [public pages] (https://roneo.org/en/gitlab-public-pages-private-repo/)
