@@ -23,9 +23,10 @@ class Model(nn.Module):
                  dropout,
                  num_lstm_layers,
                  device,
-                 quantiles = None) -> None:
+                 quantiles = None,
+                 path = None) -> None:
         super().__init__()
-        self.path = ''
+        self.path = path
         self.mix = mix
         self.prec = prec
         self.lag = lag
@@ -52,23 +53,12 @@ class Model(nn.Module):
             self.outLinear = nn.Linear(n_embd, 1)
         
     def forward(self, categorical, y):
-        '''
-        Input: 
-        - categorical: torch.Size([bs, seq_len, 5]) # 5 number of cat_variables available from data
-        - y(target): torch.Size([bs, seq_len])
-        Categorical contains past and future, not separated
-        Y (taget) both past and future. Future used only with prec=True as y[:,-self.lag-1:-1]
-        No numerical variables, only the target one
-
-        Output:
-        - torch.Size([bs, seq_len, 1]) if quantiles=None, else len(self.quantiles)
-        '''
         # categorical.shape = [bs, seq_len, 5]
         # y.shape = [bs, seq_len]
         #   - y will be unsqueezed the first time to embed each timestep in 'n_embd' dimension
         #   - The second one will be to cat y with other cat_variables on dim=2
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
 
         #Emb cat var and then split for past and fut
         embed_categorical = self.emb_cat_var(categorical)
