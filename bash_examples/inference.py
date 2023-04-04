@@ -55,7 +55,8 @@ def inference(conf):
     
     res = ts.inference_on_set(batch_size = conf.inference.batch_size,
                                 num_workers = conf.inference.num_workers,
-                                set = conf.inference.set)
+                                set = conf.inference.set,
+                                rescaling =conf.inference.rescaling)
 
     errors = []
     for c in ts.target_variables:

@@ -24,7 +24,10 @@ pip install --force dsipts --index-url https://dsipts:glpat-98SR11neR7hzxy__SueG
 
 # Configuration
 
-##copy the file
+- copy the folder `all_six_datasets` inside a data folder (in what follows `/home/agobbi/Projects/ExpTS/data`).
+- place yoursel in `bash_examples`
+- train the models
+- create the folders `csv` and `plots` in the `pathdir` in this case `/home/agobbi/Projects/ExpTS`
 
 
 # Hydra
@@ -149,8 +152,9 @@ python train.py  -m architecture=linear, dlinear
 or all the implemented models:
 
 ```
-python train.py  -m
+python train.py  -m  
 ```
+If the row `override hydra/launcher: joblib` is commented the train will be consecutive, otherwise in parallel. In the latter case the output in the terminal will be a mess, please check all is woking fine. In the future the logging will be more efficient.
 
 Once the models are trained, the relative full configurations are saved in `config_used` and can be used for inference or comparison:
 
