@@ -55,7 +55,7 @@ def train(conf: DictConfig) -> None:
         model =  RNN(**model_conf,
                           optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )  
-    elif conf.model.type == 'peristent':
+    elif conf.model.type == 'persistent':
         model_conf = {'future_steps':model_conf['future_steps'],
                       'past_steps':model_conf['past_steps']}
         model =  Persistent(**model_conf,

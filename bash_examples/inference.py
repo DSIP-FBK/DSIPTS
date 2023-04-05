@@ -94,8 +94,6 @@ def inference(conf:DictConfig)->List[pd.DataFrame]:
         ts.load(RNN,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
     elif conf.model.type == 'persistent':
         ts.load(Persistent,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
-        import pdb
-        pdb.set_trace()
     else:
         print('use a valid model')
     
