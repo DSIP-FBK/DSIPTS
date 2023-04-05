@@ -35,7 +35,7 @@ class Persistent(Base):
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
         self.loss = L1Loss()
-                               
+        self.fake = nn.Linear(1,1)
 
     def forward(self, batch):
         """It is mandatory to implement this method
