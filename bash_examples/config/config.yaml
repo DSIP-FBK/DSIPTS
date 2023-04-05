@@ -51,7 +51,6 @@ defaults:
   - override hydra/launcher: joblib
 
 train_config:
-  max_epochs: null
 
 hydra:
   #launcher:
