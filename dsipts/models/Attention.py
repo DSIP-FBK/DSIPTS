@@ -2,7 +2,7 @@
 from torch import  nn
 import torch
 from .base import  Base
-from .utils import get_device, QuantileLossMO
+from .utils import get_device, QuantileLossMO,L1Loss
 import math
 from typing import List
 
@@ -113,7 +113,7 @@ class Attention(Base):
         if  self.use_quantiles:
             self.loss = QuantileLossMO(quantiles)
         else:
-            self.loss = nn.L1Loss()
+            self.loss = L1Loss()
         
  
      
@@ -194,9 +194,8 @@ class Attention(Base):
         ##BxLxC
         res = torch.cat(res,2)
         B,L,_ = res.shape
-
         return res.reshape(B,L,-1,self.mul)
-
+   
     
 
     

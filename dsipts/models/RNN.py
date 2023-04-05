@@ -2,7 +2,7 @@
 from torch import  nn
 import torch
 from .base import Base
-from .utils import QuantileLossMO,Permute, get_device
+from .utils import QuantileLossMO,Permute, get_device,L1Loss
 from typing import List
 
 
@@ -111,7 +111,7 @@ class RNN(Base):
         if  self.use_quantiles:
             self.loss = QuantileLossMO(quantiles)
         else:
-            self.loss = nn.L1Loss()
+            self.loss = L1Loss()
         #self.device = get_device()
     def forward(self, batch):
         """It is mandatory to implement this method
@@ -177,5 +177,8 @@ class RNN(Base):
         res = torch.cat(res,2)
         ##BxLxC
         B,L,_ = res.shape
+        
+      
         return res.reshape(B,L,-1,self.mul)
+
     

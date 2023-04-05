@@ -3,7 +3,7 @@ from torch import nn
 import torch
 import pytorch_lightning as pl
 from .base import  Base
-from .utils import QuantileLossMO, get_device
+from .utils import QuantileLossMO, get_device, L1Loss
 from typing import List
 class moving_avg(nn.Module):
     """
@@ -115,7 +115,7 @@ class LinearTS(Base):
             self.loss = QuantileLossMO(quantiles)
             self.mul = 3
         else:
-            self.loss = nn.L1Loss()
+            self.loss = L1Loss()
             self.mul = 1 
             
         if kind=='dlinear':
@@ -140,7 +140,6 @@ class LinearTS(Base):
                                                 #nn.Dropout(0.2),
                                                 nn.Linear(hidden_size//8,self.future_steps*self.mul)))
                                
-
     def forward(self, batch):
         """It is mandatory to implement this method
 
@@ -238,5 +237,6 @@ class LinearTS(Base):
         if self.kind=='dlinear':
             res = res+trend.unsqueeze(3)
         
+            
         return res
     

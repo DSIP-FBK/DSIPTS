@@ -82,6 +82,7 @@ class Base(pl.LightningModule):
         :meta private:
         """
         y_hat = self(batch)
+
         loss = self.loss(y_hat, batch['y'].to(self.device))
         #self.log('val_loss', loss)
         return loss

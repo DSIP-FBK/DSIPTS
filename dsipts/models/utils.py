@@ -33,6 +33,20 @@ class QuantileLossMO(nn.Module):
             tot_loss+=loss
         return loss
 
+
+
+class L1Loss(nn.Module):
+    """Custom L1Loss
+    """
+    def __init__(self):
+        super().__init__()
+        self.f = nn.L1Loss()
+    def forward(self, preds, target):
+        return self.f(preds[:,:,:,0],target)
+
+
+
+
 class Permute(nn.Module):
     def __init__(self):
         super().__init__()

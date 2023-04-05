@@ -1,7 +1,7 @@
 
 
 import pandas as pd
-from dsipts import TimeSeries, RNN, Attention,read_public_dataset, LinearTS
+from dsipts import TimeSeries, RNN, Attention,read_public_dataset, LinearTS, Persistent
 from omegaconf import DictConfig, OmegaConf
 from hydra.core.hydra_config import HydraConfig
 import hydra
@@ -51,6 +51,11 @@ def train(conf: DictConfig) -> None:
         
     elif conf.model.type == 'rnn':
         model =  RNN(**model_conf,
+                          optim_config = conf.optim_config,
+                          scheduler_config =conf.scheduler_config )  
+    elif conf.model.type == 'perisstent':
+        model_conf = {'future_steps':model_conf.future_steps},
+        model =  Persistent({'future_steps':model_conf.future_steps},
                           optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )
     else:

@@ -122,8 +122,9 @@ model:
   
 ts:
   name: 'weather'
-  version: 1
-  enrich: ['hour']
+  version: 1 # if you need to versioning a model
+  enrich: ['hour'] 
+  use_covariates: false #if true all the columns of the dataset will be used as past features
 
 model_configs:
   cat_emb_dim: 16
