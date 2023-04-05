@@ -14,5 +14,5 @@ split_params:
 
 train_config:
   batch_size: 256
-  max_epochs: 1
+  max_epochs: 0
                              
