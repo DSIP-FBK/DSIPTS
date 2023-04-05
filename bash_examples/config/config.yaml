@@ -50,8 +50,6 @@ defaults:
   - architecture: null
   - override hydra/launcher: joblib
 
-train_config:
-
 hydra:
   #launcher:
   #  n_jobs:   2 
