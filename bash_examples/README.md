@@ -171,3 +171,18 @@ A typical example of plot is displayed below and shows the MSE at different lags
 ![plot](figures/weather_test_MSE.jpeg)
 
 The loss plot is currenty broken on server, you can reproduce it form the notebook `4- results` (see the notebook section)
+
+
+# Testing
+You can use `architecture_test` for testing your models. In this case you can use smaller model with fewer epochs. In this case remember to change these lines in the global configuration file.
+
+```
+defaults: 
+  - architecture: null --> architecture_test:null
+
+
+hydra:
+  sweeper:
+    params:
+      architecture: glob(*) --> architecture_test: glob(*)
+```
