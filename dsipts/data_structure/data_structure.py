@@ -518,7 +518,9 @@ class TimeSeries():
                 else:
                     self.losses = pd.read_csv(f)
                 os.remove(f)
-                    
+        if type(self.losses)==dict:
+            self.losses = pd.DataFrame(self.losses)
+        
         try:
             self.model = self.model.load_from_checkpoint(self.checkpoint_file_last)
         except:
