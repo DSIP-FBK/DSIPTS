@@ -26,3 +26,5 @@ here = os.getcwd()
 for dir in os.listdir(here):
     if any( [f in dir for f in CLEAN_FILES] ):
         shutil.rmtree(os.path.join(here,dir))
+
+

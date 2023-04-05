@@ -7,6 +7,7 @@ ts:
   name: 'weather'
   version: 1
   enrich: ['hour']
+  use_covariates: false
 
 split_params:
   shift: 1 ##this will use the shifted data and it is more like the original one

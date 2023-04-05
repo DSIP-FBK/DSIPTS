@@ -217,6 +217,7 @@ class Monarch():
 
     def get_table(self, baseUrl):
         """   get table
+        
         :meta private:
         """
         with requests.Session() as s:
@@ -304,6 +305,7 @@ class Monarch():
             
     def _download(self,url, path)->str:
         """ get data
+        
         :meta private:
         """
         with requests.Session() as s:

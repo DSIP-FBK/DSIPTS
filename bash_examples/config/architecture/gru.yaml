@@ -7,7 +7,7 @@ ts:
   name: 'weather_gru'
   version: 1
   enrich: ['hour']
-
+  use_covariates: false
 
 model_configs:
   cat_emb_dim: 16

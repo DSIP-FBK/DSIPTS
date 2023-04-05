@@ -27,7 +27,7 @@ def train(conf: DictConfig) -> None:
     ##OCCHIO CHE tutti questi dataset hanno y come target! ###############################################
     data, columns = read_public_dataset(**conf.dataset)
     ts = TimeSeries(conf.ts.name)
-    ts.load_signal(data, enrich_cat= conf.ts.enrich,target_variables=['y'], past_variables=columns)
+    ts.load_signal(data, enrich_cat= conf.ts.enrich,target_variables=['y'], past_variables=columns if conf.ts.use_covariates else [])
     ######################################################################################################
     
     model_conf = conf.model_configs

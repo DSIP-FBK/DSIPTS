@@ -10,3 +10,4 @@ plotly
 plotly-express
 kaleido
 sphinx
+sphinx_rtd_theme
