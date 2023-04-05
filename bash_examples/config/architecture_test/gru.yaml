@@ -1,23 +1,24 @@
 # @package _global_
 
 model:
-  type: 'linear'
+  type: 'rnn'
   
 ts:
-  name: 'weather_d'
+  name: 'weather_gru'
   version: 1
   enrich: ['hour']
   use_covariates: false
 
 model_configs:
   cat_emb_dim: 16
-  kernel_size_encoder: 15
+  hidden_RNN: 512
+  num_layers_RNN: 3
+  kernel_size_encoder: 5
+  kind: 'gru'
   sum_emb: true
-  hidden_size: 256
-  kind: 'dlinear'
 
 
 train_config:
   batch_size: 256
-  max_epochs: 250
-                   
+  max_epochs: 5
+            

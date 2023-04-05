@@ -4,20 +4,18 @@ model:
   type: 'linear'
   
 ts:
-  name: 'weather_d'
+  name: 'weather_n'
   version: 1
   enrich: ['hour']
   use_covariates: false
-
+  
 model_configs:
   cat_emb_dim: 16
   kernel_size_encoder: 15
   sum_emb: true
   hidden_size: 256
-  kind: 'dlinear'
-
+  kind: 'nlinear'
 
 train_config:
   batch_size: 256
-  max_epochs: 250
-                   
+  max_epochs: 5
