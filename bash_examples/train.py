@@ -86,6 +86,7 @@ def train(conf: DictConfig) -> None:
     with open(os.path.join('config_used',HydraConfig.get()['runtime']['choices'][K]+'.yaml'),'w') as f:
         f.write(OmegaConf.to_yaml(conf))
         
+        
 if __name__ == '__main__': 
     if not os.path.exists('config_used'):
         os.mkdir('config_used')
