@@ -5,7 +5,10 @@ from omegaconf import DictConfig, OmegaConf
 import os
 import numpy as np
 import plotly.express as px
-from inference import inference
+try:
+  from inference import inference
+except:
+  from .inference import inference
 
 
 
