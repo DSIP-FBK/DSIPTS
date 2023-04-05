@@ -19,9 +19,11 @@ def train(conf: DictConfig) -> None:
     Args:
         conf (DictConfig): dictionary whit all the parameters (split, normalization and training). Some of the parameters required will be filled looking to the timeserie definition. See the examples in the repo.
     """
+    
+    K = list(HydraConfig.get()['runtime']['choices'].keys())[0]
     print(OmegaConf.to_yaml(conf))  
     print(f"{''.join(['#']*100)}")
-    print(f"{HydraConfig.get()['runtime']['choices']['architecture']:^100}")  
+    print(f"{HydraConfig.get()['runtime']['choices'][K]:^100}")  
     print(f"{''.join(['#']*100)}")
 
     ##OCCHIO CHE tutti questi dataset hanno y come target! ###############################################
@@ -80,7 +82,8 @@ def train(conf: DictConfig) -> None:
     ts.train_model(split_params=split_params,**conf.train_config)
     ts.save(os.path.join(conf.train_config.dirpath,'model'))
     ##save the config for the comparison task
-    with open(os.path.join('config_used',HydraConfig.get()['runtime']['choices']['architecture']+'.yaml'),'w') as f:
+    
+    with open(os.path.join('config_used',HydraConfig.get()['runtime']['choices'][K]+'.yaml'),'w') as f:
         f.write(OmegaConf.to_yaml(conf))
         
 if __name__ == '__main__': 
