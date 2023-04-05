@@ -54,7 +54,7 @@ def train(conf: DictConfig) -> None:
                           optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )  
     elif conf.model.type == 'peristent':
-        model_conf = {'future_steps':model_conf.future_steps}
+        model_conf = {'future_steps':model_conf['future_steps']}
         model =  Persistent({'future_steps':model_conf.future_steps},
                           optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )
