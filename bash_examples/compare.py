@@ -7,10 +7,10 @@ import numpy as np
 import plotly.express as px
 
 ##workaround for documentation
-try:
-  from inference import inference
-except:
-  from .inference import inference
+#try:
+from inference import inference
+#except:
+#  from .inference import inference
 
 
 
