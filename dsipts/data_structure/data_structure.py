@@ -519,9 +519,10 @@ class TimeSeries():
                     self.losses = pd.read_csv(f)
                 os.remove(f)
                     
-                    
-        self.model = self.model.load_from_checkpoint(self.checkpoint_file_last)
-
+        try:
+            self.model = self.model.load_from_checkpoint(self.checkpoint_file_last)
+        except:
+            print(f'There is a problem loading the weights on file {self.checkpoint_file_last}')
 
     def inference_on_set(self,batch_size:int=100,num_workers:int=4,split_params:Union[None,dict]=None,set:str='test',rescaling:bool=True)->pd.DataFrame:
         """This function allows to get the prediction on a particular set (train, test or validation). TODO add inference on a custom dataset
@@ -616,7 +617,6 @@ class TimeSeries():
                     _ = params.pop(k)
             pickle.dump(params,f)
 
-     
 
     def load(self,model:Base, filename:str,load_last:bool=True,dirpath:Union[str,None]=None,weight_path:Union[str, None]=None)->None:
         """ Load a saved model
@@ -639,21 +639,20 @@ class TimeSeries():
         self.model = model(**self.config['model_configs'],optim_config = self.config['optim_config'],scheduler_config =self.config['scheduler_config'] )
         
         if weight_path is not None:
-            self.model = self.model.load_from_checkpoint(weight_path)
-          
+            tmp_path = weight_path
         else:
             if self.dirpath is not None:
                 if load_last:
                     tmp_path = os.path.join(self.dirpath,self.checkpoint_file_last.split('/')[-1])
-                    self.model = self.model.load_from_checkpoint(tmp_path)
                 else:
                     tmp_path = os.path.join(self.dirpath,self.checkpoint_file_best.split('/')[-1])
-                    self.model = self.model.load_from_checkpoint(tmp_path)
             else:
-                
                 if load_last:
                     tmp_path = os.path.join(dirpath,self.checkpoint_file_last.split('/')[-1])
-                    self.model = self.model.load_from_checkpoint(tmp_path)
                 else:
                     tmp_path = os.path.join(dirpath,self.checkpoint_file_best.split('/')[-1])
-                    self.model = self.model.load_from_checkpoint(tmp_path)
+            
+        try:
+            self.model = self.model.load_from_checkpoint(tmp_path)
+        except:
+            print(f'There is a problem loading the weights on file {tmp_path}')
