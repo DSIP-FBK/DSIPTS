@@ -13,13 +13,16 @@ class Persistent(Base):
     
     def __init__(self, 
                  future_steps:int,
+                 past_steps:int,
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
         """Persistent model propagatinng  last observed values
 
         Args:
           
-            future_steps (int): number of future lag to predict
+            future_steps (int): number of future lag to predict   
+            past_steps (int): number of future lag to predict. Useless but needed for the other stuff
+
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None. Usless for this model
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None. Usless for this model
         """
@@ -28,7 +31,7 @@ class Persistent(Base):
         
         super(Persistent, self).__init__()
         self.save_hyperparameters(logger=False)
-        
+        self.past_steps = past_steps
         self.future_steps = future_steps
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
