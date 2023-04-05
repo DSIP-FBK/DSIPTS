@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>bash_examples.inference &mdash; DISIPTS 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            DISIPTS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">dsipts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../bash_examples.html">bash_examples package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">DISIPTS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">bash_examples.inference</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for bash_examples.inference</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">dsipts</span> <span class="kn">import</span> <span class="n">TimeSeries</span><span class="p">,</span> <span class="n">RNN</span><span class="p">,</span> <span class="n">Attention</span><span class="p">,</span><span class="n">read_public_dataset</span><span class="p">,</span> <span class="n">LinearTS</span>
+<span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">DictConfig</span><span class="p">,</span> <span class="n">OmegaConf</span>
+<span class="kn">import</span> <span class="nn">hydra</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">plotly.express</span> <span class="k">as</span> <span class="nn">px</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">mean_squared_error</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<div class="viewcode-block" id="rmse"><a class="viewcode-back" href="../../bash_examples.html#bash_examples.inference.rmse">[docs]</a><span class="k">def</span> <span class="nf">rmse</span><span class="p">(</span><span class="n">x</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span><span class="n">y</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">)</span><span class="o">-&gt;</span><span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;custom RMSE avoinding nan</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x (np.array): predicted</span>
+<span class="sd">        y (np.array): real</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: RMSE</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">y</span><span class="p">))[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">mean_squared_error</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span><span class="n">y</span><span class="p">[</span><span class="n">idx</span><span class="p">]))</span></div>
+
+<div class="viewcode-block" id="mse"><a class="viewcode-back" href="../../bash_examples.html#bash_examples.inference.mse">[docs]</a><span class="k">def</span> <span class="nf">mse</span><span class="p">(</span><span class="n">x</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span><span class="n">y</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">)</span><span class="o">-&gt;</span><span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;custom MSE avoinding nan</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x (np.array): predicted</span>
+<span class="sd">        y (np.array): real</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: MSE</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">y</span><span class="p">))[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">mean_squared_error</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span><span class="n">y</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="mape"><a class="viewcode-back" href="../../bash_examples.html#bash_examples.inference.mape">[docs]</a><span class="k">def</span> <span class="nf">mape</span><span class="p">(</span><span class="n">x</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span><span class="n">y</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">)</span><span class="o">-&gt;</span><span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;custom mape avoinding nan</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x (np.array): predicted</span>
+<span class="sd">        y (np.array): real</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: mape</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">y</span><span class="p">))[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="mi">100</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">-</span><span class="n">y</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span><span class="o">/</span><span class="n">y</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">res</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">res</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="inference"><a class="viewcode-back" href="../../bash_examples.html#bash_examples.inference.inference">[docs]</a><span class="k">def</span> <span class="nf">inference</span><span class="p">(</span><span class="n">conf</span><span class="p">:</span><span class="n">DictConfig</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">List</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Make inference on a selected set starting from a configuration file</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        conf (DictConfig): inference configuration, usually the one generated by the train with all the paths and parameters. See the examples in the repo</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List[pd.DataFrame]:  3 dataframes:</span>
+<span class="sd">            errors : containing the errors</span>
+<span class="sd">            res : containing the predictions</span>
+<span class="sd">            losses : containing the losses during the train</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">##OCCHIO CHE tutti questi dataset hanno y come target! ###############################################</span>
+    <span class="n">data</span><span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="n">read_public_dataset</span><span class="p">(</span><span class="o">**</span><span class="n">conf</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span>
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">TimeSeries</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">ts</span><span class="o">.</span><span class="n">load_signal</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">enrich_cat</span><span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">enrich</span><span class="p">,</span><span class="n">target_variables</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="n">past_variables</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
+    <span class="c1">######################################################################################################</span>
+    
+
+
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Model and weights will be placed and read from </span><span class="si">{</span><span class="n">conf</span><span class="o">.</span><span class="n">train_config</span><span class="o">.</span><span class="n">dirpath</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    
+
+    <span class="k">if</span> <span class="n">conf</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;attention&#39;</span><span class="p">:</span>
+        <span class="n">ts</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">Attention</span><span class="p">,</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">train_config</span><span class="o">.</span><span class="n">dirpath</span><span class="p">,</span><span class="s1">&#39;model&#39;</span><span class="p">),</span><span class="n">load_last</span><span class="o">=</span><span class="n">conf</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">load_last</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">conf</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;linear&#39;</span><span class="p">:</span>
+        <span class="n">ts</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">LinearTS</span><span class="p">,</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">train_config</span><span class="o">.</span><span class="n">dirpath</span><span class="p">,</span><span class="s1">&#39;model&#39;</span><span class="p">),</span><span class="n">load_last</span><span class="o">=</span><span class="n">conf</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">load_last</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">conf</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;rnn&#39;</span><span class="p">:</span>
+        <span class="n">ts</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">RNN</span><span class="p">,</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">train_config</span><span class="o">.</span><span class="n">dirpath</span><span class="p">,</span><span class="s1">&#39;model&#39;</span><span class="p">),</span><span class="n">load_last</span><span class="o">=</span><span class="n">conf</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">load_last</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;use a valid model&#39;</span><span class="p">)</span>
+    
+    <span class="n">res</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">inference_on_set</span><span class="p">(</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+                                <span class="n">num_workers</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">num_workers</span><span class="p">,</span>
+                                <span class="nb">set</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">set</span><span class="p">,</span>
+                                <span class="n">rescaling</span> <span class="o">=</span><span class="n">conf</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">rescaling</span><span class="p">)</span>
+
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ts</span><span class="o">.</span><span class="n">target_variables</span><span class="p">:</span>
+        
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;lag&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">mse</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s1">_median&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span><span class="n">x</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">))</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="mi">0</span><span class="p">:</span><span class="sa">f</span><span class="s1">&#39;MSE&#39;</span><span class="p">})</span>
+        <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;variable&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
+        
+        <span class="n">tmp2</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;lag&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">mape</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s1">_median&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span><span class="n">x</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">))</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="mi">0</span><span class="p">:</span><span class="s1">&#39;MAPE&#39;</span><span class="p">})</span>
+        <span class="n">tmp2</span><span class="p">[</span><span class="s1">&#39;variable&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
+        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span><span class="n">tmp2</span><span class="p">))</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span><span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">output_path</span><span class="p">,</span><span class="s1">&#39;csv&#39;</span><span class="p">,</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">conf</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">ts</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">conf</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">conf</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">set</span><span class="si">}</span><span class="s1">.csv&#39;</span><span class="p">)</span>
+
+    <span class="n">errors</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">errors</span><span class="p">,</span><span class="n">res</span><span class="p">,</span> <span class="n">ts</span><span class="o">.</span><span class="n">losses</span></div>
+
+
+    
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span> 
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Train TS models&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="s2">&quot;--config&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;configurastion file&quot;</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">conf</span> <span class="o">=</span> <span class="n">OmegaConf</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">config</span><span class="p">)</span> 
+    <span class="n">inference</span><span class="p">(</span><span class="n">conf</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andrea Gobbi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

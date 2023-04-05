@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>bash_examples.compare &mdash; DISIPTS 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            DISIPTS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">dsipts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../bash_examples.html">bash_examples package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">DISIPTS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">bash_examples.compare</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for bash_examples.compare</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">DictConfig</span><span class="p">,</span> <span class="n">OmegaConf</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">plotly.express</span> <span class="k">as</span> <span class="nn">px</span>
+<span class="kn">from</span> <span class="nn">.inference</span> <span class="kn">import</span> <span class="n">inference</span>
+
+
+
+
+
+<div class="viewcode-block" id="compare"><a class="viewcode-back" href="../../bash_examples.html#bash_examples.compare.compare">[docs]</a><span class="k">def</span> <span class="nf">compare</span><span class="p">(</span><span class="n">conf</span><span class="p">:</span><span class="n">DictConfig</span><span class="p">)</span><span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compare all the models specified</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        conf (DictConfig): a config with a list of models to compare, the ouput folder and other parameters. See the examples in the repo</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">tot_losses</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">tot_predictions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">conf_tmp</span> <span class="ow">in</span> <span class="n">conf</span><span class="o">.</span><span class="n">models</span><span class="p">:</span>
+        <span class="n">conf_tmp</span> <span class="o">=</span>  <span class="n">OmegaConf</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">conf_tmp</span><span class="p">)</span> 
+        <span class="n">conf_tmp</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">set</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">set</span>
+        <span class="n">conf_tmp</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">rescaling</span> <span class="o">=</span> <span class="n">conf</span><span class="o">.</span><span class="n">rescaling</span>
+
+        <span class="n">tmp</span><span class="p">,</span><span class="n">predictions</span><span class="p">,</span> <span class="n">losses</span> <span class="o">=</span> <span class="n">inference</span><span class="p">(</span><span class="n">conf_tmp</span><span class="p">)</span>
+        <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">conf_tmp</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">conf_tmp</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">conf_tmp</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">predictions</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">conf_tmp</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">conf_tmp</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">conf_tmp</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">losses</span><span class="p">[</span><span class="s1">&#39;epoch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">losses</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">losses</span> <span class="o">=</span> <span class="n">losses</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">id_vars</span><span class="o">=</span><span class="s1">&#39;epoch&#39;</span><span class="p">)</span>
+        <span class="n">losses</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">conf_tmp</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">conf_tmp</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">conf_tmp</span><span class="o">.</span><span class="n">ts</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">losses</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">losses</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp</span> <span class="p">)</span>
+        <span class="n">tot_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">losses</span><span class="p">)</span>
+        <span class="n">tot_predictions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">predictions</span><span class="p">)</span>
+        
+    <span class="n">tot_losses</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">tot_losses</span><span class="p">,</span><span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">tot_predictions</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">tot_predictions</span><span class="p">,</span><span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">res</span><span class="p">,</span><span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">res</span><span class="o">.</span><span class="n">MAPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">MAPE</span><span class="o">/</span><span class="mi">100</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">fig_ass</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">res</span><span class="p">,</span><span class="n">x</span> <span class="o">=</span> <span class="s1">&#39;lag&#39;</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="s1">&#39;MSE&#39;</span><span class="p">,</span><span class="n">color</span> <span class="o">=</span> <span class="s1">&#39;model&#39;</span><span class="p">,</span><span class="n">facet_row</span><span class="o">=</span><span class="s1">&#39;variable&#39;</span><span class="p">)</span>
+    <span class="n">fig_rel</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">res</span><span class="p">,</span><span class="n">x</span> <span class="o">=</span> <span class="s1">&#39;lag&#39;</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="s1">&#39;MAPE&#39;</span><span class="p">,</span><span class="n">color</span> <span class="o">=</span> <span class="s1">&#39;model&#39;</span><span class="p">,</span><span class="n">facet_row</span><span class="o">=</span><span class="s1">&#39;variable&#39;</span><span class="p">)</span>
+    <span class="n">tot_losses</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span><span class="s1">&#39;loss&#39;</span><span class="p">,</span><span class="s1">&#39;variable&#39;</span><span class="p">:</span><span class="s1">&#39;set&#39;</span><span class="p">},</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">fig_losses</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">tot_losses</span><span class="p">,</span><span class="n">x</span> <span class="o">=</span> <span class="s1">&#39;epoch&#39;</span><span class="p">,</span><span class="n">y</span><span class="o">=</span><span class="s1">&#39;loss&#39;</span><span class="p">,</span><span class="n">color</span> <span class="o">=</span> <span class="s1">&#39;set&#39;</span><span class="p">,</span><span class="n">facet_col</span><span class="o">=</span><span class="s1">&#39;model&#39;</span><span class="p">)</span>
+
+    
+   
+    <span class="n">fig_ass</span><span class="o">.</span><span class="n">update_traces</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;markers+lines&quot;</span><span class="p">,</span> <span class="n">hovertemplate</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">fig_ass</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">hovermode</span><span class="o">=</span><span class="s2">&quot;x unified&quot;</span><span class="p">)</span>
+
+    <span class="n">fig_rel</span><span class="o">.</span><span class="n">update_traces</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;markers+lines&quot;</span><span class="p">,</span> <span class="n">hovertemplate</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">fig_rel</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">hovermode</span><span class="o">=</span><span class="s2">&quot;x unified&quot;</span><span class="p">)</span>
+    <span class="n">fig_rel</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">tickformat</span> <span class="o">=</span> <span class="s1">&#39;,.2%&#39;</span>
+
+
+
+    <span class="n">fig_ass</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;text&#39;</span><span class="p">:</span><span class="sa">f</span><span class="s1">&#39;MSE </span><span class="si">{</span><span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="si">}</span><span class="s1"> set&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="mf">0.5</span><span class="p">},</span>
+                          <span class="n">xaxis_title</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;text&#39;</span><span class="p">:</span><span class="s1">&#39;Future step&#39;</span><span class="p">},</span>
+                          <span class="n">yaxis_title</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;text&#39;</span><span class="p">:</span><span class="s1">&#39;MSE&#39;</span><span class="p">},</span>
+                        
+                            <span class="p">)</span>
+    <span class="n">fig_ass</span><span class="o">.</span><span class="n">write_image</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">dirpath</span><span class="p">,</span><span class="s1">&#39;plots&#39;</span><span class="p">,</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">conf</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="si">}</span><span class="s1">_MSE.jpeg&#39;</span><span class="p">),</span><span class="n">width</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span><span class="n">scale</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    
+    <span class="n">fig_rel</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;text&#39;</span><span class="p">:</span><span class="sa">f</span><span class="s1">&#39;MAPE </span><span class="si">{</span><span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="si">}</span><span class="s1"> set&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="mf">0.5</span><span class="p">},</span>
+                          <span class="n">xaxis_title</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;text&#39;</span><span class="p">:</span><span class="s1">&#39;Future step&#39;</span><span class="p">},</span>
+                          <span class="n">yaxis_title</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;text&#39;</span><span class="p">:</span><span class="s1">&#39;MAPE&#39;</span><span class="p">},</span>
+                        
+                            <span class="p">)</span>
+    <span class="n">fig_rel</span><span class="o">.</span><span class="n">write_image</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">dirpath</span><span class="p">,</span><span class="s1">&#39;plots&#39;</span><span class="p">,</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">conf</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="si">}</span><span class="s1">_MAPE.jpeg&#39;</span><span class="p">),</span><span class="n">width</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span><span class="n">scale</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    
+    <span class="n">fig_losses</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">title</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;text&#39;</span><span class="p">:</span><span class="sa">f</span><span class="s1">&#39;Losses&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span><span class="mf">0.5</span><span class="p">},</span>
+                          <span class="n">xaxis_title</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;text&#39;</span><span class="p">:</span><span class="s1">&#39;Epochs&#39;</span><span class="p">},</span>
+                          <span class="n">yaxis_title</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;text&#39;</span><span class="p">:</span><span class="s1">&#39;Value&#39;</span><span class="p">},</span>
+                        
+                            <span class="p">)</span>
+    
+    <span class="c1">##NON FUNZIONA MA NON CAPISCO PERCHE!</span>
+    <span class="n">fig_losses</span><span class="o">.</span><span class="n">write_image</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">dirpath</span><span class="p">,</span><span class="s1">&#39;plots&#39;</span><span class="p">,</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">conf</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="si">}</span><span class="s1">_LOSSES.jpeg&#39;</span><span class="p">),</span><span class="n">width</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span><span class="n">scale</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">tot_losses</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">dirpath</span><span class="p">,</span><span class="s1">&#39;csv&#39;</span><span class="p">,</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">conf</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="si">}</span><span class="s1">_LOSSES.csv&#39;</span><span class="p">))</span>
+    <span class="n">res</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">dirpath</span><span class="p">,</span><span class="s1">&#39;csv&#39;</span><span class="p">,</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">conf</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="si">}</span><span class="s1">_errors.csv&#39;</span><span class="p">))</span>
+    <span class="n">tot_predictions</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">dirpath</span><span class="p">,</span><span class="s1">&#39;csv&#39;</span><span class="p">,</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">conf</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">conf</span><span class="o">.</span><span class="n">set</span><span class="si">}</span><span class="s1">_tot_predictions.csv&#39;</span><span class="p">))</span></div>
+
+
+
+    
+    
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span> 
+ 
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Train TS models&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="s2">&quot;--config&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;configurastion file&quot;</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">conf</span> <span class="o">=</span> <span class="n">OmegaConf</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">config</span><span class="p">)</span> 
+
+    <span class="n">compare</span><span class="p">(</span><span class="n">conf</span><span class="p">)</span>
+        
+  
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andrea Gobbi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

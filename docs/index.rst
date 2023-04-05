@@ -11,6 +11,7 @@ Welcome to DISIPTS's documentation!
    :caption: Contents:
 
    modules
+   bash_examples
 
 Indices and tables
 ==================
