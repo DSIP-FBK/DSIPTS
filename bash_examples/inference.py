@@ -103,12 +103,13 @@ def inference(conf:DictConfig)->List[pd.DataFrame]:
                                 rescaling =conf.inference.rescaling)
 
     errors = []
+    feat = '_median' if ts.model.use_quantiles else '_pred'
     for c in ts.target_variables:
         
-        tmp = res.groupby('lag').apply(lambda x: mse(x[f'{c}_median'].values,x[c].values)).reset_index().rename(columns={0:f'MSE'})
+        tmp = res.groupby('lag').apply(lambda x: mse(x[f'{c}{feat}'].values,x[c].values)).reset_index().rename(columns={0:f'MSE'})
         tmp['variable'] = c
         
-        tmp2 = res.groupby('lag').apply(lambda x: mape(x[f'{c}_median'].values,x[c].values)).reset_index().rename(columns={0:'MAPE'})
+        tmp2 = res.groupby('lag').apply(lambda x: mape(x[f'{c}{feat}'].values,x[c].values)).reset_index().rename(columns={0:'MAPE'})
         tmp2['variable'] = c
         errors.append(pd.merge(tmp,tmp2))
     errors = pd.concat(errors,ignore_index=True)
