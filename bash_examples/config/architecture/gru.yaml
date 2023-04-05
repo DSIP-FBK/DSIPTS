@@ -7,12 +7,12 @@ ts:
   name: 'weather_gru'
   version: 1
   enrich: ['hour']
-  use_covariates: false
+  use_covariates: true
 
 model_configs:
   cat_emb_dim: 16
   hidden_RNN: 512
-  num_layers_RNN: 3
+  num_layers_RNN: 4
   kernel_size_encoder: 5
   kind: 'gru'
   sum_emb: true

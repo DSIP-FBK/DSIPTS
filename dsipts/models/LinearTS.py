@@ -129,15 +129,15 @@ class LinearTS(Base):
             self.linear.append(nn.Sequential(nn.Linear(cat_emb_dim*(past_steps+future_steps)+past_steps*past_channels+future_channels*future_steps,hidden_size),
                                                 nn.ReLU(),
                                                 nn.Dropout(0.2),    
-                                                nn.Linear(hidden_size,hidden_size//8), 
+                                                nn.Linear(hidden_size,hidden_size//2), 
                                                 nn.ReLU(),
                                                 nn.Dropout(0.2),
-                                                #nn.Linear(hidden_size//2,hidden_size//4),
-                                                #nn.ReLU(),
-                                                #nn.Dropout(0.2),
-                                                #nn.Linear(hidden_size//4,hidden_size//8),
-                                                #nn.ReLU(),
-                                                #nn.Dropout(0.2),
+                                                nn.Linear(hidden_size//2,hidden_size//4),
+                                                nn.ReLU(),
+                                                nn.Dropout(0.2),
+                                                nn.Linear(hidden_size//4,hidden_size//8),
+                                                nn.ReLU(),
+                                                nn.Dropout(0.2),
                                                 nn.Linear(hidden_size//8,self.future_steps*self.mul)))
                                
     def forward(self, batch):

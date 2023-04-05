@@ -7,7 +7,7 @@ ts:
   name: 'weather'
   version: 1
   enrich: ['hour']
-  use_covariates: false
+  use_covariates: true
 
 split_params:
   shift: 1 ##this will use the shifted data and it is more like the original one
@@ -17,8 +17,8 @@ model_configs:
   cat_emb_dim: 8
   num_heads: 16
   dropout: 0.3
-  n_layer_encoder: 4
-  n_layer_decoder: 2
+  n_layer_encoder: 8
+  n_layer_decoder: 4
 
 
 train_config:

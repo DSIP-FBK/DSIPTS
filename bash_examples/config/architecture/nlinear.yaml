@@ -7,11 +7,11 @@ ts:
   name: 'weather_n'
   version: 1
   enrich: ['hour']
-  use_covariates: false
-  
+  use_covariates: true
+
 model_configs:
   cat_emb_dim: 16
-  kernel_size_encoder: 15
+  kernel_size_encoder: 5
   sum_emb: true
   hidden_size: 256
   kind: 'nlinear'
