@@ -3,4 +3,4 @@ models: ['config_used/attention.yaml','config_used/persistent.yaml','config_used
 dirpath: "/home/agobbi/Projects/ExpTS"
 set: 'test'
 name: 'prova'
-rescaling: true
+rescaling: false
