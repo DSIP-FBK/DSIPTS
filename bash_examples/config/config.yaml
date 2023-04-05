@@ -47,7 +47,7 @@ inference:
 
 defaults:
   - _self_
-  - architecture_test: null
+  - architecture: null
   - override hydra/launcher: joblib
 
 hydra:
@@ -56,4 +56,4 @@ hydra:
   output_subdir: null 
   sweeper:
     params:
-      architecture_test: glob(*)
+      architecture: glob(*)
