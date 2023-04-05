@@ -27,8 +27,7 @@ class Persistent(Base):
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None. Usless for this model
         """
         
-        
-        
+    
         super(Persistent, self).__init__()
         self.save_hyperparameters(logger=False)
         self.past_steps = past_steps
