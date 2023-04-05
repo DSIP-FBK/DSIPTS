@@ -79,7 +79,9 @@ def inference(conf:DictConfig)->List[pd.DataFrame]:
     ######################################################################################################
     
 
-
+    print(f"{''.join(['#']*100)}")
+    print(f"{conf.model.type:^100}")  
+    print(f"{''.join(['#']*100)}")
 
     print(f'Model and weights will be placed and read from {conf.train_config.dirpath}')
     
