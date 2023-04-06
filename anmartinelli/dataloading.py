@@ -75,6 +75,13 @@ class CustomDataset(torch.utils.data.Dataset):
         y = scaler.transform(y.unsqueeze(1)).squeeze()
         is_low = torch.tensor(df.is_low.values)
 
+        # # for correct embedding?
+        # max_month = max(x[:,1])
+        # max_day = max(x[:,2])
+        # max_hour = max(x[:,3])
+        # max_dow = max(x[:,4])
+        # max_low = max(is_low)
+
         # import pdb
         # pdb.set_trace()
         for i in range(seq_len,len(df),step):
