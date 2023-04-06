@@ -4,7 +4,7 @@ import torch
 class embedding_cat_variables(nn.Module):
     # at the moment cat_past and cat_fut together
     def __init__(self, seq_len: int, lag: int, d_model: int, emb_dims: list, device):
-        """Class for embedding categorical variables
+        """Class for embedding categorical variables, adding 3 positional variables during forward
 
         Args:
             seq_len (int): length of the sequence (sum of past and future steps)
@@ -23,7 +23,7 @@ class embedding_cat_variables(nn.Module):
         ])
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """All conponents of x are concatenated with 3 new variables for data augmentation, in the order:
+        """All components of x are concatenated with 3 new variables for data augmentation, in the order:
         - pos_seq: assign at each step its time-position
         - pos_fut: assign at each step its future position. 0 if it is a past step
         - is_fut: explicit for each step if it is a future(1) or past one(0)
@@ -311,7 +311,7 @@ class Decoder_Var_Selection(nn.Module): # input already embedded
         ])
         tot_var = n_fut_cat_var
         #numerical
-        if prec:
+        if use_yprec:
             self.n_grn_num = n_fut_tar_var
             self.GRNs_num = nn.ModuleList([
                 GRN(d_model, dropout) for _ in range(self.n_grn_num)
@@ -380,39 +380,53 @@ class Decoder_LSTM(nn.Module):
         self.LSTM_enc_GLU = GLU(d_model)
         self.norm = nn.LayerNorm(d_model)
 
-    def forward(self, x: torch.Tensor, h0: torch.Tensor, c0: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, hn: torch.Tensor, cn: torch.Tensor) -> torch.Tensor:
         """LSTM Decoder with GLU, Add and Norm
 
         Args:
-            x (torch.Tensor): [bs, past_steps, d_model]
-            h0 (torch.Tensor): [n_layers_DecLSTM, bs, d_model]
-            c0 (torch.Tensor): [n_layers_DecLSTM, bs, d_model]
+            x (torch.Tensor): [bs, past_steps, d_model] main Tensor
+            hn (torch.Tensor): [n_layers_DecLSTM, bs, d_model] Tensor of hidden states from Encoder
+            cn (torch.Tensor): [n_layers_DecLSTM, bs, d_model] Tensor of initial cell states from Encoder
 
         Returns:
-            torch.Tensor: _description_
+            torch.Tensor: [bs, past_steps, d_model]
         """
-        lstm_dec, _ = self.LSTM(x, (h0,c0))
+        lstm_dec, _ = self.LSTM(x, (hn,cn))
         lstm_dec = self.dropout(lstm_dec)
         output_dec = self.norm(self.LSTM_enc_GLU(lstm_dec) + x)
         return output_dec
 
 class postTransformer(nn.Module):
-    def __init__(self, n_embd, dropout) -> None:
+    def __init__(self, d_model: int, dropout: float):
+        """Last part of TFT after decoder and before last linear
+
+        Args:
+            d_model (int): -
+            dropout (float): -
+        """
         super().__init__()
         self.dropout = nn.Dropout(dropout)
-        self.GLU1 = GLU(n_embd)
-        self.norm1 = nn.LayerNorm(n_embd)
-        self.GRN = GRN(n_embd, dropout)
-        self.GLU2 = GLU(n_embd)
-        self.norm2 = nn.LayerNorm(n_embd)
+        self.GLU1 = GLU(d_model)
+        self.norm1 = nn.LayerNorm(d_model)
+        self.GRN = GRN(d_model, dropout)
+        self.GLU2 = GLU(d_model)
+        self.norm2 = nn.LayerNorm(d_model)
     
-    def forward(self, x, pre_transformer):
-        # import pdb
-        # pdb.set_trace()
+    def forward(self, x: torch.Tensor, res_conn_dec: torch.Tensor, res_conn_grn: torch.Tensor) -> torch.Tensor:
+        """_summary_
+
+        Args:
+            x (torch.Tensor): [bs, past_steps, d_model] main Tensor
+            res_conn_dec (torch.Tensor): [bs, past_steps, d_model] residual connection pre decoder
+            res_conn_grn (torch.Tensor): [bs, past_steps, d_model] residual connection pre GRN-Static Enrichment
+
+        Returns:
+            torch.Tensor: [bs, past_steps, d_model]
+        """
         x = self.dropout(x)
-        x = self.norm1(x + self.GLU1(x))
+        x = self.norm1(res_conn_dec + self.GLU1(x))
         x = self.GRN(x)
-        out = self.norm2(pre_transformer + self.GLU2(x))
+        out = self.norm2(res_conn_grn + self.GLU2(x))
         return out
     
 if __name__=='__main__':
@@ -443,7 +457,7 @@ if __name__=='__main__':
     # y.shape = [8, 256]
     
     # tft = True
-    n_embd = 4
+    d_model = 4
     n_enc = 2
     n_dec = 2
     head_size = 2
@@ -454,15 +468,17 @@ if __name__=='__main__':
     n_layers = 3
 
     categorical = x[:,:,1:]
-    # start embedding
-    emb_cat_var = embedding_cat_variables(seq_len, lag, n_embd, device)
-    emb_y_var = embedding_target(n_embd)
-    embed_x = emb_cat_var(categorical) #                        torch.Size([8, 256, 8, 4])
-    embed_y = emb_y_var(y.unsqueeze(dim=2)).unsqueeze(dim=2) #                   torch.Size([8, 256, 4])
 
-    _,_,n_cat_var,_ = embed_x.shape
-    _,_,n_num_var,_ = embed_y.shape # some unsqueeze only due to only one num var
-    tot_var = n_cat_var + n_num_var
+    # start embedding
+    emb_dims = [12+1, 31+1, 24, 7, 3]
+    n_cat_var = len(emb_dims) +3 # added by embedding_cat_variables
+    n_target_var = 1
+    emb_cat_var = embedding_cat_variables(seq_len, lag, d_model, emb_dims, device)
+    emb_y_var = embedding_target(d_model)
+    embed_x = emb_cat_var(categorical) #                        
+    embed_y = emb_y_var(y.unsqueeze(dim=2)).unsqueeze(dim=2) #                  
+
+    tot_var = n_cat_var + n_target_var
 
     embed_x_past = embed_x[:,:-lag,:,:]
     embed_y_past = embed_y[:,:-lag,:,:]
@@ -472,24 +488,17 @@ if __name__=='__main__':
     # # init NN
     from encoder import Encoder
     from decoder import Decoder
-    mix = False
-    var_sel_enc = Encoder_Var_Selection(mix, seq_len, lag, n_cat_var, n_num_var, n_embd, dropout, device)
-    lstm_enc = Encoder_LSTM(n_layers, n_embd, dropout, device)
-    grn_enc = GRN(n_embd=n_embd, dropout=dropout)
-    encoder = Encoder(n_enc, n_embd, num_heads, head_size, fw_exp, dropout)
+    use_target_past = False
+    var_sel_enc = Encoder_Var_Selection(use_target_past, n_cat_var, n_target_var, d_model, dropout, device)
+    lstm_enc = Encoder_LSTM(n_layers, d_model, dropout, device)
+    grn_enc = GRN(d_model, dropout)
+    encoder = Encoder(n_enc, d_model, num_heads, head_size, fw_exp, dropout)
 
-    prec = False
-    var_sel_dec = Decoder_Var_Selection(prec, seq_len, lag, n_cat_var, n_num_var, n_embd, dropout, device)
-    lstm_dec = Decoder_LSTM(n_layers, n_embd, dropout, device)
-    grn_dec = GRN(n_embd=n_embd, dropout=dropout)
-    decoder = Decoder(n_dec, n_embd, num_heads, head_size, fw_exp, lag, dropout)
-
-    # computation
-    # ENCODER MIXING x AND y (mix variable to handle the difference)
-    # var_sel_past = var_sel_enc(embed_x_past, embed_y_past)
-    # lstm_encs, hn, cn = lstm_enc(var_sel_past)
-    # pre_enc = grn_enc(lstm_encs)
-    # encoding = encoder(pre_enc, pre_enc, pre_enc)
+    use_yprec = False
+    var_sel_dec = Decoder_Var_Selection(use_yprec, n_cat_var, n_target_var, d_model, dropout, device)
+    lstm_dec = Decoder_LSTM(n_layers, d_model, dropout)
+    grn_dec = GRN(d_model, dropout)
+    decoder = Decoder(n_dec, d_model, num_heads, head_size, fw_exp, lag, dropout)
 
     var_sel_past = var_sel_enc(embed_x_past)
     lstm_encs, hn, cn = lstm_enc(var_sel_past)
@@ -502,18 +511,16 @@ if __name__=='__main__':
     pre_dec = grn_dec(lstm_decs)
     decoding = decoder(pre_dec, encoding, encoding)
 
-    post_transformer = postTransformer(n_embd, dropout)
-    out = post_transformer(decoding, pre_dec)
+    post_transformer = postTransformer(d_model, dropout)
+    out = post_transformer(decoding, pre_dec, lstm_decs)
     
-    import pdb
-    pdb.set_trace()
     quantile = True
     if quantile:
         quantiles = [0.1, 0.5, 0.9]
         loss = [0]*len(quantiles)
         target = torch.randint(-2, 2, (bs, lag))
         # last_linear in model.py
-        out_linear = nn.Linear(n_embd, len(quantiles))
+        out_linear = nn.Linear(d_model, len(quantiles))
         out = out_linear(out)
         for i, q in enumerate(quantiles):
             q_loss = torch.max(q*(target - out[:,:,i]), (1-q)*(out[:,:,i] - target))
