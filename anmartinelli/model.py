@@ -61,7 +61,7 @@ class Model(nn.Module):
             self.outLinear = nn.Linear(d_model, n_target_var)
         
     def forward(self, categorical, y):
-        embed_categorical = self.emb_cat_var(categorical[:,:,1:])
+        embed_categorical = self.emb_cat_var(categorical)
         embed_categorical_past = embed_categorical[:,:-self.lag,:,:]
         embed_categorical_fut = embed_categorical[:,-self.lag:,:,:]
         y_past = y[:,:-self.lag]
@@ -100,7 +100,7 @@ class Model(nn.Module):
         return out
 
     def iter_forward(self, categorical, y):
-        embed_categorical = self.emb_cat_var(categorical[:,:,1:])
+        embed_categorical = self.emb_cat_var(categorical)
         embed_categorical_past = embed_categorical[:,:-self.lag,:,:]
         embed_categorical_fut = embed_categorical[:,-self.lag:,:,:]
         y_past = y[:,:-self.lag]
@@ -148,9 +148,11 @@ class Model(nn.Module):
                     val_loss = curr_val_loss
                     best_model = torch.save(self.state_dict(), self.path_model_save + '_best.pt') #! PATH for BEST
                     print('  - IMPROVED')
+            if (iter%15)==0:
+                _ = self.training_step(iter, dl_training, cost_func, optimizer, scheduler, if_iterative=True)
                         
             #* TRAINING
-            curr_train_loss = self.training_step(iter, dl_training, cost_func, optimizer, scheduler)
+            curr_train_loss = self.training_step(iter, dl_training, cost_func, optimizer, scheduler, if_iterative=False)
 
             res['train'].append(curr_train_loss)
             res['val'].append(curr_val_loss)
@@ -159,22 +161,30 @@ class Model(nn.Module):
                 dict, _ = pkl.load(f)
                 f.close()
             with open(self.path_model_save + '.pkl', 'wb') as f: #! PATH for PKL
-                pkl.dump((dict, res), f)
+                pkl.dump([dict, res], f)
                 f.close()
             
             scheduler.step()
             #always update last_model
             last_model = torch.save(self.state_dict(), self.path_model_save + '_last.pt') #! PATH for LAST
-        curr_val_loss = self.validation_step(dl_validation, cost_func)
+        curr_val_loss = self.validation_step(iter, dl_validation, cost_func)
+        print(f'Last Val_Loss: {curr_val_loss}')
+        res['val'][-1] = curr_val_loss
+        with open(self.path_model_save + '.pkl', 'wb') as f: #! PATH for PKL
+                pkl.dump([dict, res], f)
+                f.close()
 
-    def training_step(self, ep, dl, cost_function, optimizer, scheduler):
+    def training_step(self, ep, dl, cost_function, optimizer, scheduler, if_iterative):
         self.train()
         train_cumulative_loss = 0.
 
         for i, (ds, y) in enumerate(tqdm(dl, desc = f"> {ep} Train Step")):            
             y = y.to(self.device)
             ds = ds.to(self.device)
-            output = self(ds, y)
+            if if_iterative:
+                output = self.iter_forward(ds[:,:,1:], y)
+            else:
+                output = self(ds[:,:,1:], y)
             output = output.squeeze()
             y = y[:,-self.lag:]
 
@@ -198,7 +208,7 @@ class Model(nn.Module):
             for i, (ds, y) in enumerate(tqdm(dl, desc = "Validation Step")):
                 y = y.to(self.device)
                 ds = ds.to(self.device)
-                output = self.iter_forward(ds, y)
+                output = self.iter_forward(ds[:,:,1:], y)
                 output = output.squeeze()
                 y = y[:,-self.lag:].float()
                 loss = cost_function(output,y)
@@ -210,27 +220,27 @@ class Model(nn.Module):
     
     def inference(self, dl, scaler):
         
-        model.eval()
+        self.eval()
         sns.set(rc={'figure.facecolor':'lightgray'}) # 'axes.facecolor':'black',
         fig, axs = plt.subplots(3, 2, figsize=(18, 18))
-        fig.suptitle(title = self.model_name, fontsize=25, fontweight='bold')
+        fig.suptitle(self.model_name, fontsize=25, fontweight='bold')
 
         # assign figure's slot
         plots = axs.flat
 
         loss_plot = plots[0]
-        _, dict_loss = self.get_losses(self.path_model_save+'.pkl')
+        dict_loss = self.get_losses(self.path_model_save+'.pkl')
         total_epochs = dict_loss['total_epochs']
         x = torch.arange(1, dict_loss['total_epochs'])
 
         loss_plot.cla()
         loss_plot.set_yscale('log')
-        loss_plot.plot(x, dict_loss['train_loss'][0], label = 'train_loss')
-        loss_plot.plot(x, dict_loss['val_loss'][0], label = 'val_loss')
+        loss_plot.plot(x, dict_loss['train'][0], label = 'train_loss')
+        loss_plot.plot(x, dict_loss['val'][0], label = 'val_loss')
         loss_plot.grid(True)
         loss_plot.set_title(f'Epochs: {total_epochs},\n'\
-                            f'TRAIN: -last: {dict_loss["train_loss"][0][-1]:.03f} -argmin: {dict_loss["train_loss"][1]:.4f} -min: {dict_loss["train_loss"][2]:.4f}\n'\
-                            f'VAL:   -last: {dict_loss["val_loss"][0][-1]:.03f} -argmin: {dict_loss["val_loss"][1]:.4f} -min: {dict_loss["val_loss"][2]:.4f}')
+                            f'TRAIN: -last: {dict_loss["train"][0][-1]:.03f} -argmin: {dict_loss["train"][1]:.4f} -min: {dict_loss["train"][2]:.4f}\n'\
+                            f'VAL:   -last: {dict_loss["val"][0][-1]:.03f} -argmin: {dict_loss["val"][1]:.4f} -min: {dict_loss["val"][2]:.4f}')
         loss_plot.legend()
 
         #* RMSE AND TEST BATCH
@@ -239,11 +249,11 @@ class Model(nn.Module):
         net_last = copy.deepcopy(self)
         net_last.eval()
 
-        path_best = self.path_model + '_best.pt' #! PATH
+        path_best = self.path_model_save + '_best.pt' #! PATH
         net_best.load_state_dict(torch.load(path_best, map_location=self.device))
         net_best.eval()
 
-        path_last = self.path_model + '_last.pt' #! PATH
+        path_last = self.path_model_save + '_last.pt' #! PATH
         net_last.load_state_dict(torch.load(path_last, map_location=self.device))
         net_last.eval()
     
@@ -257,8 +267,8 @@ class Model(nn.Module):
             y_clone_best = y.detach().clone().to(self.device)
             y_clone_last = y.detach().clone().to(self.device)
             
-            output_best = net_best.forward(ds,y_clone_best).detach().numpy()
-            output_last = net_last.forward(ds,y_clone_last).detach().numpy()
+            output_best = net_best.forward(ds[:,:,1:], y_clone_best).detach().numpy()
+            output_last = net_last.forward(ds[:,:,1:], y_clone_last).detach().numpy()
 
             # RESCALE THE OUTPUTS TO STORE Y_DATA,PRED_BEST, PRED_LAST
             y = scaler.inverse_transform(y[:,-self.lag:].cpu()).flatten()
@@ -328,7 +338,7 @@ class Model(nn.Module):
         y_lim = [0, 6000]
         shift_30.plot(pred_best[:,29], 'p' ,label = 'yhat_best_30')
         shift_30.plot(pred_last[:,29], 'p', label = 'yhat_last_30')
-        shift_30.plot(y_data[:150,29], label = ' y_30')
+        shift_30.plot(y_data[:,29], label = ' y_30')
         shift_30.set_ylim(y_lim)
         shift_30.set_title('SHIFT 30 - ALL VALUES')
         shift_30.grid(True)
@@ -340,10 +350,11 @@ class Model(nn.Module):
         with open(path, 'rb') as f:
             _, losses = pkl.load(f)
             f.close()
-        
-            train_loss = losses['train']
-            val_loss = losses['val']
-            total_epochs = len(train_loss)+1
+        # import pdb
+        # pdb.set_trace()
+        train_loss = losses['train']
+        val_loss = losses['val']
+        total_epochs = len(train_loss)+1
 
         dict_loss = {
             # [ list, argmin, min ]
@@ -352,6 +363,9 @@ class Model(nn.Module):
             'total_epochs': total_epochs
         }
         return dict_loss
+    
+    def count_parameters(self):
+            return sum(p.numel() for p in self.parameters() if p.requires_grad)
     
 if __name__=='__main__':
     from dataloading import dataloading
@@ -404,14 +418,12 @@ if __name__=='__main__':
                   fw_exp,
                   dropout,
                   num_lstm_layers,
-                  device,
-                  quantiles = None,
-                  path='model')
+                  device)
 
     x, y = next(iter(train_dl))
     # x.shape = [8, 256, 6]
     # y.shape = [8, 256]
     categorical = x[:,:,1:]
     out = model(categorical, y)
-    import pdb
-    pdb.set_trace()
+    # import pdb
+    # pdb.set_trace()

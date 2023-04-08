@@ -38,7 +38,8 @@ def dataloading(batch_size, batch_size_test, seq_len, lag,
         train_Ds = CustomDataset(train_df, scaler_y, seq_len, lag, step, hour=hour_learning)
         val_Ds = CustomDataset(val_df, scaler_y, seq_len, lag, step, hour=hour_learning)
         test_Ds = CustomDataset(test_df, scaler_y, seq_len, lag, step, hour=hour_inference)
-
+        # Daje Romaaa
+        # SIUUUUM
         train_dl = DataLoader(train_Ds, batch_size = batch_size, shuffle = True)
         val_dl = DataLoader(val_Ds, batch_size = batch_size, shuffle = True)
         test_dl = DataLoader(test_Ds, batch_size = batch_size_test, shuffle = False)
