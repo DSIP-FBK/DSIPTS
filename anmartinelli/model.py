@@ -148,11 +148,11 @@ class Model(nn.Module):
                     val_loss = curr_val_loss
                     best_model = torch.save(self.state_dict(), self.path_model_save + '_best.pt') #! PATH for BEST
                     print('  - IMPROVED')
-            if (iter%15)==0:
-                _ = self.training_step(iter, dl_training, cost_func, optimizer, scheduler, if_iterative=True)
-                        
             #* TRAINING
-            curr_train_loss = self.training_step(iter, dl_training, cost_func, optimizer, scheduler, if_iterative=False)
+            if (iter%5)==3:
+                curr_train_loss = self.training_step(iter, dl_training, cost_func, optimizer, scheduler, if_iterative=True)
+            else:
+                curr_train_loss = self.training_step(iter, dl_training, cost_func, optimizer, scheduler, if_iterative=False)
 
             res['train'].append(curr_train_loss)
             res['val'].append(curr_val_loss)
@@ -267,13 +267,13 @@ class Model(nn.Module):
             y_clone_best = y.detach().clone().to(self.device)
             y_clone_last = y.detach().clone().to(self.device)
             
-            output_best = net_best.forward(ds[:,:,1:], y_clone_best).detach().numpy()
-            output_last = net_last.forward(ds[:,:,1:], y_clone_last).detach().numpy()
+            output_best = net_best.iter_forward(ds[:,:,1:], y_clone_best).detach()
+            output_last = net_last.iter_forward(ds[:,:,1:], y_clone_last).detach()
 
             # RESCALE THE OUTPUTS TO STORE Y_DATA,PRED_BEST, PRED_LAST
             y = scaler.inverse_transform(y[:,-self.lag:].cpu()).flatten()
-            prediction_best = scaler.inverse_transform(output_best[:,-self.lag:].squeeze(2)).flatten()
-            prediction_last = scaler.inverse_transform(output_last[:,-self.lag:].squeeze(2)).flatten()
+            prediction_best = scaler.inverse_transform(output_best[:,-self.lag:].squeeze(2).cpu()).flatten()
+            prediction_last = scaler.inverse_transform(output_last[:,-self.lag:].squeeze(2).cpu()).flatten()
 
             y_data.append(y.reshape(-1,self.lag))
             pred_best.append(prediction_best.reshape(-1,self.lag))
