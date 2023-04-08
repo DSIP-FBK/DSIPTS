@@ -16,8 +16,8 @@ class dictConfiguration():
                 'seq_len': 265,
                 'lag': 65,
                 'd_model': 64,
-                'n_enc_layers': 3,
-                'n_dec_layers': 3,
+                'n_enc_layers': 1,
+                'n_dec_layers': 5,
                 'head_size': 8,
                 'num_heads': 4,
                 'fw_exp': 2,
@@ -28,7 +28,7 @@ class dictConfiguration():
                 'lr': 1e-04,
                 'wd': 0.0,
                 'bs': 128,
-                'epochs': 2,
+                'epochs': 1000,
                 'hour': 24,
                 'optimizer_index_selection': 0,
                 'loss_index_selection': 0,
@@ -38,7 +38,7 @@ class dictConfiguration():
                 'sched_gamma': 0.1
             }
         self.test_dict = {
-                'bs_t': 4,
+                'bs_t': 64,
                 'hour_test': 24
             }
         
