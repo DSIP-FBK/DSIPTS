@@ -9,6 +9,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import copy
 import numpy as np
+import sys
 
 class Model(nn.Module):
     def __init__(self, 
@@ -139,7 +140,7 @@ class Model(nn.Module):
         val_loss = float('inf') # initialized validation loss
 
         for iter in range(epochs): # starting epochs
-
+            sys.stdout.flush()
             if (iter)%10==0: # validation update each 10 epochs
                 #* EVALUATION 
                 curr_val_loss = self.validation_step(iter, dl_validation, cost_func)

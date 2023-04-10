@@ -15,20 +15,20 @@ class dictConfiguration():
                 'n_target_var': 1,
                 'seq_len': 265,
                 'lag': 65,
-                'd_model': 64,
-                'n_enc_layers': 1,
-                'n_dec_layers': 5,
-                'head_size': 8,
-                'num_heads': 4,
+                'd_model': 96,
+                'n_enc_layers': 2,
+                'n_dec_layers': 2,
+                'head_size': 16,
+                'num_heads': 6,
                 'fw_exp': 2,
                 'dropout': 0.0,
-                'num_lstm_layers': 4
+                'num_lstm_layers': 2
             }
         self.train_dict = {
                 'lr': 1e-04,
                 'wd': 0.0,
-                'bs': 128,
-                'epochs': 1000,
+                'bs': 64,
+                'epochs': 500,
                 'hour': 24,
                 'optimizer_index_selection': 0,
                 'loss_index_selection': 0,
@@ -38,9 +38,30 @@ class dictConfiguration():
                 'sched_gamma': 0.1
             }
         self.test_dict = {
-                'bs_t': 64,
+                'bs_t': 16,
                 'hour_test': 24
             }
+
+    def __str__(self):
+        print('\n'+'- '*10)
+        print(f'NAME = {self.name}')
+        print('\n'+'- '*10)
+        print('> Strategy Dict:')
+        for val in self.strategy_dict.keys():
+            print(f'   {val} - {self.strategy_dict[val]}')
+        print('\n'+'- '*10)
+        print('> Model Dict:')
+        for val in self.model_dict.keys():
+            print(f'   {val} - {self.model_dict[val]}')
+        print('\n'+'- '*10)
+        print('> Train Dict:')
+        for val in self.train_dict.keys():
+            print(f'   {val} - {self.train_dict[val]}')
+        print('\n'+'- '*10)
+        print('> Test Dict:')
+        for val in self.test_dict.keys():
+            print(f'   {val} - {self.test_dict[val]}')
+        return ''
         
         
     def get_optim(self, model):
@@ -78,3 +99,7 @@ class dictConfiguration():
             raise ValueError('Non Valid Index for Scheduler\n\
                             Index = 0: StepLR')
         return scheduler
+
+if __name__=='__main__':
+    conf_dict = dictConfiguration('default')
+    _ = print(conf_dict)
