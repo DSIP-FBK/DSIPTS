@@ -307,7 +307,7 @@ class Model(nn.Module):
         rmse_plot.plot(x, rmse_last, label = 'rmse_last')
         rmse_plot.grid(True)
         rmse_plot.set_title(f' BEST: min {min_rmse_best:.2f}, mean {mean_rmse_best:.2f}, max {max_rmse_best:.2f}\n \
-                               LAST: min {min_rmse_last:.2f}, mean {mean_rmse_last:.2f}, max {max_rmse_last:.2f}')
+                            LAST: min {min_rmse_last:.2f}, mean {mean_rmse_last:.2f}, max {max_rmse_last:.2f}')
         rmse_plot.legend()
         
         batch_plot = plots[2:4]
@@ -316,9 +316,9 @@ class Model(nn.Module):
         for k, ax in enumerate(batch_plot):
             ax.cla()
             y_lim = [0, 6000]
-            ax.plot(x, pred_best[k], 'p' ,label = 'yhat_best')
-            ax.plot(x, pred_last[k], 'p', label = 'yhat_last')
-            ax.plot(x, y_data[k], label = ' y')
+            ax.plot(x, pred_best[k*-1], 'p' ,label = 'yhat_best')
+            ax.plot(x, pred_last[k*-1], 'p', label = 'yhat_last')
+            ax.plot(x, y_data[k*-1], label = ' y')
             ax.set_ylim(y_lim)
             ax.grid(True)
             ax.legend()
@@ -327,8 +327,8 @@ class Model(nn.Module):
 
         shift_10.cla()
         y_lim = [0, 6000]
-        shift_10.plot(pred_best[:,9], 'p' ,label = 'yhat_best_10')
-        shift_10.plot(pred_last[:,9], 'p', label = 'yhat_last_10')
+        shift_10.plot(pred_best[:,9], label = 'yhat_best_10')
+        shift_10.plot(pred_last[:,9], label = 'yhat_last_10')
         shift_10.plot(y_data[:,9], label = ' y_10')
         shift_10.set_ylim(y_lim)
         shift_10.set_title('SHIFT 10 - ALL VALUES')
@@ -337,8 +337,8 @@ class Model(nn.Module):
 
         shift_30.cla()
         y_lim = [0, 6000]
-        shift_30.plot(pred_best[:,29], 'p' ,label = 'yhat_best_30')
-        shift_30.plot(pred_last[:,29], 'p', label = 'yhat_last_30')
+        shift_30.plot(pred_best[:,29], label = 'yhat_best_30')
+        shift_30.plot(pred_last[:,29], label = 'yhat_last_30')
         shift_30.plot(y_data[:,29], label = ' y_30')
         shift_30.set_ylim(y_lim)
         shift_30.set_title('SHIFT 30 - ALL VALUES')

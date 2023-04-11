@@ -15,30 +15,30 @@ class dictConfiguration():
                 'n_target_var': 1,
                 'seq_len': 265,
                 'lag': 65,
-                'd_model': 96,
-                'n_enc_layers': 2,
+                'd_model': 64,
+                'n_enc_layers': 5,
                 'n_dec_layers': 2,
-                'head_size': 16,
-                'num_heads': 6,
+                'head_size': 8,
+                'num_heads': 4,
                 'fw_exp': 2,
-                'dropout': 0.0,
-                'num_lstm_layers': 2
+                'dropout': 0.3,
+                'num_lstm_layers': 4
             }
         self.train_dict = {
-                'lr': 1e-04,
-                'wd': 0.0,
+                'lr': 1e-06,
+                'wd': 0.001,
                 'bs': 64,
-                'epochs': 500,
+                'epochs': 300,
                 'hour': 24,
                 'optimizer_index_selection': 0,
                 'loss_index_selection': 0,
                 'loss_reduction': 'mean',
                 'sched_index_selection': 0,
-                'sched_step': 100,
+                'sched_step': 70,
                 'sched_gamma': 0.1
             }
         self.test_dict = {
-                'bs_t': 16,
+                'bs_t': 8,
                 'hour_test': 24
             }
 
