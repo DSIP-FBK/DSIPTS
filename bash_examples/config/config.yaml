@@ -1,5 +1,5 @@
 dataset:
-  dataset: 'weather'
+  dataset: 'traffic'  ##weather
   path: '/home/agobbi/Projects/ExpTS/data'
 
 scheduler_config:
@@ -32,13 +32,14 @@ split_params:
   future_steps: model_configs@future_steps
 
 train_config:
-  dirpath: "/home/agobbi/Projects/ExpTS"
+  dirpath: "/home/agobbi/Projects/ExpTSTraffic" ##ExpTS
+  used_config: "config_used_traffic" #"config_used"
   num_workers: 0
   auto_lr_find: true
   devices: [0]                   
 
 inference:
-  output_path: "/home/agobbi/Projects/ExpTS"
+  output_path: "/home/agobbi/Projects/ExpTSTraffic" ##ExpTS
   load_last: true
   batch_size: 200 
   num_workers: 4
@@ -47,7 +48,7 @@ inference:
 
 defaults:
   - _self_
-  - architecture: null
+  - architecture_traffic: null #architecture
   - override hydra/launcher: joblib
 
 hydra:
@@ -56,4 +57,4 @@ hydra:
   output_subdir: null 
   sweeper:
     params:
-      architecture: glob(*)
+      architecture_traffic: glob(*) #architecture

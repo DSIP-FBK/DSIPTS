@@ -201,14 +201,22 @@ se metto shift 1 e metto nel target lui usa le info categoriche del timestamp pr
 # Usage 
 In the folder `bash_examples` you can find an example in wich the library is used for training a model from command line using OmegaConf and Hydra with more updated models and examples.
 
+
 # TODO
 - use logging instead of print
 - add more sintetic data
 - more versatility during the data loading process
 - automatic doc generation I follow [this](https://towardsdatascience.com/documenting-python-code-with-sphinx-554e1d6c4f6d)
+- 
 
 
 ## Documentation
 You can find the documentation [here] (https://dsip.pages.fbk.eu/dsip_dlresearch/timeseries/):
 or  in the folder `docs/_build/html/index.html`
 For user only: see ci file and enable [public pages] (https://roneo.org/en/gitlab-public-pages-private-repo/)
+
+# Adding new models
+If you want to add a model:
+- extend the `Base` class in `dsipts/models`
+- add the export line in the `dsipts/__init__.py` 
+- add a full configuration file in `bash_examples/architecture`

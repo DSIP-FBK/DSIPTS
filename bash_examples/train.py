@@ -82,14 +82,16 @@ def train(conf: DictConfig) -> None:
     ts.train_model(split_params=split_params,**conf.train_config)
     ts.save(os.path.join(conf.train_config.dirpath,'model'))
     ##save the config for the comparison task
-    
-    with open(os.path.join('config_used',HydraConfig.get()['runtime']['choices'][K]+'.yaml'),'w') as f:
+    if not os.path.exists(conf.train_config.used_config):
+        os.mkdir(conf.train_config.used_config)
+    with open(os.path.join(conf.train_config.used_config,HydraConfig.get()['runtime']['choices'][K]+'.yaml'),'w') as f:
         f.write(OmegaConf.to_yaml(conf))
         
         
 if __name__ == '__main__': 
-    if not os.path.exists('config_used'):
-        os.mkdir('config_used')
+    
+    #if not os.path.exists('config_used'):
+    #    os.mkdir('config_used')
     train()
     if os.path.exists('multirun'):
         shutil.rmtree('multirun')

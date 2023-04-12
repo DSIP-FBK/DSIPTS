@@ -1,0 +1,27 @@
+# @package _global_
+
+model:
+  type: 'attention'
+  
+ts:
+  name: 'weather'
+  version: 1
+  enrich: ['hour']
+  use_covariates: true
+
+split_params:
+  shift: 1 ##this will use the shifted data and it is more like the original one
+
+model_configs:
+  d_model: 128
+  cat_emb_dim: 8
+  num_heads: 16
+  dropout: 0.3
+  n_layer_encoder: 8
+  n_layer_decoder: 4
+
+
+train_config:
+  batch_size: 256
+  max_epochs: 150
+                             
