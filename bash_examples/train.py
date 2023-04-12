@@ -79,14 +79,12 @@ def train(conf: DictConfig) -> None:
     split_params = conf.split_params
     split_params['past_steps'] = model_conf['past_steps']
     split_params['future_steps'] = model_conf['future_steps']
-    used_config = conf.train_config
-    conf.train_config.pop('used_configZ')
     ts.train_model(split_params=split_params,**conf.train_config)
     ts.save(os.path.join(conf.train_config.dirpath,'model'))
     ##save the config for the comparison task
-    if not os.path.exists():
-        os.mkdir(used_config)
-    with open(os.path.join(used_config,HydraConfig.get()['runtime']['choices'][K]+'.yaml'),'w') as f:
+    if not os.path.exists(conf.used_config):
+        os.mkdir(conf.used_config)
+    with open(os.path.join(conf.used_config,HydraConfig.get()['runtime']['choices'][K]+'.yaml'),'w') as f:
         f.write(OmegaConf.to_yaml(conf))
         
         

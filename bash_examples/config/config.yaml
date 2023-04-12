@@ -31,9 +31,10 @@ split_params:
   past_steps: model_configs@past_steps 
   future_steps: model_configs@future_steps
 
+used_config: "config_used_traffic" #"config_used"
+
 train_config:
   dirpath: "/home/agobbi/Projects/ExpTSTraffic" ##ExpTS
-  used_config: "config_used_traffic" #"config_used"
   num_workers: 0
   auto_lr_find: true
   devices: [0]                   
