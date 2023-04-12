@@ -36,7 +36,7 @@ def train(conf: DictConfig) -> None:
     model_conf['past_channels'] = len(ts.num_var)
     model_conf['future_channels'] = len(ts.future_variables)
     model_conf['embs'] = [ts.dataset[c].nunique() for c in ts.cat_var]
-    model_conf['out_channels'] = len(ts.target_variables)
+    model_conf['out_channels'] = l en(ts.target_variables)
 
     if conf.model.type=='attention':
         if conf.split_params.shift==1:
@@ -79,12 +79,14 @@ def train(conf: DictConfig) -> None:
     split_params = conf.split_params
     split_params['past_steps'] = model_conf['past_steps']
     split_params['future_steps'] = model_conf['future_steps']
+    used_config = conf.train_config
+    conf.train_config.pop('used_config')
     ts.train_model(split_params=split_params,**conf.train_config)
     ts.save(os.path.join(conf.train_config.dirpath,'model'))
     ##save the config for the comparison task
-    if not os.path.exists(conf.train_config.used_config):
-        os.mkdir(conf.train_config.used_config)
-    with open(os.path.join(conf.train_config.used_config,HydraConfig.get()['runtime']['choices'][K]+'.yaml'),'w') as f:
+    if not os.path.exists():
+        os.mkdir(used_config)
+    with open(os.path.join(used_config,HydraConfig.get()['runtime']['choices'][K]+'.yaml'),'w') as f:
         f.write(OmegaConf.to_yaml(conf))
         
         
