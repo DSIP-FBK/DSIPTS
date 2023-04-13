@@ -3,4 +3,4 @@ models: ['config_used_traffic/attention.yaml','config_used_traffic/persistent.ya
 dirpath: "/home/agobbi/Projects/ExpTSTraffic"
 set: 'test'
 name: 'prova'
-rescaling: false
+rescaling: true
