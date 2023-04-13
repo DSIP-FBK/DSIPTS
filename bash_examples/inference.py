@@ -55,7 +55,7 @@ def mape(x:np.array,y:np.array)->float:
     x = x.astype(float)
     y = y.astype(float)
     idx = list(np.where(~np.isnan(x*y))[0])
-    res = 100*np.abs(x[idx]-y[idx]/y[idx])
+    res = 100*np.abs((x[idx]-y[idx])/y[idx])
     res = res[np.isfinite(res)]
     return np.nanmean(res)
 
