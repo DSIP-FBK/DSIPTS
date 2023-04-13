@@ -97,7 +97,7 @@ class D3VAE(Base):
         self.scheduler_config = scheduler_config
 
   
-    
+        self.use_quantiles = False
         self.loss = nn.MSELoss()
         
     def configure_optimizers(self):
@@ -143,8 +143,6 @@ class D3VAE(Base):
         
         _, out, _, _ = self.pred_net(batch_x, batch_x_mark)
         mse = self.loss(out.squeeze(1), batch_y)
-        
-        
         return mse
 
         
@@ -188,4 +186,5 @@ class D3VAE(Base):
         batch_x = batch_x.float().to(self.device)
         batch_x_mark = batch['x_cat_past'].to(self.device)
         _, out, _, _ = self.pred_net(batch_x, batch_x_mark)
-        return out
+        
+        return out.swapaxes(0,2,1,3)
