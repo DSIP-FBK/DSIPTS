@@ -1,0 +1,60 @@
+dataset:
+  dataset: 'weather'  
+  path: '/home/agobbi/Projects/ExpTS/data'
+
+scheduler_config:
+  gamma: 0.1
+  step_size: 100
+
+optim_config:
+  lr: 0.0005
+  weight_decay: 0.01
+
+model_configs:
+  past_steps: 16
+  future_steps: 16
+  quantiles: [0.1,0.5,0.9]
+  past_channels : null #dataset dependent
+  future_channels : null #dataset dependent
+  embs: null #dataset dependent
+  out_channels: null #dataset dependent
+
+split_params:
+  perc_train: 0.7
+  perc_valid: 0.1
+  range_train: null
+  range_validation: null 
+  range_test: null
+  shift: 0
+  starting_point: null
+  skip_step: 1
+  past_steps: model_configs@past_steps 
+  future_steps: model_configs@future_steps
+
+
+train_config:
+  dirpath: "/home/agobbi/Projects/ExpTS" 
+  num_workers: 0
+  auto_lr_find: true
+  devices: [0]                   
+
+inference:
+  output_path: "/home/agobbi/Projects/ExpTS" 
+  load_last: true
+  batch_size: 200 
+  num_workers: 4
+  set: "validation"
+  rescaling: true
+
+defaults:
+  - _self_
+  - architecture: null 
+  - override hydra/launcher: joblib
+
+hydra:
+  #launcher:
+  #  n_jobs:   2 
+  output_subdir: null 
+  sweeper:
+    params:
+      architecture: glob(*) 

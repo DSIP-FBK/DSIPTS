@@ -19,7 +19,7 @@ def train(conf: DictConfig) -> None:
     Args:
         conf (DictConfig): dictionary whit all the parameters (split, normalization and training). Some of the parameters required will be filled looking to the timeserie definition. See the examples in the repo.
     """
-    
+
     K = list(HydraConfig.get()['runtime']['choices'].keys())[0]
     print(OmegaConf.to_yaml(conf))  
     print(f"{''.join(['#']*100)}")
@@ -66,7 +66,7 @@ def train(conf: DictConfig) -> None:
                           optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )
     elif conf.model.type == 'd3vae':
-    
+
         model =  D3VAE(**model_conf,   optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )  
     
@@ -91,9 +91,12 @@ def train(conf: DictConfig) -> None:
     ts.train_model(split_params=split_params,**conf.train_config)
     ts.save(os.path.join(conf.train_config.dirpath,'model'))
     ##save the config for the comparison task
-    if not os.path.exists(conf.used_config):
-        os.mkdir(conf.used_config)
-    with open(os.path.join(conf.used_config,HydraConfig.get()['runtime']['choices'][K]+'.yaml'),'w') as f:
+    
+    path =  HydraConfig.get()['runtime']['config_sources'][1]['path']
+    used_config = os.path.join(path,'config_used')
+    if not os.path.exists(used_config):
+        os.mkdir(used_config)
+    with open(os.path.join(used_config,HydraConfig.get()['runtime']['choices'][K]+'.yaml'),'w') as f:
         f.write(OmegaConf.to_yaml(conf))
         
         
