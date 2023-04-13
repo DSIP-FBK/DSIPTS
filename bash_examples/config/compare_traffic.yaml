@@ -1,4 +1,4 @@
-models: ['config_used_traffic_traffic/attention.yaml','config_used_traffic/persistent.yaml','config_used_traffic/linear.yaml','config_used_traffic/dlinear.yaml','config_used_traffic/nlinear.yaml','config_used_traffic/lstm.yaml','config_used_traffic/gru.yaml']
+models: ['config_used_traffic/attention.yaml','config_used_traffic/persistent.yaml','config_used_traffic/linear.yaml','config_used_traffic/dlinear.yaml','config_used_traffic/nlinear.yaml','config_used_traffic/lstm.yaml','config_used_traffic/gru.yaml']
 #models: ['config_used_traffic/linear.yaml']
 dirpath: "/home/agobbi/Projects/ExpTSTraffic"
 set: 'test'
