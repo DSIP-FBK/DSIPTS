@@ -1,7 +1,7 @@
 
 
 import pandas as pd
-from dsipts import TimeSeries, RNN, Attention,read_public_dataset, LinearTS, Persistent
+from dsipts import TimeSeries, RNN, Attention,read_public_dataset, LinearTS, Persistent, D3VAE
 from omegaconf import DictConfig, OmegaConf
 from hydra.core.hydra_config import HydraConfig
 import hydra
@@ -12,7 +12,7 @@ import plotly.express as px
 
 
 
-@hydra.main(version_base=None, config_path="config", config_name="config")
+@hydra.main(version_base=None, config_name="config")
 def train(conf: DictConfig) -> None:
     """Train a DL model
 
@@ -32,7 +32,11 @@ def train(conf: DictConfig) -> None:
     ts.load_signal(data, enrich_cat= conf.ts.enrich,target_variables=['y'], past_variables=columns if conf.ts.use_covariates else [])
     ######################################################################################################
     
+    
     model_conf = conf.model_configs
+    if model_conf is None:
+        model_conf = {}
+    
     model_conf['past_channels'] = len(ts.num_var)
     model_conf['future_channels'] = len(ts.future_variables)
     model_conf['embs'] = [ts.dataset[c].nunique() for c in ts.cat_var]
@@ -61,6 +65,11 @@ def train(conf: DictConfig) -> None:
         model =  Persistent(**model_conf,
                           optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )
+    elif conf.model.type == 'd3vae':
+    
+        model =  D3VAE(**model_conf,   optim_config = conf.optim_config,
+                          scheduler_config =conf.scheduler_config )  
+    
     else:
         print('use valid model')
     ##questa e' unica per ogni sequenza di dirpath type name version quindi dopo la RIMUOVO se mai ce n'e' una vecchia! 
