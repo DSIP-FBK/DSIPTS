@@ -6,7 +6,7 @@ model:
 ts:
   name: 'weather'
   version: 1
-  enrich: ['hour']
+  enrich: ['hour','dow']
   use_covariates: true
 
 split_params:
@@ -17,8 +17,8 @@ model_configs:
   cat_emb_dim: 8
   num_heads: 16
   dropout: 0.3
-  n_layer_encoder: 8
-  n_layer_decoder: 4
+  n_layer_encoder: 4
+  n_layer_decoder: 2
 
 
 train_config:

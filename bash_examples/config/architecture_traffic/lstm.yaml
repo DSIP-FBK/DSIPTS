@@ -6,7 +6,7 @@ model:
 ts:
   name: 'weather_lstm'
   version: 1
-  enrich: ['hour']
+  enrich: ['hour','dow']
   use_covariates: true
 
 model_configs:
