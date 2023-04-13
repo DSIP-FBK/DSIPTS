@@ -1,0 +1,21 @@
+# @package _global_
+
+model:
+  type: 'd3vae'
+  
+ts:
+  name: 'weather'
+  version: 1
+  enrich: ['hour']
+  use_covariates: true
+
+split_params:
+  shift: 0 ##this will use the shifted data and it is more like the original one
+
+model_configs:
+  target_dim: 1
+
+train_config:
+  batch_size: 256
+  max_epochs: 150
+                             
