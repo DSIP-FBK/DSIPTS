@@ -1,7 +1,7 @@
 
 import argparse
 import pandas as pd
-from dsipts import TimeSeries, RNN, Attention,read_public_dataset, LinearTS, Persistent
+from dsipts import TimeSeries, RNN, Attention,read_public_dataset, LinearTS, Persistent,D3VAE
 from omegaconf import DictConfig, OmegaConf
 import hydra
 import os
@@ -94,6 +94,8 @@ def inference(conf:DictConfig)->List[pd.DataFrame]:
         ts.load(RNN,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
     elif conf.model.type == 'persistent':
         ts.load(Persistent,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
+    elif conf.model.type == 'd3vae':
+        ts.load(D3VAE,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
     else:
         print('use a valid model')
     

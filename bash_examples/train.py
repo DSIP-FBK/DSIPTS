@@ -71,7 +71,9 @@ def train(conf: DictConfig) -> None:
                           scheduler_config =conf.scheduler_config )  
     
     else:
+        print(f"{''.join(['#']*100)}")
         print('use valid model')
+        print(f"{''.join(['#']*100)}")
     ##questa e' unica per ogni sequenza di dirpath type name version quindi dopo la RIMUOVO se mai ce n'e' una vecchia! 
     dirpath = os.path.join(conf.train_config.dirpath,'weights',conf.model.type,conf.ts.name, str(conf.ts.version))
     print(f'Model and weights will be placed and read from {dirpath}')
