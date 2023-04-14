@@ -445,7 +445,14 @@ class TimeSeries():
         self.model = model
         self.config = config
               
-    def train_model(self,dirpath:str,split_params:dict,batch_size:int=100,num_workers:int=4,max_epochs:int=500,auto_lr_find:bool=True,devices:Union[str,List[int]]='auto')-> None:
+    def train_model(self,dirpath:str,
+                    split_params:dict,
+                    batch_size:int=100,
+                    num_workers:int=4,
+                    max_epochs:int=500,
+                    auto_lr_find:bool=True,
+                    devices:Union[str,List[int]]='auto',
+                    precision:Union[str,int]=32)-> None:
         """Train the model
 
         Args:
@@ -456,6 +463,7 @@ class TimeSeries():
             max_epochs (int, optional): maximum epochs to perform. Defaults to 500.
             auto_lr_find (bool, optional): find initial learning rate, see  `pytorch-lightening`. Defaults to True.
             devices (Union[str,List[int]], optional): devices to use. Use auto if cpu or the list of gpu to use otherwise. Defaults to 'auto'.
+            precision  (Union[str,int], optional): precision to use. Usually 32 bit is fine but for larger model you should try 'bf16'. If 'auto' it will use bf16 for GPU and 32 for cpu
         """
 
         print('###############################################################################')
@@ -467,13 +475,15 @@ class TimeSeries():
         strategy = "auto"
         if accelerator == 'gpu':
             strategy = "auto" ##TODO in future investigate on this
-            precision = 32
-            #"bf16"
+            if precision=='auto':
+                precision = 'bf16'
+            #"bf16" ##in futuro magari inserirlo nei config, potrebbe essere che per alcuni modelli possa non andare bfloat32
             torch.set_float32_matmul_precision('medium')
             print('setting multiplication precision to medium')
         else:
             devices = 'auto'
-            precision  = 32
+            if precision=='auto':
+                precision  = 32
         print(f'train:{len(train)}, validation:{len(validation)}, test:{len(test)}')
         if (accelerator=='gpu') and (num_workers>0):
             persistent_workers = True
