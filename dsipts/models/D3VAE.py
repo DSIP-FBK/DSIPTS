@@ -183,7 +183,7 @@ class D3VAE(Base):
         """
         copy_parameters(self.denoise_net, self.pred_net)
 
-        batch_x = batch_x.float().to(self.device)
+        batch_x = batch['x_num_past'].float().to(self.device)
         batch_x_mark = batch['x_cat_past'].to(self.device)
         _, out, _, _ = self.pred_net(batch_x, batch_x_mark)
         
