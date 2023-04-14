@@ -146,11 +146,9 @@ class pred_net(denoise_net):
         output = self.diffusion_gen.generative.decoder_output(logits)
         y = output.mu.float().requires_grad_()
     
-        E = self.score_net(y).sum()
-
         try:
-            grad_x = torch.autograd.grad(E, y, create_graph=True)[0]
-            #import pdb;pdb.set_trace()
+            grad_x = torch.autograd.grad(E, y, create_graph=True,allow_unused=True)[0]
+            #
             print('WTF??')
         except:
             grad_x = 0

@@ -467,10 +467,12 @@ class TimeSeries():
         strategy = "auto"
         if accelerator == 'gpu':
             strategy = "auto" ##TODO in future investigate on this
+            precision = "bfloat16"
             torch.set_float32_matmul_precision('medium')
             print('setting multiplication precision to medium')
         else:
             devices = 'auto'
+            precision  = 32
         print(f'train:{len(train)}, validation:{len(validation)}, test:{len(test)}')
         if (accelerator=='gpu') and (num_workers>0):
             persistent_workers = True
@@ -492,7 +494,8 @@ class TimeSeries():
 
         mc = MetricsCallback()
         ## TODO se ci sono 2 o piu gpu MetricsCallback non funziona (secondo me fa una istanza per ogni dataparallel che lancia e poi non riesce a recuperare info)
-        trainer = pl.Trainer(logger = logger,max_epochs=max_epochs,callbacks=[checkpoint_callback,mc],auto_lr_find=auto_lr_find, accelerator=accelerator,devices=devices,strategy=strategy)#,devices=1)
+        trainer = pl.Trainer(logger = logger,max_epochs=max_epochs,callbacks=[checkpoint_callback,mc],
+                             auto_lr_find=auto_lr_find, accelerator=accelerator,devices=devices,strategy=strategy,precision=precision)#,devices=1)
 
         if auto_lr_find:
             trainer.tune(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)
