@@ -22,10 +22,15 @@ def compare(conf:DictConfig)-> None:
     tot_losses = []
     tot_predictions = []
     
-    if os.path.isdir(conf.models):
-        files = [os.path.joion(conf.models,f) for f in os.listdir(conf.models)]
-    else:
+    if type( conf.models)==list:
         files =  conf.models
+    
+    elif os.path.isdir(conf.models):
+        files = [os.path.join(conf.models,f) for f in os.listdir(conf.models)]
+    else:
+        import pdb
+        pdb.set_trace()
+        
     for conf_tmp in files:
         conf_tmp =  OmegaConf.load(conf_tmp) 
         conf_tmp.inference.set = conf.set
