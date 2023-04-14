@@ -150,7 +150,8 @@ class pred_net(denoise_net):
 
         try:
             grad_x = torch.autograd.grad(E, y, create_graph=True)[0]
-            import pdb;pdb.set_trace()
+            #import pdb;pdb.set_trace()
+            print('WTF??')
         except:
             grad_x = 0
             

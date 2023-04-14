@@ -187,4 +187,4 @@ class D3VAE(Base):
         batch_x_mark = batch['x_cat_past'].to(self.device)
         _, out, _, _ = self.pred_net(batch_x, batch_x_mark)
         
-        return out.swapaxes(0,2,1,3)
+        return torch.permute(out, (0,2,1,3))
