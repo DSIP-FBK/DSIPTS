@@ -44,6 +44,16 @@ The script used are:
 - **compare.py** for comparing different models
 
 Hydra is used for composing configuration files. In our case most of the parameter can be reused among the different models and are collected under the general configuration file `config/config.yaml`\. In what follows the `weather` dataset is used, and notice that this dataset has a frequency of **10 minutes**. The parameters here are the same described in the `dsitps` documentation but clearly some of them can not be modified since they depend on the selected time series.
+The configuration files related to this experiment can be found in `config_weather`; a generic config folder contains:
+```
+config.yaml               # containing the global configuration, see below one example
+compare.yaml              # instructions for comparing different models
+architecture/             # the folder containing the configurations specific for all the models to test
+config_used/              # this folder will be populated while training the models, and will be used in the comparison phase              
+
+```
+
+The config file in the case of the weather dataset is reported and commented below.
 
 ```
 dataset:
@@ -61,7 +71,7 @@ optim_config:
 model_configs:
   past_steps: 16
   future_steps: 16
-  quantiles: [0.1,0.5,0.9] ##if you want to use quantile loss, otherwise put it to []
+  quantiles: [0.1,0.5,0.9] ##if you want to use quantile loss, otherwise set it to []
   past_channels : null #dataset dependent  hydra expect you to set it anyway also if it depends on data
   future_channels : null #dataset dependent
   embs: null #dataset dependent
@@ -110,7 +120,7 @@ hydra:
       architecture: glob(*) ##this is a way to train all the models in the architecure folder
 ```
 
-In the `config/architecture` folder there are the selected models that have the following structure:
+In the `config_weather/architecture` folder there are the selected models that have the following structure:
 
 ```
 # @package _global_  ##care this must be present!
@@ -142,19 +152,19 @@ train_config:
 Hydra allows us to train a specific model using:
 
 ```
-python train.py  architecture=linear
+python train.py  architecture=linear --config-dir=config_weather
 ```
 
 or a list of models in paralle:
 
 ```
-python train.py  -m architecture=linear, dlinear
+python train.py  -m architecture=linear, dlinear --config-dir=config_weather
 ```
 
 or all the implemented models:
 
 ```
-python train.py  -m  
+python train.py  -m  --config-dir=config_weather
 ```
 If the row `override hydra/launcher: joblib` is commented the train will be consecutive, otherwise in parallel. In the latter case the output in the terminal will be a mess, please check all is woking fine. In the future the logging will be more efficient.
 
@@ -174,15 +184,13 @@ The loss plot is currenty broken on server, you can reproduce it form the notebo
 
 
 # Testing
-You can use `architecture_test` for testing your models. In this case you can use smaller model with fewer epochs. In this case remember to change these lines in the global configuration file.
+You can use the `config_test` for testing your models. In this case you can use smaller model with fewer epochs:
 
 ```
-defaults: 
-  - architecture: null --> architecture_test:null
-
-
-hydra:
-  sweeper:
-    params:
-      architecture: glob(*) --> architecture_test: glob(*)
+python train.py -m --config-dir=config_test
 ```
+
+
+
+
+

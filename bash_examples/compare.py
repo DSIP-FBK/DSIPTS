@@ -21,7 +21,12 @@ def compare(conf:DictConfig)-> None:
     res = []
     tot_losses = []
     tot_predictions = []
-    for conf_tmp in conf.models:
+    
+    if os.path.isdir(conf.models):
+        files = [os.path.joion(conf.models,f) for f in os.listdir(conf.models)]
+    else:
+        files =  conf.models
+    for conf_tmp in files:
         conf_tmp =  OmegaConf.load(conf_tmp) 
         conf_tmp.inference.set = conf.set
         conf_tmp.inference.rescaling = conf.rescaling
