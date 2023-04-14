@@ -18,6 +18,13 @@ def compare(conf:DictConfig)-> None:
     Args:
         conf (DictConfig): a config with a list of models to compare, the ouput folder and other parameters. See the examples in the repo
     """
+    
+    ##CREATE FOLDER IF NOT EXISTS
+    if not os.path.exists(os.path.join(conf.dirpath,'plots')):
+        os.makedirs(os.path.join(conf.dirpath,'plots'))
+    if not os.path.exists(os.path.join(conf.dirpath,'csv')):
+        os.makedirs(os.path.join(conf.dirpath,'csv'))
+    
     res = []
     tot_losses = []
     tot_predictions = []
@@ -26,7 +33,8 @@ def compare(conf:DictConfig)-> None:
         files =  conf.models
     
     elif os.path.isdir(conf.models):
-        files = [os.path.join(conf.models,f) for f in os.listdir(conf.models)]
+        ff = os.path.join(conf.models,'config_used')
+        files = [os.path.join(ff,f) for f in os.listdir(ff)]
     else:
         import pdb
         pdb.set_trace()
@@ -57,8 +65,8 @@ def compare(conf:DictConfig)-> None:
     tot_losses.rename(columns = {'value':'loss','variable':'set'},inplace=True)
     fig_losses = px.line(tot_losses,x = 'epoch',y='loss',color = 'set',facet_col='model')
 
-    
-   
+        
+        
     fig_ass.update_traces(mode="markers+lines", hovertemplate=None)
     fig_ass.update_layout(hovermode="x unified")
 

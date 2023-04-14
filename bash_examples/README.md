@@ -174,6 +174,18 @@ Once the models are trained, the relative full configurations are saved in `conf
 python compare.py -c config/compare.yaml
 
 ```
+where the compare file is:
+```
+models: 'config_weather'               ## path to the main config folder or list of configuration files 
+dirpath: "/home/agobbi/Projects/ExpTS" ## where are store the models and where to put the results
+set: 'test'                            ## set to test 
+name: 'prova'
+rescaling: false                       ## sometimes want to get the MSE on the scaled data
+
+```
+
+
+
 In the `dirpath` folder `/home/agobbi/Projects/ExpTS/` there are three folder now: `weights` containing the model and the weights, `plots` containing some plots coming from the `compare` script and the `csv` forder containing the files.
 
 A typical example of plot is displayed below and shows the MSE at different lags in the test set for different models:

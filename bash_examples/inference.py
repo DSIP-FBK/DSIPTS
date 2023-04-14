@@ -116,6 +116,9 @@ def inference(conf:DictConfig)->List[pd.DataFrame]:
         errors.append(pd.merge(tmp,tmp2))
     errors = pd.concat(errors,ignore_index=True)
     print(errors)
+
+    if not os.path.exists(os.path.join(conf.inference.output_path,'csv')):
+        os.makedirs(os.path.join(conf.inference.output_path,'csv'))
     filename = os.path.join(conf.inference.output_path,'csv',f'{conf.model.type}_{ts.name}_{conf.ts.version}_{conf.inference.set}.csv')
 
     errors.to_csv(filename,index=False)

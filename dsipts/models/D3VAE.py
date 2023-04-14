@@ -50,7 +50,7 @@ class D3VAE(Base):
                  hidden_size=64,
                  num_layers=2,
                  dropout_rate=0.1,
-                 diff_steps=500,
+                 diff_steps=200,
                  loss_type='kl',
                  beta_end=0.01,
                  beta_schedule='linear',
