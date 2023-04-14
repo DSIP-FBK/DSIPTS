@@ -467,7 +467,8 @@ class TimeSeries():
         strategy = "auto"
         if accelerator == 'gpu':
             strategy = "auto" ##TODO in future investigate on this
-            precision = "bf16"
+            precision = 32
+            #"bf16"
             torch.set_float32_matmul_precision('medium')
             print('setting multiplication precision to medium')
         else:
