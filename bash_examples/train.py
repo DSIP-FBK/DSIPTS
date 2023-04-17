@@ -1,7 +1,7 @@
 
 
 import pandas as pd
-from dsipts import TimeSeries, RNN, Attention,read_public_dataset, LinearTS, Persistent, D3VAE
+from dsipts import TimeSeries, RNN, Attention,read_public_dataset, LinearTS, Persistent, D3VAE, MyModel
 from omegaconf import DictConfig, OmegaConf
 from hydra.core.hydra_config import HydraConfig
 import hydra
@@ -59,6 +59,12 @@ def train(conf: DictConfig) -> None:
         model =  RNN(**model_conf,
                           optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )  
+        
+    elif conf.model.type == 'mymodel':
+        model =  MyModel(**model_conf,
+                          optim_config = conf.optim_config,
+                          scheduler_config =conf.scheduler_config )      
+    
     elif conf.model.type == 'persistent':
         model_conf = {'future_steps':model_conf['future_steps'],
                       'past_steps':model_conf['past_steps']}
