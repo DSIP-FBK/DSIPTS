@@ -89,7 +89,7 @@ class MyModel(Base):
         self.embs = nn.ModuleList()
         self.sum_emb = sum_emb
         self.kind = kind
-        
+        self.out_channels = out_channels
         assert (len(quantiles) ==0) or (len(quantiles)==3)
         if len(quantiles)>0:
             self.use_quantiles = True
@@ -115,42 +115,43 @@ class MyModel(Base):
     
         self.initial_linear_encoder =  nn.Sequential(nn.Linear(past_channels,4),nn.PReLU(),nn.Linear(4,8),nn.PReLU(),nn.Linear(8,hidden_RNN//8))
         self.initial_linear_decoder =  nn.Sequential(nn.Linear(future_channels,4),nn.PReLU(),nn.Linear(4,8),nn.PReLU(),nn.Linear(8,hidden_RNN//8))
-        self.conv_encoder = Block(emb_channels+hidden_RNN//8,kernel_size_encoder,hidden_RNN//8,self.past_steps,sum_emb)
+        self.conv_encoder = Block(emb_channels+hidden_RNN//8,kernel_size_encoder,hidden_RNN//4,self.past_steps,sum_emb)
         
         #nn.Sequential(Permute(), nn.Conv1d(emb_channels+hidden_RNN//8, hidden_RNN//8, kernel_size_encoder, stride=1,padding='same'),Permute(),nn.Dropout(0.3))
-        
-        if future_channels+emb_channels>0:
+        #import pdb
+        #pdb.set_trace()
+        if future_channels+emb_channels==0:
             ## occhio che vuol dire che non ho passato , per ora ci metto una pezza e uso hidden dell'encoder
-            self.conv_decoder =  nn.Sequential(nn.Linear(future_channels+emb_channels,hidden_RNN//4),  nn.PReLU(),nn.Dropout(0.2),nn.Linear(hidden_RNN//4, hidden_RNN//8),nn.Dropout(0.3))
+            self.conv_decoder = Block(hidden_RNN//2,kernel_size_encoder,hidden_RNN//4,self.future_steps,sum_emb) 
         else:
-            self.conv_decoder = Block(past_steps,kernel_size_encoder,past_steps*2,self.future_steps,sum_emb) 
+            self.conv_decoder = Block(future_channels+emb_channels,kernel_size_encoder,hidden_RNN//4,self.future_steps,sum_emb) 
             #nn.Sequential(Permute(),nn.Linear(past_steps,past_steps*2),  nn.PReLU(),nn.Dropout(0.2),nn.Linear(past_steps*2, future_steps),nn.Dropout(0.3),nn.Conv1d(hidden_RNN, hidden_RNN//8, 3, stride=1,padding='same'),   Permute())
         if self.kind=='lstm':
-            self.Encoder = nn.LSTM(input_size= hidden_RNN//8,
-                                   hidden_size=hidden_RNN//2,
+            self.Encoder = nn.LSTM(input_size= hidden_RNN//4,
+                                   hidden_size=hidden_RNN//4,
                                    num_layers = num_layers_RNN,
                                    batch_first=True,bidirectional=True)
-            self.Decoder = nn.LSTM(input_size= hidden_RNN//8,
-                                   hidden_size=hidden_RNN//2,
+            self.Decoder = nn.LSTM(input_size= hidden_RNN//4,
+                                   hidden_size=hidden_RNN//4,
                                    num_layers = num_layers_RNN,
                                    batch_first=True,bidirectional=True)
         elif self.kind=='gru':
-            self.Encoder = nn.GRU(input_size= hidden_RNN//8,
-                                  hidden_size=hidden_RNN//2,
+            self.Encoder = nn.GRU(input_size= hidden_RNN//4,
+                                  hidden_size=hidden_RNN//4,
                                   num_layers = num_layers_RNN,
                                   batch_first=True,bidirectional=True)
-            self.Decoder = nn.GRU(input_size= hidden_RNN//8,
-                                  hidden_size=hidden_RNN//2,
+            self.Decoder = nn.GRU(input_size= hidden_RNN//4,
+                                  hidden_size=hidden_RNN//4,
                                   num_layers = num_layers_RNN,
                                   batch_first=True,bidirectional=True)
         else:
             print('Speciky kind= lstm or gru please')
         self.final_linear = nn.ModuleList()
-        for _ in range(out_channels*self.mul):
-            self.final_linear.append(nn.Sequential(nn.Linear(hidden_RNN,hidden_RNN//2), 
-                                            nn.PReLU(),nn.Dropout(0.2),nn.Linear(hidden_RNN//2,hidden_RNN//4),
+        for _ in range(out_channels*self.mul*self.future_steps):
+            self.final_linear.append(nn.Sequential(nn.Linear(hidden_RNN//2+emb_channels,hidden_RNN//4), 
                                             nn.PReLU(),nn.Dropout(0.2),nn.Linear(hidden_RNN//4,hidden_RNN//8),
-                                            nn.PReLU(),nn.Dropout(0.2),nn.Linear(hidden_RNN//8,1)))
+                                            nn.PReLU(),nn.Dropout(0.2),nn.Linear(hidden_RNN//8,hidden_RNN//16),
+                                            nn.PReLU(),nn.Dropout(0.2),nn.Linear(hidden_RNN//16,1)))
 
   
         if  self.use_quantiles:
@@ -208,24 +209,30 @@ class MyModel(Base):
             
         if x_future is not None:
             tmp.append(x_future)
-        #import pdb
-        #pdb.set_trace()
+
         if len(tmp)>0:
             tot = torch.cat(tmp,2)
             out, _ = self.Decoder(self.conv_decoder(tot),hidden)  
+            has_future = True
         else:
             out, _ = self.Decoder(self.conv_decoder(out),hidden)  
+            has_future = False
         res = []
 
-      
-        for j in range(len(self.final_linear)):
-            res.append(self.final_linear[j](out))
-            
-        res = torch.cat(res,2)
+
+        for i in range(self.future_steps):
+            if has_future:
+                tmp = torch.cat([tot[:,i,:],out[:,i,:]],axis=1)
+            else:
+                tmp = out[:,i,:]
+            for j in range(self.out_channels*self.mul):
+                res.append(self.final_linear[j](tmp))
+
+        res = torch.cat(res,1)
         ##BxLxC
-        B,L,_ = res.shape
+        B = res.shape[0]
         
       
-        return res.reshape(B,L,-1,self.mul)
+        return res.reshape(B,self.future_steps,-1,self.mul)
 
     

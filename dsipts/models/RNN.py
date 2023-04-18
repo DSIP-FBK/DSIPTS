@@ -87,11 +87,13 @@ class RNN(Base):
         self.initial_linear_decoder =  nn.Sequential(nn.Linear(future_channels,4),nn.PReLU(),nn.Linear(4,8),nn.PReLU(),nn.Linear(8,hidden_RNN//8))
         self.conv_encoder = nn.Sequential(Permute(), nn.Conv1d(emb_channels+hidden_RNN//8, hidden_RNN//8, kernel_size_encoder, stride=1,padding='same'),Permute(),nn.Dropout(0.3))
         
-        if future_channels+emb_channels>0:
-            ## occhio che vuol dire che non ho passato , per ora ci metto una pezza e uso hidden dell'encoder
-            self.conv_decoder =  nn.Sequential(nn.Linear(future_channels+emb_channels,hidden_RNN//4),  nn.PReLU(),nn.Dropout(0.2),nn.Linear(hidden_RNN//4, hidden_RNN//8),nn.Dropout(0.3))
+        if future_channels+emb_channels==0:
+            ## occhio che vuol dire che non ho futuro , per ora ci metto una pezza e uso hidden dell'encoder
+            self.conv_decoder =  nn.Sequential(Permute(),nn.Conv1d(hidden_RNN, hidden_RNN//8, 3, stride=1,padding='same'),   Permute())
         else:
-            self.conv_decoder =  nn.Sequential(Permute(),nn.Linear(past_steps,past_steps*2),  nn.PReLU(),nn.Dropout(0.2),nn.Linear(past_steps*2, future_steps),nn.Dropout(0.3),nn.Conv1d(hidden_RNN, hidden_RNN//8, 3, stride=1,padding='same'),   Permute())
+            self.conv_decoder =  nn.Sequential(Permute(),nn.Conv1d(future_channels+emb_channels, hidden_RNN//8, 3, stride=1,padding='same'),   Permute())
+            
+            
         if self.kind=='lstm':
             self.Encoder = nn.LSTM(input_size= hidden_RNN//8,hidden_size=hidden_RNN,num_layers = num_layers_RNN,batch_first=True)
             self.Decoder = nn.LSTM(input_size= hidden_RNN//8,hidden_size=hidden_RNN,num_layers = num_layers_RNN,batch_first=True)
@@ -163,11 +165,15 @@ class RNN(Base):
             
         if x_future is not None:
             tmp.append(x_future)
+            
+
         if len(tmp)>0:
             tot = torch.cat(tmp,2)
-            out, _ = self.Decoder(self.conv_decoder(tot),hidden)  
         else:
-            out, _ = self.Decoder(self.conv_decoder(out),hidden)  
+            tot = out
+        out, _ = self.Decoder(self.conv_decoder(tot),hidden)  
+        #else:
+        #    out, _ = self.Decoder(self.conv_decoder(out),hidden)  
         res = []
 
       
