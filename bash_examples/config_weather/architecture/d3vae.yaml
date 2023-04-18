@@ -16,7 +16,7 @@ model_configs:
   target_dim: 1
   embedding_dimension: 64
   scale: 0.1
-  hidden_size: 64
+  hidden_size: 128
   num_layers: 2
   dropout_rate: 0.1
   diff_steps: 800
@@ -38,6 +38,6 @@ model_configs:
 
 
 train_config:
-  batch_size: 64
-  max_epochs: 150
+  batch_size: 128
+  max_epochs: 200
                              

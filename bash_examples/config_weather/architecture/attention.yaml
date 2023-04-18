@@ -14,11 +14,11 @@ split_params:
 
 model_configs:
   d_model: 128
-  cat_emb_dim: 8
+  cat_emb_dim: 32
   num_heads: 16
   dropout: 0.3
-  n_layer_encoder: 8
-  n_layer_decoder: 4
+  n_layer_encoder: 12
+  n_layer_decoder: 8
 
 
 train_config:

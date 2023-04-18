@@ -10,7 +10,7 @@ ts:
   use_covariates: true
 
 model_configs:
-  cat_emb_dim: 32
+  cat_emb_dim: 64
   hidden_RNN: 1024
   num_layers_RNN: 4
   kernel_size_encoder: 3

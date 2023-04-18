@@ -11,7 +11,7 @@ ts:
 
 model_configs:
   cat_emb_dim: 16
-  hidden_RNN: 512
+  hidden_RNN: 1024
   num_layers_RNN: 4
   kernel_size_encoder: 5
   kind: 'lstm'

@@ -10,10 +10,10 @@ ts:
   use_covariates: true
 
 model_configs:
-  cat_emb_dim: 16
+  cat_emb_dim: 64
   kernel_size_encoder: 5
   sum_emb: true
-  hidden_size: 256
+  hidden_size: 512
   kind: 'nlinear'
 
 train_config:
