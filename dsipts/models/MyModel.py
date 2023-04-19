@@ -52,10 +52,11 @@ class MyModel(Base):
                  kernel_size_encoder:int,
                  sum_emb:bool,
                  out_channels:int,
+                 persistence_weight:float,
                  quantiles:List[int]=[],
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
-        """ Recurrent model with an encoder decoder structure
+        """ Custom encoder-decoder 
 
         Args:
             past_steps (int):  number of past datapoints used 
@@ -70,6 +71,7 @@ class MyModel(Base):
             kernel_size_encoder (int): kernel size in the encoder convolutional block
             sum_emb (bool): if true the contribution of each embedding will be summed-up otherwise stacked
             out_channels (int):  number of output channels
+            persistence_weight (float):  weight controlling the divergence from persistence model
             quantiles (List[int], optional): we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
@@ -81,7 +83,7 @@ class MyModel(Base):
         #self.device = get_device()
         self.past_steps = past_steps
         self.future_steps = future_steps
-
+        self.persistence_weight = persistence_weight 
         self.num_layers_RNN = num_layers_RNN
         self.hidden_RNN = hidden_RNN
         self.past_channels = past_channels 
@@ -159,6 +161,48 @@ class MyModel(Base):
         else:
             self.loss = L1Loss()
         #self.device = get_device()
+        
+        
+    def training_step(self, batch, batch_idx):
+        """
+        pythotrch lightening stuff
+        
+        :meta private:
+        """
+        y_hat = self(batch)
+        
+        mse_loss = self.loss(y_hat, batch['y'])
+        x =  batch['x_num_past'].to(self.device)
+        idx_target = batch['idx_target'][0]
+        x_start = x[:,-1,idx_target].unsqueeze(1)
+        y_persistence = x_start.repeat(1,self.future_steps,1)
+        
+        
+        idx = 1 if self.use_quantiles else 0
+        persistence_loss = -nn.L1Loss()(y_persistence,y_hat[:,:,:,idx])
+        loss = self.persistence_weight*mse_loss + (1-self.persistence_weight)*persistence_loss
+        return loss
+    
+    def validation_step(self, batch, batch_idx):
+        """
+        pythotrch lightening stuff
+        
+        :meta private:
+        """
+        y_hat = self(batch)
+        
+        mse_loss = self.loss(y_hat, batch['y'])
+        x =  batch['x_num_past'].to(self.device)
+        idx_target = batch['idx_target'][0]
+        x_start = x[:,-1,idx_target].unsqueeze(1)
+        y_persistence = x_start.repeat(1,self.future_steps,1)
+        
+        
+        idx = 1 if self.use_quantiles else 0
+        persistence_loss = -nn.L1Loss()(y_persistence,y_hat[:,:,:,idx])
+        loss = self.persistence_weight*mse_loss + (1-self.persistence_weight)*persistence_loss
+        return loss
+    
     def forward(self, batch):
         """It is mandatory to implement this method
 
