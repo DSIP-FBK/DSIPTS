@@ -18,7 +18,7 @@ def dataloading(batch_size, batch_size_test, seq_len, lag,
                 'end_test':'2022-04-06'}
 
     with open(path,'rb') as f:
-        df_el,col_el,df_term,col_term,le,max_id, meteo_columns = pickle.load(f)
+        df_el, _, _, _, _, _, _ = pickle.load(f)
         df_el.tempo = pd.to_datetime(df_el.tempo)
         f.close()
 
@@ -38,8 +38,7 @@ def dataloading(batch_size, batch_size_test, seq_len, lag,
         train_Ds = CustomDataset(train_df, scaler_y, seq_len, lag, step, hour=hour_learning)
         val_Ds = CustomDataset(val_df, scaler_y, seq_len, lag, step, hour=hour_learning)
         test_Ds = CustomDataset(test_df, scaler_y, seq_len, lag, step, hour=hour_inference)
-        # Daje Romaaa
-        # SIUUUUM
+        
         train_dl = DataLoader(train_Ds, batch_size = batch_size, shuffle = True)
         val_dl = DataLoader(val_Ds, batch_size = batch_size, shuffle = True)
         test_dl = DataLoader(test_Ds, batch_size = batch_size_test, shuffle = False)
@@ -83,8 +82,6 @@ class CustomDataset(torch.utils.data.Dataset):
         # max_dow = max(x[:,4])
         # max_low = max(is_low)
 
-        # import pdb
-        # pdb.set_trace()
         for i in range(seq_len,len(df),step):
             if not (np.isnan(df.y[i-seq_len:i]).any()):
                 if not 0 in is_low[i-lag:i]:

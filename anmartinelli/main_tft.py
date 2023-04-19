@@ -28,7 +28,6 @@ def main(cluster: bool, run_train: bool, conf_params:dictConfiguration):
     # path for MODEL FILES (ADD ONLY .PKL, .PT, .PNG)
     saving_path_model_name = path_work_model + conf_params.name
 
-
     #* SELECT MODEL
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model = get_model(conf_params, device, saving_path_model_name)
@@ -52,8 +51,6 @@ def main(cluster: bool, run_train: bool, conf_params:dictConfiguration):
     loss_fun = conf_params.get_loss_fun()
     scheduler = conf_params.get_scheduler(optimizer)
     
-    # import pdb
-    # pdb.set_trace()
     if run_train:
         with open(saving_path_model_name + '.pkl', 'wb') as f: #! PATH for PKL
             pkl.dump([conf_params, 'no_trained_yet'], f)
@@ -98,7 +95,7 @@ if __name__=='__main__':
     parser.add_argument("-m", "--model_name", type=str, default='default0', help='String to set the name of the model, must be unique in works/ to avoid overwriting')
     args = parser.parse_args()
     if args.train:
-        dictConf = dictConfiguration(args.model_name)
+        dictConf = dictConfiguration()
         print(dictConf)
         main(args.cluster, args.train, dictConf)
 
