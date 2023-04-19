@@ -253,7 +253,6 @@ class Encoder_Var_Selection(nn.Module): # input already embedded
         emb = torch.flatten(to_be_flat, start_dim=2)
         var_sel_wei = self.flatten_GRN(emb)
         return var_sel_wei
-    
 class Encoder_LSTM(nn.Module):
     def __init__(self, n_layers_LSTM: int, d_model: int, dropout: float, device):
         """LSTM Encoder with GLU, Add and Norm
