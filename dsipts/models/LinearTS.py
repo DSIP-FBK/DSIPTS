@@ -3,7 +3,7 @@ from torch import nn
 import torch
 import pytorch_lightning as pl
 from .base import  Base
-from .utils import QuantileLossMO, get_device, L1Loss
+from .utils import QuantileLossMO, get_device, L1Loss, get_activation
 from typing import List
 class moving_avg(nn.Module):
     """
@@ -52,7 +52,10 @@ class LinearTS(Base):
                  sum_emb:bool,
                  out_channels:int,
                  hidden_size:int,
+                 dropout_rate:float=0.1,
+                 activation:str='RELU',
                  kind:str='linear',
+                 use_bn:bool=False,
                  quantiles:List[int]=[],
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
@@ -69,13 +72,20 @@ class LinearTS(Base):
             sum_emb (bool): if true the contribution of each embedding will be summed-up otherwise stacked
             out_channels (int): number of output channels
             hidden_size (int): hidden size of the lienar block
+            dropout_rate (float, optional): dropout rate in Dropout layers. Default 0.1
+            activation (str, optional): activation fuction
             kind (str, optional): one among linear, dlinear (de-trending), nlinear (differential). Defaults to 'linear'.
+            use_bn (bool, optional): if true BN layers will be added and dropouts will be removed. Default False
             quantiles (List[int], optional):  we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
         """
         
-        
+        if activation == 'SELU':
+            print('SELU do not require BN')
+            use_bn = False
+        activation = get_activation(activation)
+
         
         super(LinearTS, self).__init__()
         self.save_hyperparameters(logger=False)
@@ -127,17 +137,17 @@ class LinearTS(Base):
         
         for _ in range(out_channels):
             self.linear.append(nn.Sequential(nn.Linear(cat_emb_dim*(past_steps+future_steps)+past_steps*past_channels+future_channels*future_steps,hidden_size),
-                                                nn.ReLU(),
-                                                nn.Dropout(0.2),    
+                                                activation(),
+                                                nn.BatchNorm1d(hidden_size) if use_bn else nn.Dropout(dropout_rate) ,    
                                                 nn.Linear(hidden_size,hidden_size//2), 
-                                                nn.ReLU(),
-                                                nn.Dropout(0.2),
+                                                activation(),
+                                                nn.BatchNorm1d(hidden_size) if use_bn else nn.Dropout(dropout_rate//2) ,    
                                                 nn.Linear(hidden_size//2,hidden_size//4),
-                                                nn.ReLU(),
-                                                nn.Dropout(0.2),
+                                                activation(),
+                                                nn.BatchNorm1d(hidden_size) if use_bn else nn.Dropout(dropout_rate//4) ,    
                                                 nn.Linear(hidden_size//4,hidden_size//8),
-                                                nn.ReLU(),
-                                                nn.Dropout(0.2),
+                                                activation(),
+                                                nn.BatchNorm1d(hidden_size) if use_bn else nn.Dropout(dropout_rate//8) ,    
                                                 nn.Linear(hidden_size//8,self.future_steps*self.mul)))
                                
     def forward(self, batch):

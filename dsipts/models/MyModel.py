@@ -2,7 +2,7 @@
 from torch import  nn
 import torch
 from .base import Base
-from .utils import QuantileLossMO,Permute, get_device,L1Loss
+from .utils import QuantileLossMO,Permute, get_device,L1Loss, get_activation
 from typing import List
 import numpy as np
 
@@ -53,7 +53,10 @@ class MyModel(Base):
                  sum_emb:bool,
                  out_channels:int,
                  persistence_weight:float,
+                 activation:str='relu',
                  quantiles:List[int]=[],
+                 dropout_rate:float=0.1,
+                 use_bn:bool=False,
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
         """ Custom encoder-decoder 
@@ -72,11 +75,18 @@ class MyModel(Base):
             sum_emb (bool): if true the contribution of each embedding will be summed-up otherwise stacked
             out_channels (int):  number of output channels
             persistence_weight (float):  weight controlling the divergence from persistence model
+            activation (str, optional): activation fuction
             quantiles (List[int], optional): we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
+            dropout_rate (float, optional): dropout rate in Dropout layers
+            use_bn (bool, optional): if true BN layers will be added and dropouts will be removed
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
+
         """
-        
+        if activation == 'SELU':
+            print('SELU do not require BN')
+            use_bn = False
+        activation = get_activation(activation)
         
         super(MyModel, self).__init__()
         self.save_hyperparameters(logger=False)
@@ -115,8 +125,20 @@ class MyModel(Base):
         else:
             print('Using stacked')
     
-        self.initial_linear_encoder =  nn.Sequential(nn.Linear(past_channels,4),nn.PReLU(),nn.Linear(4,8),nn.PReLU(),nn.Linear(8,hidden_RNN//8))
-        self.initial_linear_decoder =  nn.Sequential(nn.Linear(future_channels,4),nn.PReLU(),nn.Linear(4,8),nn.PReLU(),nn.Linear(8,hidden_RNN//8))
+        self.initial_linear_encoder =  nn.Sequential(nn.Linear(past_channels,4),
+                                                     activation(),
+                                                     nn.BatchNorm1d(4) if use_bn else nn.Dropout(dropout_rate) ,
+                                                     nn.Linear(4,8),
+                                                     activation(),
+                                                     nn.BatchNorm1d(8) if use_bn else nn.Dropout(dropout_rate) ,
+                                                     nn.Linear(8,hidden_RNN//8))
+        self.initial_linear_decoder =  nn.Sequential(nn.Linear(future_channels,4),
+                                                     activation(),
+                                                     nn.BatchNorm1d(4) if use_bn else nn.Dropout(dropout_rate) ,
+                                                     nn.Linear(4,8),
+                                                     activation(),
+                                                     nn.BatchNorm1d(8) if use_bn else nn.Dropout(dropout_rate) ,
+                                                     nn.Linear(8,hidden_RNN//8))
         self.conv_encoder = Block(emb_channels+hidden_RNN//8,kernel_size_encoder,hidden_RNN//4,self.past_steps,sum_emb)
         
         #nn.Sequential(Permute(), nn.Conv1d(emb_channels+hidden_RNN//8, hidden_RNN//8, kernel_size_encoder, stride=1,padding='same'),Permute(),nn.Dropout(0.3))
@@ -151,9 +173,15 @@ class MyModel(Base):
         self.final_linear = nn.ModuleList()
         for _ in range(out_channels*self.mul*self.future_steps):
             self.final_linear.append(nn.Sequential(nn.Linear(hidden_RNN//2+emb_channels,hidden_RNN//4), 
-                                            nn.PReLU(),nn.Dropout(0.2),nn.Linear(hidden_RNN//4,hidden_RNN//8),
-                                            nn.PReLU(),nn.Dropout(0.2),nn.Linear(hidden_RNN//8,hidden_RNN//16),
-                                            nn.PReLU(),nn.Dropout(0.2),nn.Linear(hidden_RNN//16,1)))
+                                            activation(),
+                                            nn.BatchNorm1d(hidden_RNN//4) if use_bn else nn.Dropout(dropout_rate) ,
+                                            nn.Linear(hidden_RNN//4,hidden_RNN//8),
+                                            activation(),
+                                            nn.BatchNorm1d(hidden_RNN//8) if use_bn else nn.Dropout(dropout_rate) ,
+                                            nn.Linear(hidden_RNN//8,hidden_RNN//16),
+                                            activation(),
+                                            nn.Dropout(dropout_rate),
+                                            nn.Linear(hidden_RNN//16,1)))
 
   
         if  self.use_quantiles:

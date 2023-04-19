@@ -16,7 +16,7 @@ import pickle
 from .utils import extend_df,MetricsCallback, MyDataset, ActionEnum
 from datetime import datetime
 from ..models.base import Base
-
+from ..models.utils import weight_init
 
       
 class Categorical():
@@ -443,6 +443,10 @@ class TimeSeries():
             config (dict, optional): usually the configuration used by the model. Defaults to None.
         """
         self.model = model
+        print('######################################################################################################')
+        print('###########LOOK THE INIT PROCEDURE IF YOU NEED A CUSTOM INITIALIZATION of the weighjts################')
+        print('######################################################################################################')
+        self.model.apply(weight_init)
         self.config = config
               
     def train_model(self,dirpath:str,
@@ -451,6 +455,8 @@ class TimeSeries():
                     num_workers:int=4,
                     max_epochs:int=500,
                     auto_lr_find:bool=True,
+                    gradient_clip_val:float=0,
+                    gradient_clip_algorithm:str="value",
                     devices:Union[str,List[int]]='auto',
                     precision:Union[str,int]=32)-> None:
         """Train the model
@@ -462,6 +468,8 @@ class TimeSeries():
             num_workers (int, optional): num_workers for the dataloader. Defaults to 4.
             max_epochs (int, optional): maximum epochs to perform. Defaults to 500.
             auto_lr_find (bool, optional): find initial learning rate, see  `pytorch-lightening`. Defaults to True.
+            gradient_clip_val (float, optional): gradient_clip_val. Defaults to 0. See https://lightning.ai/docs/pytorch/stable/advanced/training_tricks.html
+            gradient_clip_algorithm (str, optional): gradient_clip_algorithm. Defaults to 'value '. See https://lightning.ai/docs/pytorch/stable/advanced/training_tricks.html
             devices (Union[str,List[int]], optional): devices to use. Use auto if cpu or the list of gpu to use otherwise. Defaults to 'auto'.
             precision  (Union[str,int], optional): precision to use. Usually 32 bit is fine but for larger model you should try 'bf16'. If 'auto' it will use bf16 for GPU and 32 for cpu
         """
@@ -506,7 +514,8 @@ class TimeSeries():
         mc = MetricsCallback()
         ## TODO se ci sono 2 o piu gpu MetricsCallback non funziona (secondo me fa una istanza per ogni dataparallel che lancia e poi non riesce a recuperare info)
         trainer = pl.Trainer(logger = logger,max_epochs=max_epochs,callbacks=[checkpoint_callback,mc],
-                             auto_lr_find=auto_lr_find, accelerator=accelerator,devices=devices,strategy=strategy,precision=precision)#,devices=1)
+                             auto_lr_find=auto_lr_find, accelerator=accelerator,devices=devices,strategy=strategy,
+                             precision=precision,gradient_clip_val=gradient_clip_val, gradient_clip_algorithm=gradient_clip_algorithm)#,devices=1)
 
         if auto_lr_find:
             trainer.tune(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)

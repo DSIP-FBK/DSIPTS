@@ -10,12 +10,17 @@ ts:
   use_covariates: true
 
 model_configs:
-  cat_emb_dim: 64
+  cat_emb_dim: 32
   kernel_size_encoder: 5
   sum_emb: true
-  hidden_size: 512
+  hidden_size: 256
   kind: 'nlinear'
+  dropout_rate: 0.1
+  use_bn: true
+  activation: 'SELU'
 
 train_config:
   batch_size: 256
   max_epochs: 250
+  gradient_clip_val: 5.0
+  gradient_clip_algorithm: 'value'

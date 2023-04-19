@@ -11,8 +11,8 @@ ts:
 
 model_configs:
   cat_emb_dim: 64
-  hidden_RNN: 1024
-  num_layers_RNN: 4
+  hidden_RNN: 2048
+  num_layers_RNN: 2
   kernel_size_encoder: 3
   kind: 'gru'
   sum_emb: true
