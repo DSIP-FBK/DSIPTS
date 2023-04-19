@@ -5,7 +5,7 @@ class dictConfiguration():
     def __init__(self, name: str) -> None:
         self.name = name
         self.strategy_dict = {
-                'use_target_past': True,
+                'use_target_past': False,
                 'use_yprec': True,
                 'iter_forward': True,
                 'quantiles': None
@@ -15,30 +15,30 @@ class dictConfiguration():
                 'n_target_var': 1,
                 'seq_len': 265,
                 'lag': 65,
-                'd_model': 256,
-                'n_enc_layers': 3,
-                'n_dec_layers': 3,
-                'head_size': 64,
-                'num_heads': 4,
-                'fw_exp': 4,
+                'd_model': 16,
+                'n_enc_layers': 1,
+                'n_dec_layers': 1,
+                'head_size': 8,
+                'num_heads': 2,
+                'fw_exp': 1,
                 'dropout': 0.3,
-                'num_lstm_layers': 3
+                'num_lstm_layers': 1
             }
         self.train_dict = {
                 'lr': 1e-05,
                 'wd': 0.0,
-                'bs': 4,
-                'epochs': 300,
+                'bs': 256,
+                'epochs': 100,
                 'hour': 24,
                 'optimizer_index_selection': 0,
                 'loss_index_selection': 0,
                 'loss_reduction': 'mean',
                 'sched_index_selection': 0,
-                'sched_step': 70,
-                'sched_gamma': 0.5
+                'sched_step': 40,
+                'sched_gamma': 0.1
             }
         self.test_dict = {
-                'bs_t': 1,
+                'bs_t': 128,
                 'hour_test': 24
             }
 
@@ -62,7 +62,7 @@ class dictConfiguration():
         for val in self.test_dict.keys():
             print(f'   {val} - {self.test_dict[val]}')
         return ''
-        
+  
     def get_optim(self, model):
         if self.train_dict['optimizer_index_selection'] == 0:
             optimizer = torch.optim.AdamW(model.parameters(), lr=self.train_dict['lr'], weight_decay=self.train_dict['wd'])

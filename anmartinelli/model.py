@@ -150,7 +150,8 @@ class Model(nn.Module):
                     best_model = torch.save(self.state_dict(), self.path_model_save + '_best.pt')
                     print('  - IMPROVED')
             #* TRAINING
-            if (iter%5)==3:
+            if (iter%5)==3: 
+                # every 5 epochs an iterative training step
                 curr_train_loss = self.training_step(iter, dl_training, cost_func, optimizer, scheduler, if_iterative=True)
             else:
                 curr_train_loss = self.training_step(iter, dl_training, cost_func, optimizer, scheduler, if_iterative=False)
