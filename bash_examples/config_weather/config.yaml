@@ -35,7 +35,7 @@ split_params:
 train_config:
   dirpath: "/home/agobbi/Projects/ExpTS" 
   num_workers: 0
-  auto_lr_find: false
+  auto_lr_find: true
   devices: [0]                   
 
 inference:

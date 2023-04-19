@@ -40,4 +40,4 @@ model_configs:
 train_config:
   batch_size: 128
   max_epochs: 200
-                             
+  auto_lr_find: false                 

@@ -24,3 +24,4 @@ train_config:
   max_epochs: 250
   gradient_clip_val: 5.0
   gradient_clip_algorithm: 'value'
+  auto_lr_find: true
