@@ -15,19 +15,19 @@ class dictConfiguration():
                 'n_target_var': 1,
                 'seq_len': 265,
                 'lag': 65,
-                'd_model': 64,
-                'n_enc_layers': 5,
-                'n_dec_layers': 2,
-                'head_size': 8,
+                'd_model': 256,
+                'n_enc_layers': 3,
+                'n_dec_layers': 3,
+                'head_size': 64,
                 'num_heads': 4,
-                'fw_exp': 2,
+                'fw_exp': 4,
                 'dropout': 0.3,
-                'num_lstm_layers': 4
+                'num_lstm_layers': 3
             }
         self.train_dict = {
-                'lr': 1e-06,
-                'wd': 0.001,
-                'bs': 64,
+                'lr': 1e-05,
+                'wd': 0.0,
+                'bs': 4,
                 'epochs': 300,
                 'hour': 24,
                 'optimizer_index_selection': 0,
@@ -35,10 +35,10 @@ class dictConfiguration():
                 'loss_reduction': 'mean',
                 'sched_index_selection': 0,
                 'sched_step': 70,
-                'sched_gamma': 0.1
+                'sched_gamma': 0.5
             }
         self.test_dict = {
-                'bs_t': 8,
+                'bs_t': 1,
                 'hour_test': 24
             }
 
@@ -62,7 +62,6 @@ class dictConfiguration():
         for val in self.test_dict.keys():
             print(f'   {val} - {self.test_dict[val]}')
         return ''
-        
         
     def get_optim(self, model):
         if self.train_dict['optimizer_index_selection'] == 0:

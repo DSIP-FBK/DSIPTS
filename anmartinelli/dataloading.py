@@ -96,9 +96,6 @@ class CustomDataset(torch.utils.data.Dataset):
                     else:
                         # SEQUENCES WITH REDICTION STARTING FROM 'hour'
                         if x[i-lag,-2] == hour: # x is [y,m,d,h,dow]
-                            # x =  df.tempo[i-seq_len:i].apply(lambda x: x.strftime('%Y %m %d %H %w').split()).values
-                            # y = torch.tensor(df.y[i-seq_len:i].values)
-                            # is_low = torch.tensor(df.is_low[i-seq_len:i].values)
                             X.append(torch.cat((x[i-seq_len:i],is_low[i-seq_len:i].unsqueeze(1)), dim=1))
                             Y.append(y[i-seq_len:i])
 

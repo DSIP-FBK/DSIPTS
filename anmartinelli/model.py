@@ -147,7 +147,7 @@ class Model(nn.Module):
                 # update best model if the model reaches better performances
                 if curr_val_loss < val_loss:
                     val_loss = curr_val_loss
-                    best_model = torch.save(self.state_dict(), self.path_model_save + '_best.pt') #! PATH for BEST
+                    best_model = torch.save(self.state_dict(), self.path_model_save + '_best.pt')
                     print('  - IMPROVED')
             #* TRAINING
             if (iter%5)==3:
@@ -158,20 +158,20 @@ class Model(nn.Module):
             res['train'].append(curr_train_loss)
             res['val'].append(curr_val_loss)
 
-            with open(self.path_model_save + '.pkl', 'rb') as f: #! PATH for PKL
+            with open(self.path_model_save + '.pkl', 'rb') as f:
                 dict, _ = pkl.load(f)
                 f.close()
-            with open(self.path_model_save + '.pkl', 'wb') as f: #! PATH for PKL
+            with open(self.path_model_save + '.pkl', 'wb') as f:
                 pkl.dump([dict, res], f)
                 f.close()
             
             scheduler.step()
             #always update last_model
-            last_model = torch.save(self.state_dict(), self.path_model_save + '_last.pt') #! PATH for LAST
+            last_model = torch.save(self.state_dict(), self.path_model_save + '_last.pt') 
         curr_val_loss = self.validation_step(iter, dl_validation, cost_func)
         print(f'Last Val_Loss: {curr_val_loss}')
         res['val'][-1] = curr_val_loss
-        with open(self.path_model_save + '.pkl', 'wb') as f: #! PATH for PKL
+        with open(self.path_model_save + '.pkl', 'wb') as f:
                 pkl.dump([dict, res], f)
                 f.close()
 
@@ -250,11 +250,11 @@ class Model(nn.Module):
         net_last = copy.deepcopy(self)
         net_last.eval()
 
-        path_best = self.path_model_save + '_best.pt' #! PATH
+        path_best = self.path_model_save + '_best.pt'
         net_best.load_state_dict(torch.load(path_best, map_location=self.device))
         net_best.eval()
 
-        path_last = self.path_model_save + '_last.pt' #! PATH
+        path_last = self.path_model_save + '_last.pt'
         net_last.load_state_dict(torch.load(path_last, map_location=self.device))
         net_last.eval()
     
