@@ -16,9 +16,9 @@ model_configs:
   kernel_size_encoder: 3
   kind: 'gru'
   sum_emb: true
-  persistence_weight: 0.05
+  persistence_weight: 0.0
   use_bn: false
-  activation: 'relu'
+  activation: 'prelu'
 
 train_config:
   batch_size: 256
