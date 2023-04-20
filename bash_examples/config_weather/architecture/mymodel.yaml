@@ -18,7 +18,7 @@ model_configs:
   sum_emb: true
   persistence_weight: 0.25
   use_bn: true
-  activation: 'SELU'
+  activation: 'prelu'
 
 train_config:
   batch_size: 256

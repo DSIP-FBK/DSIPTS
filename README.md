@@ -45,6 +45,10 @@ This frist block maybe is common between several architectures:
 - **sum_emb** = boolean. If true the contribution of each categorical variable is summed
 - **quantiles**=[0.1,0.5,0.9]. Quantiles for quantile loss
 - **kind** =str. If there are some similar architectures with small differences maybe is better to use the same code specifying some properties (e.g. GRU vs LSTM)
+- **activation**='relu'. activation function between layers
+- **dropout_rate**=0.1. dropout rate
+- **use_bn**=False. Use or not batch normalization
+
 
 some are more specific for RNN-CONV architectures:
 
