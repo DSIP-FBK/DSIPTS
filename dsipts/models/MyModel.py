@@ -207,7 +207,7 @@ class MyModel(Base):
         
         idx = 1 if self.use_quantiles else 0
         persistence_loss = -nn.L1Loss()(y_persistence,y_hat[:,:,:,idx])
-        loss = self.persistence_weight*mse_loss + (1-self.persistence_weight)*persistence_loss
+        loss = self.persistence_weight*persistence_loss + (1-self.persistence_weight)*mse_loss
         return loss
     
     def validation_step(self, batch, batch_idx):
@@ -227,7 +227,7 @@ class MyModel(Base):
         
         idx = 1 if self.use_quantiles else 0
         persistence_loss = -nn.L1Loss()(y_persistence,y_hat[:,:,:,idx])
-        loss = self.persistence_weight*mse_loss + (1-self.persistence_weight)*persistence_loss
+        loss = self.persistence_weight*persistence_loss + (1-self.persistence_weight)*mse_loss      
         return loss
     
     def forward(self, batch):
