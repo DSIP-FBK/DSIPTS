@@ -460,9 +460,9 @@ class TimeSeries():
                     num_workers:int=4,
                     max_epochs:int=500,
                     auto_lr_find:bool=True,
-                    gradient_clip_val:float=0,
+                    gradient_clip_val:Union[float,None]=None,
                     gradient_clip_algorithm:str="value",
-                    devices:Union[str,List[int]]='auto',
+                    devices:Union[str,List[int]]='norm',
                     precision:Union[str,int]=32)-> None:
         """Train the model
 
@@ -473,8 +473,8 @@ class TimeSeries():
             num_workers (int, optional): num_workers for the dataloader. Defaults to 4.
             max_epochs (int, optional): maximum epochs to perform. Defaults to 500.
             auto_lr_find (bool, optional): find initial learning rate, see  `pytorch-lightening`. Defaults to True.
-            gradient_clip_val (float, optional): gradient_clip_val. Defaults to 0. See https://lightning.ai/docs/pytorch/stable/advanced/training_tricks.html
-            gradient_clip_algorithm (str, optional): gradient_clip_algorithm. Defaults to 'value '. See https://lightning.ai/docs/pytorch/stable/advanced/training_tricks.html
+            gradient_clip_val (Union[float,None], optional): gradient_clip_val. Defaults to None. See https://lightning.ai/docs/pytorch/stable/advanced/training_tricks.html
+            gradient_clip_algorithm (str, optional): gradient_clip_algorithm. Defaults to 'norm '. See https://lightning.ai/docs/pytorch/stable/advanced/training_tricks.html
             devices (Union[str,List[int]], optional): devices to use. Use auto if cpu or the list of gpu to use otherwise. Defaults to 'auto'.
             precision  (Union[str,int], optional): precision to use. Usually 32 bit is fine but for larger model you should try 'bf16'. If 'auto' it will use bf16 for GPU and 32 for cpu
         """

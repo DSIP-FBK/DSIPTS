@@ -40,7 +40,7 @@ train_config:
 
 inference:
   output_path: "/home/agobbi/Projects/ExpTS" 
-  load_last: false
+  load_last: true
   batch_size: 200 
   num_workers: 4
   set: "validation"
