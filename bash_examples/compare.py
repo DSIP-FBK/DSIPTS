@@ -43,18 +43,22 @@ def compare(conf:DictConfig)-> None:
         conf_tmp =  OmegaConf.load(conf_tmp) 
         conf_tmp.inference.set = conf.set
         conf_tmp.inference.rescaling = conf.rescaling
-
-        tmp,predictions, losses = inference(conf_tmp)
-        tmp['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
-        predictions['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
-        losses['epoch'] = list(range(losses.shape[0]))
-        losses = losses.melt(id_vars='epoch')
-        losses['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
-        losses.value = np.log(losses.value)
-        res.append(tmp )
-        tot_losses.append(losses)
-        tot_predictions.append(predictions)
+        try:
+            tmp,predictions, losses = inference(conf_tmp)
+            tmp['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
+            predictions['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
+            losses['epoch'] = list(range(losses.shape[0]))
+            losses = losses.melt(id_vars='epoch')
+            losses['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
+            losses.value = np.log(losses.value)
+            res.append(tmp )
+            tot_losses.append(losses)
+            tot_predictions.append(predictions)
         
+        except:
+            print(f'#######can not load model {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}######### ')
+            
+
     tot_losses = pd.concat(tot_losses,ignore_index=True)
     tot_predictions = pd.concat(tot_predictions,ignore_index=True)
 
