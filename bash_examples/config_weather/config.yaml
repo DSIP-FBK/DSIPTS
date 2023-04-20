@@ -13,7 +13,7 @@ optim_config:
 model_configs:
   past_steps: 16
   future_steps: 16
-  quantiles: [0.1,0.5,0.9]
+  quantiles: [] #[0.1,0.5,0.9]
   past_channels : null #dataset dependent
   future_channels : null #dataset dependent
   embs: null #dataset dependent
