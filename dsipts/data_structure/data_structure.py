@@ -448,6 +448,7 @@ class TimeSeries():
         print('######################################################################################################')
         self.model.apply(weight_init)
         self.config = config
+        print(model)
               
     def train_model(self,dirpath:str,
                     split_params:dict,
