@@ -125,20 +125,19 @@ class MyModel(Base):
         else:
             print('Using stacked')
     
-        self.initial_linear_encoder =  nn.Sequential(nn.Linear(past_channels,4),
-                                                     activation(),
-                                                     nn.BatchNorm1d(4) if use_bn else nn.Dropout(dropout_rate) ,
-                                                     nn.Linear(4,8),
-                                                     activation(),
-                                                     nn.BatchNorm1d(8) if use_bn else nn.Dropout(dropout_rate) ,
-                                                     nn.Linear(8,hidden_RNN//8))
-        self.initial_linear_decoder =  nn.Sequential(nn.Linear(future_channels,4),
-                                                     activation(),
-                                                     nn.BatchNorm1d(4) if use_bn else nn.Dropout(dropout_rate) ,
-                                                     nn.Linear(4,8),
-                                                     activation(),
-                                                     nn.BatchNorm1d(8) if use_bn else nn.Dropout(dropout_rate) ,
-                                                     nn.Linear(8,hidden_RNN//8))
+        self.initial_linear_encoder =  nn.Sequential(Permute(),
+                                                    nn.Conv1d(past_channels, (past_channels+hidden_RNN//8)//2, kernel_size_encoder, stride=1,padding='same'),
+                                                    activation(),
+                                                    nn.BatchNorm1d(  (past_channels+hidden_RNN//8)//2) if use_bn else nn.Dropout(dropout_rate) ,
+                                                    nn.Conv1d( (past_channels+hidden_RNN//8)//2, hidden_RNN//8, kernel_size_encoder, stride=1,padding='same'),
+                                                    Permute())
+
+        self.initial_linear_decoder =   nn.Sequential(Permute(),
+                                                    nn.Conv1d(future_channels, (future_channels+hidden_RNN//8)//2, kernel_size_encoder, stride=1,padding='same'),
+                                                    activation(),
+                                                    nn.BatchNorm1d(  (future_channels+hidden_RNN//8)//2) if use_bn else nn.Dropout(dropout_rate) ,
+                                                    nn.Conv1d( (future_channels+hidden_RNN//8)//2, hidden_RNN//8, kernel_size_encoder, stride=1,padding='same'),
+                                                    Permute())
         self.conv_encoder = Block(emb_channels+hidden_RNN//8,kernel_size_encoder,hidden_RNN//4,self.past_steps,sum_emb)
         
         #nn.Sequential(Permute(), nn.Conv1d(emb_channels+hidden_RNN//8, hidden_RNN//8, kernel_size_encoder, stride=1,padding='same'),Permute(),nn.Dropout(0.3))
@@ -249,8 +248,7 @@ class MyModel(Base):
         if 'x_num_future' in batch.keys():
             x_future = batch['x_num_past'].to(self.device)
         else:
-            x_future = None
-            
+            x_future = None  
         tmp = [self.initial_linear_encoder(x)]
         
         for i in range(len(self.embs)):

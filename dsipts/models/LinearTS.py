@@ -141,13 +141,13 @@ class LinearTS(Base):
                                                 nn.BatchNorm1d(hidden_size) if use_bn else nn.Dropout(dropout_rate) ,    
                                                 nn.Linear(hidden_size,hidden_size//2), 
                                                 activation(),
-                                                nn.BatchNorm1d(hidden_size) if use_bn else nn.Dropout(dropout_rate//2) ,    
+                                                nn.BatchNorm1d(hidden_size//2) if use_bn else nn.Dropout(dropout_rate) ,    
                                                 nn.Linear(hidden_size//2,hidden_size//4),
                                                 activation(),
-                                                nn.BatchNorm1d(hidden_size) if use_bn else nn.Dropout(dropout_rate//4) ,    
+                                                nn.BatchNorm1d(hidden_size//4) if use_bn else nn.Dropout(dropout_rate) ,    
                                                 nn.Linear(hidden_size//4,hidden_size//8),
                                                 activation(),
-                                                nn.BatchNorm1d(hidden_size) if use_bn else nn.Dropout(dropout_rate//8) ,    
+                                                nn.BatchNorm1d(hidden_size//8) if use_bn else nn.Dropout(dropout_rate) ,    
                                                 nn.Linear(hidden_size//8,self.future_steps*self.mul)))
                                
     def forward(self, batch):
