@@ -55,8 +55,8 @@ def compare(conf:DictConfig)-> None:
             tot_losses.append(losses)
             tot_predictions.append(predictions)
         
-        except:
-            print(f'#######can not load model {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}######### ')
+        except Exception as e:
+            print(f'#######can not load model {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} {e} ######### ')
             
 
     tot_losses = pd.concat(tot_losses,ignore_index=True)
