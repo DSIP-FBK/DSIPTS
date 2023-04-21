@@ -587,7 +587,7 @@ class TimeSeries():
         res = []
         real = []
         self.model.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
-        
+
         print(f'Device used: {self.model.device}')
         for batch in dl:
             res.append(self.model.inference(batch).cpu().detach().numpy())
@@ -683,5 +683,5 @@ class TimeSeries():
             
         try:
             self.model = self.model.load_from_checkpoint(tmp_path)
-        except:
-            print(f'There is a problem loading the weights on file {tmp_path}')
+        except Exception as e:
+            print(f'There is a problem loading the weights on file {tmp_path} {e}')

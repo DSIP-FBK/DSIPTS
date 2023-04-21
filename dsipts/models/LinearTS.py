@@ -80,12 +80,15 @@ class LinearTS(Base):
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
         """
-        
+  
         if activation == 'SELU':
             print('SELU do not require BN')
             use_bn = False
-        activation = get_activation(activation)
-
+            
+        if type(activation)==str:
+            activation = get_activation(activation)
+        else:
+            print('There is a bug in pytorch lightening, the constructior is called twice ')
         
         super(LinearTS, self).__init__()
         self.save_hyperparameters(logger=False)

@@ -86,7 +86,10 @@ class MyModel(Base):
         if activation == 'SELU':
             print('SELU do not require BN')
             use_bn = False
-        activation = get_activation(activation)
+        if type(activation)==str:
+            activation = get_activation(activation)
+        else:
+            print('There is a bug in pytorch lightening, the constructior is called twice ')
         
         super(MyModel, self).__init__()
         self.save_hyperparameters(logger=False)
