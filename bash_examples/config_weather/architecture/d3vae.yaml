@@ -39,5 +39,5 @@ model_configs:
 
 train_config:
   batch_size: 64
-  max_epochs: 200
+  max_epochs: 100
   auto_lr_find: false                 
