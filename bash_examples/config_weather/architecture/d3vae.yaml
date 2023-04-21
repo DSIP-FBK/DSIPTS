@@ -14,9 +14,9 @@ split_params:
 
 model_configs:
   target_dim: 1
-  embedding_dimension: 32
+  embedding_dimension: 64
   scale: 0.1
-  hidden_size: 128
+  hidden_size: 64
   num_layers: 2
   dropout_rate: 0.1
   diff_steps: 800
