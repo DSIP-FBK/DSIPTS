@@ -52,8 +52,7 @@ defaults:
   - override hydra/launcher: submitit_slurm #joblib 
 
 hydra:
-  #launcher: #joblib
-  #  n_jobs:   2 
+
   launcher:
     submitit_folder: ${hydra.sweep.dir}/.submitit/%j
     timeout_min: 600

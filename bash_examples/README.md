@@ -35,7 +35,8 @@ pip install --force dsipts --index-url https://dsipts:glpat-98SR11neR7hzxy__SueG
 In you environment install hydra and the joblib launcher for the paralellization tasks:
 ```
 pip install hydra-core
-pip install hydra-joblib-launcher
+pip install hydra-joblib-launcher   ## if you have a big gpu
+pip install hydra-submitit-launcher ## if you are in a slurm envirionment
 ```
 
 The script used are:
@@ -149,11 +150,17 @@ train_config:
 
 ```
 
-Hydra allows us to train a specific model using:
+Hydra allows us to train a specific model using if you are in a gpu environment
 
 ```
-python train.py  architecture=linear --config-dir=config_weather
+python train.py  architecture=linear --config-dir=config_weather --config-name=config_gpu
 ```
+or, if you are in a slurm gpu cluster
+
+```
+python train.py  architecture=linear --config-dir=config_weather --config-name=config_slurm
+```
+
 
 or a list of models in paralle:
 

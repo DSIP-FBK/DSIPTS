@@ -1,0 +1,74 @@
+dataset:
+  dataset: weather
+  path: /home/agobbi/Projects/ExpTS/data
+scheduler_config:
+  gamma: 0.1
+  step_size: 100
+optim_config:
+  lr: 5.0e-05
+  weight_decay: 0.01
+model_configs:
+  past_steps: 16
+  future_steps: 16
+  quantiles: []
+  past_channels: 21
+  future_channels: 0
+  embs:
+  - 24
+  out_channels: 1
+  target_dim: 1
+  embedding_dimension: 64
+  scale: 0.1
+  hidden_size: 128
+  num_layers: 2
+  dropout_rate: 0.1
+  diff_steps: 800
+  loss_type: kl
+  beta_end: 0.01
+  beta_schedule: linear
+  channel_mult: 2
+  mult: 1
+  num_preprocess_blocks: 1
+  num_preprocess_cells: 3
+  num_channels_enc: 32
+  arch_instance: res_mbconv
+  num_latent_per_group: 8
+  num_channels_dec: 32
+  groups_per_scale: 2
+  num_postprocess_blocks: 1
+  num_postprocess_cells: 2
+  beta_start: 0
+split_params:
+  perc_train: 0.7
+  perc_valid: 0.1
+  range_train: null
+  range_validation: null
+  range_test: null
+  shift: 0
+  starting_point: null
+  skip_step: 1
+  past_steps: 16
+  future_steps: 16
+train_config:
+  dirpath: /home/agobbi/Projects/ExpTS/weights/d3vae/weather/1
+  num_workers: 0
+  auto_lr_find: false
+  devices:
+  - 0
+  batch_size: 64
+  max_epochs: 200
+inference:
+  output_path: /home/agobbi/Projects/ExpTS
+  load_last: true
+  batch_size: 200
+  num_workers: 4
+  set: validation
+  rescaling: true
+model:
+  type: d3vae
+ts:
+  name: weather
+  version: 1
+  enrich:
+  - hour
+  use_covariates: true

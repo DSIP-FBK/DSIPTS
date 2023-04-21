@@ -12,7 +12,7 @@ import plotly.express as px
 
 
 
-@hydra.main(version_base=None, config_name="config")
+@hydra.main(version_base=None)
 def train(conf: DictConfig) -> None:
     """Train a DL model
 

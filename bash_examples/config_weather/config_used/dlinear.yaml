@@ -1,0 +1,62 @@
+dataset:
+  dataset: weather
+  path: /home/agobbi/Projects/ExpTS/data
+scheduler_config:
+  gamma: 0.1
+  step_size: 100
+optim_config:
+  lr: 0.0001
+  weight_decay: 0.01
+model_configs:
+  past_steps: 16
+  future_steps: 16
+  quantiles: []
+  past_channels: 21
+  future_channels: 0
+  embs:
+  - 24
+  out_channels: 1
+  cat_emb_dim: 32
+  kernel_size_encoder: 5
+  sum_emb: true
+  hidden_size: 256
+  kind: dlinear
+  dropout_rate: 0.2
+  use_bn: false
+  activation: relu
+split_params:
+  perc_train: 0.7
+  perc_valid: 0.1
+  range_train: null
+  range_validation: null
+  range_test: null
+  shift: 0
+  starting_point: null
+  skip_step: 1
+  past_steps: 16
+  future_steps: 16
+train_config:
+  dirpath: /home/agobbi/Projects/ExpTS/weights/linear/weather_d/1
+  num_workers: 0
+  auto_lr_find: true
+  devices:
+  - 0
+  batch_size: 128
+  max_epochs: 250
+  gradient_clip_val: null
+  gradient_clip_algorithm: norm
+inference:
+  output_path: /home/agobbi/Projects/ExpTS
+  load_last: true
+  batch_size: 200
+  num_workers: 4
+  set: validation
+  rescaling: true
+model:
+  type: linear
+ts:
+  name: weather_d
+  version: 1
+  enrich:
+  - hour
+  use_covariates: true
