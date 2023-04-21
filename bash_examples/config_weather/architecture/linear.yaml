@@ -16,8 +16,8 @@ model_configs:
   hidden_size: 256
   kind: 'linear'
   dropout_rate: 0.2
-  use_bn: true  
-  activation: 'relu'
+  use_bn: false  
+  activation: 'selu'
 
 train_config:
   batch_size: 128
