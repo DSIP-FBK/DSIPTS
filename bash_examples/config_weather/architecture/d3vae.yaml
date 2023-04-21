@@ -14,23 +14,23 @@ split_params:
 
 model_configs:
   target_dim: 1
-  embedding_dimension: 32
+  embedding_dimension: 64
   scale: 0.1
-  hidden_size: 64
+  hidden_size: 128
   num_layers: 2
   dropout_rate: 0.1
   diff_steps: 800
   loss_type: 'kl'
   beta_end: 0.01
   beta_schedule: 'linear'
-  channel_mult :  8
-  mult: 2
+  channel_mult :  2
+  mult: 1
   num_preprocess_blocks: 1
   num_preprocess_cells: 3
-  num_channels_enc: 16
+  num_channels_enc: 32
   arch_instance :  'res_mbconv'
-  num_latent_per_group: 6
-  num_channels_dec: 16
+  num_latent_per_group: 8
+  num_channels_dec: 32
   groups_per_scale: 2
   num_postprocess_blocks: 1
   num_postprocess_cells: 2
