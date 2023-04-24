@@ -66,7 +66,7 @@ hydra:
     name: ${hydra.job.name}
     _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
     #cpus_per_gpu: null
-    gpus_per_task: 1
+    #gpus_per_task: 1
     #mem_per_gpu: 4000
     #mem_per_cpu: null
     setup:
