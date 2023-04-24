@@ -60,7 +60,7 @@ hydra:
     partition: gpu-V100
     #gpus_per_node: 1
     #tasks_per_node: 1
-    mem_gb: 8
+    mem_gb: 4
     nodes: 4
     gres: gpu:1
     name: ${hydra.job.name}
