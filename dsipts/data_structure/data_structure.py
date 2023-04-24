@@ -17,7 +17,10 @@ from .utils import extend_df,MetricsCallback, MyDataset, ActionEnum
 from datetime import datetime
 from ..models.base import Base
 from ..models.utils import weight_init
-
+import logging 
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())      
+      
       
 class Categorical():
     
@@ -145,7 +148,7 @@ class TimeSeries():
             self.base_signal = 10*np.cos(np.arange(length)/(2*np.pi*length/100))
             self.out_vars = 1
         else:
-            print('please implement your own method')
+            logging.error('Please implement your own method')
         """
         
         """    
@@ -211,13 +214,13 @@ class TimeSeries():
         
         
         dataset = data.copy()
-        print('################I will drop duplicates, I dont like them###################')
+        logging.info('################I will drop duplicates, I dont like them###################')
         dataset.drop_duplicates(subset=['time'],  keep='first', inplace=True, ignore_index=True)
 
         if dataset.time.diff()[1:].nunique()>1:
-            print("#########There are holes in the dataset i will try to extend the dataframe inserting NAN#############3")
+            logging.info("#########There are holes in the dataset i will try to extend the dataframe inserting NAN#############3")
             freq = pd.to_timedelta(np.diff(dataset.time).min())
-            print(f'#############Detected minumum frequency: {freq}#############')
+            logging.info(f'#############Detected minumum frequency: {freq}#############')
             dataset = extend_df(dataset.time,freq).merge(dataset,how='left')
             
 
@@ -226,7 +229,7 @@ class TimeSeries():
         assert 'time'  in dataset.columns, f'The temporal column must be called time'
         if set(target_variables).intersection(set(past_variables))!= set(target_variables): 
             if check_past:
-                print('##########I will update past column adding all target columns, if you want to avoid this beahviour please use check_pass as false############')
+                logging.info('##########I will update past column adding all target columns, if you want to avoid this beahviour please use check_pass as false############')
                 past_variables = list(set(past_variables).union(set(target_variables)))
         
         self.cat_var = cat_var
@@ -235,7 +238,7 @@ class TimeSeries():
             self.cat_var = list(set(self.cat_var+[c]))
                 
             if c in dataset.columns:
-                print('#########Categorical {c} already present, it will be added to categorical variable but not recomputed#########') 
+                logging.info('#########Categorical {c} already present, it will be added to categorical variable but not recomputed#########') 
             else:
                 if c =='hour':
                     dataset[c] = dataset.time.dt.hour
@@ -246,7 +249,7 @@ class TimeSeries():
                 elif c=='minute':
                     dataset[c] = dataset.time.dt.minute
                 else:
-                    print('I can not automatically add column {c} plase update this function accordlyng')
+                    logging.info('I can not automatically add column {c} plase update this function accordlyng')
         self.dataset = dataset
         self.past_variables =past_variables
         self.future_variables = future_variables
@@ -261,7 +264,7 @@ class TimeSeries():
             plotly.graph_objects._figure.Figure: figure of the target variables
         """
       
-        print('plotting only target variables')
+        logging.info('plotting only target variables')
         tmp = self.dataset[['time']+self.target_variables].melt(id_vars=['time'])
         fig = px.line(tmp,x='time',y='value',color='variable',title=self.name)
         fig.show()
@@ -398,18 +401,18 @@ class TimeSeries():
         try:
             l = self.dataset.shape[0]
         except:
-            print('Empty dataset')
+            logging.error('Empty dataset')
             return None, None, None
         
 
         if range_train is None:
-            print(f'Split temporally using perc_train: {perc_train} and perc_valid:{perc_valid}')
+            logging.info(f'Split temporally using perc_train: {perc_train} and perc_valid:{perc_valid}')
         
             train = self.dataset.iloc[0:int(perc_train*l)]
             validation = self.dataset.iloc[int(perc_train*l):int(perc_train*l+perc_valid*l)]
             test = self.dataset.iloc[int(perc_train*l+perc_valid*l):]
         else:
-            print('Split temporally using the time intervals provided')
+            logging.info('Split temporally using the time intervals provided')
 
             train = self.dataset[self.dataset.time.between(range_train[0],range_train[1])]
             validation =  self.dataset[self.dataset.time.between(range_validation[0],range_validation[1])]
@@ -417,9 +420,9 @@ class TimeSeries():
                                       
         self.scaler_cat = {}
         self.scaler_num = {}
-        print('######################################################################################################')
-        print('######Scaling numerical (standard scaler) and categorical (label encorer) on the training data! ######')
-        print('######################################################################################################')
+        logging.info('######################################################################################################')
+        logging.info('######Scaling numerical (standard scaler) and categorical (label encorer) on the training data! ######')
+        logging.info('######################################################################################################')
 
         for c in self.num_var:
             self.scaler_num[c] =  StandardScaler()
@@ -443,16 +446,16 @@ class TimeSeries():
             config (dict, optional): usually the configuration used by the model. Defaults to None.
         """
         self.model = model
-        print('######################################################################################################')
-        print('###########LOOK THE INIT PROCEDURE IF YOU NEED A CUSTOM INITIALIZATION of the weighjts################')
-        print('######################################################################################################')
+        logging.info('######################################################################################################')
+        logging.info('###########LOOK THE INIT PROCEDURE IF YOU NEED A CUSTOM INITIALIZATION of the weighjts################')
+        logging.info('######################################################################################################')
         self.model.apply(weight_init)
         self.config = config
         
-        print('######################################################################################################')
-        print('######################################################MODEL###########################################')
-        print('######################################################################################################')
-        print(model)
+        logging.info('######################################################################################################')
+        logging.info('######################################################MODEL###########################################')
+        logging.info('######################################################################################################')
+        logging.info(model)
               
     def train_model(self,dirpath:str,
                     split_params:dict,
@@ -462,7 +465,7 @@ class TimeSeries():
                     auto_lr_find:bool=True,
                     gradient_clip_val:Union[float,None]=None,
                     gradient_clip_algorithm:str="value",
-                    devices:Union[str,List[int]]='norm',
+                    devices:Union[str,List[int]]='auto',
                     precision:Union[str,int]=32)-> None:
         """Train the model
 
@@ -479,9 +482,9 @@ class TimeSeries():
             precision  (Union[str,int], optional): precision to use. Usually 32 bit is fine but for larger model you should try 'bf16'. If 'auto' it will use bf16 for GPU and 32 for cpu
         """
 
-        print('###############################################################################')
-        print('############################TRAINING###########################################')
-        print('###############################################################################')
+        logging.info('###############################################################################')
+        logging.info('############################TRAINING###########################################')
+        logging.info('###############################################################################')
         self.split_params = split_params
         train,validation,test = self.split_for_train(**self.split_params)
         accelerator = 'gpu' if torch.cuda.is_available() else "cpu"
@@ -492,12 +495,12 @@ class TimeSeries():
                 precision = 'bf16'
             #"bf16" ##in futuro magari inserirlo nei config, potrebbe essere che per alcuni modelli possa non andare bfloat32
             torch.set_float32_matmul_precision('medium')
-            print('setting multiplication precision to medium')
+            logging.info('setting multiplication precision to medium')
         else:
             devices = 'auto'
             if precision=='auto':
                 precision  = 32
-        print(f'train:{len(train)}, validation:{len(validation)}, test:{len(test)}')
+        logging.info(f'train:{len(train)}, validation:{len(validation)}, test:{len(test)}')
         if (accelerator=='gpu') and (num_workers>0):
             persistent_workers = True
         else:
@@ -530,7 +533,7 @@ class TimeSeries():
         self.checkpoint_file_best = checkpoint_callback.best_model_path
         self.checkpoint_file_last = checkpoint_callback.last_model_path 
         if self.checkpoint_file_last=='':
-            print('There is a bug on saving last model I will try to fix it')
+            logging.info('There is a bug on saving last model I will try to fix it')
             self.checkpoint_file_last = checkpoint_callback.best_model_path.replace('checkpoint','last')
 
         self.dirpath = dirpath
@@ -552,7 +555,7 @@ class TimeSeries():
         try:
             self.model = self.model.load_from_checkpoint(self.checkpoint_file_last)
         except:
-            print(f'There is a problem loading the weights on file {self.checkpoint_file_last}')
+            logging.info(f'There is a problem loading the weights on file {self.checkpoint_file_last}')
 
     def inference_on_set(self,batch_size:int=100,num_workers:int=4,split_params:Union[None,dict]=None,set:str='test',rescaling:bool=True)->pd.DataFrame:
         """This function allows to get the prediction on a particular set (train, test or validation). TODO add inference on a custom dataset
@@ -570,7 +573,7 @@ class TimeSeries():
      
         
         if split_params is None:
-            print(f'splitting using train parameters {self.split_params}')
+            logging.info(f'splitting using train parameters {self.split_params}')
             train,validation,test = self.split_for_train(**self.split_params)
         else:
             train,validation,test = self.split_for_train(**split_params)
@@ -582,13 +585,13 @@ class TimeSeries():
         elif set=='train':
             dl = DataLoader(train, batch_size = batch_size , shuffle=False,drop_last=False,num_workers=num_workers)    
         else:
-            print('select one of train, test, or validation set')
+            logging.error('select one of train, test, or validation set')
         self.model.eval()
         res = []
         real = []
         self.model.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
 
-        print(f'Device used: {self.model.device}')
+        logging.info(f'Device used: {self.model.device}')
         for batch in dl:
             res.append(self.model.inference(batch).cpu().detach().numpy())
             real.append(batch['y'].cpu().detach().numpy())
@@ -598,7 +601,7 @@ class TimeSeries():
 
         ## BxLxCx3
         if rescaling:
-            print('Scaling back')
+            logging.info('Scaling back')
             for i, c in enumerate(self.target_variables):
                 real[:,:,i] = self.scaler_num[c].inverse_transform(real[:,:,i].reshape(-1,1)).reshape(-1,real.shape[1])
                 for j in range(res.shape[3]):
@@ -638,7 +641,7 @@ class TimeSeries():
         Args:
             filename (str): name of the file
         """
-        print('Saving')
+        logging.info('Saving')
         with open(f'{filename}.pkl','wb') as f:
             params =  self.__dict__.copy()
             for k in ['model']:
@@ -660,7 +663,7 @@ class TimeSeries():
 
             
         
-        print('################Loading#################################')
+        logging.info('################Loading#################################')
         with open(filename+'.pkl','rb') as f:
             params = pickle.load(f)
             for p in params:
@@ -684,4 +687,4 @@ class TimeSeries():
         try:
             self.model = self.model.load_from_checkpoint(tmp_path)
         except Exception as e:
-            print(f'There is a problem loading the weights on file {tmp_path} {e}')
+            logging.info(f'There is a problem loading the weights on file {tmp_path} {e}')

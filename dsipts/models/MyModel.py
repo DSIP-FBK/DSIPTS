@@ -5,6 +5,7 @@ from .base import Base
 from .utils import QuantileLossMO,Permute, get_device,L1Loss, get_activation
 from typing import List
 import numpy as np
+import logging
 
 class Block(nn.Module):
     def __init__(self,input_channels:int,kernel_sie:int,output_channels:int,input_size:int,sum_layers:bool ):
@@ -49,7 +50,7 @@ class MyModel(Base):
                  hidden_RNN:int,
                  num_layers_RNN:int,
                  kind:str,
-                 kernel_size_encoder:int,
+                 kernel_size:int,
                  sum_emb:bool,
                  out_channels:int,
                  persistence_weight:float,
@@ -71,7 +72,7 @@ class MyModel(Base):
             hidden_RNN (int): hidden size of the RNN block
             num_layers_RNN (int): number of RNN layers
             kind (str): one among GRU or LSTM
-            kernel_size_encoder (int): kernel size in the encoder convolutional block
+            kernel_size (int): kernel size in the encoder convolutional block
             sum_emb (bool): if true the contribution of each embedding will be summed-up otherwise stacked
             out_channels (int):  number of output channels
             persistence_weight (float):  weight controlling the divergence from persistence model
@@ -84,12 +85,12 @@ class MyModel(Base):
 
         """
         if activation == 'SELU':
-            print('SELU do not require BN')
+            logging.info('SELU do not require BN')
             use_bn = False
         if type(activation)==str:
             activation = get_activation(activation)
         else:
-            print('There is a bug in pytorch lightening, the constructior is called twice ')
+            logging.info('There is a bug in pytorch lightening, the constructior is called twice ')
         
         super(MyModel, self).__init__()
         self.save_hyperparameters(logger=False)
@@ -124,33 +125,33 @@ class MyModel(Base):
             
         if sum_emb and (emb_channels>0):
             emb_channels = cat_emb_dim
-            print('Using sum')
+            logging.info('Using sum')
         else:
-            print('Using stacked')
+            logging.info('Using stacked')
     
         self.initial_linear_encoder =  nn.Sequential(Permute(),
-                                                    nn.Conv1d(past_channels, (past_channels+hidden_RNN//8)//2, kernel_size_encoder, stride=1,padding='same'),
+                                                    nn.Conv1d(past_channels, (past_channels+hidden_RNN//8)//2, kernel_size, stride=1,padding='same'),
                                                     activation(),
                                                     nn.BatchNorm1d(  (past_channels+hidden_RNN//8)//2) if use_bn else nn.Dropout(dropout_rate) ,
-                                                    nn.Conv1d( (past_channels+hidden_RNN//8)//2, hidden_RNN//8, kernel_size_encoder, stride=1,padding='same'),
+                                                    nn.Conv1d( (past_channels+hidden_RNN//8)//2, hidden_RNN//8, kernel_size, stride=1,padding='same'),
                                                     Permute())
 
         self.initial_linear_decoder =   nn.Sequential(Permute(),
-                                                    nn.Conv1d(future_channels, (future_channels+hidden_RNN//8)//2, kernel_size_encoder, stride=1,padding='same'),
+                                                    nn.Conv1d(future_channels, (future_channels+hidden_RNN//8)//2, kernel_size, stride=1,padding='same'),
                                                     activation(),
                                                     nn.BatchNorm1d(  (future_channels+hidden_RNN//8)//2) if use_bn else nn.Dropout(dropout_rate) ,
-                                                    nn.Conv1d( (future_channels+hidden_RNN//8)//2, hidden_RNN//8, kernel_size_encoder, stride=1,padding='same'),
+                                                    nn.Conv1d( (future_channels+hidden_RNN//8)//2, hidden_RNN//8, kernel_size, stride=1,padding='same'),
                                                     Permute())
-        self.conv_encoder = Block(emb_channels+hidden_RNN//8,kernel_size_encoder,hidden_RNN//4,self.past_steps,sum_emb)
+        self.conv_encoder = Block(emb_channels+hidden_RNN//8,kernel_size,hidden_RNN//4,self.past_steps,sum_emb)
         
-        #nn.Sequential(Permute(), nn.Conv1d(emb_channels+hidden_RNN//8, hidden_RNN//8, kernel_size_encoder, stride=1,padding='same'),Permute(),nn.Dropout(0.3))
+        #nn.Sequential(Permute(), nn.Conv1d(emb_channels+hidden_RNN//8, hidden_RNN//8, kernel_size, stride=1,padding='same'),Permute(),nn.Dropout(0.3))
         #import pdb
         #pdb.set_trace()
         if future_channels+emb_channels==0:
             ## occhio che vuol dire che non ho passato , per ora ci metto una pezza e uso hidden dell'encoder
-            self.conv_decoder = Block(hidden_RNN//2,kernel_size_encoder,hidden_RNN//4,self.future_steps,sum_emb) 
+            self.conv_decoder = Block(hidden_RNN//2,kernel_size,hidden_RNN//4,self.future_steps,sum_emb) 
         else:
-            self.conv_decoder = Block(future_channels+emb_channels,kernel_size_encoder,hidden_RNN//4,self.future_steps,sum_emb) 
+            self.conv_decoder = Block(future_channels+emb_channels,kernel_size,hidden_RNN//4,self.future_steps,sum_emb) 
             #nn.Sequential(Permute(),nn.Linear(past_steps,past_steps*2),  nn.PReLU(),nn.Dropout(0.2),nn.Linear(past_steps*2, future_steps),nn.Dropout(0.3),nn.Conv1d(hidden_RNN, hidden_RNN//8, 3, stride=1,padding='same'),   Permute())
         if self.kind=='lstm':
             self.Encoder = nn.LSTM(input_size= hidden_RNN//4,
@@ -171,7 +172,7 @@ class MyModel(Base):
                                   num_layers = num_layers_RNN,
                                   batch_first=True,bidirectional=True)
         else:
-            print('Speciky kind= lstm or gru please')
+            print('Specify kind= lstm or gru please')
         self.final_linear = nn.ModuleList()
         for _ in range(out_channels*self.mul*self.future_steps):
             self.final_linear.append(nn.Sequential(nn.Linear(hidden_RNN//2+emb_channels,hidden_RNN//4), 

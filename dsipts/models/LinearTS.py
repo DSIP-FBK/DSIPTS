@@ -5,6 +5,8 @@ import pytorch_lightning as pl
 from .base import  Base
 from .utils import QuantileLossMO, get_device, L1Loss, get_activation
 from typing import List
+import logging
+
 class moving_avg(nn.Module):
     """
     Moving average block to highlight the trend of time series
@@ -48,7 +50,7 @@ class LinearTS(Base):
                  future_channels:int,
                  embs:List[int],
                  cat_emb_dim:int,
-                 kernel_size_encoder:int,
+                 kernel_size:int,
                  sum_emb:bool,
                  out_channels:int,
                  hidden_size:int,
@@ -68,7 +70,7 @@ class LinearTS(Base):
             future_channels (int): number of future numeric variables 
             embs (List[int]): list of the initial dimension of the categorical variables
             cat_emb_dim (int): final dimension of each categorical variable
-            kernel_size_encoder (int): kernel dimension for initial moving average
+            kernel_size (int): kernel dimension for initial moving average
             sum_emb (bool): if true the contribution of each embedding will be summed-up otherwise stacked
             out_channels (int): number of output channels
             hidden_size (int): hidden size of the lienar block
@@ -82,13 +84,13 @@ class LinearTS(Base):
         """
   
         if activation == 'SELU':
-            print('SELU do not require BN')
+            logging.info('SELU do not require BN')
             use_bn = False
             
         if type(activation)==str:
             activation = get_activation(activation)
         else:
-            print('There is a bug in pytorch lightening, the constructior is called twice ')
+            logging.info('There is a bug in pytorch lightening, the constructior is called twice ')
         
         super(LinearTS, self).__init__()
         self.save_hyperparameters(logger=False)
@@ -118,9 +120,9 @@ class LinearTS(Base):
             
         if sum_emb and (emb_channels>0):
             emb_channels = cat_emb_dim
-            print('Using sum')
+            logging.info('Using sum')
         else:
-            print('Using stacked')
+            logging.info('Using stacked')
     
         ## ne faccio uno per ogni canale
         self.linear =  nn.ModuleList()
@@ -132,7 +134,7 @@ class LinearTS(Base):
             self.mul = 1 
             
         if kind=='dlinear':
-            self.decompsition = series_decomp(kernel_size_encoder)    
+            self.decompsition = series_decomp(kernel_size)    
             self.Linear_Trend = nn.ModuleList()
             for _ in range(out_channels):
                 self.Linear_Trend.append(nn.Linear(past_steps,future_steps))

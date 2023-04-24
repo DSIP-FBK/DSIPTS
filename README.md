@@ -45,7 +45,7 @@ This frist block maybe is common between several architectures:
 - **sum_emb** = boolean. If true the contribution of each categorical variable is summed
 - **quantiles**=[0.1,0.5,0.9]. Quantiles for quantile loss
 - **kind** =str. If there are some similar architectures with small differences maybe is better to use the same code specifying some properties (e.g. GRU vs LSTM)
-- **activation**='relu'. activation function between layers
+- **activation**='relu'. activation function between layers, it can be one between relu, selu or prelu (Notice that if selu is used the batch normalization will be disabled)
 - **dropout_rate**=0.1. dropout rate
 - **use_bn**=False. Use or not batch normalization
 
@@ -54,7 +54,7 @@ some are more specific for RNN-CONV architectures:
 
 - **hidden_RNN** = int. If there are some RNN use this and the following
 - **num_layers_RNN** = int.
-- **kernel_size_encoder** = int. If there are some convolutional layers
+- **kernel_size** = int. If there are some convolutional layers
 
 linear:
 - **hidden_size** = int. Usually the hidden dimension, for some architecture maybe you can pass the list of the dimensions
@@ -180,6 +180,8 @@ config = dict(model_configs =dict(
                                     future_channels = len(ts.future_variables),
                                     embs = [ts.dataset[c].nunique() for c in ts.cat_var],
                                     quantiles=[0.1,0.5,0.9],
+                                    use_bn = False,
+                                    activation='selu',
                                     out_channels = len(ts.target_variables),
                 scheduler_config = dict(gamma=0.1,step_size=100),
                 optim_config = dict(lr = 0.0005,weight_decay=0.01))

@@ -13,7 +13,7 @@ model_configs:
   cat_emb_dim: 64
   hidden_RNN: 512
   num_layers_RNN: 2
-  kernel_size_encoder: 3
+  kernel_size: 3
   kind: 'gru'
   sum_emb: true
   persistence_weight: 0.2

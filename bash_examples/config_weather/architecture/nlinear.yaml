@@ -11,7 +11,7 @@ ts:
 
 model_configs:
   cat_emb_dim: 32
-  kernel_size_encoder: 5
+  kernel_size: 5
   sum_emb: true
   hidden_size: 256
   kind: 'nlinear'

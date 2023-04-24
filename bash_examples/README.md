@@ -47,10 +47,11 @@ The script used are:
 Hydra is used for composing configuration files. In our case most of the parameter can be reused among the different models and are collected under the general configuration file `config/config.yaml`\. In what follows the `weather` dataset is used, and notice that this dataset has a frequency of **10 minutes**. The parameters here are the same described in the `dsitps` documentation but clearly some of them can not be modified since they depend on the selected time series.
 The configuration files related to this experiment can be found in `config_weather`; a generic config folder contains:
 ```
-config.yaml               # containing the global configuration, see below one example
-compare.yaml              # instructions for comparing different models
-architecture/             # the folder containing the configurations specific for all the models to test
-config_used/              # this folder will be populated while training the models, and will be used in the comparison phase              
+config_gpu.yaml               # containing the global configuration usually for gpu or local train, see below one example
+config_slurm.yaml             # containing the global configuration for slurm training see below one example
+compare.yaml                  # instructions for comparing different models
+architecture/                 # the folder containing the configurations specific for all the models to test
+config_used/                  # this folder will be populated while training the models, and will be used in the comparison phase              
 
 ```
 
@@ -106,20 +107,43 @@ inference:
 
 #since now standard things, these two sessions are the most crucial and useful
 
-defaults: ##keyword indicating the defaults for hydra
-  - _self_ ##take all this configuration 
-  - architecture: null ##and let the use specify the architecture to use (be aware that the filed here is the same as the folder containing the other yaml files)
-  - override hydra/launcher: joblib ##use joblib for multiprocess allowing parallelization in case of multirun
+defaults: 
+  - _self_                           # take all this configuration 
+  - architecture: null               # and let the use specify the architecture to use (be aware that the filed here is the same as the folder containing the other yaml files)
+  - override hydra/launcher: joblib  # use joblib for multiprocess allowing parallelization in case of multirun in a gpu/cpu environemnt (single machine)
 
 
 hydra:
   launcher:
-    n_jobs: 2 ##parameters indicate the number of parallel jobs in case of multirun
-  output_subdir: null #do not save any file
+    n_jobs: 2                  # parameters indicate the number of parallel jobs in case of multirun
+  output_subdir: null          # do not save any file
   sweeper:
     params:
-      architecture: glob(*) ##this is a way to train all the models in the architecure folder
+      architecture: glob(*)    # this is a way to train all the models in the architecure folder
 ```
+
+If you are using a SLURM cluster:
+
+```
+defaults:
+  - _self_
+  - architecture: null 
+  - override hydra/launcher: submitit_slurm  ## use slurm launcher
+
+hydra:
+  launcher:
+    submitit_folder: ${hydra.sweep.dir}/.submitit/%j
+    timeout_min: 600
+    partition: gpu-V100  ##partition to use REQURED
+    mem_gb: 6            ##gb requires      REQURED
+    nodes: 1
+    gres: gpu:1          ##number of GPU    REQURED
+    name: ${hydra.job.name}
+    _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
+    setup:
+      - conda activate tt  ##activate the conda environment first!
+```
+
 
 In the `config_weather/architecture` folder there are the selected models that have the following structure:
 
@@ -133,20 +157,30 @@ model:
   
 ts:
   name: 'weather'
-  version: 1 # if you need to versioning a model
+  version: 1              # if you need to versioning a model
   enrich: ['hour'] 
-  use_covariates: false #if true all the columns of the dataset will be used as past features
+  use_covariates: false   # if true all the columns of the dataset will be used as past features
 
+
+## for more information about models please look at the documentation [here] (https://dsip.pages.fbk.eu/dsip_dlresearch/timeseries/)
 model_configs:
-  cat_emb_dim: 16
-  kernel_size_encoder: 15
-  sum_emb: true
-  hidden_size: 256
-  kind: 'linear'
+  cat_emb_dim: 32         # dimension of categorical variables
+  kernel_size: 5  # kernel size 
+  sum_emb: true           # if true each embdedding will be summed otherwise stacked
+  hidden_size: 256        # hidden size of the fully connected block
+  kind: 'linear'          # model type
+  dropout_rate: 0.2       # dropout
+  use_bn: false           # use or not bn layers in the first layers 
+  activation: 'selu'      # activation function
+
+
 
 train_config:
-  batch_size: 256
+  batch_size: 128
   max_epochs: 250
+  gradient_clip_val: null          # pytorch lightening gradient clipping procedure
+  gradient_clip_algorithm: 'norm'  # pytorch lightening gradient clipping procedure
+
 
 ```
 
@@ -165,13 +199,13 @@ python train.py  architecture=linear --config-dir=config_weather --config-name=c
 or a list of models in paralle:
 
 ```
-python train.py  -m architecture=linear, dlinear --config-dir=config_weather
+python train.py  -m architecture=linear, dlinear --config-dir=config_weather --config-name=config_slurm
 ```
 
 or all the implemented models:
 
 ```
-python train.py  -m  --config-dir=config_weather
+python train.py  -m  --config-dir=config_weather --config-name=config_slurm
 ```
 If the row `override hydra/launcher: joblib` is commented the train will be consecutive, otherwise in parallel. In the latter case the output in the terminal will be a mess, please check all is woking fine. In the future the logging will be more efficient.
 
@@ -206,7 +240,7 @@ The loss plot is currenty broken on server, you can reproduce it form the notebo
 You can use the `config_test` for testing your models. In this case you can use smaller model with fewer epochs:
 
 ```
-python train.py -m --config-dir=config_test
+python train.py -m --config-dir=config_test --config-name=config_gpu
 ```
 
 

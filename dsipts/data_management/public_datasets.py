@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import numpy as np
 from typing import List, Tuple
-
+import logging
 
 
 def read_public_dataset(path:str,dataset:str)->Tuple[pd.DataFrame,List[str]]:
@@ -22,19 +22,19 @@ def read_public_dataset(path:str,dataset:str)->Tuple[pd.DataFrame,List[str]]:
     if os.path.isdir(path):
         pass
     else:
-        print('I will try to create the folder')
+        logging.info('I will try to create the folder')
         os.mkdir(path)
         
     files = os.listdir(path)
     if 'all_six_datasets' in files:
         pass
     else:
-        print('Please dowload the zip file form here and unzip it https://drive.google.com/drive/folders/1ZOYpTUa82_jCcxIdTmyr0LXQfvaM9vIy')
+        logging.error('Please dowload the zip file form here and unzip it https://drive.google.com/drive/folders/1ZOYpTUa82_jCcxIdTmyr0LXQfvaM9vIy')
         return None,None
     
     
     if dataset not in ['electricity','etth1','etth2','ettm1','ettm2','exchange_rate','illness','traffic','weather']:
-        print(f'Dataset {dataset} not available')
+        logging.error(f'Dataset {dataset} not available')
         return None,None
 
     if dataset=='electricity':
@@ -56,10 +56,10 @@ def read_public_dataset(path:str,dataset:str)->Tuple[pd.DataFrame,List[str]]:
     elif dataset=='weather':
         dataset = pd.read_csv(os.path.join(path,'all_six_datasets/weather/weather.csv'),sep=',',na_values=-9999) 
     else:
-        print(f'Dataset {dataset} not found')
+        logging.error(f'Dataset {dataset} not found')
         return None, None
     dataset.rename(columns={'date':'time','OT':'y'},inplace=True)
     dataset.time = pd.to_datetime(dataset.time)
-    print(f'Dataset loaded with shape {dataset.shape}')
+    logging.info(f'Dataset loaded with shape {dataset.shape}')
     
     return dataset, list(set(dataset.columns).difference(set(['time','y'])))

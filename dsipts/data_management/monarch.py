@@ -7,7 +7,7 @@ import shutil
 from datetime import datetime
 from distutils.util import strtobool
 from typing import Union
-
+import logging
 
 # Converts the contents in a .tsf file into a dataframe and returns it along with other meta-data of the dataset: frequency, horizon, whether the dataset contains missing values and whether the series have equal lengths
 #
@@ -205,7 +205,7 @@ class Monarch():
         self.baseUrl = baseUrl
         self.downloaded = {}
         if rebuild==False:
-            print(filename)
+            logging.info(filename)
             if os.path.exists(filename+'.pkl'):
                 self.load(filename)
             else:
@@ -261,7 +261,7 @@ class Monarch():
         Args:
             filename (str): name of the file to generate
         """
-        print('Saving')
+        logging.info('Saving')
         with open(f'{filename}.pkl','wb') as f:
             params =  self.__dict__.copy()
             #for k in ['data','data_train','data_test','data_validation']:
@@ -274,7 +274,7 @@ class Monarch():
         Args:
             filename (str): filename to load
         """
-        print('Loading')
+        logging.info('Loading')
         with open(filename+'.pkl','rb') as f:
             params = pickle.load(f)
             for p in params:
@@ -313,7 +313,7 @@ class Monarch():
             soup = bs(r.content)
 
             url = soup.find("link", {"type": "application/zip"})['href']
-            print(url)
+            logging.info(url)
             with open(path+'.zip', "wb") as f:
                 f.write(s.get(url).content)
         
@@ -332,7 +332,7 @@ class Monarch():
         """
 
         if id not in self.downloaded.keys():
-            print('please call first download dataset')
+            logging.error('please call first download dataset')
             return None
         else:
             return convert_tsf_to_dataframe(self.downloaded[id])
