@@ -11,9 +11,8 @@
   <![endif]-->
   
         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -73,7 +72,7 @@
 <span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span>  <span class="n">nn</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span>  <span class="n">Base</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">get_device</span><span class="p">,</span> <span class="n">QuantileLossMO</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">get_device</span><span class="p">,</span> <span class="n">QuantileLossMO</span><span class="p">,</span><span class="n">L1Loss</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
 
@@ -184,7 +183,7 @@
         <span class="k">if</span>  <span class="bp">self</span><span class="o">.</span><span class="n">use_quantiles</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">QuantileLossMO</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">L1Loss</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">L1Loss</span><span class="p">()</span>
         
  
      
@@ -265,9 +264,8 @@
         <span class="c1">##BxLxC</span>
         <span class="n">res</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">res</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
         <span class="n">B</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="n">_</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">shape</span>
-
         <span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">mul</span><span class="p">)</span></div>
-
+   
     
 
     

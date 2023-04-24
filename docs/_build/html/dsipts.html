@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>dsipts package &mdash; DISIPTS 0.0.1 documentation</title>
@@ -12,9 +12,8 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -85,32 +84,127 @@
            <div itemprop="articleBody">
              
   <section id="dsipts-package">
-<h1>dsipts package<a class="headerlink" href="#dsipts-package" title="Permalink to this headline"></a></h1>
+<h1>dsipts package<a class="headerlink" href="#dsipts-package" title="Permalink to this heading"></a></h1>
 <section id="subpackages">
-<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline"></a></h2>
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="dsipts.data_management.html">dsipts.data_management package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="dsipts.data_management.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dsipts.data_management.html#module-dsipts.data_management.monarch">dsipts.data_management.monarch module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dsipts.data_management.html#module-dsipts.data_management.public_datasets">dsipts.data_management.public_datasets module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.data_management.html#module-dsipts.data_management.monarch">dsipts.data_management.monarch module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.data_management.html#dsipts.data_management.monarch.Monarch"><code class="docutils literal notranslate"><span class="pre">Monarch</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.data_management.html#dsipts.data_management.monarch.Monarch.download_dataset"><code class="docutils literal notranslate"><span class="pre">Monarch.download_dataset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.data_management.html#dsipts.data_management.monarch.Monarch.generate_dataset"><code class="docutils literal notranslate"><span class="pre">Monarch.generate_dataset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.data_management.html#dsipts.data_management.monarch.Monarch.load"><code class="docutils literal notranslate"><span class="pre">Monarch.load()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.data_management.html#dsipts.data_management.monarch.Monarch.save"><code class="docutils literal notranslate"><span class="pre">Monarch.save()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.data_management.html#dsipts.data_management.monarch.convert_tsf_to_dataframe"><code class="docutils literal notranslate"><span class="pre">convert_tsf_to_dataframe()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.data_management.html#dsipts.data_management.monarch.get_freq"><code class="docutils literal notranslate"><span class="pre">get_freq()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.data_management.html#module-dsipts.data_management.public_datasets">dsipts.data_management.public_datasets module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.data_management.html#dsipts.data_management.public_datasets.read_public_dataset"><code class="docutils literal notranslate"><span class="pre">read_public_dataset()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="dsipts.data_management.html#module-dsipts.data_management">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="dsipts.data_structure.html">dsipts.data_structure package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="dsipts.data_structure.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dsipts.data_structure.html#module-dsipts.data_structure.data_structure">dsipts.data_structure.data_structure module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dsipts.data_structure.html#module-dsipts.data_structure.utils">dsipts.data_structure.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.data_structure.html#module-dsipts.data_structure.data_structure">dsipts.data_structure.data_structure module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.data_structure.html#dsipts.data_structure.data_structure.Categorical"><code class="docutils literal notranslate"><span class="pre">Categorical</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.data_structure.html#dsipts.data_structure.data_structure.Categorical.generate_signal"><code class="docutils literal notranslate"><span class="pre">Categorical.generate_signal()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.data_structure.html#dsipts.data_structure.data_structure.Categorical.plot"><code class="docutils literal notranslate"><span class="pre">Categorical.plot()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries"><code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.create_data_loader"><code class="docutils literal notranslate"><span class="pre">TimeSeries.create_data_loader()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.generate_signal"><code class="docutils literal notranslate"><span class="pre">TimeSeries.generate_signal()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.inference"><code class="docutils literal notranslate"><span class="pre">TimeSeries.inference()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.inference_on_set"><code class="docutils literal notranslate"><span class="pre">TimeSeries.inference_on_set()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.load"><code class="docutils literal notranslate"><span class="pre">TimeSeries.load()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.load_signal"><code class="docutils literal notranslate"><span class="pre">TimeSeries.load_signal()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.plot"><code class="docutils literal notranslate"><span class="pre">TimeSeries.plot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.save"><code class="docutils literal notranslate"><span class="pre">TimeSeries.save()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.set_model"><code class="docutils literal notranslate"><span class="pre">TimeSeries.set_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.split_for_train"><code class="docutils literal notranslate"><span class="pre">TimeSeries.split_for_train()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.train_model"><code class="docutils literal notranslate"><span class="pre">TimeSeries.train_model()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.data_structure.html#module-dsipts.data_structure.utils">dsipts.data_structure.utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.data_structure.html#dsipts.data_structure.utils.MyDataset"><code class="docutils literal notranslate"><span class="pre">MyDataset</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.data_structure.html#dsipts.data_structure.utils.extend_df"><code class="docutils literal notranslate"><span class="pre">extend_df()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="dsipts.data_structure.html#module-dsipts.data_structure">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="dsipts.models.html">dsipts.models package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="dsipts.models.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dsipts.models.html#module-dsipts.models.Attention">dsipts.models.Attention module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dsipts.models.html#module-dsipts.models.LinearTS">dsipts.models.LinearTS module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dsipts.models.html#module-dsipts.models.RNN">dsipts.models.RNN module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dsipts.models.html#module-dsipts.models.base">dsipts.models.base module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dsipts.models.html#module-dsipts.models.utils">dsipts.models.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.html#module-dsipts.models.Attention">dsipts.models.Attention module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.Attention.Attention"><code class="docutils literal notranslate"><span class="pre">Attention</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.Attention.Attention.forward"><code class="docutils literal notranslate"><span class="pre">Attention.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.Attention.Attention.inference"><code class="docutils literal notranslate"><span class="pre">Attention.inference()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.Attention.PositionalEncoding"><code class="docutils literal notranslate"><span class="pre">PositionalEncoding</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.Attention.PositionalEncoding.forward"><code class="docutils literal notranslate"><span class="pre">PositionalEncoding.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.Attention.generate_square_subsequent_mask"><code class="docutils literal notranslate"><span class="pre">generate_square_subsequent_mask()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.html#module-dsipts.models.LinearTS">dsipts.models.LinearTS module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.LinearTS.LinearTS"><code class="docutils literal notranslate"><span class="pre">LinearTS</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.LinearTS.LinearTS.forward"><code class="docutils literal notranslate"><span class="pre">LinearTS.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.LinearTS.moving_avg"><code class="docutils literal notranslate"><span class="pre">moving_avg</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.LinearTS.moving_avg.forward"><code class="docutils literal notranslate"><span class="pre">moving_avg.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.LinearTS.series_decomp"><code class="docutils literal notranslate"><span class="pre">series_decomp</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.LinearTS.series_decomp.forward"><code class="docutils literal notranslate"><span class="pre">series_decomp.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.html#module-dsipts.models.RNN">dsipts.models.RNN module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.RNN.RNN"><code class="docutils literal notranslate"><span class="pre">RNN</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.RNN.RNN.forward"><code class="docutils literal notranslate"><span class="pre">RNN.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.html#module-dsipts.models.base">dsipts.models.base module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.base.Base"><code class="docutils literal notranslate"><span class="pre">Base</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base.Base.forward"><code class="docutils literal notranslate"><span class="pre">Base.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base.Base.inference"><code class="docutils literal notranslate"><span class="pre">Base.inference()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.html#module-dsipts.models.utils">dsipts.models.utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.L1Loss"><code class="docutils literal notranslate"><span class="pre">L1Loss</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.L1Loss.forward"><code class="docutils literal notranslate"><span class="pre">L1Loss.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.Permute"><code class="docutils literal notranslate"><span class="pre">Permute</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.Permute.forward"><code class="docutils literal notranslate"><span class="pre">Permute.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.QuantileLossMO"><code class="docutils literal notranslate"><span class="pre">QuantileLossMO</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.QuantileLossMO.forward"><code class="docutils literal notranslate"><span class="pre">QuantileLossMO.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.get_activation"><code class="docutils literal notranslate"><span class="pre">get_activation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.get_device"><code class="docutils literal notranslate"><span class="pre">get_device()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.weight_init"><code class="docutils literal notranslate"><span class="pre">weight_init()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="dsipts.models.html#module-dsipts.models">Module contents</a></li>
 </ul>
 </li>
@@ -118,7 +212,7 @@
 </div>
 </section>
 <section id="module-dsipts">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-dsipts" title="Permalink to this headline"></a></h2>
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-dsipts" title="Permalink to this heading"></a></h2>
 </section>
 </section>
 

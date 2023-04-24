@@ -11,9 +11,8 @@
   <![endif]-->
   
         <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -74,8 +73,10 @@
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">pytorch_lightning</span> <span class="k">as</span> <span class="nn">pl</span>
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span>  <span class="n">Base</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">QuantileLossMO</span><span class="p">,</span> <span class="n">get_device</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">QuantileLossMO</span><span class="p">,</span> <span class="n">get_device</span><span class="p">,</span> <span class="n">L1Loss</span><span class="p">,</span> <span class="n">get_activation</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
 <div class="viewcode-block" id="moving_avg"><a class="viewcode-back" href="../../../dsipts.models.html#dsipts.models.LinearTS.moving_avg">[docs]</a><span class="k">class</span> <span class="nc">moving_avg</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Moving average block to highlight the trend of time series</span>
@@ -119,11 +120,14 @@
                  <span class="n">future_channels</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
                  <span class="n">embs</span><span class="p">:</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
                  <span class="n">cat_emb_dim</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
-                 <span class="n">kernel_size_encoder</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">kernel_size</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
                  <span class="n">sum_emb</span><span class="p">:</span><span class="nb">bool</span><span class="p">,</span>
                  <span class="n">out_channels</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
                  <span class="n">hidden_size</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">dropout_rate</span><span class="p">:</span><span class="nb">float</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                 <span class="n">activation</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="s1">&#39;RELU&#39;</span><span class="p">,</span>
                  <span class="n">kind</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span>
+                 <span class="n">use_bn</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">quantiles</span><span class="p">:</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="p">[],</span>
                  <span class="n">optim_config</span><span class="p">:</span><span class="nb">dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">scheduler_config</span><span class="p">:</span><span class="nb">dict</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
@@ -136,17 +140,27 @@
 <span class="sd">            future_channels (int): number of future numeric variables </span>
 <span class="sd">            embs (List[int]): list of the initial dimension of the categorical variables</span>
 <span class="sd">            cat_emb_dim (int): final dimension of each categorical variable</span>
-<span class="sd">            kernel_size_encoder (int): kernel dimension for initial moving average</span>
+<span class="sd">            kernel_size (int): kernel dimension for initial moving average</span>
 <span class="sd">            sum_emb (bool): if true the contribution of each embedding will be summed-up otherwise stacked</span>
 <span class="sd">            out_channels (int): number of output channels</span>
 <span class="sd">            hidden_size (int): hidden size of the lienar block</span>
+<span class="sd">            dropout_rate (float, optional): dropout rate in Dropout layers. Default 0.1</span>
+<span class="sd">            activation (str, optional): activation fuction</span>
 <span class="sd">            kind (str, optional): one among linear, dlinear (de-trending), nlinear (differential). Defaults to &#39;linear&#39;.</span>
+<span class="sd">            use_bn (bool, optional): if true BN layers will be added and dropouts will be removed. Default False</span>
 <span class="sd">            quantiles (List[int], optional):  we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].</span>
 <span class="sd">            optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.</span>
 <span class="sd">            scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        
-        
+  
+        <span class="k">if</span> <span class="n">activation</span> <span class="o">==</span> <span class="s1">&#39;SELU&#39;</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;SELU do not require BN&#39;</span><span class="p">)</span>
+            <span class="n">use_bn</span> <span class="o">=</span> <span class="kc">False</span>
+            
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
+            <span class="n">activation</span> <span class="o">=</span> <span class="n">get_activation</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;There is a bug in pytorch lightening, the constructior is called twice &#39;</span><span class="p">)</span>
         
         <span class="nb">super</span><span class="p">(</span><span class="n">LinearTS</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">save_hyperparameters</span><span class="p">(</span><span class="n">logger</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -176,9 +190,9 @@
             
         <span class="k">if</span> <span class="n">sum_emb</span> <span class="ow">and</span> <span class="p">(</span><span class="n">emb_channels</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
             <span class="n">emb_channels</span> <span class="o">=</span> <span class="n">cat_emb_dim</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using sum&#39;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using sum&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using stacked&#39;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using stacked&#39;</span><span class="p">)</span>
     
         <span class="c1">## ne faccio uno per ogni canale</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span>  <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">()</span>
@@ -186,11 +200,11 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">QuantileLossMO</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mul</span> <span class="o">=</span> <span class="mi">3</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">L1Loss</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">L1Loss</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mul</span> <span class="o">=</span> <span class="mi">1</span> 
             
         <span class="k">if</span> <span class="n">kind</span><span class="o">==</span><span class="s1">&#39;dlinear&#39;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">decompsition</span> <span class="o">=</span> <span class="n">series_decomp</span><span class="p">(</span><span class="n">kernel_size_encoder</span><span class="p">)</span>    
+            <span class="bp">self</span><span class="o">.</span><span class="n">decompsition</span> <span class="o">=</span> <span class="n">series_decomp</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">)</span>    
             <span class="bp">self</span><span class="o">.</span><span class="n">Linear_Trend</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">out_channels</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">Linear_Trend</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">past_steps</span><span class="p">,</span><span class="n">future_steps</span><span class="p">))</span>
@@ -198,20 +212,19 @@
         
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">out_channels</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">cat_emb_dim</span><span class="o">*</span><span class="p">(</span><span class="n">past_steps</span><span class="o">+</span><span class="n">future_steps</span><span class="p">)</span><span class="o">+</span><span class="n">past_steps</span><span class="o">*</span><span class="n">past_channels</span><span class="o">+</span><span class="n">future_channels</span><span class="o">*</span><span class="n">future_steps</span><span class="p">,</span><span class="n">hidden_size</span><span class="p">),</span>
-                                                <span class="n">nn</span><span class="o">.</span><span class="n">PReLU</span><span class="p">(),</span>
-                                                <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="mf">0.2</span><span class="p">),</span>    
+                                                <span class="n">activation</span><span class="p">(),</span>
+                                                <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm1d</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">)</span> <span class="k">if</span> <span class="n">use_bn</span> <span class="k">else</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_rate</span><span class="p">)</span> <span class="p">,</span>    
                                                 <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span><span class="n">hidden_size</span><span class="o">//</span><span class="mi">2</span><span class="p">),</span> 
-                                                <span class="n">nn</span><span class="o">.</span><span class="n">PReLU</span><span class="p">(),</span>
-                                                <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="mf">0.2</span><span class="p">),</span>
+                                                <span class="n">activation</span><span class="p">(),</span>
+                                                <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm1d</span><span class="p">(</span><span class="n">hidden_size</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span> <span class="k">if</span> <span class="n">use_bn</span> <span class="k">else</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_rate</span><span class="p">)</span> <span class="p">,</span>    
                                                 <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span><span class="n">hidden_size</span><span class="o">//</span><span class="mi">4</span><span class="p">),</span>
-                                                <span class="n">nn</span><span class="o">.</span><span class="n">PReLU</span><span class="p">(),</span>
-                                                <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="mf">0.2</span><span class="p">),</span>
+                                                <span class="n">activation</span><span class="p">(),</span>
+                                                <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm1d</span><span class="p">(</span><span class="n">hidden_size</span><span class="o">//</span><span class="mi">4</span><span class="p">)</span> <span class="k">if</span> <span class="n">use_bn</span> <span class="k">else</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_rate</span><span class="p">)</span> <span class="p">,</span>    
                                                 <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="o">//</span><span class="mi">4</span><span class="p">,</span><span class="n">hidden_size</span><span class="o">//</span><span class="mi">8</span><span class="p">),</span>
-                                                <span class="n">nn</span><span class="o">.</span><span class="n">PReLU</span><span class="p">(),</span>
-                                                <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="mf">0.2</span><span class="p">),</span>
+                                                <span class="n">activation</span><span class="p">(),</span>
+                                                <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm1d</span><span class="p">(</span><span class="n">hidden_size</span><span class="o">//</span><span class="mi">8</span><span class="p">)</span> <span class="k">if</span> <span class="n">use_bn</span> <span class="k">else</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_rate</span><span class="p">)</span> <span class="p">,</span>    
                                                 <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="o">//</span><span class="mi">8</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">future_steps</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">mul</span><span class="p">)))</span>
                                
-
 <div class="viewcode-block" id="LinearTS.forward"><a class="viewcode-back" href="../../../dsipts.models.html#dsipts.models.LinearTS.LinearTS.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;It is mandatory to implement this method</span>
 
@@ -309,6 +322,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="o">==</span><span class="s1">&#39;dlinear&#39;</span><span class="p">:</span>
             <span class="n">res</span> <span class="o">=</span> <span class="n">res</span><span class="o">+</span><span class="n">trend</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
         
+            
         <span class="k">return</span> <span class="n">res</span></div></div>
     
 </pre></div>
