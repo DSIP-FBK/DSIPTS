@@ -192,7 +192,7 @@ def get_freq(freq)->str:
         return 'D'     
         
         
-class Monarch():
+class Monash():
     
     def __init__(self,filename:str,baseUrl:str ='https://forecastingdata.org/', rebuild:bool =False):
         """Class for downloading datasets listed here https://forecastingdata.org/ 
