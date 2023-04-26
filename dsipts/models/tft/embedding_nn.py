@@ -63,8 +63,8 @@ class embedding_cat_variables(nn.Module):
             cat_n_embd = torch.cat((cat_n_embd, emb.unsqueeze(2)),dim=2)
         return cat_n_embd
     
-class embedding_num_variables(nn.Module):
-    def __init__(self, steps: int, channels:int, d_model: int) -> None:
+class embedding_num_past_variables(nn.Module):
+    def __init__(self, steps: int, channels:int, d_model: int):
         super().__init__()
         self.steps = steps
         self.past_num_linears = nn.ModuleList([
@@ -74,7 +74,7 @@ class embedding_num_variables(nn.Module):
     def forward(self, num_past_tensor: torch.Tensor):
         B = num_past_tensor.shape[0]
         pos_seq = self.get_pos_seq(bs = B)
-        num_past_vars = torch.cat((num_past_tensor, pos_seq),dim=2)
+        num_past_vars = torch.cat((num_past_tensor, pos_seq), dim=2)
         embedded_num_past_vars = self.get_num_past_embedded(num_past_vars)
         return embedded_num_past_vars
 
@@ -91,17 +91,20 @@ class embedding_num_variables(nn.Module):
         return embed_vars
 
 
-class embedding_target(nn.Module):
-    def __init__(self, d_model: int):
+class embedding_num_future_variables(nn.Module):
+    def __init__(self, steps: int, channels:int, d_model: int):
         """Class for embedding target variable (Only one)
 
         Args:
             d_model (int): -
         """
         super().__init__()
-        self.y_lin = nn.Linear(1, d_model, bias = False)
+        self.steps = steps
+        self.past_num_linears = nn.ModuleList([
+            nn.Linear(1, d_model) for _ in range(channels)
+        ])
 
-    def forward(self, y: torch.Tensor) -> torch.Tensor:
+    def forward(self, num_fut_tensor: torch.Tensor) -> torch.Tensor:
         """Embedding the target varible. (Only one)
 
         Args:
@@ -110,9 +113,24 @@ class embedding_target(nn.Module):
         Returns:
             torch.Tensor: [bs, seq_len, d_model]
         """
-        y = self.y_lin(y.float())
-        return y
+        B, L = num_fut_tensor.shape[0]
+        pos_seq = self.get_pos_seq(bs = B, len = L)
+        num_past_vars = torch.cat((num_fut_tensor, pos_seq), dim=2)
+        embedded_num_past_vars = self.get_num_past_embedded(num_past_vars)
+        return embedded_num_past_vars
+    
+    def get_pos_seq(self, bs, length):
+        pos_seq = torch.arange(0, length)
+        pos_seq = pos_seq.repeat(bs,1).unsqueeze(2)
+        return pos_seq
 
+    def get_num_past_embedded(self, vars):
+        embed_vars = torch.Tensor()
+        for index, layer in enumerate(self.past_num_linears):
+            emb = layer(vars[:, :, index].unsqueeze(2))
+            embed_vars = torch.cat((embed_vars, emb.unsqueeze(2)),dim=2)
+        return embed_vars
+    
 class GLU(nn.Module):
     # sub net of GRN 
     def __init__(self, d_model: int):
@@ -279,6 +297,7 @@ class Encoder_Var_Selection(nn.Module): # input already embedded
         emb = torch.flatten(to_be_flat, start_dim=2)
         var_sel_wei = self.flatten_GRN(emb)
         return var_sel_wei
+
 class Encoder_LSTM(nn.Module):
     def __init__(self, n_layers_LSTM: int, d_model: int, dropout: float):
         """LSTM Encoder with GLU, Add and Norm

@@ -16,8 +16,6 @@ model_configs:
   d_model: 128
   num_heads: 16
   dropout: 0.3
-  use_target_past: False
-  use_yprec_fut: False
   head_size: 8
   fw_exp: 2
   n_layer_encoder: 1
