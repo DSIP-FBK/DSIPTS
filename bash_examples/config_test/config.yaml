@@ -1,6 +1,6 @@
 dataset:
   dataset: 'weather'  
-  path: '/home/agobbi/Projects/ExpTS/data'
+  path: '/home/andrea/TsEXP/data'
 
 scheduler_config:
   gamma: 0.1
@@ -32,13 +32,13 @@ split_params:
   future_steps: model_configs@future_steps
 
 train_config:
-  dirpath: "/home/agobbi/Projects/ExpTS"
+  dirpath: "/home/andrea/TsEXP"
   num_workers: 0
   auto_lr_find: true
   devices: [0]                   
 
 inference:
-  output_path: "/home/agobbi/Projects/ExpTS" 
+  output_path: "/home/andrea/TsEXP" 
   load_last: true
   batch_size: 200 
   num_workers: 4

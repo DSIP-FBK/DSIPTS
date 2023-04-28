@@ -10,7 +10,8 @@ from typing import List
 class TFT(Base):
     
     def __init__(self,
-                 strategy:int ,
+                 use_target_past:bool,
+                 use_yprec_fut: bool,
                  past_steps:int,
                  future_steps:int,
                  past_channels:int,
@@ -61,32 +62,26 @@ class TFT(Base):
         self.save_hyperparameters(logger=False)
         
         super().__init__()
-        if strategy == 0:
-            self.use_target_past = False
-            self.use_yprec_fut = False
-        elif strategy == 1:
-            self.use_target_past = True
-            self.use_yprec_fut = False
-        elif strategy == 2:
-            self.use_target_past = True
-            self.use_yprec_fut = True
-
+        self.use_target_past = use_target_past
+        self.use_yprec_fut = use_yprec_fut
+        
         self.past_steps = past_steps
         self.past_channels = past_channels
         self.future_steps = future_steps
         self.seq_len = past_steps + future_steps
         self.d_model = d_model
+        self.out_channels = out_channels
         self.head_size = d_model # it can vary according to strategies
         self.emb_cat_var = embedding_nn.embedding_cat_variables(self.seq_len, future_steps, d_model, embs)
-        self.emb_num_past_var = embedding_nn.embedding_num_variables(past_steps, past_channels, d_model)
-        self.emb_y_var = embedding_nn.embedding_target(d_model)
+        self.emb_num_past_var = embedding_nn.embedding_num_past_variables(past_steps, past_channels, d_model)
         # Encoder (past)
-        self.EncVariableSelection = embedding_nn.Encoder_Var_Selection(self.use_target_past, len(embs)+3, out_channels, d_model, dropout)
+        self.EncVariableSelection = embedding_nn.Encoder_Var_Selection(self.use_target_past, len(embs)+3, past_channels, d_model, dropout)
         self.EncLSTM = embedding_nn.Encoder_LSTM(num_layers_RNN, d_model, dropout)
         self.EncGRN = embedding_nn.GRN(d_model, dropout)
         self.Encoder = encoder.Encoder(n_layer_encoder, d_model, num_heads, self.head_size, fw_exp, dropout)
         # Decoder (future)
-        self.DecVariableSelection = embedding_nn.Decoder_Var_Selection(self.use_yprec_fut, len(embs)+3, out_channels, d_model, dropout)
+        self.emb_num_fut_var = embedding_nn.embedding_num_future_variables(future_steps, out_channels, d_model)
+        self.DecVariableSelection = embedding_nn.Decoder_Var_Selection(self.use_yprec_fut, len(embs)+3, out_channels+1, d_model, dropout)
         self.DecLSTM = embedding_nn.Decoder_LSTM(num_layers_RNN, d_model, dropout)
         self.DecGRN = embedding_nn.GRN(d_model, dropout)
         self.Decoder = decoder.Decoder(n_layer_decoder, d_model, num_heads, self.head_size, fw_exp, future_steps, dropout)
@@ -131,23 +126,48 @@ class TFT(Base):
             torch.tensor: result
         """
         
-        import pdb
-        pdb.set_trace()
         embed_num_past = self.emb_num_past_var(batch['x_num_past'])
         # embed_past = torch.cat((embed_num_past, embed_categorical_past), dim = 2)
-        if self.use_target_past==False and self.use_yprec_fut==False:
-            x_cat_past = batch['x_cat_past']
-            x_cat_future = batch['x_cat_future']
-            
-            embed_categorical = self.emb_cat_var(torch.cat((x_cat_past,x_cat_future), dim=1))
-            embed_categorical_past = embed_categorical[:,:self.past_steps,:,:]
-            embed_categorical_future = embed_categorical[:,-self.future_steps:,:,:]
+        x_cat_past = batch['x_cat_past']
+        x_cat_future = batch['x_cat_future']
+        
+        embed_categorical = self.emb_cat_var(torch.cat((x_cat_past,x_cat_future), dim=1))
+        embed_categorical_past = embed_categorical[:,:self.past_steps,:,:]
+        embed_categorical_future = embed_categorical[:,-self.future_steps:,:,:]
 
+        # Encoder
+        if self.use_target_past:
+            variable_selection_past = self.EncVariableSelection(embed_categorical_past, embed_num_past)
+        else:
             variable_selection_past = self.EncVariableSelection(embed_categorical_past)
-            past_LSTM, hn, cn = self.EncLSTM(variable_selection_past)
-            encoding = self.EncGRN(past_LSTM)
-            encoded = self.Encoder(encoding, encoding, encoding)
+        past_LSTM, hn, cn = self.EncLSTM(variable_selection_past)
+        encoding = self.EncGRN(past_LSTM)
+        encoded = self.Encoder(encoding, encoding, encoding)
 
+        if self.use_yprec_fut:
+            output = torch.Tensor()
+            B = x_cat_future.shape[0]
+            idx_target = batch['idx_target'][0,0].item()
+            decoder_out = batch['x_num_past'][:,-1,idx_target].unsqueeze(1).unsqueeze(2)
+            for tau in range(1,self.future_steps+1):
+                embed_tau_y = self.emb_num_fut_var(decoder_out)
+                variable_selection_fut = self.DecVariableSelection(embed_categorical_future[:,:tau,:,:], embed_tau_y)
+                fut_LSTM = self.DecLSTM(variable_selection_fut, hn, cn)
+                pred_decoding = self.DecGRN(fut_LSTM)
+                pred_decoded = self.Decoder(pred_decoding, encoded, encoded)
+                out = self.postTransformer(pred_decoded, pred_decoding, fut_LSTM)
+                out = self.outLinear(out) # [B, tau, self.mul]
+                if self.mul==1:
+                    decoder_out = torch.cat((decoder_out, out[:,-1,:].unsqueeze(2)), dim = 1)
+                    output = torch.cat((output, out[:,-1,:].unsqueeze(1)), dim = 1)
+                else:
+                    dec_out = out[:,:,1].unsqueeze(2)
+                    decoder_out = torch.cat((decoder_out, dec_out[:,-1,:].unsqueeze(2)), dim = 1)
+                    output = torch.cat((output, out[:,-1,:].unsqueeze(1)), dim = 1)
+            out = decoder_out[:,1:,:]
+            B, L, _ = output.shape
+            return output.reshape(B,L,-1,self.mul)
+        else:
             variable_selection_fut = self.DecVariableSelection(embed_categorical_future)
             fut_LSTM = self.DecLSTM(variable_selection_fut, hn, cn)
             decoding = self.DecGRN(fut_LSTM)
@@ -155,10 +175,7 @@ class TFT(Base):
             out = self.postTransformer(decoded, decoding, fut_LSTM)
             out = self.outLinear(out)
             B, L, _ = out.shape
-        
-        
-        return out.reshape(B,L,-1,self.mul)
-
+            return out.reshape(B,L,-1,self.mul)
     
     def inference(self, batch:dict)->torch.tensor:
         """Care here, we need to implement it because for predicting the N-step it will use the prediction at step N-1. TODO fix if because I did not implement the

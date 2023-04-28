@@ -92,17 +92,18 @@ class embedding_num_past_variables(nn.Module):
 
 
 class embedding_num_future_variables(nn.Module):
-    def __init__(self, steps: int, channels:int, d_model: int):
+    def __init__(self, max_steps: int, channels:int, d_model: int):
         """Class for embedding target variable (Only one)
 
         Args:
             d_model (int): -
         """
         super().__init__()
-        self.steps = steps
-        self.past_num_linears = nn.ModuleList([
-            nn.Linear(1, d_model) for _ in range(channels)
+        self.max_steps = max_steps
+        self.fut_num_linears = nn.ModuleList([
+            nn.Linear(1, d_model) for _ in range(max_steps)
         ])
+        self.emb_pos_layer = nn.Embedding(max_steps, d_model)
 
     def forward(self, num_fut_tensor: torch.Tensor) -> torch.Tensor:
         """Embedding the target varible. (Only one)
@@ -113,22 +114,28 @@ class embedding_num_future_variables(nn.Module):
         Returns:
             torch.Tensor: [bs, seq_len, d_model]
         """
-        B, L = num_fut_tensor.shape[0]
-        pos_seq = self.get_pos_seq(bs = B, len = L)
-        num_past_vars = torch.cat((num_fut_tensor, pos_seq), dim=2)
-        embedded_num_past_vars = self.get_num_past_embedded(num_past_vars)
+        B, L = num_fut_tensor.shape[0], num_fut_tensor.shape[1]
+        emb_pos_seq = self.get_pos_seq(B, L)
+        embedded_num_past_vars = self.get_num_fut_embedded(num_fut_tensor)
+        embedded_num_past_vars = torch.cat((embedded_num_past_vars, emb_pos_seq), dim=2)
         return embedded_num_past_vars
     
     def get_pos_seq(self, bs, length):
         pos_seq = torch.arange(0, length)
         pos_seq = pos_seq.repeat(bs,1).unsqueeze(2)
+        pos_seq = self.emb_pos_layer(pos_seq)
         return pos_seq
 
-    def get_num_past_embedded(self, vars):
+    def get_num_fut_embedded(self, vars):
+        # vars = [B, L, channels]
         embed_vars = torch.Tensor()
-        for index, layer in enumerate(self.past_num_linears):
-            emb = layer(vars[:, :, index].unsqueeze(2))
-            embed_vars = torch.cat((embed_vars, emb.unsqueeze(2)),dim=2)
+        _, L, _ = vars.shape # get_the number of steps, number of channels will be always the same
+        for index in range(L):
+            emb = self.fut_num_linears[index](vars[:,index,:]).unsqueeze(1)
+            embed_vars = torch.cat((embed_vars, emb.unsqueeze(2)), dim=1)
+        # for index, layer in enumerate(self.fut_num_linears):
+        #     emb = layer(vars[:, :, index].unsqueeze(2))
+        #     embed_vars = torch.cat((embed_vars, emb.unsqueeze(2)), dim=2)
         return embed_vars
     
 class GLU(nn.Module):
@@ -227,7 +234,6 @@ class flatten_GRN(nn.Module):
 class Encoder_Var_Selection(nn.Module): # input already embedded
     def __init__(self, use_target_past: bool, n_past_cat_var: int, n_past_tar_var: int, d_model: int, dropout: float):
         """Variable Selection Network in Encoder(past)
-
         Args:
             use_target_past (bool): True if we want to use the past target variable mixing it to past variables, False to use only past vars
             n_past_cat_var (int): number of categorical variables for past steps
@@ -267,12 +273,11 @@ class Encoder_Var_Selection(nn.Module): # input already embedded
         # # categorical var_selection
         var_sel = self.get_cat_GRN(categorical)
         to_be_flat = categorical
+        
         if y is not None:
-            assert self.use_target_past==True # you don't have y if mix is not True
             num_var_sel = self.get_num_GRN(y)
             var_sel = torch.cat((var_sel, num_var_sel), dim = 2)
             to_be_flat = torch.cat((to_be_flat, y), dim=2)
-
         var_sel_wei = self.get_flat_GRN(to_be_flat)
         out = var_sel*var_sel_wei.unsqueeze(3)
         out = torch.sum(out, 2)/out.shape[2]
@@ -349,16 +354,16 @@ class Decoder_Var_Selection(nn.Module): # input already embedded
         self.GRNs_cat = nn.ModuleList([
             GRN(d_model, dropout) for _ in range(self.n_grn_cat)
         ])
-        tot_var = n_fut_cat_var
+        self.tot_var = n_fut_cat_var
         #numerical
         if use_yprec:
             self.n_grn_num = n_fut_tar_var
             self.GRNs_num = nn.ModuleList([
                 GRN(d_model, dropout) for _ in range(self.n_grn_num)
             ])
-            tot_var = tot_var+n_fut_tar_var
+            self.tot_var = self.tot_var+n_fut_tar_var
         #flatten
-        emb_dims = [d_model*tot_var, int((d_model+tot_var)/2), tot_var]
+        emb_dims = [d_model*self.tot_var, int((d_model+self.tot_var)/2), self.tot_var]
         self.flatten_GRN = flatten_GRN(emb_dims, dropout)
 
     def forward(self, categorical: torch.Tensor, y: torch.Tensor=None) -> torch.Tensor:
