@@ -5,8 +5,8 @@ class dictConfiguration():
     def __init__(self, name: str) -> None:
         self.name = name
         self.strategy_dict = {
-                'use_target_past': False,
-                'use_yprec': True,
+                'use_target_past': True,
+                'use_yprec': False,
                 'iter_forward': True,
                 'quantiles': None
             }

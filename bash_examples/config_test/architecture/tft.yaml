@@ -22,7 +22,7 @@ model_configs:
   n_layer_decoder: 1
   num_layers_RNN: 1
   use_target_past: True
-  use_yprec_fut: True
+  use_yprec_fut: False
 
 
 train_config:
