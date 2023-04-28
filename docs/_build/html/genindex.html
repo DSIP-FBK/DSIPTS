@@ -77,6 +77,7 @@
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
+ | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#K"><strong>K</strong></a>
  | <a href="#L"><strong>L</strong></a>
@@ -155,8 +156,6 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.ConvBNSwish">ConvBNSwish (class in dsipts.models.d3vae.neural_operations)</a>
 </li>
-      <li><a href="dsipts.data_management.html#dsipts.data_management.monarch.convert_tsf_to_dataframe">convert_tsf_to_dataframe() (in module dsipts.data_management.monarch)</a>
-</li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.ConvMeanPool">ConvMeanPool (class in dsipts.models.d3vae.resnet)</a>
 </li>
       <li><a href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.create_data_loader">create_data_loader() (dsipts.data_structure.data_structure.TimeSeries method)</a>
@@ -171,7 +170,15 @@
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.DecCombinerCell">DecCombinerCell (class in dsipts.models.d3vae.neural_operations)</a>
 </li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.decoder.Decoder">Decoder (class in dsipts.models.tft.decoder)</a>
+</li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Decoder_LSTM">Decoder_LSTM (class in dsipts.models.tft.embedding_nn)</a>
+</li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Encoder.decoder_output">decoder_output() (dsipts.models.d3vae.encoder.Encoder method)</a>
+</li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Decoder_Var_Selection">Decoder_Var_Selection (class in dsipts.models.tft.embedding_nn)</a>
+</li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.decoder.DecoderLayer">DecoderLayer (class in dsipts.models.tft.decoder)</a>
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.diffusion_process.default">default() (in module dsipts.models.d3vae.diffusion_process)</a>
 </li>
@@ -180,8 +187,6 @@
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.model.diffusion_generate">diffusion_generate (class in dsipts.models.d3vae.model)</a>
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.model.Discriminator">Discriminator (class in dsipts.models.d3vae.model)</a>
-</li>
-      <li><a href="dsipts.data_management.html#dsipts.data_management.monarch.Monarch.download_dataset">download_dataset() (dsipts.data_management.monarch.Monarch method)</a>
 </li>
       <li>
     dsipts
@@ -195,13 +200,6 @@
 
       <ul>
         <li><a href="dsipts.data_management.html#module-dsipts.data_management">module</a>
-</li>
-      </ul></li>
-      <li>
-    dsipts.data_management.monarch
-
-      <ul>
-        <li><a href="dsipts.data_management.html#module-dsipts.data_management.monarch">module</a>
 </li>
       </ul></li>
       <li>
@@ -246,8 +244,6 @@
         <li><a href="dsipts.models.html#module-dsipts.models.Attention">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     dsipts.models.base
 
@@ -255,6 +251,8 @@
         <li><a href="dsipts.models.html#module-dsipts.models.base">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     dsipts.models.d3vae
 
@@ -326,6 +324,34 @@
 </li>
       </ul></li>
       <li>
+    dsipts.models.tft
+
+      <ul>
+        <li><a href="dsipts.models.tft.html#module-dsipts.models.tft">module</a>
+</li>
+      </ul></li>
+      <li>
+    dsipts.models.tft.decoder
+
+      <ul>
+        <li><a href="dsipts.models.tft.html#module-dsipts.models.tft.decoder">module</a>
+</li>
+      </ul></li>
+      <li>
+    dsipts.models.tft.embedding_nn
+
+      <ul>
+        <li><a href="dsipts.models.tft.html#module-dsipts.models.tft.embedding_nn">module</a>
+</li>
+      </ul></li>
+      <li>
+    dsipts.models.tft.encoder
+
+      <ul>
+        <li><a href="dsipts.models.tft.html#module-dsipts.models.tft.encoder">module</a>
+</li>
+      </ul></li>
+      <li>
     dsipts.models.utils
 
       <ul>
@@ -340,12 +366,28 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.ELUConv">ELUConv (class in dsipts.models.d3vae.neural_operations)</a>
 </li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_cat_variables">embedding_cat_variables (class in dsipts.models.tft.embedding_nn)</a>
+</li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_future_variables">embedding_num_future_variables (class in dsipts.models.tft.embedding_nn)</a>
+</li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_past_variables">embedding_num_past_variables (class in dsipts.models.tft.embedding_nn)</a>
+</li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.EncCombinerCell">EncCombinerCell (class in dsipts.models.d3vae.neural_operations)</a>
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Encoder">Encoder (class in dsipts.models.d3vae.encoder)</a>
+
+      <ul>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.encoder.Encoder">(class in dsipts.models.tft.encoder)</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Encoder_LSTM">Encoder_LSTM (class in dsipts.models.tft.embedding_nn)</a>
+</li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Encoder_Var_Selection">Encoder_Var_Selection (class in dsipts.models.tft.embedding_nn)</a>
+</li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.encoder.EncoderLayer">EncoderLayer (class in dsipts.models.tft.encoder)</a>
+</li>
       <li><a href="dsipts.data_structure.html#dsipts.data_structure.utils.extend_df">extend_df() (in module dsipts.data_structure.utils)</a>
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.model.denoise_net.extract">extract() (dsipts.models.d3vae.model.denoise_net method)</a>
@@ -361,6 +403,14 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.FactorizedReduce">FactorizedReduce (class in dsipts.models.d3vae.neural_operations)</a>
+</li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.decoder.FFN">FFN (class in dsipts.models.tft.decoder)</a>
+
+      <ul>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.encoder.FFN">(class in dsipts.models.tft.encoder)</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.flatten_GRN">flatten_GRN (class in dsipts.models.tft.embedding_nn)</a>
 </li>
       <li><a href="dsipts.models.html#dsipts.models.Attention.Attention.forward">forward() (dsipts.models.Attention.Attention method)</a>
 
@@ -443,6 +493,52 @@
 </li>
         <li><a href="dsipts.models.html#dsipts.models.RNN.RNN.forward">(dsipts.models.RNN.RNN method)</a>
 </li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.decoder.Decoder.forward">(dsipts.models.tft.decoder.Decoder method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.decoder.DecoderLayer.forward">(dsipts.models.tft.decoder.DecoderLayer method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.decoder.FFN.forward">(dsipts.models.tft.decoder.FFN method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.decoder.Head_crossDec.forward">(dsipts.models.tft.decoder.Head_crossDec method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.decoder.Head_selfDec.forward">(dsipts.models.tft.decoder.Head_selfDec method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.decoder.MultiHead_crossDec.forward">(dsipts.models.tft.decoder.MultiHead_crossDec method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.decoder.MultiHead_selfDec.forward">(dsipts.models.tft.decoder.MultiHead_selfDec method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Decoder_LSTM.forward">(dsipts.models.tft.embedding_nn.Decoder_LSTM method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Decoder_Var_Selection.forward">(dsipts.models.tft.embedding_nn.Decoder_Var_Selection method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_cat_variables.forward">(dsipts.models.tft.embedding_nn.embedding_cat_variables method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_future_variables.forward">(dsipts.models.tft.embedding_nn.embedding_num_future_variables method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_past_variables.forward">(dsipts.models.tft.embedding_nn.embedding_num_past_variables method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Encoder_LSTM.forward">(dsipts.models.tft.embedding_nn.Encoder_LSTM method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Encoder_Var_Selection.forward">(dsipts.models.tft.embedding_nn.Encoder_Var_Selection method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.flatten_GRN.forward">(dsipts.models.tft.embedding_nn.flatten_GRN method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.GLU.forward">(dsipts.models.tft.embedding_nn.GLU method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.GRN.forward">(dsipts.models.tft.embedding_nn.GRN method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.postTransformer.forward">(dsipts.models.tft.embedding_nn.postTransformer method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.encoder.Encoder.forward">(dsipts.models.tft.encoder.Encoder method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.encoder.EncoderLayer.forward">(dsipts.models.tft.encoder.EncoderLayer method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.encoder.FFN.forward">(dsipts.models.tft.encoder.FFN method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.encoder.Head_selfEnc.forward">(dsipts.models.tft.encoder.Head_selfEnc method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.encoder.MultiHeadEnc.forward">(dsipts.models.tft.encoder.MultiHeadEnc method)</a>
+</li>
         <li><a href="dsipts.models.html#dsipts.models.utils.L1Loss.forward">(dsipts.models.utils.L1Loss method)</a>
 </li>
         <li><a href="dsipts.models.html#dsipts.models.utils.Permute.forward">(dsipts.models.utils.Permute method)</a>
@@ -458,8 +554,6 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.diffusion_process.GaussianDiffusion">GaussianDiffusion (class in dsipts.models.d3vae.diffusion_process)</a>
 </li>
-      <li><a href="dsipts.data_management.html#dsipts.data_management.monarch.Monarch.generate_dataset">generate_dataset() (dsipts.data_management.monarch.Monarch method)</a>
-</li>
       <li><a href="dsipts.data_structure.html#dsipts.data_structure.data_structure.Categorical.generate_signal">generate_signal() (dsipts.data_structure.data_structure.Categorical method)</a>
 
       <ul>
@@ -472,23 +566,75 @@
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.utils.get_arch_cells">get_arch_cells() (in module dsipts.models.d3vae.utils)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.get_batchnorm">get_batchnorm() (in module dsipts.models.d3vae.neural_operations)</a>
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.diffusion_process.get_beta_schedule">get_beta_schedule() (in module dsipts.models.d3vae.diffusion_process)</a>
 </li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Decoder_Var_Selection.get_cat_GRN">get_cat_GRN() (dsipts.models.tft.embedding_nn.Decoder_Var_Selection method)</a>
+
+      <ul>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Encoder_Var_Selection.get_cat_GRN">(dsipts.models.tft.embedding_nn.Encoder_Var_Selection method)</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_cat_variables.get_cat_n_embd">get_cat_n_embd() (dsipts.models.tft.embedding_nn.embedding_cat_variables method)</a>
+</li>
       <li><a href="dsipts.models.html#dsipts.models.utils.get_device">get_device() (in module dsipts.models.utils)</a>
 </li>
-      <li><a href="dsipts.data_management.html#dsipts.data_management.monarch.get_freq">get_freq() (in module dsipts.data_management.monarch)</a>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Decoder_Var_Selection.get_flat_GRN">get_flat_GRN() (dsipts.models.tft.embedding_nn.Decoder_Var_Selection method)</a>
+
+      <ul>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Encoder_Var_Selection.get_flat_GRN">(dsipts.models.tft.embedding_nn.Encoder_Var_Selection method)</a>
 </li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.utils.get_input_size">get_input_size() (in module dsipts.models.d3vae.utils)</a>
 </li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_cat_variables.get_is_fut">get_is_fut() (dsipts.models.tft.embedding_nn.embedding_cat_variables method)</a>
+</li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_future_variables.get_num_fut_embedded">get_num_fut_embedded() (dsipts.models.tft.embedding_nn.embedding_num_future_variables method)</a>
+</li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Decoder_Var_Selection.get_num_GRN">get_num_GRN() (dsipts.models.tft.embedding_nn.Decoder_Var_Selection method)</a>
+
+      <ul>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Encoder_Var_Selection.get_num_GRN">(dsipts.models.tft.embedding_nn.Encoder_Var_Selection method)</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_past_variables.get_num_past_embedded">get_num_past_embedded() (dsipts.models.tft.embedding_nn.embedding_num_past_variables method)</a>
+</li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_cat_variables.get_pos_fut">get_pos_fut() (dsipts.models.tft.embedding_nn.embedding_cat_variables method)</a>
+</li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_cat_variables.get_pos_seq">get_pos_seq() (dsipts.models.tft.embedding_nn.embedding_cat_variables method)</a>
+
+      <ul>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_future_variables.get_pos_seq">(dsipts.models.tft.embedding_nn.embedding_num_future_variables method)</a>
+</li>
+        <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_past_variables.get_pos_seq">(dsipts.models.tft.embedding_nn.embedding_num_past_variables method)</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.get_skip_connection">get_skip_connection() (in module dsipts.models.d3vae.neural_operations)</a>
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.utils.get_stride_for_cell_type">get_stride_for_cell_type() (in module dsipts.models.d3vae.utils)</a>
 </li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.GLU">GLU (class in dsipts.models.tft.embedding_nn)</a>
+</li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.GRN">GRN (class in dsipts.models.tft.embedding_nn)</a>
+</li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.utils.groups_per_scale">groups_per_scale() (in module dsipts.models.d3vae.utils)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="H">H</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.decoder.Head_crossDec">Head_crossDec (class in dsipts.models.tft.decoder)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.decoder.Head_selfDec">Head_selfDec (class in dsipts.models.tft.decoder)</a>
+</li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.encoder.Head_selfEnc">Head_selfEnc (class in dsipts.models.tft.encoder)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -542,12 +688,8 @@
 </li>
       <li><a href="dsipts.models.html#dsipts.models.LinearTS.LinearTS">LinearTS (class in dsipts.models.LinearTS)</a>
 </li>
-      <li><a href="dsipts.data_management.html#dsipts.data_management.monarch.Monarch.load">load() (dsipts.data_management.monarch.Monarch method)</a>
-
-      <ul>
-        <li><a href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.load">(dsipts.data_structure.data_structure.TimeSeries method)</a>
+      <li><a href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.load">load() (dsipts.data_structure.data_structure.TimeSeries method)</a>
 </li>
-      </ul></li>
       <li><a href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.load_signal">load_signal() (dsipts.data_structure.data_structure.TimeSeries method)</a>
 </li>
   </ul></td>
@@ -588,8 +730,6 @@
 </li>
         <li><a href="dsipts.data_management.html#module-dsipts.data_management">dsipts.data_management</a>
 </li>
-        <li><a href="dsipts.data_management.html#module-dsipts.data_management.monarch">dsipts.data_management.monarch</a>
-</li>
         <li><a href="dsipts.data_management.html#module-dsipts.data_management.public_datasets">dsipts.data_management.public_datasets</a>
 </li>
         <li><a href="dsipts.data_structure.html#module-dsipts.data_structure">dsipts.data_structure</a>
@@ -624,16 +764,28 @@
 </li>
         <li><a href="dsipts.models.html#module-dsipts.models.RNN">dsipts.models.RNN</a>
 </li>
+        <li><a href="dsipts.models.tft.html#module-dsipts.models.tft">dsipts.models.tft</a>
+</li>
+        <li><a href="dsipts.models.tft.html#module-dsipts.models.tft.decoder">dsipts.models.tft.decoder</a>
+</li>
+        <li><a href="dsipts.models.tft.html#module-dsipts.models.tft.embedding_nn">dsipts.models.tft.embedding_nn</a>
+</li>
+        <li><a href="dsipts.models.tft.html#module-dsipts.models.tft.encoder">dsipts.models.tft.encoder</a>
+</li>
         <li><a href="dsipts.models.html#module-dsipts.models.utils">dsipts.models.utils</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="dsipts.data_management.html#dsipts.data_management.monarch.Monarch">Monarch (class in dsipts.data_management.monarch)</a>
-</li>
       <li><a href="dsipts.models.html#dsipts.models.LinearTS.moving_avg">moving_avg (class in dsipts.models.LinearTS)</a>
 </li>
       <li><a href="bash_examples.html#bash_examples.inference.mse">mse() (in module bash_examples.inference)</a>
+</li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.decoder.MultiHead_crossDec">MultiHead_crossDec (class in dsipts.models.tft.decoder)</a>
+</li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.decoder.MultiHead_selfDec">MultiHead_selfDec (class in dsipts.models.tft.decoder)</a>
+</li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.encoder.MultiHeadEnc">MultiHeadEnc (class in dsipts.models.tft.encoder)</a>
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.MyConvo2d">MyConvo2d (class in dsipts.models.d3vae.resnet)</a>
 </li>
@@ -680,6 +832,8 @@
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.embedding.PositionalEmbedding">PositionalEmbedding (class in dsipts.models.d3vae.embedding)</a>
 </li>
       <li><a href="dsipts.models.html#dsipts.models.Attention.PositionalEncoding">PositionalEncoding (class in dsipts.models.Attention)</a>
+</li>
+      <li><a href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.postTransformer">postTransformer (class in dsipts.models.tft.embedding_nn)</a>
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.model.pred_net">pred_net (class in dsipts.models.d3vae.model)</a>
 </li>
@@ -731,20 +885,16 @@
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.sample_normal_jit">sample_normal_jit() (in module dsipts.models.d3vae.encoder)</a>
 </li>
-      <li><a href="dsipts.data_management.html#dsipts.data_management.monarch.Monarch.save">save() (dsipts.data_management.monarch.Monarch method)</a>
-
-      <ul>
-        <li><a href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.save">(dsipts.data_structure.data_structure.TimeSeries method)</a>
+      <li><a href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.save">save() (dsipts.data_structure.data_structure.TimeSeries method)</a>
 </li>
-      </ul></li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.SE">SE (class in dsipts.models.d3vae.neural_operations)</a>
 </li>
       <li><a href="dsipts.models.html#dsipts.models.LinearTS.series_decomp">series_decomp (class in dsipts.models.LinearTS)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.set_model">set_model() (dsipts.data_structure.data_structure.TimeSeries method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.soft_clamp5">soft_clamp5() (in module dsipts.models.d3vae.encoder)</a>
 </li>
       <li><a href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.split_for_train">split_for_train() (dsipts.data_structure.data_structure.TimeSeries method)</a>

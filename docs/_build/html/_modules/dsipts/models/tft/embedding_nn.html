@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>dsipts.models.tft.embedding_nn &mdash; DISIPTS 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            DISIPTS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules.html">dsipts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../bash_examples.html">bash_examples package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">DISIPTS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">dsipts.models.tft.embedding_nn</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for dsipts.models.tft.embedding_nn</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+
+<div class="viewcode-block" id="embedding_cat_variables"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_cat_variables">[docs]</a><span class="k">class</span> <span class="nc">embedding_cat_variables</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="c1"># at the moment cat_past and cat_fut together</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">lag</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">emb_dims</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Class for embedding categorical variables, adding 3 positional variables during forward</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            seq_len (int): length of the sequence (sum of past and future steps)</span>
+<span class="sd">            lag (int): number of future step to be predicted</span>
+<span class="sd">            d_model (int): dimension of all variables after they are embedded</span>
+<span class="sd">            emb_dims (list): size of the dictionary for embedding. One dimension for each categorical variable</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span> <span class="o">=</span> <span class="n">seq_len</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lag</span> <span class="o">=</span> <span class="n">lag</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cat_embeds</span> <span class="o">=</span> <span class="n">emb_dims</span> <span class="o">+</span> <span class="p">[</span><span class="n">seq_len</span><span class="p">,</span> <span class="n">lag</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="c1"># </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cat_n_embd</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="p">(</span><span class="n">emb_dim</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span> <span class="k">for</span> <span class="n">emb_dim</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cat_embeds</span>
+        <span class="p">])</span>
+
+<div class="viewcode-block" id="embedding_cat_variables.forward"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_cat_variables.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;All components of x are concatenated with 3 new variables for data augmentation, in the order:</span>
+<span class="sd">        - pos_seq: assign at each step its time-position</span>
+<span class="sd">        - pos_fut: assign at each step its future position. 0 if it is a past step</span>
+<span class="sd">        - is_fut: explicit for each step if it is a future(1) or past one(0)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x (torch.Tensor): [bs, seq_len, num_vars]</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.Tensor: [bs, seq_len num_vars+3, n_embd] </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">B</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+        
+        <span class="n">pos_seq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pos_seq</span><span class="p">(</span><span class="n">bs</span><span class="o">=</span><span class="n">B</span><span class="p">)</span>
+        <span class="n">pos_fut</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pos_fut</span><span class="p">(</span><span class="n">bs</span><span class="o">=</span><span class="n">B</span><span class="p">)</span>
+        <span class="n">is_fut</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_is_fut</span><span class="p">(</span><span class="n">bs</span><span class="o">=</span><span class="n">B</span><span class="p">)</span>
+        <span class="n">cat_vars</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">pos_seq</span><span class="p">,</span> <span class="n">pos_fut</span><span class="p">,</span> <span class="n">is_fut</span><span class="p">),</span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">cat_n_embd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cat_n_embd</span><span class="p">(</span><span class="n">cat_vars</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cat_n_embd</span></div>
+
+<div class="viewcode-block" id="embedding_cat_variables.get_pos_seq"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_cat_variables.get_pos_seq">[docs]</a>    <span class="k">def</span> <span class="nf">get_pos_seq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bs</span><span class="p">):</span>
+        <span class="n">pos_seq</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="p">)</span>
+        <span class="n">pos_seq</span> <span class="o">=</span> <span class="n">pos_seq</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">bs</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pos_seq</span></div>
+    
+<div class="viewcode-block" id="embedding_cat_variables.get_pos_fut"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_cat_variables.get_pos_fut">[docs]</a>    <span class="k">def</span> <span class="nf">get_pos_fut</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bs</span><span class="p">):</span>
+        <span class="n">pos_fut</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">lag</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">),</span><span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">lag</span><span class="o">+</span><span class="mi">1</span><span class="p">)))</span>
+        <span class="n">pos_fut</span> <span class="o">=</span> <span class="n">pos_fut</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">bs</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pos_fut</span></div>
+    
+<div class="viewcode-block" id="embedding_cat_variables.get_is_fut"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_cat_variables.get_is_fut">[docs]</a>    <span class="k">def</span> <span class="nf">get_is_fut</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bs</span><span class="p">):</span>
+        <span class="n">is_fut</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">seq_len</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">lag</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">),</span><span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">lag</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">)))</span>
+        <span class="n">is_fut</span> <span class="o">=</span> <span class="n">is_fut</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">bs</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">is_fut</span></div>
+    
+<div class="viewcode-block" id="embedding_cat_variables.get_cat_n_embd"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_cat_variables.get_cat_n_embd">[docs]</a>    <span class="k">def</span> <span class="nf">get_cat_n_embd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat_vars</span><span class="p">):</span>
+        <span class="n">cat_n_embd</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cat_n_embd</span><span class="p">):</span>
+            <span class="n">emb</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">cat_vars</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">index</span><span class="p">])</span>
+            <span class="n">cat_n_embd</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">cat_n_embd</span><span class="p">,</span> <span class="n">emb</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)),</span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cat_n_embd</span></div></div>
+    
+<div class="viewcode-block" id="embedding_num_past_variables"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_past_variables">[docs]</a><span class="k">class</span> <span class="nc">embedding_num_past_variables</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">steps</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">channels</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">steps</span> <span class="o">=</span> <span class="n">steps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">past_num_linears</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">channels</span><span class="p">)</span>
+        <span class="p">])</span>
+
+<div class="viewcode-block" id="embedding_num_past_variables.forward"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_past_variables.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_past_tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="n">num_past_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">pos_seq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pos_seq</span><span class="p">(</span><span class="n">bs</span> <span class="o">=</span> <span class="n">B</span><span class="p">)</span>
+        <span class="n">num_past_vars</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">num_past_tensor</span><span class="p">,</span> <span class="n">pos_seq</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">embedded_num_past_vars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_num_past_embedded</span><span class="p">(</span><span class="n">num_past_vars</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">embedded_num_past_vars</span></div>
+
+<div class="viewcode-block" id="embedding_num_past_variables.get_pos_seq"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_past_variables.get_pos_seq">[docs]</a>    <span class="k">def</span> <span class="nf">get_pos_seq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bs</span><span class="p">):</span>
+        <span class="n">pos_seq</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps</span><span class="p">)</span>
+        <span class="n">pos_seq</span> <span class="o">=</span> <span class="n">pos_seq</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">bs</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pos_seq</span></div>
+    
+<div class="viewcode-block" id="embedding_num_past_variables.get_num_past_embedded"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_past_variables.get_num_past_embedded">[docs]</a>    <span class="k">def</span> <span class="nf">get_num_past_embedded</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">vars</span><span class="p">):</span>
+        <span class="n">embed_vars</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">past_num_linears</span><span class="p">):</span>
+            <span class="n">emb</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="nb">vars</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+            <span class="n">embed_vars</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">embed_vars</span><span class="p">,</span> <span class="n">emb</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)),</span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">embed_vars</span></div></div>
+
+
+<div class="viewcode-block" id="embedding_num_future_variables"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_future_variables">[docs]</a><span class="k">class</span> <span class="nc">embedding_num_future_variables</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_steps</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">channels</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Class for embedding target variable (Only one)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d_model (int): -</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_steps</span> <span class="o">=</span> <span class="n">max_steps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fut_num_linears</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_steps</span><span class="p">)</span>
+        <span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">emb_pos_layer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="p">(</span><span class="n">max_steps</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span>
+
+<div class="viewcode-block" id="embedding_num_future_variables.forward"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_future_variables.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_fut_tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Embedding the target varible. (Only one)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            y (torch.Tensor): [bs, seq_len, 1] past and future steps of scaled target variable</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.Tensor: [bs, seq_len, d_model]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">B</span><span class="p">,</span> <span class="n">L</span> <span class="o">=</span> <span class="n">num_fut_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">num_fut_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">emb_pos_seq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pos_seq</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
+        <span class="n">embedded_num_past_vars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_num_fut_embedded</span><span class="p">(</span><span class="n">num_fut_tensor</span><span class="p">)</span>
+        <span class="n">embedded_num_past_vars</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">embedded_num_past_vars</span><span class="p">,</span> <span class="n">emb_pos_seq</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">embedded_num_past_vars</span></div>
+    
+<div class="viewcode-block" id="embedding_num_future_variables.get_pos_seq"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_future_variables.get_pos_seq">[docs]</a>    <span class="k">def</span> <span class="nf">get_pos_seq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bs</span><span class="p">,</span> <span class="n">length</span><span class="p">):</span>
+        <span class="n">pos_seq</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span>
+        <span class="n">pos_seq</span> <span class="o">=</span> <span class="n">pos_seq</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">bs</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">pos_seq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">emb_pos_layer</span><span class="p">(</span><span class="n">pos_seq</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pos_seq</span></div>
+
+<div class="viewcode-block" id="embedding_num_future_variables.get_num_fut_embedded"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_future_variables.get_num_fut_embedded">[docs]</a>    <span class="k">def</span> <span class="nf">get_num_fut_embedded</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">vars</span><span class="p">):</span>
+        <span class="c1"># vars = [B, L, channels]</span>
+        <span class="n">embed_vars</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">()</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="nb">vars</span><span class="o">.</span><span class="n">shape</span> <span class="c1"># get_the number of steps, number of channels will be always the same</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+            <span class="n">emb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fut_num_linears</span><span class="p">[</span><span class="n">index</span><span class="p">](</span><span class="nb">vars</span><span class="p">[:,</span><span class="n">index</span><span class="p">,:])</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">embed_vars</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">embed_vars</span><span class="p">,</span> <span class="n">emb</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># for index, layer in enumerate(self.fut_num_linears):</span>
+        <span class="c1">#     emb = layer(vars[:, :, index].unsqueeze(2))</span>
+        <span class="c1">#     embed_vars = torch.cat((embed_vars, emb.unsqueeze(2)), dim=2)</span>
+        <span class="k">return</span> <span class="n">embed_vars</span></div></div>
+    
+<div class="viewcode-block" id="GLU"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.GLU">[docs]</a><span class="k">class</span> <span class="nc">GLU</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="c1"># sub net of GRN </span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gated Linear Unit, &#39;Gate&#39; block in TFT paper </span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d_model (int): -</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linear1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linear2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">()</span>
+
+<div class="viewcode-block" id="GLU.forward"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.GLU.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gated Linear Unit</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x (torch.Tensor): [bs, seq_len, d_model]</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.Tensor: [bs, seq_len, d_model]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">linear1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">x2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">x1</span><span class="o">*</span><span class="n">x2</span> <span class="c1">#element-wise multiplication</span>
+        <span class="k">return</span> <span class="n">out</span></div></div>
+    
+<div class="viewcode-block" id="GRN"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.GRN">[docs]</a><span class="k">class</span> <span class="nc">GRN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gated Residual Network</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d_model (int): -</span>
+<span class="sd">            dropout (float): -</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linear1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">elu</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ELU</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linear2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">glu</span> <span class="o">=</span> <span class="n">GLU</span><span class="p">(</span><span class="n">d_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span><span class="n">d_model</span><span class="p">)</span>
+
+<div class="viewcode-block" id="GRN.forward"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.GRN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gated Residual Network</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x (torch.Tensor): [bs, seq_len, d_model]</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.Tensor: [bs, seq_len, d_model]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">eta1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">linear1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">eta2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">linear2</span><span class="p">(</span><span class="n">eta1</span><span class="p">))</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">glu</span><span class="p">(</span><span class="n">eta2</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">out</span></div></div>
+
+<div class="viewcode-block" id="flatten_GRN"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.flatten_GRN">[docs]</a><span class="k">class</span> <span class="nc">flatten_GRN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">emb_dims</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Modified GRN for flattened variables </span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            emb_dims (list): [start_emb: int, mid_emb: int, end_emb: int] list of int for dimensions</span>
+<span class="sd">            dropout (float): -</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="n">start_emb</span><span class="p">,</span> <span class="n">mid_emb</span><span class="p">,</span> <span class="n">end_emb</span> <span class="o">=</span> <span class="n">emb_dims</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">res_conn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">start_emb</span><span class="p">,</span> <span class="n">end_emb</span><span class="p">,</span> <span class="n">bias</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout_res_conn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linear1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">start_emb</span><span class="p">,</span> <span class="n">mid_emb</span><span class="p">,</span> <span class="n">bias</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">elu</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ELU</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linear2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">mid_emb</span><span class="p">,</span> <span class="n">end_emb</span><span class="p">,</span> <span class="n">bias</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">glu</span> <span class="o">=</span> <span class="n">GLU</span><span class="p">(</span><span class="n">end_emb</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span><span class="n">end_emb</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">softmax</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Softmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<div class="viewcode-block" id="flatten_GRN.forward"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.flatten_GRN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Modified GRN for flattened variables</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x (torch.Tensor): [bs, seq_len, emb_dims[0]]</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.Tensor: [bs, seq_len, emb_dims[-1]]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">res_conn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout_res_conn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">res_conn</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">eta1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">linear1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">eta2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">linear2</span><span class="p">(</span><span class="n">eta1</span><span class="p">))</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">res_conn</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">glu</span><span class="p">(</span><span class="n">eta2</span><span class="p">))</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span></div></div>
+
+<div class="viewcode-block" id="Encoder_Var_Selection"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Encoder_Var_Selection">[docs]</a><span class="k">class</span> <span class="nc">Encoder_Var_Selection</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span> <span class="c1"># input already embedded</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_target_past</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">n_past_cat_var</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_past_tar_var</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Variable Selection Network in Encoder(past)</span>
+<span class="sd">        Args:</span>
+<span class="sd">            use_target_past (bool): True if we want to use the past target variable mixing it to past variables, False to use only past vars</span>
+<span class="sd">            n_past_cat_var (int): number of categorical variables for past steps</span>
+<span class="sd">            n_past_tar_var (int): number of target variables for past steps. If use_target_past==False it is ignored</span>
+<span class="sd">            d_model (int): -</span>
+<span class="sd">            dropout (float): -</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_target_past</span> <span class="o">=</span> <span class="n">use_target_past</span>
+        <span class="c1">#categorical</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_grn_cat</span> <span class="o">=</span> <span class="n">n_past_cat_var</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GRNs_cat</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span>
+            <span class="n">GRN</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">dropout</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_grn_cat</span><span class="p">)</span>
+        <span class="p">])</span>
+        <span class="n">tot_var</span> <span class="o">=</span> <span class="n">n_past_cat_var</span>
+        <span class="c1"># if using target past</span>
+        <span class="k">if</span> <span class="n">use_target_past</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_grn_tar</span> <span class="o">=</span> <span class="n">n_past_tar_var</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">GRNs_num</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span>
+                <span class="n">GRN</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">dropout</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_grn_tar</span><span class="p">)</span>
+            <span class="p">])</span>
+            <span class="n">tot_var</span> <span class="o">=</span> <span class="n">tot_var</span> <span class="o">+</span> <span class="n">n_past_tar_var</span>
+        <span class="c1">#flatten</span>
+        <span class="n">emb_dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">d_model</span><span class="o">*</span><span class="n">tot_var</span><span class="p">,</span> <span class="nb">int</span><span class="p">((</span><span class="n">d_model</span><span class="o">+</span><span class="n">tot_var</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span> <span class="n">tot_var</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flatten_GRN</span> <span class="o">=</span> <span class="n">flatten_GRN</span><span class="p">(</span><span class="n">emb_dims</span><span class="p">,</span> <span class="n">dropout</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Encoder_Var_Selection.forward"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Encoder_Var_Selection.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">categorical</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;NN for Selecting Importance of Past Variables passed to the Model</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            categorical (torch.Tensor): [bs, past_steps, n_cat_var, d_model] past_cat_variables to be selected</span>
+<span class="sd">            y (torch.Tensor, optional): [bs, past_steps, d_model]. Defaults to None.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.Tensor: [bs, past_steps, d_model]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># # categorical var_selection</span>
+        <span class="n">var_sel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cat_GRN</span><span class="p">(</span><span class="n">categorical</span><span class="p">)</span>
+        <span class="n">to_be_flat</span> <span class="o">=</span> <span class="n">categorical</span>
+        
+        <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">num_var_sel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_num_GRN</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+            <span class="n">var_sel</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">var_sel</span><span class="p">,</span> <span class="n">num_var_sel</span><span class="p">),</span> <span class="n">dim</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">to_be_flat</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">to_be_flat</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">var_sel_wei</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_flat_GRN</span><span class="p">(</span><span class="n">to_be_flat</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">var_sel</span><span class="o">*</span><span class="n">var_sel_wei</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="n">out</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+<div class="viewcode-block" id="Encoder_Var_Selection.get_cat_GRN"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Encoder_Var_Selection.get_cat_GRN">[docs]</a>    <span class="k">def</span> <span class="nf">get_cat_GRN</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">cat_after_GRN</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GRNs_cat</span><span class="p">):</span>
+            <span class="n">grn</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">x</span><span class="p">[:,:,</span><span class="n">index</span><span class="p">,:])</span>
+            <span class="n">cat_after_GRN</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">cat_after_GRN</span><span class="p">,</span> <span class="n">grn</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cat_after_GRN</span></div>
+    
+<div class="viewcode-block" id="Encoder_Var_Selection.get_num_GRN"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Encoder_Var_Selection.get_num_GRN">[docs]</a>    <span class="k">def</span> <span class="nf">get_num_GRN</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">num_after_GRN</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GRNs_num</span><span class="p">):</span>
+            <span class="n">grn</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">x</span><span class="p">[:,:,</span><span class="n">index</span><span class="p">,:])</span>
+            <span class="n">num_after_GRN</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">num_after_GRN</span><span class="p">,</span> <span class="n">grn</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">num_after_GRN</span></div>
+    
+<div class="viewcode-block" id="Encoder_Var_Selection.get_flat_GRN"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Encoder_Var_Selection.get_flat_GRN">[docs]</a>    <span class="k">def</span> <span class="nf">get_flat_GRN</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">to_be_flat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">emb</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">to_be_flat</span><span class="p">,</span> <span class="n">start_dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">var_sel_wei</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flatten_GRN</span><span class="p">(</span><span class="n">emb</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">var_sel_wei</span></div></div>
+
+<div class="viewcode-block" id="Encoder_LSTM"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Encoder_LSTM">[docs]</a><span class="k">class</span> <span class="nc">Encoder_LSTM</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_layers_LSTM</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;LSTM Encoder with GLU, Add and Norm</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            n_layers_EncLSTM (int): number of layers involved by LSTM </span>
+<span class="sd">            d_model (int): -</span>
+<span class="sd">            dropout (float): -</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_layers_EncLSTM</span> <span class="o">=</span> <span class="n">n_layers_LSTM</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span> <span class="o">=</span> <span class="n">d_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LSTM</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LSTM</span><span class="p">(</span><span class="n">input_size</span><span class="o">=</span><span class="n">d_model</span><span class="p">,</span> <span class="n">hidden_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">num_layers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_layers_EncLSTM</span><span class="p">,</span> <span class="n">batch_first</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LSTM_enc_GLU</span> <span class="o">=</span> <span class="n">GLU</span><span class="p">(</span><span class="n">d_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span><span class="n">d_model</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Encoder_LSTM.forward"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Encoder_LSTM.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;LSTM Encoder with GLU, Add and Norm</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x (torch.Tensor): [bs, past_steps, d_model]</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list of tensors: [output_enc, hn, cn] where hn and cn must be used for Decoder_LSTM. </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">h0</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_layers_EncLSTM</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+        <span class="n">c0</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_layers_EncLSTM</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+        <span class="n">lstm_enc</span><span class="p">,</span> <span class="p">(</span><span class="n">hn</span><span class="p">,</span> <span class="n">cn</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">LSTM</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="n">h0</span><span class="p">,</span><span class="n">c0</span><span class="p">))</span>
+        <span class="n">lstm_enc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">lstm_enc</span><span class="p">)</span>
+        <span class="n">output_enc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">LSTM_enc_GLU</span><span class="p">(</span><span class="n">lstm_enc</span><span class="p">)</span> <span class="o">+</span> <span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">output_enc</span><span class="p">,</span> <span class="n">hn</span><span class="p">,</span> <span class="n">cn</span><span class="p">]</span></div></div>
+    
+<div class="viewcode-block" id="Decoder_Var_Selection"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Decoder_Var_Selection">[docs]</a><span class="k">class</span> <span class="nc">Decoder_Var_Selection</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span> <span class="c1"># input already embedded</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_yprec</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">n_fut_cat_var</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_fut_tar_var</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Variable Selection Network in Decoder(future)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            use_yprec (bool): True if we want to use the last predicted values of target variable(s)</span>
+<span class="sd">            n_fut_cat_var (int): number of categorical variables for future steps</span>
+<span class="sd">            n_fut_tar_var (int): number of target variables for future steps. If use_yprec==False it is ignored</span>
+<span class="sd">            d_model (int): -</span>
+<span class="sd">            dropout (float): -</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_yprec</span> <span class="o">=</span> <span class="n">use_yprec</span>
+        <span class="c1">#categorical</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_grn_cat</span> <span class="o">=</span> <span class="n">n_fut_cat_var</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GRNs_cat</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span>
+            <span class="n">GRN</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">dropout</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_grn_cat</span><span class="p">)</span>
+        <span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tot_var</span> <span class="o">=</span> <span class="n">n_fut_cat_var</span>
+        <span class="c1">#numerical</span>
+        <span class="k">if</span> <span class="n">use_yprec</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_grn_num</span> <span class="o">=</span> <span class="n">n_fut_tar_var</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">GRNs_num</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span>
+                <span class="n">GRN</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">dropout</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_grn_num</span><span class="p">)</span>
+            <span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tot_var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot_var</span><span class="o">+</span><span class="n">n_fut_tar_var</span>
+        <span class="c1">#flatten</span>
+        <span class="n">emb_dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">d_model</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">tot_var</span><span class="p">,</span> <span class="nb">int</span><span class="p">((</span><span class="n">d_model</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">tot_var</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot_var</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flatten_GRN</span> <span class="o">=</span> <span class="n">flatten_GRN</span><span class="p">(</span><span class="n">emb_dims</span><span class="p">,</span> <span class="n">dropout</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Decoder_Var_Selection.forward"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Decoder_Var_Selection.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">categorical</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Variable Selection Network in Decoder(future)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            categorical (torch.Tensor): [bs, past_steps, n_cat_var, d_model] fut_cat_variables to be selected</span>
+<span class="sd">            y (torch.Tensor, optional): [bs, past_steps, d_model]. Defaults to None.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.Tensor: [bs, past_steps, d_model]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">var_sel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cat_GRN</span><span class="p">(</span><span class="n">categorical</span><span class="p">)</span>
+        <span class="n">to_be_flat</span> <span class="o">=</span> <span class="n">categorical</span>
+        <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_yprec</span><span class="o">==</span><span class="kc">True</span>
+            <span class="n">num_after_GRN</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_num_GRN</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+            <span class="n">var_sel</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">var_sel</span><span class="p">,</span> <span class="n">num_after_GRN</span><span class="p">),</span> <span class="n">dim</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">to_be_flat</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">to_be_flat</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">var_sel_wei</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_flat_GRN</span><span class="p">(</span><span class="n">to_be_flat</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">var_sel</span><span class="o">*</span><span class="n">var_sel_wei</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="n">out</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+<div class="viewcode-block" id="Decoder_Var_Selection.get_cat_GRN"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Decoder_Var_Selection.get_cat_GRN">[docs]</a>    <span class="k">def</span> <span class="nf">get_cat_GRN</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">cat_after_GRN</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GRNs_cat</span><span class="p">):</span>
+            <span class="n">grn</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">x</span><span class="p">[:,:,</span><span class="n">index</span><span class="p">,:])</span>
+            <span class="n">cat_after_GRN</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">cat_after_GRN</span><span class="p">,</span> <span class="n">grn</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cat_after_GRN</span></div>
+    
+<div class="viewcode-block" id="Decoder_Var_Selection.get_num_GRN"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Decoder_Var_Selection.get_num_GRN">[docs]</a>    <span class="k">def</span> <span class="nf">get_num_GRN</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">num_after_GRN</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GRNs_num</span><span class="p">):</span>
+            <span class="n">grn</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">x</span><span class="p">[:,:,</span><span class="n">index</span><span class="p">,:])</span>
+            <span class="n">num_after_GRN</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">num_after_GRN</span><span class="p">,</span> <span class="n">grn</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">num_after_GRN</span></div>
+    
+<div class="viewcode-block" id="Decoder_Var_Selection.get_flat_GRN"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Decoder_Var_Selection.get_flat_GRN">[docs]</a>    <span class="k">def</span> <span class="nf">get_flat_GRN</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">to_be_flat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="c1"># apply flatten_GRN and softmax</span>
+        <span class="n">emb</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">to_be_flat</span><span class="p">,</span> <span class="n">start_dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">var_sel_wei</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flatten_GRN</span><span class="p">(</span><span class="n">emb</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">var_sel_wei</span></div></div>
+    
+<div class="viewcode-block" id="Decoder_LSTM"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Decoder_LSTM">[docs]</a><span class="k">class</span> <span class="nc">Decoder_LSTM</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_layers_LSTM</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;LSTM Decoder with GLU, Add and Norm</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            n_layers_LSTM (int): number of layers involved by LSTM </span>
+<span class="sd">            d_model (int): -</span>
+<span class="sd">            dropout (float): -</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_layers_DecLSTM</span> <span class="o">=</span> <span class="n">n_layers_LSTM</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span> <span class="o">=</span> <span class="n">d_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LSTM</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LSTM</span><span class="p">(</span><span class="n">input_size</span><span class="o">=</span><span class="n">d_model</span><span class="p">,</span> <span class="n">hidden_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">num_layers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_layers_DecLSTM</span><span class="p">,</span> <span class="n">batch_first</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LSTM_enc_GLU</span> <span class="o">=</span> <span class="n">GLU</span><span class="p">(</span><span class="n">d_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span><span class="n">d_model</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Decoder_LSTM.forward"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Decoder_LSTM.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">hn</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">cn</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;LSTM Decoder with GLU, Add and Norm</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x (torch.Tensor): [bs, past_steps, d_model] main Tensor</span>
+<span class="sd">            hn (torch.Tensor): [n_layers_DecLSTM, bs, d_model] Tensor of hidden states from Encoder</span>
+<span class="sd">            cn (torch.Tensor): [n_layers_DecLSTM, bs, d_model] Tensor of initial cell states from Encoder</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.Tensor: [bs, past_steps, d_model]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lstm_dec</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">LSTM</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="n">hn</span><span class="p">,</span><span class="n">cn</span><span class="p">))</span>
+        <span class="n">lstm_dec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">lstm_dec</span><span class="p">)</span>
+        <span class="n">output_dec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">LSTM_enc_GLU</span><span class="p">(</span><span class="n">lstm_dec</span><span class="p">)</span> <span class="o">+</span> <span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">output_dec</span></div></div>
+
+<div class="viewcode-block" id="postTransformer"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.postTransformer">[docs]</a><span class="k">class</span> <span class="nc">postTransformer</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Last part of TFT after decoder and before last linear</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            d_model (int): -</span>
+<span class="sd">            dropout (float): -</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GLU1</span> <span class="o">=</span> <span class="n">GLU</span><span class="p">(</span><span class="n">d_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span><span class="n">d_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GRN</span> <span class="o">=</span> <span class="n">GRN</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">dropout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GLU2</span> <span class="o">=</span> <span class="n">GLU</span><span class="p">(</span><span class="n">d_model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span><span class="n">d_model</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="postTransformer.forward"><a class="viewcode-back" href="../../../../dsipts.models.tft.html#dsipts.models.tft.embedding_nn.postTransformer.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">res_conn_dec</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">res_conn_grn</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Last part of TFT after decoder and before last linear</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x (torch.Tensor): [bs, past_steps, d_model] main Tensor</span>
+<span class="sd">            res_conn_dec (torch.Tensor): [bs, past_steps, d_model] residual connection pre decoder</span>
+<span class="sd">            res_conn_grn (torch.Tensor): [bs, past_steps, d_model] residual connection pre GRN-Static Enrichment</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.Tensor: [bs, past_steps, d_model]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm1</span><span class="p">(</span><span class="n">res_conn_dec</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">GLU1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">GRN</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm2</span><span class="p">(</span><span class="n">res_conn_grn</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">GLU2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">out</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andrea Gobbi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

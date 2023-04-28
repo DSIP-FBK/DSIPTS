@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>dsipts.models.d3vae.neural_operations &mdash; DISIPTS 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            DISIPTS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules.html">dsipts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../bash_examples.html">bash_examples package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">DISIPTS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">dsipts.models.d3vae.neural_operations</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for dsipts.models.d3vae.neural_operations</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*-Encoding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Authors:</span>
+<span class="sd">    Li,Yan (liyan22021121@gmail.com)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
+<span class="kn">from</span> <span class="nn">torch.nn.modules.batchnorm</span> <span class="kn">import</span> <span class="n">_BatchNorm</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">average_tensor</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+
+
+<span class="n">BN_EPS</span> <span class="o">=</span> <span class="mf">1e-5</span>
+<span class="n">SYNC_BN</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="n">OPS</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">([</span>
+    <span class="p">(</span><span class="s1">&#39;res_elu&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">Cin</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="n">ELUConv</span><span class="p">(</span><span class="n">Cin</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;res_bnelu&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">Cin</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="n">BNELUConv</span><span class="p">(</span><span class="n">Cin</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;res_bnswish&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">Cin</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="n">BNSwishConv</span><span class="p">(</span><span class="n">Cin</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;res_bnswish5&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">Cin</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="n">BNSwishConv</span><span class="p">(</span><span class="n">Cin</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;mconv_e6k5g0&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">Cin</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="n">InvertedResidual</span><span class="p">(</span><span class="n">Cin</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">ex</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">dil</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">g</span><span class="o">=</span><span class="mi">1</span><span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;mconv_e3k5g0&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">Cin</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="n">InvertedResidual</span><span class="p">(</span><span class="n">Cin</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">ex</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">dil</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">g</span><span class="o">=</span><span class="mi">1</span><span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;mconv_e3k5g8&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">Cin</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="n">InvertedResidual</span><span class="p">(</span><span class="n">Cin</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">ex</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">dil</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">g</span><span class="o">=</span><span class="mi">8</span><span class="p">)),</span>
+    <span class="p">(</span><span class="s1">&#39;mconv_e6k11g0&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">Cin</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="n">InvertedResidual</span><span class="p">(</span><span class="n">Cin</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">ex</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">dil</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">g</span><span class="o">=</span><span class="mi">0</span><span class="p">)),</span>
+<span class="p">])</span>
+
+
+<div class="viewcode-block" id="SyncBatchNormSwish"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.SyncBatchNormSwish">[docs]</a><span class="k">class</span> <span class="nc">SyncBatchNormSwish</span><span class="p">(</span><span class="n">_BatchNorm</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_features</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">momentum</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">affine</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">track_running_stats</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">process_group</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SyncBatchNormSwish</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">num_features</span><span class="p">,</span> <span class="n">eps</span><span class="p">,</span> <span class="n">momentum</span><span class="p">,</span> <span class="n">affine</span><span class="p">,</span> <span class="n">track_running_stats</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">process_group</span> <span class="o">=</span> <span class="n">process_group</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ddp_gpu_size</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="SyncBatchNormSwish.forward"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.SyncBatchNormSwish.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">):</span>
+        <span class="n">exponential_average_factor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">momentum</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">batch_norm</span><span class="p">(</span>
+            <span class="nb">input</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">running_mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">running_var</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">training</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">track_running_stats</span><span class="p">,</span>
+            <span class="n">exponential_average_factor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">eps</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span></div></div>
+
+
+<div class="viewcode-block" id="get_skip_connection"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.get_skip_connection">[docs]</a><span class="k">def</span> <span class="nf">get_skip_connection</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">channel_mult</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">stride</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Identity</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">stride</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">FactorizedReduce</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">channel_mult</span> <span class="o">*</span> <span class="n">C</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">stride</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">UpSample</span><span class="p">(),</span> <span class="n">Conv2D</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">C</span> <span class="o">/</span> <span class="n">channel_mult</span><span class="p">),</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="norm"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.norm">[docs]</a><span class="k">def</span> <span class="nf">norm</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dim</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">t</span> <span class="o">*</span> <span class="n">t</span><span class="p">,</span> <span class="n">dim</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="logit"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.logit">[docs]</a><span class="k">def</span> <span class="nf">logit</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">-</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="act"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.act">[docs]</a><span class="k">def</span> <span class="nf">act</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="c1"># The following implementation has lower memory.</span>
+    <span class="k">return</span> <span class="n">SwishFN</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">t</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SwishFN"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.SwishFN">[docs]</a><span class="k">class</span> <span class="nc">SwishFN</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">Function</span><span class="p">):</span>
+<div class="viewcode-block" id="SwishFN.forward"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.SwishFN.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">save_for_backward</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<div class="viewcode-block" id="SwishFN.backward"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.SwishFN.backward">[docs]</a>    <span class="k">def</span> <span class="nf">backward</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">grad_output</span><span class="p">):</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">saved_variables</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">sigmoid_i</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">grad_output</span> <span class="o">*</span> <span class="p">(</span><span class="n">sigmoid_i</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">sigmoid_i</span><span class="p">)))</span></div></div>
+
+
+<div class="viewcode-block" id="Swish"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.Swish">[docs]</a><span class="k">class</span> <span class="nc">Swish</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Swish</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Swish.forward"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.Swish.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">act</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="normalize_weight_jit"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.normalize_weight_jit">[docs]</a><span class="k">def</span> <span class="nf">normalize_weight_jit</span><span class="p">(</span><span class="n">log_weight_norm</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">log_weight_norm</span><span class="p">)</span>
+    <span class="n">wn</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">weight</span> <span class="o">*</span> <span class="n">weight</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]))</span>   <span class="c1"># norm(w)</span>
+    <span class="n">weight</span> <span class="o">=</span> <span class="n">n</span> <span class="o">*</span> <span class="n">weight</span> <span class="o">/</span> <span class="p">(</span><span class="n">wn</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-5</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">weight</span></div>
+
+
+<div class="viewcode-block" id="Conv2D"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.Conv2D">[docs]</a><span class="k">class</span> <span class="nc">Conv2D</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Allows for weights as input.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">C_in</span><span class="p">,</span> <span class="n">C_out</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dilation</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">data_init</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">weight_norm</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            use_shared (bool): Use weights for this layer or not?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Conv2D</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">C_in</span><span class="p">,</span> <span class="n">C_out</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">padding</span><span class="p">,</span> <span class="n">dilation</span><span class="p">,</span> <span class="n">groups</span><span class="p">,</span> <span class="n">bias</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_weight_norm</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">weight_norm</span><span class="p">:</span>
+            <span class="n">init</span> <span class="o">=</span> <span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log_weight_norm</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">init</span> <span class="o">+</span> <span class="mf">1e-2</span><span class="p">),</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_init</span> <span class="o">=</span> <span class="n">data_init</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_done</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight_normalized</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize_weight</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Conv2D.forward"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.Conv2D.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="c1"># do data based initialization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight_normalized</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize_weight</span><span class="p">()</span>
+        <span class="c1">#print(self.weight_normalized.shape)</span>
+        <span class="n">bias</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bias</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight_normalized</span><span class="p">,</span> <span class="n">bias</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stride</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dilation</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Conv2D.normalize_weight"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.Conv2D.normalize_weight">[docs]</a>    <span class="k">def</span> <span class="nf">normalize_weight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; applies weight normalization &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_weight_norm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">weight</span> <span class="o">=</span> <span class="n">normalize_weight_jit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_weight_norm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span>
+
+        <span class="k">return</span> <span class="n">weight</span></div></div>
+
+
+<div class="viewcode-block" id="Identity"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.Identity">[docs]</a><span class="k">class</span> <span class="nc">Identity</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Identity</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Identity.forward"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.Identity.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">x</span></div></div>
+
+
+<div class="viewcode-block" id="SyncBatchNorm"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.SyncBatchNorm">[docs]</a><span class="k">class</span> <span class="nc">SyncBatchNorm</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SyncBatchNorm</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SyncBatchNorm.forward"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.SyncBatchNorm.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div></div>
+
+
+<span class="c1"># quick switch between multi-gpu, single-gpu batch norm</span>
+<div class="viewcode-block" id="get_batchnorm"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.get_batchnorm">[docs]</a><span class="k">def</span> <span class="nf">get_batchnorm</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ELUConv"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.ELUConv">[docs]</a><span class="k">class</span> <span class="nc">ELUConv</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">C_in</span><span class="p">,</span> <span class="n">C_out</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dilation</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ELUConv</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">upsample</span> <span class="o">=</span> <span class="n">stride</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">stride</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">stride</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv_0</span> <span class="o">=</span> <span class="n">Conv2D</span><span class="p">(</span><span class="n">C_in</span><span class="p">,</span> <span class="n">C_out</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dilation</span><span class="o">=</span><span class="n">dilation</span><span class="p">,</span>
+                             <span class="n">data_init</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ELUConv.forward"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.ELUConv.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">elu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsample</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv_0</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span></div></div>
+
+
+<div class="viewcode-block" id="BNELUConv"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.BNELUConv">[docs]</a><span class="k">class</span> <span class="nc">BNELUConv</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">C_in</span><span class="p">,</span> <span class="n">C_out</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dilation</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BNELUConv</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">upsample</span> <span class="o">=</span> <span class="n">stride</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">stride</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">stride</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bn</span> <span class="o">=</span> <span class="n">get_batchnorm</span><span class="p">(</span><span class="n">C_in</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">BN_EPS</span><span class="p">,</span> <span class="n">momentum</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv_0</span> <span class="o">=</span> <span class="n">Conv2D</span><span class="p">(</span><span class="n">C_in</span><span class="p">,</span> <span class="n">C_out</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dilation</span><span class="o">=</span><span class="n">dilation</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BNELUConv.forward"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.BNELUConv.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">elu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsample</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv_0</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span></div></div>
+
+
+<div class="viewcode-block" id="BNSwishConv"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.BNSwishConv">[docs]</a><span class="k">class</span> <span class="nc">BNSwishConv</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;ReLU + Conv2d + BN.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">C_in</span><span class="p">,</span> <span class="n">C_out</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dilation</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BNSwishConv</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">upsample</span> <span class="o">=</span> <span class="n">stride</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">stride</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">stride</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bn_act</span> <span class="o">=</span> <span class="n">SyncBatchNormSwish</span><span class="p">(</span><span class="n">C_in</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">BN_EPS</span><span class="p">,</span> <span class="n">momentum</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv_0</span> <span class="o">=</span> <span class="n">Conv2D</span><span class="p">(</span><span class="n">C_in</span><span class="p">,</span> <span class="n">C_out</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dilation</span><span class="o">=</span><span class="n">dilation</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BNSwishConv.forward"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.BNSwishConv.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            x (torch.Tensor): of size (B, C_in, H, W)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bn_act</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsample</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv_0</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span></div></div>
+
+
+<div class="viewcode-block" id="FactorizedReduce"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.FactorizedReduce">[docs]</a><span class="k">class</span> <span class="nc">FactorizedReduce</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">C_in</span><span class="p">,</span> <span class="n">C_out</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FactorizedReduce</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">C_out</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv_1</span> <span class="o">=</span> <span class="n">Conv2D</span><span class="p">(</span><span class="n">C_in</span><span class="p">,</span> <span class="n">C_out</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv_2</span> <span class="o">=</span> <span class="n">Conv2D</span><span class="p">(</span><span class="n">C_in</span><span class="p">,</span> <span class="n">C_out</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv_3</span> <span class="o">=</span> <span class="n">Conv2D</span><span class="p">(</span><span class="n">C_in</span><span class="p">,</span> <span class="n">C_out</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv_4</span> <span class="o">=</span> <span class="n">Conv2D</span><span class="p">(</span><span class="n">C_in</span><span class="p">,</span> <span class="n">C_out</span> <span class="o">-</span> <span class="mi">3</span> <span class="o">*</span> <span class="p">(</span><span class="n">C_out</span> <span class="o">//</span> <span class="mi">4</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FactorizedReduce.forward"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.FactorizedReduce.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">act</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">conv1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv_1</span><span class="p">(</span><span class="n">out</span><span class="p">[:,:,:,</span> <span class="p">:])</span>
+        <span class="n">conv2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv_2</span><span class="p">(</span><span class="n">out</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">:,</span> <span class="p">:])</span>
+        <span class="n">conv3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv_3</span><span class="p">(</span><span class="n">out</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:])</span>
+        <span class="n">conv4</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv_4</span><span class="p">(</span><span class="n">out</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">:,</span> <span class="p">:])</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">conv1</span><span class="p">,</span> <span class="n">conv2</span><span class="p">,</span> <span class="n">conv3</span><span class="p">,</span> <span class="n">conv4</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span></div></div>
+
+
+<div class="viewcode-block" id="UpSample"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.UpSample">[docs]</a><span class="k">class</span> <span class="nc">UpSample</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">UpSample</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="UpSample.forward"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.UpSample.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;bilinear&#39;</span><span class="p">,</span> <span class="n">align_corners</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="EncCombinerCell"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.EncCombinerCell">[docs]</a><span class="k">class</span> <span class="nc">EncCombinerCell</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Cin1</span><span class="p">,</span> <span class="n">Cin2</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="n">cell_type</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">EncCombinerCell</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cell_type</span> <span class="o">=</span> <span class="n">cell_type</span>
+        <span class="c1"># Cin = Cin1 + Cin2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv</span> <span class="o">=</span> <span class="n">Conv2D</span><span class="p">(</span><span class="n">Cin2</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="EncCombinerCell.forward"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.EncCombinerCell.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">):</span>
+        <span class="n">x2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x2</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">x1</span> <span class="o">+</span> <span class="n">x2</span>
+        <span class="k">return</span> <span class="n">out</span></div></div>
+
+
+<span class="c1"># original combiner</span>
+<div class="viewcode-block" id="DecCombinerCell"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.DecCombinerCell">[docs]</a><span class="k">class</span> <span class="nc">DecCombinerCell</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Cin1</span><span class="p">,</span> <span class="n">Cin2</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="n">cell_type</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DecCombinerCell</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cell_type</span> <span class="o">=</span> <span class="n">cell_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv</span> <span class="o">=</span> <span class="n">Conv2D</span><span class="p">(</span><span class="n">Cin1</span> <span class="o">+</span> <span class="n">Cin2</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DecCombinerCell.forward"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.DecCombinerCell.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">):</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span></div></div>
+
+
+<div class="viewcode-block" id="ConvBNSwish"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.ConvBNSwish">[docs]</a><span class="k">class</span> <span class="nc">ConvBNSwish</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Cin</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dilation</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">padding</span> <span class="o">=</span> <span class="n">dilation</span> <span class="o">*</span> <span class="p">(</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ConvBNSwish</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+            <span class="n">Conv2D</span><span class="p">(</span><span class="n">Cin</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">padding</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="n">groups</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dilation</span><span class="o">=</span><span class="n">dilation</span><span class="p">,</span> <span class="n">weight_norm</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+            <span class="n">SyncBatchNormSwish</span><span class="p">(</span><span class="n">Cout</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">BN_EPS</span><span class="p">,</span> <span class="n">momentum</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>  <span class="c1"># drop in replacement for BN + Swish</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="ConvBNSwish.forward"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.ConvBNSwish.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="SE"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.SE">[docs]</a><span class="k">class</span> <span class="nc">SE</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Cin</span><span class="p">,</span> <span class="n">Cout</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SE</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="n">num_hidden</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">Cout</span> <span class="o">//</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">se</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">Cin</span><span class="p">,</span> <span class="n">num_hidden</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                                <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">num_hidden</span><span class="p">,</span> <span class="n">Cout</span><span class="p">),</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">())</span>
+
+<div class="viewcode-block" id="SE.forward"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.SE.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">se</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+        <span class="n">se</span> <span class="o">=</span> <span class="n">se</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">se</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">se</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">se</span><span class="p">(</span><span class="n">se</span><span class="p">)</span>
+        <span class="n">se</span> <span class="o">=</span> <span class="n">se</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">se</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">se</span></div></div>
+
+
+<div class="viewcode-block" id="InvertedResidual"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.InvertedResidual">[docs]</a><span class="k">class</span> <span class="nc">InvertedResidual</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Cin</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">ex</span><span class="p">,</span> <span class="n">dil</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">g</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">InvertedResidual</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stride</span> <span class="o">=</span> <span class="n">stride</span>
+        <span class="k">assert</span> <span class="n">stride</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">hidden_dim</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">Cin</span> <span class="o">*</span> <span class="n">ex</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_res_connect</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stride</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">Cin</span> <span class="o">==</span> <span class="n">Cout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">upsample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stride</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stride</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stride</span><span class="p">)</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="n">hidden_dim</span> <span class="k">if</span> <span class="n">g</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">g</span>
+
+        <span class="n">layers0</span> <span class="o">=</span> <span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">UpsamplingNearest2d</span><span class="p">(</span><span class="n">scale_factor</span><span class="o">=</span><span class="mi">2</span><span class="p">)]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsample</span> <span class="k">else</span> <span class="p">[]</span>
+        <span class="n">layers</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_batchnorm</span><span class="p">(</span><span class="n">Cin</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">BN_EPS</span><span class="p">,</span> <span class="n">momentum</span><span class="o">=</span><span class="mf">0.05</span><span class="p">),</span>
+                  <span class="n">ConvBNSwish</span><span class="p">(</span><span class="n">Cin</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                  <span class="n">ConvBNSwish</span><span class="p">(</span><span class="n">hidden_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stride</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="n">groups</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">dilation</span><span class="o">=</span><span class="n">dil</span><span class="p">),</span>
+                  <span class="n">Conv2D</span><span class="p">(</span><span class="n">hidden_dim</span><span class="p">,</span> <span class="n">Cout</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">weight_norm</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                  <span class="n">get_batchnorm</span><span class="p">(</span><span class="n">Cout</span><span class="p">,</span> <span class="n">momentum</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)]</span>
+
+        <span class="n">layers0</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">layers0</span><span class="p">)</span>
+
+<div class="viewcode-block" id="InvertedResidual.forward"><a class="viewcode-back" href="../../../../dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.InvertedResidual.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andrea Gobbi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
