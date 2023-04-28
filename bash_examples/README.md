@@ -225,7 +225,14 @@ rescaling: false                       ## sometimes want to get the MSE on the s
 
 ```
 
+or:
+```
+ python compare_slurm.py --config-dir=config_weather --config-name=compare_slurm -m
 
+
+```
+
+if you are in a SLURM cluster.
 
 In the `dirpath` folder `/home/agobbi/Projects/ExpTS/` there are three folder now: `weights` containing the model and the weights, `plots` containing some plots coming from the `compare` script and the `csv` forder containing the files.
 
