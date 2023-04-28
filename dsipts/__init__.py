@@ -8,4 +8,4 @@ from .models.base import Base
 from .models.Persistent import Persistent
 from .models.D3VAE import D3VAE
 from .models.MyModel import MyModel
-
+from .models.TFT import TFT
