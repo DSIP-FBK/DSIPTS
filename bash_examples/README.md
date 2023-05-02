@@ -39,6 +39,8 @@ pip install hydra-joblib-launcher   ## if you have a big gpu
 pip install hydra-submitit-launcher ## if you are in a slurm envirionment
 ```
 
+
+
 The script used are:
 - **train.py** for trainint
 - **inference.py** for inference 

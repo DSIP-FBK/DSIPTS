@@ -5,8 +5,6 @@ from omegaconf import DictConfig, OmegaConf
 import os
 import numpy as np
 import plotly.express as px
-
-##This module will not displayed in the documentation
 import logging
 from inference import inference
 
