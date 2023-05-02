@@ -43,13 +43,15 @@ def compare(conf:DictConfig)-> None:
         pdb.set_trace()
         
     for conf_tmp in files:
+        conf_tmp =  OmegaConf.load(conf_tmp) 
+        conf_tmp.inference.set = conf.set
+        conf_tmp.inference.rescaling = conf.rescaling
         print(f"{''.join(['#']*100)}")
         print(f'#######PROCESSING {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} {e} ########### ')
         print(f"{''.join(['#']*100)}")
 
-        conf_tmp =  OmegaConf.load(conf_tmp) 
-        conf_tmp.inference.set = conf.set
-        conf_tmp.inference.rescaling = conf.rescaling
+        
+
         try:
             tmp,predictions, losses = inference(conf_tmp)
             tmp['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
