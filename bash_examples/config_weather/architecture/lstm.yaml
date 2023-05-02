@@ -17,7 +17,7 @@ model_configs:
   kind: 'lstm'
   sum_emb: true
   use_bn: false  
-  activation: 'selu'
+  activation: 'relu'
   
 train_config:
   batch_size: 256

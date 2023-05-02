@@ -16,7 +16,8 @@ model_configs:
   kernel_size: 5
   kind: 'gru'
   sum_emb: true
-
+  use_bn: false  
+  activation: 'relu'
 
 train_config:
   batch_size: 256
