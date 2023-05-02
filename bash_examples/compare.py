@@ -7,7 +7,14 @@ import numpy as np
 import plotly.express as px
 
 ##This module will not displayed in the documentation
+import logging
 from inference import inference
+
+
+logging.basicConfig(
+    level=logging.INFO, 
+)
+
 
 
 
@@ -43,6 +50,10 @@ def compare(conf:DictConfig)-> None:
         conf_tmp =  OmegaConf.load(conf_tmp) 
         conf_tmp.inference.set = conf.set
         conf_tmp.inference.rescaling = conf.rescaling
+        logging.info(f"{''.join(['#']*100)}")
+        logging.info(f'#######PROCESSING {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} ########### ')
+        logging.info(f"{''.join(['#']*100)}")
+        
         try:
             tmp,predictions, losses = inference(conf_tmp)
             tmp['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
@@ -56,7 +67,7 @@ def compare(conf:DictConfig)-> None:
             tot_predictions.append(predictions)
         
         except Exception as e:
-            print(f'#######can not load model {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} {e} ######### ')
+            logging.info(f'#######can not load model {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} {e} ######### ')
             
 
     tot_losses = pd.concat(tot_losses,ignore_index=True)

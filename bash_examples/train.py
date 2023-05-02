@@ -36,9 +36,9 @@ def train(conf: DictConfig) -> None:
 
     K = list(HydraConfig.get()['runtime']['choices'].keys())[0]
     print(OmegaConf.to_yaml(conf))  
-    print(f"{''.join(['#']*100)}")
-    print(f"{HydraConfig.get()['runtime']['choices'][K]:^100}")  
-    print(f"{''.join(['#']*100)}")
+    logging.info(f"{''.join(['#']*100)}")
+    logging.info(f"{HydraConfig.get()['runtime']['choices'][K]:^100}")  
+    logging.info(f"{''.join(['#']*100)}")
 
     ##OCCHIO CHE tutti questi dataset hanno y come target! ###############################################
     data, columns = read_public_dataset(**conf.dataset)
@@ -58,7 +58,6 @@ def train(conf: DictConfig) -> None:
 
     if conf.model.type=='attention':
         if conf.split_params.shift==1:
-            print('USING ATTENTION WITH y')
             ts.future_variables +=ts.target_variables
             model_conf['future_channels']= len(ts.future_variables)
         model =  Attention(**model_conf,
@@ -95,12 +94,12 @@ def train(conf: DictConfig) -> None:
                           scheduler_config =conf.scheduler_config )  
     
     else:
-        print(f"{''.join(['#']*100)}")
-        print('use valid model')
-        print(f"{''.join(['#']*100)}")
+        logging.info(f"{''.join(['#']*100)}")
+        logging.info('use valid model')
+        logging.info(f"{''.join(['#']*100)}")
     ##questa e' unica per ogni sequenza di dirpath type name version quindi dopo la RIMUOVO se mai ce n'e' una vecchia! 
     dirpath = os.path.join(conf.train_config.dirpath,'weights',conf.model.type,conf.ts.name, str(conf.ts.version))
-    print(f'Model and weights will be placed and read from {dirpath}')
+    logging.info(f'Model and weights will be placed and read from {dirpath}')
     
     
     ##clean folders
