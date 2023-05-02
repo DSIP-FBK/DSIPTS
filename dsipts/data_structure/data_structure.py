@@ -551,11 +551,16 @@ class TimeSeries():
                 os.remove(f)
         if type(self.losses)==dict:
             self.losses = pd.DataFrame()
-        
         try:
             self.model = self.model.load_from_checkpoint(self.checkpoint_file_last)
         except:
             logging.info(f'There is a problem loading the weights on file {self.checkpoint_file_last}')
+
+        ##clean lr finder
+        for f in files:
+            if '.lr_find' in f:
+                os.remove(f)
+        
 
     def inference_on_set(self,batch_size:int=100,num_workers:int=4,split_params:Union[None,dict]=None,set:str='test',rescaling:bool=True)->pd.DataFrame:
         """This function allows to get the prediction on a particular set (train, test or validation). TODO add inference on a custom dataset
