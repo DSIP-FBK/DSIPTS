@@ -7,41 +7,43 @@ from configparser import ConfigParser
 import torch
 import torch.nn as nn
 from tqdm import tqdm
-from torch_geometric.loader import DataLoader
-from torch_geometric.data import Dataset, Data
 import numpy as np
+from torch.utils.data import DataLoader
 
 def get_prediction(model,
                    train: bool,
                    dataloader, 
                    loss_function, 
-                   optimizer):
+                   optimizer,
+                   config:ConfigParser):
     l = 0.0
     
     rec = 0.0
     frob = 0.0
     energy = 0.0
-    
+
     if train:
         model.train()
         is_train = True
     else: 
         model.eval()
         is_train = False
-    alpha = 5e-2
+    alpha = 0.15
+    gamma = 25.
+    m = config.getfloat('dataset','scaler')
     with torch.set_grad_enabled(is_train):
-        for graph in iter(dataloader):
+        for batch in iter(dataloader):
             if train:
                 optimizer.zero_grad()
                 
-            yh, x, A = model(graph.to(model.device))
+            yh, x, A = model(batch[0].to(model.device))
             
             ########### Computing the loss function ##############
-            l1 = loss_function(input = yh, target = graph.y.float().to(model.device))
-            l2 = alpha*torch.sum(torch. matmul(x, A))/x.shape[0]
-            l3 = torch.norm(A)
+            l1 = loss_function(input = yh*m, target = batch[1].float().to(model.device)*m)
+            l2 = 0.5*torch.sum(torch. matmul(x, A))
+            l3 = torch.norm(A)*gamma
             
-            loss = l1 + l2 + l3
+            loss = (1-alpha)*l1 + alpha*l2 + l3
             
             if train:
                 loss.backward()
@@ -75,36 +77,39 @@ def training(model,
                        "rec"  : [],
                        "energy": [],
                        "frobenius": []}
+    density = []
     
     loss_function = eval(f"{config['optimizer']['loss']}")
     
     be = np.Inf
-    k = 1
-    
+    k = 20
+    with open(os.path.join(config['paths']['dataset'], 'scaler_sc.pkl') , 'rb') as f :
+        scaler = pickle.load(f)
+    config['dataset']['scaler'] = str(scaler.scale_[-1])
+
     id_model = config['model']['id_model']
     saving_path = os.path.join(config['paths']['net_weights_train'],f"GNN_{id_model}.pt")
     
     # IN QUESTO MODO ELIMINO IL PROBLEMA DEL BUFFERING DATO CHE TQDM STAMPA OGNI RIGA
     with tqdm(total=epoch) as progress_bar: 
         for e in range(epoch):
-            if e in [300, 400, 600, 800, 1000]:
+            if (e+1)%50 == 0:
                 scheduler.step()
             ##TRAIN STEP
-            l = 0
             loss_t = get_prediction(model = model, 
-                                        train = True, 
-                                        dataloader = dataloader_train, 
-                                        loss_function = loss_function, 
-                                        optimizer = optimizer)
+                                    train = True, 
+                                    dataloader = dataloader_train, 
+                                    loss_function = loss_function, 
+                                    optimizer = optimizer, 
+                                    config = config)
             
             
-            
-
             loss_v = get_prediction(model = model,
-                                        train = False,
-                                        dataloader = dataloader_validation, 
-                                        loss_function = loss_function, 
-                                        optimizer = optimizer)
+                                    train = False,
+                                    dataloader = dataloader_validation, 
+                                    loss_function = loss_function, 
+                                    optimizer = optimizer,
+                                    config = config)
             
             for i, key in enumerate(loss_train.keys()):
                 loss_train[key].append(loss_t[i]/config.getint('dataset', 'n_obs_train'))
@@ -119,8 +124,21 @@ def training(model,
                 else:
                     progress_bar.update(k)
                 sys.stdout.flush()
-
-            if e > 0:
+	    
+            if np.isnan(loss_validation['loss'][-1]):
+                    print("NAN in the validation loss")
+                    for i, key in enumerate(loss_validation.keys()):
+                        if (key != "loss") & (np.isnan(loss_validation[key][-1])):
+                            print(key)
+                    break
+            if np.isnan(loss_train['loss'][-1]):
+                    print("NAN in the train loss")
+                    for i, key in enumerate(loss_train.keys()):
+                        if (key != "loss") & (np.isnan(loss_train[key][-1])):
+                            print(key)
+                    break
+            
+            if e > 5:
                 if loss_validation['loss'][-1] < be:
                     be = loss_validation['loss'][-1]
                     torch.save(model.state_dict(), saving_path)           
@@ -131,3 +149,6 @@ def training(model,
     }
     with open(os.path.join(config['paths']['net_weights'], f'loss_{id_model}.pkl'), 'wb') as f:
         pickle.dump(losses, f) 
+
+    with open(os.path.join(config['paths']['prediction'], f'adj_{id_model}.pkl') , 'wb') as f:
+        pickle.dump(density,f)

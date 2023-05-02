@@ -1,15 +1,12 @@
 import os
 import pickle
-import pandas as pd
-import numpy as np
 from datetime import datetime
 from configparser import ConfigParser
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch_geometric.data import Dataset, Data
-from torch_geometric.loader import DataLoader
+from torch.utils.data import DataLoader
 
 import argparse
 
@@ -18,6 +15,7 @@ from model import GAT
 from train import training
 from inference import get_plot, print_csv, get_adj_density
 from test import test
+from data_manipulation.data_generation import MyDataset
     
 split = {'start_train': datetime(2017,11,15,0), 
         'end_train':datetime(2020,1,1,0),
@@ -32,16 +30,20 @@ def train(config: ConfigParser) -> None:
     batch_size = config.getint('dataset', 'batch_size')
     path_dataset = os.path.join(config['paths']['dataset'], f"dataframes.pkl")    
     path_emb = os.path.join(config['paths']['dataset'], f"embedding_setting.pkl")    
-
+    
+    
     with open(path_dataset, 'rb') as f :
         ds = pickle.load(f)
 
     with open(path_emb, 'rb') as f :
         emb = pickle.load(f)
         
-    dl = {}    
+    dl = {}  
     for key in ds.keys():
-        dl[key] = DataLoader(ds[key], batch_size=batch_size, shuffle = True)
+        dl[key] = DataLoader(ds[key], 
+                             batch_size = batch_size, 
+                             shuffle = True)
+        
         config['dataset'][f'n_obs_{key}']=f"{len(ds[key])}"
     
     print(f'{" Upload complete ":=^60s}')
@@ -89,15 +91,8 @@ def train(config: ConfigParser) -> None:
     model.load_state_dict(torch.load(path))
     
     get_plot(model = model, 
-             config = config)
-    
-    print(f'{f" creating the csv files ":=^60s}')
-    print_csv(model = model, 
-              config = config, 
-              ds = ds)
-
-    print(f'{" Creating the adj plot ":=^60s}')
-    
+             config = config,
+             ds = ds)    
 
 
 if __name__ == "__main__":

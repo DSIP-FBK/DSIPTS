@@ -6,16 +6,14 @@ import pandas as pd
 import torch
 from tqdm import tqdm
 from configparser import ConfigParser
-import pdb
+from torch.utils.data import DataLoader
 
 import torch
 import matplotlib.pyplot as plt
-from torch_geometric.data import Dataset, Data
-from torch_geometric.loader import DataLoader
 
 
 def get_results(model, 
-                dataloader,
+                dataloader: DataLoader,
                 scaler, 
                 hour, 
                 config):
@@ -25,16 +23,14 @@ def get_results(model,
     m = scaler.scale_[-1] if config.getboolean('dataset','sc') else (scaler.data_max_[-1]-scaler.data_min_[-1])
     c = scaler.mean_[-1] if config.getboolean('dataset','sc') else scaler.data_min_[-1]
     with torch.no_grad():
-        for graph in tqdm(iter(dataloader)):
-            yh, _, _ = model(graph.to(model.device))
+        for batch in tqdm(iter(dataloader)):
+            yh, _, _ = model(batch[0].to(model.device))
             yh = yh.cpu()*m + c
 
-            y = graph.y.cpu()
+            y = batch[1].cpu()
             y = y*m + c
             out_real = torch.cat((out_real, y[:,hour]), 0)
             out_pred = torch.cat((out_pred, yh[:,hour]), 0)
-            """import pdb
-            pdb.set_trace()"""
     return out_real.cpu(), out_pred.cpu()
 
 def get_lag(model, 
@@ -76,42 +72,53 @@ def print_csv(model,
 
 def get_plot(model,
              config:ConfigParser,
+             ds: dict,
              show = False):
     
     id_model = f"{config['model']['id_model']}"
     
     ################## Carico i file che mi servono ################
     path_losses = os.path.join(config['paths']['net_weights'], f'loss_{id_model}.pkl')
-    path_dataset = os.path.join(config['paths']['dataset'], f"dataframes.pkl") 
     path_date = os.path.join(config['paths']['dataset'], f"dates.pkl")    
-
+    name_scaler = 'scaler_sc.pkl' if config.getboolean('dataset','sc') else 'scaler_min_max.pkl'
+    
+    with open(os.path.join(config['paths']['dataset'], name_scaler), 'rb') as f:
+        scaler =  pickle.load(f) 
+    
     with open(path_losses, 'rb') as f:
         losses = pickle.load(f) 
-    
-    with open(path_dataset, 'rb') as f :
-        ds = pickle.load(f) 
     
     with open(path_date, 'rb') as f :
         dates = pickle.load(f)    
         
-    batch_size = 16#config.getint('dataset', 'batch_size')
+    batch_size = 16 #config.getint('dataset', 'batch_size')
     lag = {}
     dl = {}
     for key in ds.keys():
         dl[key]=DataLoader(ds[key], 
                            batch_size = batch_size, 
                            shuffle = False)
-
-    name_scaler = 'scaler_sc.pkl' if config.getboolean('dataset','sc') else 'scaler_min_max.pkl'
-    with open(os.path.join(config['paths']['dataset'], name_scaler), 'rb') as f:
-        scaler =  pickle.load(f)  
+        
+     
     
-    fig, ax = plt.subplots(4, 2, figsize=(75, 55),  constrained_layout = True)
-    fontsize_legend = 30
-    fontsize_title = 40
-    fontsize_label = 30
-    
+    fig, ax = plt.subplots(4, 2, figsize=(30, 20),  constrained_layout = True)
+    fig.suptitle(f'results of the model ({id_model})', fontsize = 30)
 
+    gs = {}
+    for i, key in enumerate(['train', 'validation']):
+        gs[key] = ax[2+i, 0].get_gridspec()
+    # remove the underlying axes
+    lag_plot = {}
+    for i, key in enumerate(['train', 'validation']):
+        for a in ax[2+i,:]:
+            a.remove()
+        lag_plot[key] = fig.add_subplot(gs[key][2+i, 0:])
+    
+    fontsize_legend = 15
+    fontsize_title = 20
+    fontsize_label = 15
+    
+    
     for key in dl.keys():
         err = get_lag(model = model, 
                       dataloader = dl[key],
@@ -121,7 +128,6 @@ def get_plot(model,
 
     
     ##################### train loss  #####################
-    fig.suptitle(f'results of the model ({id_model})', fontsize=60)
     for key in losses.keys():
         for l in ["loss", "rec", "energy", "frobenius"]:
             ax[0,0].plot(range(1,len(losses[key][l])+1), losses[key][l], label = f"{key}-{l}")
@@ -146,14 +152,14 @@ def get_plot(model,
     with torch.no_grad():
         for i,key in enumerate(['train', 'test']):
             batch = next(iter(dl[key]))
-            yh, _, _ = model(batch.to(model.device))
+            yh, _, _ = model(batch[0].to(model.device))
             yh = yh.cpu()*m+c
-            y = batch.y.cpu()*m+c
+            y = batch[1].cpu()*m+c
 
             ax[1,i].set_ylabel('Energy', fontsize = fontsize_label)
             ax[1,i].set_xlabel('hour', fontsize = fontsize_label)
-            ax[1,i].plot(range(1, 66), yh.tolist()[0], label = "predicted")
-            ax[1,i].plot(range(1, 66), y.tolist()[0], label = "real")
+            ax[1,i].plot(range(1, 66), yh[0].tolist(), label = "predicted")
+            ax[1,i].plot(range(1, 66), y[0].tolist(), label = "real")
 
             ax[1,i].set_title(f"batch plot for {key}", fontsize = fontsize_title)
             ax[1,i].legend(fontsize = fontsize_legend)
@@ -162,42 +168,55 @@ def get_plot(model,
     print(f'{" lag plot ":=^60s}')
     hour = [10,30]
     split = {'train': (np.datetime64('2019-06-01T00:00:00'), np.datetime64('2019-09-01T00:00:00')),
-        'validation': (np.datetime64('2020-05-01T00:00:00'),np.datetime64('2020-08-01T00:00:00')),
-        'test': (np.datetime64('2021-08-01T00:00:00'), np.datetime64('2021-11-01T00:00:00'))}
-    
+             'validation': (np.datetime64('2020-05-01T00:00:00'), np.datetime64('2020-08-01T00:00:00')),
+             'test': (np.datetime64('2021-08-01T00:00:00'), np.datetime64('2021-11-01T00:00:00'))}
+
     for j, key in enumerate(['train', 'validation']):
-        #### selezione le date che sono presente per tutte le ore di lag che devo controllare
-        date_tmp = dates[key][(dates[key][hour[0]]>split[key][0])&(dates[key][hour[0]]<split[key][1])]
-        d = set(date_tmp[hour[0]])
-        for h in hour[1:]:
-            d = d - set(date_tmp[h])
-        d = list(set(date_tmp[hour[0]])-d)
-        date_tmp = dates[key][dates[key][hour[0]].isin(d)]
-        index_list = list(date_tmp[date_tmp[hour[0]].isin(d)].index)
+    #### selezione le date che sono presente per tutte le ore di lag che devo controllare
+        date_tmp = {}
+        for h in hour:
+            date_tmp[h] = dates[key][(dates[key][h] > split[key][0]) & 
+                                     (dates[key][h] < split[key][1])]
+            date_tmp[h] = set(date_tmp[h][h].values)
+
+        intersection = date_tmp[hour[0]]
+        for h in hour[1:]:  
+            intersection = intersection.intersection(date_tmp[h])
+
+        date_tmp = dates[key][dates[key][hour[0]].isin(list(intersection))]
+        index_list = list(date_tmp.index)
+
         tmp = DataLoader([ds[key][i] for i in range(len(ds[key])) if i in index_list], 
                          batch_size = batch_size, 
                          shuffle = False)
-        ######### devo creare i graphi ######
 
         y, yh = get_results(model = model, 
                             dataloader = tmp,
                             scaler = scaler, 
-                            hour=hour, 
+                            hour = [x-1 for x in hour], 
                             config = config)
-        for i,h in enumerate(hour):
-            ax[j+2,i].plot(date_tmp[h].values, yh[:,i].reshape(-1), label = "predicted")
-            ax[j+2,i].plot(date_tmp[h].values, y[:,i].reshape(-1), label = "real")
-            ax[j+2,i].legend(fontsize = fontsize_legend)
-            ax[j+2,i].tick_params(axis = 'x', rotation=55)
-            ax[j+2,i].set_title(f"lag plot in {key} for lag {h}", fontsize = fontsize_title)
-            ax[j+2,i].set_ylabel('Energy', fontsize = fontsize_label)
-            ax[j+2,i].set_xlabel('hour', fontsize = fontsize_label)
-    
-    ############ aggiusto la grandexxa dei valori sulla x #########
-    for i in range(2):
-        for j in range(4):
-            ax[j, i].tick_params(axis='both', which='major', labelsize=30)
-            
+        pred = {}
+        real = {}
+        for i, h in enumerate(hour):
+            pred[h]={}    
+            for j, date in enumerate(date_tmp[h]):
+                key_date = date + np.timedelta64(h, 'h') - np.timedelta64(hour[0], 'h')
+                pred[h][key_date] = yh[j,i].item()
+
+        for i, date in enumerate(date_tmp[hour[0]]):
+            real[date] = y[i,0]
+
+        df = pd.DataFrame(real.items())
+        lag_plot[key].plot(df[0],df[1], label = 'real')
+        lag_plot[key].set_ylim([df[1].max()+10,df[1].min()-10])
+        for h in hour:
+            df = pd.DataFrame(pred[h].items())
+            lag_plot[key].plot(df[0],df[1], label = f"hour {h}")
+        lag_plot[key].tick_params(axis = 'x', rotation = 55)
+        lag_plot[key].set_title(f"lag plot in {key}", fontsize = fontsize_title)
+        lag_plot[key].legend()
+
+    ############ aggiusto la grandezza dei valori sulla x #########
     plt.savefig(os.path.join(config['paths']['images'], f'{id_model}.png'))
     if show:
         plt.show()
