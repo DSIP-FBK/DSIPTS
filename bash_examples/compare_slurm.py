@@ -47,7 +47,7 @@ def compare(conf:DictConfig)-> None:
         conf_tmp.inference.set = conf.set
         conf_tmp.inference.rescaling = conf.rescaling
         print(f"{''.join(['#']*100)}")
-        print(f'#######PROCESSING {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} {e} ########### ')
+        print(f'#######PROCESSING {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} ########### ')
         print(f"{''.join(['#']*100)}")
 
         
