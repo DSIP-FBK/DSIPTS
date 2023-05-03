@@ -73,7 +73,7 @@ class embedding_num_past_variables(nn.Module):
 
     def forward(self, num_past_tensor: torch.Tensor):
         B = num_past_tensor.shape[0]
-        pos_seq = self.get_pos_seq(bs = B).to(self.device)
+        pos_seq = self.get_pos_seq(bs = B)
         num_past_vars = torch.cat((num_past_tensor, pos_seq), dim=2)
         embedded_num_past_vars = self.get_num_past_embedded(num_past_vars)
         return embedded_num_past_vars
