@@ -209,7 +209,8 @@ class MyModel(Base):
         x_start = x[:,-1,idx_target].unsqueeze(1)
         y_persistence = x_start.repeat(1,self.future_steps,1)
         
-        
+        #import pdb
+        pdb.set_trace()
         if self.loss_type == 'linear_penalization':
             idx = 1 if self.use_quantiles else 0
             persistence_loss = -nn.L1Loss()(y_persistence,y_hat[:,:,:,idx])
