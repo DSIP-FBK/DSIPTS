@@ -22,7 +22,7 @@ model_configs:
   loss_type: 'linear_penalization'
 
 train_config:
-  batch_size: 12
+  batch_size: 128
   max_epochs: 150
   gradient_clip_val: null
   gradient_clip_algorithm: 'norm'
