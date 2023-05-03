@@ -1,0 +1,28 @@
+# @package _global_
+
+model:
+  type: 'mymodel'
+  
+ts:
+  name: 'weather_mymodel'
+  version: 1
+  enrich: ['hour']
+  use_covariates: true
+
+model_configs:
+  cat_emb_dim: 64
+  hidden_RNN: 512
+  num_layers_RNN: 2
+  kernel_size: 3
+  kind: 'gru'
+  sum_emb: true
+  persistence_weight: 0.2
+  use_bn: false
+  activation: 'prelu'
+  loss_type: 'inverse_penalization'
+
+train_config:
+  batch_size: 12
+  max_epochs: 250
+  gradient_clip_val: null
+  gradient_clip_algorithm: 'norm'
