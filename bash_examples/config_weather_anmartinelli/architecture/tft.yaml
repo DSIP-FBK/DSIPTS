@@ -12,7 +12,7 @@ ts:
 split_params:
   shift: 0
 
-model_configs:
+model_configs: #
   d_model: 128
   num_heads: 16
   dropout: 0.3
