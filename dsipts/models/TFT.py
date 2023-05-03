@@ -72,21 +72,22 @@ class TFT(Base):
         self.d_model = d_model
         self.out_channels = out_channels
         self.head_size = d_model # it can vary according to strategies
-        self.emb_cat_var = embedding_nn.embedding_cat_variables(self.seq_len, future_steps, d_model, embs).to(self.device)
-        self.emb_num_past_var = embedding_nn.embedding_num_past_variables(past_steps, past_channels, d_model).to(self.device)
+        
+        self.emb_cat_var = embedding_nn.embedding_cat_variables(self.seq_len, future_steps, d_model, embs)
+        self.emb_num_past_var = embedding_nn.embedding_num_past_variables(past_steps, past_channels, d_model)
         # Encoder (past)
-        self.EncVariableSelection = embedding_nn.Encoder_Var_Selection(self.use_target_past, len(embs)+3, past_channels, d_model, dropout).to(self.device)
-        self.EncLSTM = embedding_nn.Encoder_LSTM(num_layers_RNN, d_model, dropout).to(self.device)
-        self.EncGRN = embedding_nn.GRN(d_model, dropout).to(self.device)
-        self.Encoder = encoder.Encoder(n_layer_encoder, d_model, num_heads, self.head_size, fw_exp, dropout).to(self.device)
+        self.EncVariableSelection = embedding_nn.Encoder_Var_Selection(self.use_target_past, len(embs)+3, past_channels, d_model, dropout)
+        self.EncLSTM = embedding_nn.Encoder_LSTM(num_layers_RNN, d_model, dropout)
+        self.EncGRN = embedding_nn.GRN(d_model, dropout)
+        self.Encoder = encoder.Encoder(n_layer_encoder, d_model, num_heads, self.head_size, fw_exp, dropout)
         # Decoder (future)
-        self.emb_num_fut_var = embedding_nn.embedding_num_future_variables(future_steps, out_channels, d_model).to(self.device)
-        self.DecVariableSelection = embedding_nn.Decoder_Var_Selection(self.use_yprec_fut, len(embs)+3, out_channels+1, d_model, dropout).to(self.device)
-        self.DecLSTM = embedding_nn.Decoder_LSTM(num_layers_RNN, d_model, dropout).to(self.device)
-        self.DecGRN = embedding_nn.GRN(d_model, dropout).to(self.device)
-        self.Decoder = decoder.Decoder(n_layer_decoder, d_model, num_heads, self.head_size, fw_exp, future_steps, dropout).to(self.device)
+        self.emb_num_fut_var = embedding_nn.embedding_num_future_variables(future_steps, out_channels, d_model)
+        self.DecVariableSelection = embedding_nn.Decoder_Var_Selection(self.use_yprec_fut, len(embs)+3, out_channels+1, d_model, dropout)
+        self.DecLSTM = embedding_nn.Decoder_LSTM(num_layers_RNN, d_model, dropout)
+        self.DecGRN = embedding_nn.GRN(d_model, dropout)
+        self.Decoder = decoder.Decoder(n_layer_decoder, d_model, num_heads, self.head_size, fw_exp, future_steps, dropout)
         # PostTransformer (future)
-        self.postTransformer = embedding_nn.postTransformer(d_model, dropout).to(self.device)
+        self.postTransformer = embedding_nn.postTransformer(d_model, dropout)
         if len(quantiles)==0:
             self.mul = 1
             self.outLinear = nn.Linear(d_model, out_channels)

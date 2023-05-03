@@ -4,8 +4,8 @@ import torch
 class embedding_cat_variables(nn.Module):
     # at the moment cat_past and cat_fut together
     def __init__(self, seq_len: int, lag: int, d_model: int, emb_dims: list):
-        """Class for embedding categorical variables, adding 3 positional variables during forward
-
+        """Class for embedding categorical variables, adding 3 positional variables during forward.
+        
         Args:
             seq_len (int): length of the sequence (sum of past and future steps)
             lag (int): number of future step to be predicted
@@ -15,29 +15,31 @@ class embedding_cat_variables(nn.Module):
         super().__init__()
         self.seq_len = seq_len
         self.lag = lag
-        self.cat_embeds = emb_dims + [seq_len, lag+1, 2] # 
+        self.cat_embeds = emb_dims + [seq_len, lag+1, 2] # add embedding dimensions for variables added during forward
         self.cat_n_embd = nn.ModuleList([
-            nn.Embedding(emb_dim, d_model) for emb_dim in self.cat_embeds
+            nn.Embedding(emb_dim, d_model) for emb_dim in self.cat_embeds # list of Embedding layer for each variable
         ])
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """All components of x are concatenated with 3 new variables for data augmentation, in the order:
+        """Must be applied to both past and future variables: a concatenation needed!
+        To x's components, 3 new variables are added; in the order:
         - pos_seq: assign at each step its time-position
-        - pos_fut: assign at each step its future position. 0 if it is a past step
+        - pos_fut: assign at each step its future position. 0 if it is a past step, 1-self.seq_len for future.
         - is_fut: explicit for each step if it is a future(1) or past one(0)
 
         Args:
             x (torch.Tensor): [bs, seq_len, num_vars]
 
         Returns:
-            torch.Tensor: [bs, seq_len num_vars+3, n_embd] 
+            torch.Tensor: [bs, seq_len num_vars+3, num_vars, n_embd] 
         """
+        device = x.device.type
+
         B, _, _ = x.shape
-        
-        pos_seq = self.get_pos_seq(bs=B)
-        pos_fut = self.get_pos_fut(bs=B)
-        is_fut = self.get_is_fut(bs=B)
-        cat_vars = torch.cat((x, pos_seq, pos_fut, is_fut),dim=2)
+        pos_seq = self.get_pos_seq(bs=B).to(device)
+        pos_fut = self.get_pos_fut(bs=B).to(device)
+        is_fut = self.get_is_fut(bs=B).to(device)
+        cat_vars = torch.cat((x, pos_seq, pos_fut, is_fut), dim=2)
         cat_n_embd = self.get_cat_n_embd(cat_vars)
         return cat_n_embd
 
@@ -57,7 +59,9 @@ class embedding_cat_variables(nn.Module):
         return is_fut
     
     def get_cat_n_embd(self, cat_vars):
-        cat_n_embd = torch.Tensor()
+        device = cat_vars.device.type
+
+        cat_n_embd = torch.Tensor().to(device)
         for index, layer in enumerate(self.cat_n_embd):
             emb = layer(cat_vars[:, :, index])
             cat_n_embd = torch.cat((cat_n_embd, emb.unsqueeze(2)),dim=2)
@@ -65,16 +69,25 @@ class embedding_cat_variables(nn.Module):
     
 class embedding_num_past_variables(nn.Module):
     def __init__(self, steps: int, channels:int, d_model: int):
+        """NN to embed past numerical variables.
+        Only past, do not concat with future 
+
+        Args:
+            steps (int): number of time steps of the 
+            channels (int): _description_
+            d_model (int): _description_
+        """
         super().__init__()
-        self.device = nn.Parameter(torch.empty(0)).device
         self.steps = steps
         self.past_num_linears = nn.ModuleList([
             nn.Linear(1, d_model) for _ in range(channels)
         ])
 
     def forward(self, num_past_tensor: torch.Tensor):
+        device = num_past_tensor.device.type
+
         B = num_past_tensor.shape[0]
-        pos_seq = self.get_pos_seq(bs = B).to(self.device)
+        pos_seq = self.get_pos_seq(bs = B).to(device)
         num_past_vars = torch.cat((num_past_tensor, pos_seq), dim=2)
         embedded_num_past_vars = self.get_num_past_embedded(num_past_vars)
         return embedded_num_past_vars
@@ -85,7 +98,9 @@ class embedding_num_past_variables(nn.Module):
         return pos_seq
     
     def get_num_past_embedded(self, vars):
-        embed_vars = torch.Tensor()
+        device = vars.device.type
+
+        embed_vars = torch.Tensor().to(device)
         for index, layer in enumerate(self.past_num_linears):
             emb = layer(vars[:, :, index].unsqueeze(2))
             embed_vars = torch.cat((embed_vars, emb.unsqueeze(2)),dim=2)
