@@ -18,7 +18,6 @@ model_configs:
   dropout_rate: 0.2
   use_bn: false  
   activation: 'selu'
-  dropout_rate: 0.2 
   
 train_config:
   batch_size: 128
