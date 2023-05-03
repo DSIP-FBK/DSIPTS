@@ -66,8 +66,7 @@ class embedding_cat_variables(nn.Module):
 class embedding_num_past_variables(nn.Module):
     def __init__(self, steps: int, channels:int, d_model: int):
         super().__init__()
-        self.dummy_param = nn.Parameter(torch.empty(0))
-        self.device = self.dummy_param.device
+        self.device = nn.Parameter(torch.empty(0)).device
         self.steps = steps
         self.past_num_linears = nn.ModuleList([
             nn.Linear(1, d_model) for _ in range(channels)
