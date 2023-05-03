@@ -115,6 +115,7 @@ class D3VAE(Base):
             return optimizer
         
         
+        
     def training_step(self, batch, batch_idx):
         """
         pythotrch lightening stuff
