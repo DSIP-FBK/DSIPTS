@@ -19,6 +19,7 @@ model_configs:
   persistence_weight: 0.2
   use_bn: false
   activation: 'prelu'
+  loss_type: 'inverse_penalization'
 
 train_config:
   batch_size: 12
