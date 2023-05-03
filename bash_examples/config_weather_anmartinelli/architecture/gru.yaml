@@ -1,0 +1,25 @@
+# @package _global_
+
+model:
+  type: 'rnn'
+  
+ts:
+  name: 'weather_gru'
+  version: 1
+  enrich: ['hour']
+  use_covariates: true
+
+model_configs:
+  cat_emb_dim: 32
+  hidden_RNN: 1024
+  num_layers_RNN: 4
+  kernel_size: 5
+  kind: 'gru'
+  sum_emb: true
+  use_bn: false  
+  activation: 'relu'
+
+train_config:
+  batch_size: 256
+  max_epochs: 250
+            
