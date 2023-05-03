@@ -194,7 +194,7 @@ python train.py  architecture=linear --config-dir=config_weather --config-name=c
 or, if you are in a slurm gpu cluster
 
 ```
-python train.py  architecture=linear --config-dir=config_weather --config-name=config_slurm
+python train.py  architecture=linear --config-dir=config_weather --config-name=config_slurm -m
 ```
 
 
@@ -209,6 +209,13 @@ or all the implemented models:
 ```
 python train.py  -m  --config-dir=config_weather --config-name=config_slurm
 ```
+In case of parallel experiment you should see at display something like:
+![plot](figures/slurm.jpeg)
+Hydra will create a folder called `multirun` with all the experiments lauched nested as `date/time/x` where `x` indicates the id of the lauched joib. Inside  `date/time/x` there will be a file called `train.log` containing all the information logged by the system and useful for debugging.
+
+
+
+
 If the row `override hydra/launcher: joblib` is commented the train will be consecutive, otherwise in parallel. In the latter case the output in the terminal will be a mess, please check all is woking fine. In the future the logging will be more efficient.
 
 Once the models are trained, the relative full configurations are saved in `config_used` and can be used for inference or comparison:
@@ -230,8 +237,6 @@ rescaling: false                       ## sometimes want to get the MSE on the s
 or:
 ```
  python compare_slurm.py --config-dir=config_weather --config-name=compare_slurm -m
-
-
 ```
 
 if you are in a SLURM cluster.

@@ -190,15 +190,16 @@ ts.set_model(model_sum,config=config )
 
 ```
 
-Notice that there are some free parameters: `embedding_final` for example represent the dimension of the embedded categorical variable, `sum_embs` will sum all the categorical contribution otherwise it will concatenate them. It is possible to use a quantile loss, specify some parameters of the scheduler (StepLR) and optimizer parameters (Adam). 
+Notice that there are some free parameters: `cat_emb_dim` for example represent the dimension of the embedded categorical variable, `sum_embs` will sum all the categorical contribution otherwise it will concatenate them. It is possible to use a quantile loss, specify some parameters of the scheduler (StepLR) and optimizer parameters (Adam). 
 
 
 Now we are ready to split and train our model using:
 ```
 ts.train_model(dirpath=<path to weights>,split_params=dict(perc_train=0.6, perc_valid=0.2,past_steps = past_steps,future_steps=future_steps, range_train=None, range_validation=None, range_test=None,shift = 0,starting_point=None,skip_step=1),batch_size=100,num_workers=4,max_epochs=40,auto_lr_find=True,devices='auto')
 ```
-It is possble to split the data indicating the percentage of data to use in train, validation, test or the ranges. The `shift` parameters indicates if there is a shift constucting the y array. It is used for the attention model where we need to know the first value of the timeseries to predict. The `skip_step` parameters indicates how many temporal steps there are between samples.
+It is possble to split the data indicating the percentage of data to use in train, validation, test or the ranges. The `shift` parameters indicates if there is a shift constucting the y array. It is used for the attention model where we need to know the first value of the timeseries to predict. The `skip_step` parameters indicates how many temporal steps there are between samples. If you need a futture signal that is long `skip_step+future_steps` then you should put `keep_entire_seq_while_shifting` to True (see Informer model).
 
+During the training phase a log stream will be generated. If a single process is spawned the log will be displayed, otherwise (see `batch_example`) a file will be generated. Moreover, inside the `weight` path there wil be the `loss.csv` file containing the running losses.
 
 
 # Models
@@ -220,10 +221,16 @@ In the folder `bash_examples` you can find an example in wich the library is use
 ## Documentation
 You can find the documentation [here] (https://dsip.pages.fbk.eu/dsip_dlresearch/timeseries/):
 or  in the folder `docs/_build/html/index.html`
+If yon need to generate the documentation after some modification just run:
+```
+./make_doc.sh    
+```
+and add the new files to the git repo.
+
 For user only: see ci file and enable [public pages] (https://roneo.org/en/gitlab-public-pages-private-repo/)
 
 # Adding new models
 If you want to add a model:
 - extend the `Base` class in `dsipts/models`
 - add the export line in the `dsipts/__init__.py` 
-- add a full configuration file in `bash_examples/architecture`
+- add a full configuration file in `bash_examples/config_test/architecture`
