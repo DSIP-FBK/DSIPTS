@@ -13,11 +13,11 @@ model_configs:
   cat_emb_dim: 32
   kernel_size: 5
   sum_emb: true
-  hidden_size: 256
+  hidden_size: 512
   kind: 'linear'
   dropout_rate: 0.2
   use_bn: false  
-  activation: 'selu'
+  activation: 'relu'
 
 train_config:
   batch_size: 128

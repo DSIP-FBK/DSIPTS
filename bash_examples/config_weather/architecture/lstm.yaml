@@ -12,13 +12,14 @@ ts:
 model_configs:
   cat_emb_dim: 16
   hidden_RNN: 1024
-  num_layers_RNN: 4
+  num_layers_RNN: 5
   kernel_size: 5
   kind: 'lstm'
   sum_emb: true
   use_bn: false  
   activation: 'relu'
-  
+  dropout_rate: 0.2
+
 train_config:
   batch_size: 256
   max_epochs: 250

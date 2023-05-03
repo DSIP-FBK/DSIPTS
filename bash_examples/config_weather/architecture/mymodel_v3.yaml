@@ -5,7 +5,7 @@ model:
   
 ts:
   name: 'weather_mymodel'
-  version: 2
+  version: 3
   enrich: ['hour']
   use_covariates: true
 
@@ -19,7 +19,7 @@ model_configs:
   persistence_weight: 0.2
   use_bn: false
   activation: 'relu'
-  loss_type: 'linear_penalization'
+  loss_type: 'standard'
 
 train_config:
   batch_size: 128
