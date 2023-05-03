@@ -211,10 +211,8 @@ In the folder `bash_examples` you can find an example in wich the library is use
 
 
 # TODO
-- use logging instead of print
 - add more sintetic data
 - more versatility during the data loading process
-- automatic doc generation I follow [this](https://towardsdatascience.com/documenting-python-code-with-sphinx-554e1d6c4f6d)
 - 
 
 
