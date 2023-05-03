@@ -75,6 +75,7 @@
 <span class="kn">import</span> <span class="nn">pytorch_lightning</span> <span class="k">as</span> <span class="nn">pl</span>
 <span class="kn">from</span> <span class="nn">torch.optim.lr_scheduler</span> <span class="kn">import</span> <span class="n">StepLR</span>
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 
 
 
@@ -88,7 +89,7 @@
         
         <span class="nb">super</span><span class="p">(</span><span class="n">Base</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">save_hyperparameters</span><span class="p">(</span><span class="n">logger</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        
+        <span class="bp">self</span><span class="o">.</span><span class="n">count_epoch</span> <span class="o">=</span> <span class="mi">0</span>
 <div class="viewcode-block" id="Base.forward"><a class="viewcode-back" href="../../../dsipts.models.html#dsipts.models.base.Base.forward">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span><span class="nb">dict</span><span class="p">)</span><span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Forlward method used during the training loop</span>
@@ -167,7 +168,7 @@
         <span class="c1">#import pdb;pdb.set_trace()</span>
         <span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;val_loss&quot;</span><span class="p">,</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span><span class="n">sync_dist</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Epoch: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">count_epoch</span><span class="si">}</span><span class="s1">, validation loss: </span><span class="si">{</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">training_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -178,7 +179,10 @@
         <span class="c1">#print(&#39;logging train&#39;)</span>
         <span class="c1">#import pdb;pdb.set_trace()</span>
         <span class="n">loss</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">outs</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">outs</span> <span class="ow">in</span> <span class="n">outs</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;train_loss&quot;</span><span class="p">,</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span><span class="n">sync_dist</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;train_loss&quot;</span><span class="p">,</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span><span class="n">sync_dist</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">count_epoch</span><span class="o">+=</span><span class="mi">1</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Epoch: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">count_epoch</span><span class="si">}</span><span class="s1">, train loss: </span><span class="si">{</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
 </pre></div>
 
            </div>

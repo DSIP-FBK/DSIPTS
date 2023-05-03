@@ -9,3 +9,5 @@ from .models.Persistent import Persistent
 from .models.D3VAE import D3VAE
 from .models.MyModel import MyModel
 from .models.TFT import TFT
+from .models.Informer import Informer
+

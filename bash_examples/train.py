@@ -1,7 +1,7 @@
 
 
 import pandas as pd
-from dsipts import TimeSeries, RNN, Attention,read_public_dataset, LinearTS, Persistent, D3VAE, MyModel, TFT
+from dsipts import TimeSeries, RNN, Attention,read_public_dataset, LinearTS, Persistent, D3VAE, MyModel, TFT, Informer
 from omegaconf import DictConfig, OmegaConf
 from hydra.core.hydra_config import HydraConfig
 import hydra
@@ -57,7 +57,7 @@ def train(conf: DictConfig) -> None:
     model_conf['out_channels'] = len(ts.target_variables)
 
     if conf.model.type=='attention':
-        if conf.split_params.shift==1:
+        if conf.split_params.shift>0:
             ts.future_variables +=ts.target_variables
             model_conf['future_channels']= len(ts.future_variables)
         model =  Attention(**model_conf,
@@ -92,7 +92,12 @@ def train(conf: DictConfig) -> None:
 
         model =  TFT(**model_conf,   optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )  
-    
+    elif conf.model.type == 'informer':
+        ##gli servono, poi mette a 0 quelle che serve
+        ts.future_variables +=ts.target_variables
+        model_conf['future_channels']= len(ts.future_variables)
+        model =  Informer(**model_conf,   optim_config = conf.optim_config,
+                          scheduler_config =conf.scheduler_config )  
     else:
         logging.info(f"{''.join(['#']*100)}")
         logging.info('use valid model')

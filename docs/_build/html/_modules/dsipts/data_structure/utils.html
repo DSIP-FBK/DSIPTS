@@ -75,7 +75,7 @@
 <span class="kn">from</span> <span class="nn">pytorch_lightning</span> <span class="kn">import</span> <span class="n">Callback</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
 <span class="kn">import</span> <span class="nn">torch</span>
-
+<span class="kn">import</span> <span class="nn">os</span>
 
 <div class="viewcode-block" id="extend_df"><a class="viewcode-back" href="../../../dsipts.data_structure.html#dsipts.data_structure.utils.extend_df">[docs]</a><span class="k">def</span> <span class="nf">extend_df</span><span class="p">(</span><span class="n">x</span><span class="p">:</span><span class="n">Union</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">],</span><span class="n">freq</span><span class="p">:</span><span class="nb">str</span><span class="p">)</span><span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Utility for generating a full dataset and then merge the real data</span>
@@ -98,8 +98,9 @@
 <span class="sd">    :meta private:</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">dirpath</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dirpath</span> <span class="o">=</span> <span class="n">dirpath</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;val_loss&#39;</span><span class="p">:[],</span><span class="s1">&#39;train_loss&#39;</span><span class="p">:[]}</span>
 
         
@@ -107,7 +108,13 @@
     <span class="k">def</span> <span class="nf">on_validation_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trainer</span><span class="p">,</span> <span class="n">pl_module</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">trainer</span><span class="o">.</span><span class="n">callback_metrics</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trainer</span><span class="o">.</span><span class="n">callback_metrics</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+        <span class="c1">##Write csv in a convenient way</span>
+        <span class="n">tmp</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;val_loss&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;val_loss&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">:]</span>
+        <span class="n">losses</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+        <span class="n">losses</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dirpath</span><span class="p">,</span><span class="s1">&#39;loss.csv&#39;</span><span class="p">),</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
+        
     <span class="k">def</span> <span class="nf">on_train_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trainer</span><span class="p">,</span> <span class="n">pl_module</span><span class="p">):</span>
         <span class="n">losses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span>
         <span class="c1">##non so perche&#39; le prime due le chiama prima del train</span>

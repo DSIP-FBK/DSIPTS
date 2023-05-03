@@ -271,7 +271,7 @@ class TimeSeries():
         return fig
     
         
-    def create_data_loader(self,data:pd.DataFrame,past_steps:int,future_steps:int,shift:int=0,starting_point:Union[None,dict]=None,skip_step:int=1)->MyDataset:
+    def create_data_loader(self,data:pd.DataFrame,past_steps:int,future_steps:int,shift:int=0,keep_entire_seq_while_shifting:bool=False,starting_point:Union[None,dict]=None,skip_step:int=1)->MyDataset:
         """ Create the dataset for the training/inference step
 
         Args:
@@ -279,6 +279,7 @@ class TimeSeries():
             past_steps (int): past context length
             future_steps (int): future lags to predict
             shift (int, optional): if >0 the future input variables will be shifted (categorical and numerical). For example for attention model it is better to start with a know value of y and use it during the process. Defaults to 0.
+            keep_entire_seq_while_shifting (bool, optional): if the dataset is shifted, you may want the future data be of length future_step+shift (like informer), default false
             starting_point (Union[None,dict], optional): a dictionary indicating if a sample must be considered. It is checked for the first lag in the future (useful in the case your model has to predict only starting from hour 12). Defaults to None.
             skip_step (int, optional): list of the categortial variables (same for past and future). Usual there is a skip of one between two saples but for debugging  or training time purposes you can skip some samples. Defaults to 1.
 
@@ -329,17 +330,26 @@ class TimeSeries():
             if check[i]:
 
                 if len(self.future_variables)>0:
-                    xx = x_num_future[i-shift:i+future_steps-shift].mean()
+                    if keep_entire_seq_while_shifting:
+                        xx = x_num_future[i-shift:i+future_steps].mean()
+                    else:
+                        xx = x_num_future[i-shift:i+future_steps-shift].mean()
                 else:
                     xx = 0.0
                 if np.isfinite(x_num_past[i-past_steps:i].min() + y_target[i:i+future_steps].min() + xx):
                     
                     x_num_past_samples.append(x_num_past[i-past_steps:i])
                     if len(self.future_variables)>0:
-                        x_num_future_samples.append(x_num_future[i-shift:i+future_steps-shift])
+                        if keep_entire_seq_while_shifting:
+                            x_num_future_samples.append(x_num_future[i-shift:i+future_steps])
+                        else:
+                            x_num_future_samples.append(x_num_future[i-shift:i+future_steps-shift])
                     if len(self.cat_var)>0:
                         x_cat_past_samples.append(x_cat[i-past_steps:i])
-                        x_cat_future_samples.append(x_cat[i-shift:i+future_steps-shift])
+                        if keep_entire_seq_while_shifting:
+                            x_cat_future_samples.append(x_cat[i-shift:i+future_steps])
+                        else:
+                            x_cat_future_samples.append(x_cat[i-shift:i+future_steps-shift])
                     y_samples.append(y_target[i:i+future_steps])
                     t_samples.append(t[i:i+future_steps])
             
@@ -375,6 +385,7 @@ class TimeSeries():
                         past_steps:int = 100,
                         future_steps:int=20,
                         shift:int = 0,
+                        keep_entire_seq_while_shifting:bool=False,
                         starting_point:Union[None, dict]=None,
                         skip_step:int=1
                         )->List[DataLoader]:
@@ -389,6 +400,8 @@ class TimeSeries():
             past_steps (int, optional): past step to consider for making the prediction. Defaults to 100.
             future_steps (int, optional): future step to predict. Defaults to 20.
             shift (int, optional): see `create_data_loader`. Defaults to 0.
+            keep_entire_seq_while_shifting (bool, optional): if the dataset is shifted, you may want the future data be of length future_step+shift (like informer), default false
+
             starting_point (Union[None, dict], optional):  see `create_data_loader`. Defaults to None.
             skip_step (int, optional):  see `create_data_loader`. Defaults to 1.
 
@@ -432,9 +445,9 @@ class TimeSeries():
             self.scaler_cat[c].fit(train[c].values.reshape(-1,1))  
                                       
     
-        dl_train = self.create_data_loader(train,past_steps,future_steps,shift,starting_point,skip_step)
-        dl_validation = self.create_data_loader(validation,past_steps,future_steps,shift,starting_point,skip_step)
-        dl_test = self.create_data_loader(test,past_steps,future_steps,shift,starting_point,skip_step)
+        dl_train = self.create_data_loader(train,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)
+        dl_validation = self.create_data_loader(validation,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)
+        dl_test = self.create_data_loader(test,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)
 
         return dl_train,dl_validation,dl_test
             
