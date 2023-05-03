@@ -176,6 +176,7 @@ class TFT(Base):
             out = self.outLinear(out)
             B, L, _ = out.shape
             return out.reshape(B,L,-1,self.mul)
+        # daje roma
     
     def inference(self, batch:dict)->torch.tensor:
         """Care here, we need to implement it because for predicting the N-step it will use the prediction at step N-1. TODO fix if because I did not implement the
