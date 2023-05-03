@@ -99,9 +99,11 @@ def train(conf: DictConfig) -> None:
         model =  Informer(**model_conf,   optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )  
     else:
-        logging.info(f"{''.join(['#']*100)}")
-        logging.info('use valid model')
-        logging.info(f"{''.join(['#']*100)}")
+        logging.info(f"{''.join(['#']*300)}")
+        logging.info(f"{''.join([' ']*300)}")
+        logging.info(f'######use valid model { conf.model.type}-{conf.ts.name}-{conf.ts.version}########')
+        logging.info(f"{''.join([' ']*300)}")
+        logging.info(f"{''.join(['#']*300)}")
     ##questa e' unica per ogni sequenza di dirpath type name version quindi dopo la RIMUOVO se mai ce n'e' una vecchia! 
     dirpath = os.path.join(conf.train_config.dirpath,'weights',conf.model.type,conf.ts.name, str(conf.ts.version))
     logging.info(f'Model and weights will be placed and read from {dirpath}')
