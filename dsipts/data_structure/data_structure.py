@@ -519,7 +519,7 @@ class TimeSeries():
         
         logger = CSVLogger("logs", name=dirpath)
 
-        mc = MetricsCallback()
+        mc = MetricsCallback(dirpath)
         ## TODO se ci sono 2 o piu gpu MetricsCallback non funziona (secondo me fa una istanza per ogni dataparallel che lancia e poi non riesce a recuperare info)
         trainer = pl.Trainer(logger = logger,max_epochs=max_epochs,callbacks=[checkpoint_callback,mc],
                              auto_lr_find=auto_lr_find, accelerator=accelerator,devices=devices,strategy=strategy,

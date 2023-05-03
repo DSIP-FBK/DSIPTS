@@ -5,7 +5,7 @@ import numpy as np
 from pytorch_lightning import Callback
 from typing import Union
 import torch
-
+import os
 
 def extend_df(x:Union[pd.Series, np.array],freq:str)-> pd.DataFrame:
     """Utility for generating a full dataset and then merge the real data
@@ -28,8 +28,9 @@ class MetricsCallback(Callback):
     :meta private:
     """
 
-    def __init__(self):
+    def __init__(self,dirpath):
         super().__init__()
+        self.dirpath = dirpath
         self.metrics = {'val_loss':[],'train_loss':[]}
 
         
@@ -37,7 +38,13 @@ class MetricsCallback(Callback):
     def on_validation_end(self, trainer, pl_module):
         for c in trainer.callback_metrics:
             self.metrics[c].append(trainer.callback_metrics[c].item())
+        ##Write csv in a convenient way
+        tmp  = self.metrics.copy()
+        tmp['val_loss'] = tmp['val_loss'][2:]
+        losses = pd.DataFrame(tmp)
+        losses.to_csv(os.path.join(self.dirpath,'loss.csv'),index=False)
 
+        
     def on_train_end(self, trainer, pl_module):
         losses = self.metrics
         ##non so perche' le prime due le chiama prima del train

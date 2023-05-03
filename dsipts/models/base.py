@@ -5,6 +5,7 @@ import pickle
 import pytorch_lightning as pl
 from torch.optim.lr_scheduler import StepLR
 from abc import ABCMeta, abstractmethod
+import logging
 
 
 
@@ -18,7 +19,7 @@ class Base(pl.LightningModule):
         
         super(Base, self).__init__()
         self.save_hyperparameters(logger=False)
-        
+        self.count_epoch = 0
     @abstractmethod
     def forward(self, batch:dict)-> torch.tensor:
         """Forlward method used during the training loop
@@ -97,7 +98,7 @@ class Base(pl.LightningModule):
         #import pdb;pdb.set_trace()
         loss = torch.stack(outs).mean()
         self.log("val_loss", loss.item(),sync_dist=True)
-        
+        logging.info(f'Epoch: {self.count_epoch}, validation loss: {loss.item():.4f}')
 
     def training_epoch_end(self, outs):
         """
@@ -109,3 +110,6 @@ class Base(pl.LightningModule):
         #import pdb;pdb.set_trace()
         loss = sum(outs['loss'] for outs in outs) / len(outs)
         self.log("train_loss", loss.item(),sync_dist=True)
+        self.count_epoch+=1
+        logging.info(f'Epoch: {self.count_epoch}, train loss: {loss.item():.4f}')
+
