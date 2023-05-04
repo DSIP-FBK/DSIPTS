@@ -413,7 +413,8 @@ class Decoder_Var_Selection(nn.Module): # input already embedded
         return out
 
     def get_cat_GRN(self, x):
-        cat_after_GRN = torch.Tensor()
+        device = x.device.type
+        cat_after_GRN = torch.Tensor().to(device)
         for index, layer in enumerate(self.GRNs_cat):
             grn = layer(x[:,:,index,:])
             cat_after_GRN = torch.cat((cat_after_GRN, grn.unsqueeze(2)), dim=2)
