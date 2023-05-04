@@ -47,7 +47,7 @@ def train(conf: DictConfig) -> None:
     for t in tasks:
         if 'model_configs' in t:
             tmp = t.split('model_configs.')[1] ##cerco solo quelli che modifico
-            model_configs+=tmp
+            version_modifier+=tmp
     version = str(conf.ts.version)
     if version_modifier!='':
         version = version+'_'+version_modifier
