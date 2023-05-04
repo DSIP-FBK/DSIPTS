@@ -37,10 +37,11 @@ def train(conf: DictConfig) -> None:
     ##secondo me qui e' giusto mettere K = 'architecture'
     K = 'architecture'
     #K = list(HydraConfig.get()['runtime']['choices'].keys())[0]
-    logging.info(HydraConfig.get()['runtime'].keys())
-    logging.info(K)
-    logging.info(HydraConfig.get()['runtime']['choices'].keys())
-    return 0
+    
+    ##nel caso si faccia un multirun per    
+    import pdb
+    pdb.set_trace()
+
     logging.info(f"{''.join(['#']*100)}")
     logging.info(f"{HydraConfig.get()['runtime']['choices'][K]:^100}")  
     logging.info(f"{''.join(['#']*100)}")
