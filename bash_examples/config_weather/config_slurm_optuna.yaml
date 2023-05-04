@@ -1,0 +1,92 @@
+dataset:
+  dataset: 'weather'  
+  path: '/home/agobbi/Projects/ExpTS/data'
+
+scheduler_config:
+  gamma: 0.1
+  step_size: 100
+
+optim_config:
+  lr: 0.00005
+  weight_decay: 0.01
+
+model_configs:
+  past_steps: 16
+  future_steps: 16
+  quantiles: [] #[0.1,0.5,0.9]
+  past_channels : null #dataset dependent
+  future_channels : null #dataset dependent
+  embs: null #dataset dependent
+  out_channels: null #dataset dependent
+
+split_params:
+  perc_train: 0.7
+  perc_valid: 0.1
+  range_train: null
+  range_validation: null 
+  range_test: null
+  shift: 0
+  starting_point: null
+  skip_step: 1
+  past_steps: model_configs@past_steps 
+  future_steps: model_configs@future_steps
+
+
+train_config:
+  dirpath: "/home/agobbi/Projects/ExpTS" 
+  num_workers: 0
+  auto_lr_find: true
+  devices: [0]                   
+
+inference:
+  output_path: "/home/agobbi/Projects/ExpTS" 
+  load_last: true
+  batch_size: 200 
+  num_workers: 4
+  set: "validation"
+  rescaling: true
+
+defaults:
+  - _self_
+  - architecture: null 
+  - override hydra/launcher: submitit_slurm #joblib 
+  - override hydra/sweeper: optuna ##using optuna sweeper
+
+hydra:
+  launcher:
+    submitit_folder: ${hydra.sweep.dir}/.submitit/%j
+    timeout_min: 600
+    partition: gpu-V100
+    mem_gb: 6
+    nodes: 1
+    gres: gpu:1
+    name: ${hydra.job.name}
+    _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
+    setup:
+      - conda activate tt  
+ 
+
+  output_subdir: null 
+  sweeper:
+    sampler:
+      _target_: optuna.samplers.TPESampler
+      seed: 123
+      consider_prior: true
+      prior_weight: 1.0
+      consider_magic_clip: true
+      consider_endpoints: false
+      n_startup_trials: 10
+      n_ei_candidates: 24
+      multivariate: false
+      warn_independent_sampling: true
+    _target_: hydra_plugins.hydra_optuna_sweeper.optuna_sweeper.OptunaSweeper
+    direction: minimize
+    storage: null
+    study_name: tft
+    n_trials: 3 ## put the number of maximun trials
+    n_jobs: 1
+    max_failure_rate: 0.0
+
+    params:
+      architecture: tft ##here put the architecture you want to finetune
+      d_model: choice(32,64,128) 
