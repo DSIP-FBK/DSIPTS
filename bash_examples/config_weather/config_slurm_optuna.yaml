@@ -84,7 +84,7 @@ hydra:
     storage: null
     study_name: tft
     n_trials: 3 ## put the number of maximun trials
-    n_jobs: 3
+    n_jobs: 3   ## parallel jobs
 
 
     params:
