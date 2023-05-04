@@ -34,8 +34,10 @@ def train(conf: DictConfig) -> None:
         conf (DictConfig): dictionary whit all the parameters (split, normalization and training). Some of the parameters required will be filled looking to the timeserie definition. See the examples in the repo.
     """
 
-    
-    K = list(HydraConfig.get()['runtime']['choices'].keys())[0]
+    ##secondo me qui e' giusto mettere K = 'architecture'
+    K = 'architecture'
+    #K = list(HydraConfig.get()['runtime']['choices'].keys())[0]
+    logging.info(HydraConfig.get()['runtime']['choices']['hydra/sweeper'])
     logging.info(K)
     logging.info(HydraConfig.get()['runtime']['choices'].keys())
     return 0
