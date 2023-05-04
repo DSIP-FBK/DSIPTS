@@ -136,9 +136,10 @@ if __name__ == '__main__':
     
     #if not os.path.exists('config_used'):
     #    os.mkdir('config_used')
-    train()
+    val_loss = train()
     #if os.path.exists('multirun'):
     #    shutil.rmtree('multirun')
     
     if os.path.exists('outputs'):
         shutil.rmtree('outputs', ignore_errors=True)
+    val_loss
