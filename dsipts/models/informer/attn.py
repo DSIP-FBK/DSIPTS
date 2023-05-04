@@ -19,14 +19,10 @@ class TriangularCausalMask():
 
 class ProbMask():
     def __init__(self, B, H, L, index, scores,device):
-        _mask = torch.ones(L, scores.shape[-1], dtype=torch.bool).triu(1)
+        _mask = torch.ones(L, scores.shape[-1], dtype=torch.bool).triu(1).to(device)
         _mask_ex = _mask[None, None, :].expand(B, H, L, scores.shape[-1])
-        import pdb
-        pdb.set_trace()
-        indicator = _mask_ex[torch.arange(B)[:, None, None],
-                             torch.arange(H)[None, :, None],
-                             index, :]
-        self._mask = indicator.view(scores.shape).to(device)
+        indicator = _mask_ex[torch.arange(B)[:, None, None],torch.arange(H)[None, :, None],index, :]
+        self._mask = indicator.view(scores.shape)
     
     @property
     def mask(self):

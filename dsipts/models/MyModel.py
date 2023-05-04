@@ -175,7 +175,7 @@ class MyModel(Base):
         else:
             print('Specify kind= lstm or gru please')
         self.final_linear = nn.ModuleList()
-        for _ in range(out_channels*self.mul*self.future_steps):
+        for _ in range(out_channels*self.mul):
             self.final_linear.append(nn.Sequential(nn.Linear(hidden_RNN//2+emb_channels,hidden_RNN//4), 
                                             activation(),
                                             nn.BatchNorm1d(hidden_RNN//4) if use_bn else nn.Dropout(dropout_rate) ,
@@ -299,16 +299,15 @@ class MyModel(Base):
             has_future = False
         res = []
 
+        if has_future:
+            tmp = torch.cat([tot,out],axis=2)
+        else:
+            tmp = out
+            
+        for j in range(self.out_channels*self.mul):
+            res.append(self.final_linear[j](tmp))
 
-        for i in range(self.future_steps):
-            if has_future:
-                tmp = torch.cat([tot[:,i,:],out[:,i,:]],axis=1)
-            else:
-                tmp = out[:,i,:]
-            for j in range(self.out_channels*self.mul):
-                res.append(self.final_linear[j](tmp))
-
-        res = torch.cat(res,1)
+        res = torch.cat(res,2)
         ##BxLxC
         B = res.shape[0]
         
