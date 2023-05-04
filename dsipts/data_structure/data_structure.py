@@ -479,7 +479,7 @@ class TimeSeries():
                     gradient_clip_val:Union[float,None]=None,
                     gradient_clip_algorithm:str="value",
                     devices:Union[str,List[int]]='auto',
-                    precision:Union[str,int]=32)-> None:
+                    precision:Union[str,int]=32)-> float:
         """Train the model
 
         Args:
@@ -540,7 +540,11 @@ class TimeSeries():
 
         if auto_lr_find:
             trainer.tune(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)
-
+            
+        ##clean lr finder
+        for f in files:
+            if '.lr_find' in f:
+                os.remove(f)
  
         trainer.fit(self.model, train_dl,valid_dl)
         self.checkpoint_file_best = checkpoint_callback.best_model_path
@@ -569,12 +573,10 @@ class TimeSeries():
         except:
             logging.info(f'There is a problem loading the weights on file {self.checkpoint_file_last}')
 
-        ##clean lr finder
-        for f in files:
-            if '.lr_find' in f:
-                os.remove(f)
-        
 
+        
+        return self.losses.val_loss.values[-1]
+    
     def inference_on_set(self,batch_size:int=100,num_workers:int=4,split_params:Union[None,dict]=None,set:str='test',rescaling:bool=True)->pd.DataFrame:
         """This function allows to get the prediction on a particular set (train, test or validation). TODO add inference on a custom dataset
 

@@ -120,7 +120,7 @@ def train(conf: DictConfig) -> None:
     split_params = conf.split_params
     split_params['past_steps'] = model_conf['past_steps']
     split_params['future_steps'] = model_conf['future_steps']
-    ts.train_model(split_params=split_params,**conf.train_config)
+    valid_loss = ts.train_model(split_params=split_params,**conf.train_config)
     ts.save(os.path.join(conf.train_config.dirpath,'model'))
     ##save the config for the comparison task
     
@@ -130,7 +130,7 @@ def train(conf: DictConfig) -> None:
         os.mkdir(used_config)
     with open(os.path.join(used_config,HydraConfig.get()['runtime']['choices'][K]+'.yaml'),'w') as f:
         f.write(OmegaConf.to_yaml(conf))
-        
+    return valid_loss ##for optuna!    
         
 if __name__ == '__main__': 
     
@@ -139,5 +139,6 @@ if __name__ == '__main__':
     train()
     #if os.path.exists('multirun'):
     #    shutil.rmtree('multirun')
+    
     if os.path.exists('outputs'):
-        shutil.rmtree('outputs')
+        shutil.rmtree('outputs', ignore_errors=True)
