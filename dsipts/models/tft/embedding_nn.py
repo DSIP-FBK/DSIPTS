@@ -106,7 +106,6 @@ class embedding_num_past_variables(nn.Module):
             embed_vars = torch.cat((embed_vars, emb.unsqueeze(2)),dim=2)
         return embed_vars
 
-
 class embedding_num_future_variables(nn.Module):
     def __init__(self, max_steps: int, channels:int, d_model: int):
         """Class for embedding target variable (Only one)
