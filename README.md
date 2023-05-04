@@ -86,7 +86,6 @@ pip install --force dsipts --index-url https://dsipts:glpat-98SR11neR7hzxy__SueG
 In this case it will installed the last version submitted to the package registry. For testing pourpose please use the first method (in local). For using the latter method ask to `agobbi@fbk.eu`.
 
 
-
 ## Test 
 You can test your model using a tool timeseries
 
