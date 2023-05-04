@@ -33,11 +33,12 @@ def train(conf: DictConfig) -> None:
     Args:
         conf (DictConfig): dictionary whit all the parameters (split, normalization and training). Some of the parameters required will be filled looking to the timeserie definition. See the examples in the repo.
     """
-    import pdb
-    pdb.set_trace()
+
     
     K = list(HydraConfig.get()['runtime']['choices'].keys())[0]
-    print(OmegaConf.to_yaml(conf))  
+    logging.info(K)
+    logging.info(HydraConfig.get()['runtime']['choices'].keys())
+    return 0
     logging.info(f"{''.join(['#']*100)}")
     logging.info(f"{HydraConfig.get()['runtime']['choices'][K]:^100}")  
     logging.info(f"{''.join(['#']*100)}")
