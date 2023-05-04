@@ -15,7 +15,7 @@ class TFT(Base):
                  past_steps:int,
                  future_steps:int,
                  past_channels:int,
-                #  future_channels:int,
+                 future_channels:int,
                  embs:List[int],
                  d_model:int,
                  num_heads:int,
