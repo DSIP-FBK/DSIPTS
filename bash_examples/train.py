@@ -37,7 +37,7 @@ def train(conf: DictConfig) -> None:
     ##secondo me qui e' giusto mettere K = 'architecture'
     K = 'architecture'
     #K = list(HydraConfig.get()['runtime']['choices'].keys())[0]
-    logging.info(HydraConfig.get()['runtime']['choices']['hydra/sweeper'])
+    logging.info(HydraConfig.get()['runtime'].keys())
     logging.info(K)
     logging.info(HydraConfig.get()['runtime']['choices'].keys())
     return 0
