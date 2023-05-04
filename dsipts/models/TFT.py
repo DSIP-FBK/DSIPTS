@@ -15,7 +15,7 @@ class TFT(Base):
                  past_steps:int,
                  future_steps:int,
                  past_channels:int,
-                 future_channels:int,
+                #  future_channels:int,
                  embs:List[int],
                  d_model:int,
                  num_heads:int,
@@ -29,7 +29,7 @@ class TFT(Base):
                  quantiles:List[int]=[],
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
-        """TFT model
+        """TFT model 'arXiv:1912.09363v3 [stat.ML] 27 Sep 2020'
 
         Strategies:
         - 0 ['ONLY CAT']: / only x_cat_past / x_cat_fut /// direct method
@@ -71,7 +71,7 @@ class TFT(Base):
         self.seq_len = past_steps + future_steps
         self.d_model = d_model
         self.out_channels = out_channels
-        self.head_size = d_model # it can vary according to strategies
+        self.head_size = head_size # it can vary according to strategies
         
         self.emb_cat_var = embedding_nn.embedding_cat_variables(self.seq_len, future_steps, d_model, embs)
         self.emb_num_past_var = embedding_nn.embedding_num_past_variables(past_steps, past_channels, d_model)
