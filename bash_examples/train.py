@@ -39,9 +39,19 @@ def train(conf: DictConfig) -> None:
     #K = list(HydraConfig.get()['runtime']['choices'].keys())[0]
     
     ##nel caso si faccia un multirun per    
-    import pdb
-    pdb.set_trace()
-
+    #import pdb
+    #pdb.set_trace()
+    tasks = HydraConfig.get()['overrides']['task']
+    ##nel caso si faccia un multirun per cercare un parametro in particolare devo crearmi la versione giusta!
+    version_modifier = ''
+    for t in tasks:
+        if 'model_configs' in t:
+            tmp = t.split('model_configs.')[1] ##cerco solo quelli che modifico
+            model_configs+=tmp
+    version = str(conf.ts.version)
+    if version_modifier!='':
+        version = version+'_'+version_modifier
+    conf.ts.version = version
     logging.info(f"{''.join(['#']*100)}")
     logging.info(f"{HydraConfig.get()['runtime']['choices'][K]:^100}")  
     logging.info(f"{''.join(['#']*100)}")
@@ -107,11 +117,11 @@ def train(conf: DictConfig) -> None:
     else:
         logging.info(f"{''.join(['#']*300)}")
         logging.info(f"{''.join([' ']*300)}")
-        logging.info(f'######use valid model { conf.model.type}-{conf.ts.name}-{conf.ts.version}########')
+        logging.info(f'######use valid model { conf.model.type}-{conf.ts.name}-{version}########')
         logging.info(f"{''.join([' ']*300)}")
         logging.info(f"{''.join(['#']*300)}")
     ##questa e' unica per ogni sequenza di dirpath type name version quindi dopo la RIMUOVO se mai ce n'e' una vecchia! 
-    dirpath = os.path.join(conf.train_config.dirpath,'weights',conf.model.type,conf.ts.name, str(conf.ts.version))
+    dirpath = os.path.join(conf.train_config.dirpath,'weights',conf.model.type,conf.ts.name, version)
     logging.info(f'Model and weights will be placed and read from {dirpath}')
     
     
