@@ -88,5 +88,5 @@ hydra:
 
 
     params:
-      architecture: tft ##here put the architecture you want to finetune
-      model_configs.d_model: choice(32,64,128) 
+      architecture: mymodel ##here put the architecture you want to finetune
+      model_configs.hidden_RNN: choice(64,128,256) 
