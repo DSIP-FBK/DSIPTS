@@ -12,11 +12,11 @@ ts:
 split_params:
   shift: 0
 
-model_configs:
+model_configs: #
   d_model: 128
   num_heads: 16
   dropout: 0.3
-  head_size: 8
+  head_size: 128
   fw_exp: 2
   n_layer_encoder: 2
   n_layer_decoder: 2
@@ -27,5 +27,5 @@ model_configs:
 
 train_config:
   batch_size: 256
-  max_epochs: 5
+  max_epochs: 100
                              

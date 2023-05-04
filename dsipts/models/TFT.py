@@ -1,4 +1,3 @@
-
 from torch import  nn
 import torch
 from .base import  Base
@@ -29,35 +28,33 @@ class TFT(Base):
                  quantiles:List[int]=[],
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
-        """TFT model
+        """TFT model 'arXiv:1912.09363v3 [stat.ML] 27 Sep 2020'
 
         Strategies:
-        - 0 ['ONLY CAT']: / only x_cat_past / x_cat_fut /// direct method
-        - 1 ['CONCAT']: / concat(x_cat_past, with x_num_past) and VarSel(concat)-Encoder(concat, concat, concat) / x_cat_fut /// direct method
-        - 2 ['CONCAT']: / concat(x_cat_past, with x_num_past) and VarSel(concat)-Encoder(concat, concat, concat) / x_cat_fut /// iter method
-        - 3(?) ['ONLY NUM']: / only x_num_past / x_num_fut /// iterative method
+        - use_target_past: choose if you want to consider also the past numerical variables for the encoding part
+        - use_y_prec_fut: choose if for prediction you want to use the previous values of the target variables. If True, the process becomes iterative (also slower)
 
         Args:
-            use_target_past (bool): _description_
-            use_yprec_fut (bool): _description_
-            past_steps (int): number of past datapoints used
-            future_steps (int): number of future lag to predict
-            past_channels (int): number of numeric past variables, must be >0
-            future_channels (int): number of future numeric variables
-            d_model (int): dimension of embedded variables
-            n_layer_enc (int): number of Encoder layers
-            n_layer_dec (int): number of Decoder layers
-            n_layer_LSTM (int): number of LSTM layers
-            num_heads (int): number of heads used in the Attention
-            head_size (int): size for variable reshaping in Attention heads
-            fw_exp (int): multiplicative term for forward expansion in the Attention part, d_model-> d_model*fw_exp-> d_model
-            dropout (float): _
-            out_channels (int): number of output channels
-            quantiles (List[int], optional): use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
-            optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
-            scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
+            use_target_past (bool): usage of past numerical variables
+            use_yprec_fut (bool): usage of iterative procedure 
+            past_steps (int): past context steps
+            future_steps (int): future steps to be predicted
+            past_channels (int): number of variables used in past steps
+            future_channels (int): _description_
+            embs (List[int]): _description_
+            d_model (int): _description_
+            num_heads (int): _description_
+            head_size (int): _description_
+            fw_exp (int): _description_
+            dropout (float): _description_
+            n_layer_encoder (int): _description_
+            n_layer_decoder (int): _description_
+            num_layers_RNN (int): _description_
+            out_channels (int): _description_
+            quantiles (List[int], optional): _description_. Defaults to [].
+            optim_config (dict, optional): _description_. Defaults to None.
+            scheduler_config (dict, optional): _description_. Defaults to None.
         """
-        
         ##pytotch lightening stuff
         self.save_hyperparameters(logger=False)
         
@@ -71,7 +68,8 @@ class TFT(Base):
         self.seq_len = past_steps + future_steps
         self.d_model = d_model
         self.out_channels = out_channels
-        self.head_size = d_model # it can vary according to strategies
+        self.head_size = head_size # it can vary according to strategies
+        
         self.emb_cat_var = embedding_nn.embedding_cat_variables(self.seq_len, future_steps, d_model, embs)
         self.emb_num_past_var = embedding_nn.embedding_num_past_variables(past_steps, past_channels, d_model)
         # Encoder (past)
@@ -87,19 +85,14 @@ class TFT(Base):
         self.Decoder = decoder.Decoder(n_layer_decoder, d_model, num_heads, self.head_size, fw_exp, future_steps, dropout)
         # PostTransformer (future)
         self.postTransformer = embedding_nn.postTransformer(d_model, dropout)
+
         if len(quantiles)==0:
             self.mul = 1
             self.outLinear = nn.Linear(d_model, out_channels)
         else:
             self.mul = 3
             self.outLinear = nn.Linear(d_model, out_channels*len(quantiles))
-        self.final_linear = nn.ModuleList()
-        # for _ in range(out_channels*self.mul):
-        #     self.final_linear.append(nn.Sequential(nn.Linear(d_model,d_model*2),nn.ReLU(),nn.Dropout(0,2),
-        #                                            nn.Linear(d_model*2,d_model),nn.ReLU(),nn.Dropout(0,2),
-        #                                            nn.Linear(d_model,d_model//2),nn.ReLU(),nn.Dropout(0,2),
-        #                                            nn.Linear(d_model//2,1)))
-
+            
         assert (len(quantiles) ==0) or (len(quantiles)==3)
         if len(quantiles)>0:
             self.use_quantiles = True

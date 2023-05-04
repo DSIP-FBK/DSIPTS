@@ -466,6 +466,8 @@ if __name__=='__main__':
     dropout = 0.1
     n_layers = 3
 
+    import pdb 
+    pdb.set_trace()
     categorical = x[:,:,1:]
 
     # start embedding
