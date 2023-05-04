@@ -47,7 +47,6 @@ def train(conf: DictConfig) -> None:
     for t in tasks:
         if 'model_configs' in t:
             version_modifier+=t.split('model_configs.')[1] ##cerco solo quelli che modifico
-    logging.info(f"{version_modifier}")
 
     version = str(conf.ts.version)
     if version_modifier!='':
@@ -118,7 +117,7 @@ def train(conf: DictConfig) -> None:
     else:
         logging.info(f"{''.join(['#']*300)}")
         logging.info(f"{''.join([' ']*300)}")
-        logging.info(f'######use valid model { conf.model.type}-{conf.ts.name}-{version}########')
+        logging.info(f'######use valid model { conf.model.type}-{conf.ts.name}-{conf.ts.version}########')
         logging.info(f"{''.join([' ']*300)}")
         logging.info(f"{''.join(['#']*300)}")
     ##questa e' unica per ogni sequenza di dirpath type name version quindi dopo la RIMUOVO se mai ce n'e' una vecchia! 
