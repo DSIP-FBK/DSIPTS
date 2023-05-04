@@ -203,21 +203,19 @@ During the training phase a log stream will be generated. If a single process is
 
 
 # Models
-ATTENTION: se metto shift 0 e non metto il target nelle feature future lui non usa la y per predirre se stesso
-se metto shift 1 e metto nel target lui usa le info categoriche del timestamp prima il che non mi sembra ragionevole ma non ho molte idee migliori per ora
+A description of each model can be found in the class documentation [here](https://dsip.pages.fbk.eu/dsip_dlresearch/timeseries/)
 
 # Usage 
-In the folder `bash_examples` you can find an example in wich the library is used for training a model from command line using OmegaConf and Hydra with more updated models and examples.
+In the folder `bash_examples` you can find an example in wich the library is used for training a model from command line using OmegaConf and Hydra with more updated models and examples. 
 
 
 # TODO
 - add more sintetic data
 - more versatility during the data loading process
-- 
 
 
 ## Documentation
-You can find the documentation [here] (https://dsip.pages.fbk.eu/dsip_dlresearch/timeseries/):
+You can find the documentation [here](https://dsip.pages.fbk.eu/dsip_dlresearch/timeseries/):
 or  in the folder `docs/_build/html/index.html`
 If yon need to generate the documentation after some modification just run:
 ```
@@ -225,10 +223,11 @@ If yon need to generate the documentation after some modification just run:
 ```
 and add the new files to the git repo.
 
-For user only: see ci file and enable [public pages] (https://roneo.org/en/gitlab-public-pages-private-repo/)
+For user only: see ci file and enable [public pages](https://roneo.org/en/gitlab-public-pages-private-repo/)
 
 # Adding new models
 If you want to add a model:
+
 - extend the `Base` class in `dsipts/models`
 - add the export line in the `dsipts/__init__.py` 
 - add a full configuration file in `bash_examples/config_test/architecture`

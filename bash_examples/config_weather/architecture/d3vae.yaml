@@ -36,8 +36,13 @@ model_configs:
   num_postprocess_cells: 2
   beta_start: 0
 
+optim_config:
+  lr: 0.00001
+  weight_decay: 0.001
 
 train_config:
   batch_size: 64
   max_epochs: 100
   auto_lr_find: false                 
+
+

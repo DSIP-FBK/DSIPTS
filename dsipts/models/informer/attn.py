@@ -21,9 +21,9 @@ class ProbMask():
     def __init__(self, B, H, L, index, scores,device):
         _mask = torch.ones(L, scores.shape[-1], dtype=torch.bool).triu(1)
         _mask_ex = _mask[None, None, :].expand(B, H, L, scores.shape[-1])
-        indicator = _mask_ex[torch.arange(B)[:, None, None],
-                             torch.arange(H)[None, :, None],
-                             index, :]
+        indicator = _mask_ex[torch.arange(B).to(device)[:, None, None],
+                             torch.arange(H).to(device)[None, :, None],
+                             index.to(device), :]
         self._mask = indicator.view(scores.shape).to(device)
     
     @property
