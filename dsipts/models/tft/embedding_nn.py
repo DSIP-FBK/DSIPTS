@@ -4,8 +4,8 @@ import torch
 class embedding_cat_variables(nn.Module):
     # at the moment cat_past and cat_fut together
     def __init__(self, seq_len: int, lag: int, d_model: int, emb_dims: list):
-        """Class for embedding categorical variables, adding 3 positional variables during forward
-
+        """Class for embedding categorical variables, adding 3 positional variables during forward.
+        
         Args:
             seq_len (int): length of the sequence (sum of past and future steps)
             lag (int): number of future step to be predicted
@@ -15,29 +15,31 @@ class embedding_cat_variables(nn.Module):
         super().__init__()
         self.seq_len = seq_len
         self.lag = lag
-        self.cat_embeds = emb_dims + [seq_len, lag+1, 2] # 
+        self.cat_embeds = emb_dims + [seq_len, lag+1, 2] # add embedding dimensions for variables added during forward
         self.cat_n_embd = nn.ModuleList([
-            nn.Embedding(emb_dim, d_model) for emb_dim in self.cat_embeds
+            nn.Embedding(emb_dim, d_model) for emb_dim in self.cat_embeds # list of Embedding layer for each variable
         ])
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """All components of x are concatenated with 3 new variables for data augmentation, in the order:
+        """Must be applied to both past and future variables: a concatenation needed!
+        To x's components, 3 new variables are added; in the order:
         - pos_seq: assign at each step its time-position
-        - pos_fut: assign at each step its future position. 0 if it is a past step
+        - pos_fut: assign at each step its future position. 0 if it is a past step, 1-self.seq_len for future.
         - is_fut: explicit for each step if it is a future(1) or past one(0)
 
         Args:
             x (torch.Tensor): [bs, seq_len, num_vars]
 
         Returns:
-            torch.Tensor: [bs, seq_len num_vars+3, n_embd] 
+            torch.Tensor: [bs, seq_len num_vars+3, num_vars, n_embd] 
         """
+        device = x.device.type
+
         B, _, _ = x.shape
-        
-        pos_seq = self.get_pos_seq(bs=B)
-        pos_fut = self.get_pos_fut(bs=B)
-        is_fut = self.get_is_fut(bs=B)
-        cat_vars = torch.cat((x, pos_seq, pos_fut, is_fut),dim=2)
+        pos_seq = self.get_pos_seq(bs=B).to(device)
+        pos_fut = self.get_pos_fut(bs=B).to(device)
+        is_fut = self.get_is_fut(bs=B).to(device)
+        cat_vars = torch.cat((x, pos_seq, pos_fut, is_fut), dim=2)
         cat_n_embd = self.get_cat_n_embd(cat_vars)
         return cat_n_embd
 
@@ -57,7 +59,9 @@ class embedding_cat_variables(nn.Module):
         return is_fut
     
     def get_cat_n_embd(self, cat_vars):
-        cat_n_embd = torch.Tensor()
+        device = cat_vars.device.type
+
+        cat_n_embd = torch.Tensor().to(device)
         for index, layer in enumerate(self.cat_n_embd):
             emb = layer(cat_vars[:, :, index])
             cat_n_embd = torch.cat((cat_n_embd, emb.unsqueeze(2)),dim=2)
@@ -65,6 +69,14 @@ class embedding_cat_variables(nn.Module):
     
 class embedding_num_past_variables(nn.Module):
     def __init__(self, steps: int, channels:int, d_model: int):
+        """NN to embed past numerical variables.
+        Only past, do not concat with future 
+
+        Args:
+            steps (int): number of time steps of the 
+            channels (int): _description_
+            d_model (int): _description_
+        """
         super().__init__()
         self.steps = steps
         self.past_num_linears = nn.ModuleList([
@@ -72,8 +84,10 @@ class embedding_num_past_variables(nn.Module):
         ])
 
     def forward(self, num_past_tensor: torch.Tensor):
+        device = num_past_tensor.device.type
+
         B = num_past_tensor.shape[0]
-        pos_seq = self.get_pos_seq(bs = B)
+        pos_seq = self.get_pos_seq(bs = B).to(device)
         num_past_vars = torch.cat((num_past_tensor, pos_seq), dim=2)
         embedded_num_past_vars = self.get_num_past_embedded(num_past_vars)
         return embedded_num_past_vars
@@ -84,12 +98,13 @@ class embedding_num_past_variables(nn.Module):
         return pos_seq
     
     def get_num_past_embedded(self, vars):
-        embed_vars = torch.Tensor()
+        device = vars.device.type
+
+        embed_vars = torch.Tensor().to(device)
         for index, layer in enumerate(self.past_num_linears):
             emb = layer(vars[:, :, index].unsqueeze(2))
             embed_vars = torch.cat((embed_vars, emb.unsqueeze(2)),dim=2)
         return embed_vars
-
 
 class embedding_num_future_variables(nn.Module):
     def __init__(self, max_steps: int, channels:int, d_model: int):
@@ -114,9 +129,11 @@ class embedding_num_future_variables(nn.Module):
         Returns:
             torch.Tensor: [bs, seq_len, d_model]
         """
+        device = num_fut_tensor.device.type
+
         B, L = num_fut_tensor.shape[0], num_fut_tensor.shape[1]
-        emb_pos_seq = self.get_pos_seq(B, L)
-        embedded_num_past_vars = self.get_num_fut_embedded(num_fut_tensor)
+        emb_pos_seq = self.get_pos_seq(B, L).to(device)
+        embedded_num_past_vars = self.get_num_fut_embedded(num_fut_tensor).to(device)
         embedded_num_past_vars = torch.cat((embedded_num_past_vars, emb_pos_seq), dim=2)
         return embedded_num_past_vars
     
@@ -128,14 +145,14 @@ class embedding_num_future_variables(nn.Module):
 
     def get_num_fut_embedded(self, vars):
         # vars = [B, L, channels]
-        embed_vars = torch.Tensor()
-        _, L, _ = vars.shape # get_the number of steps, number of channels will be always the same
+        device = vars.device.type
+
+        embed_vars = torch.Tensor().to(device)
+
+        L= vars.shape[2] # get_the number of steps, number of channels will be always the same
         for index in range(L):
             emb = self.fut_num_linears[index](vars[:,index,:]).unsqueeze(1)
             embed_vars = torch.cat((embed_vars, emb.unsqueeze(2)), dim=1)
-        # for index, layer in enumerate(self.fut_num_linears):
-        #     emb = layer(vars[:, :, index].unsqueeze(2))
-        #     embed_vars = torch.cat((embed_vars, emb.unsqueeze(2)), dim=2)
         return embed_vars
     
 class GLU(nn.Module):
@@ -270,6 +287,7 @@ class Encoder_Var_Selection(nn.Module): # input already embedded
         Returns:
             torch.Tensor: [bs, past_steps, d_model]
         """
+
         # # categorical var_selection
         var_sel = self.get_cat_GRN(categorical)
         to_be_flat = categorical
@@ -284,14 +302,18 @@ class Encoder_Var_Selection(nn.Module): # input already embedded
         return out
 
     def get_cat_GRN(self, x: torch.Tensor) -> torch.Tensor:
-        cat_after_GRN = torch.Tensor()
+        device = x.device.type
+
+        cat_after_GRN = torch.Tensor().to(device)
         for index, layer in enumerate(self.GRNs_cat):
             grn = layer(x[:,:,index,:])
             cat_after_GRN = torch.cat((cat_after_GRN, grn.unsqueeze(2)), dim=2)
         return cat_after_GRN
     
     def get_num_GRN(self, x: torch.Tensor) -> torch.Tensor:
-        num_after_GRN = torch.Tensor()
+        device = x.device.type
+
+        num_after_GRN = torch.Tensor().to(device)
 
         for index, layer in enumerate(self.GRNs_num):
             grn = layer(x[:,:,index,:])
@@ -329,8 +351,9 @@ class Encoder_LSTM(nn.Module):
         Returns:
             list of tensors: [output_enc, hn, cn] where hn and cn must be used for Decoder_LSTM. 
         """
-        h0 = torch.zeros(self.n_layers_EncLSTM, x.size(0), x.size(2))
-        c0 = torch.zeros(self.n_layers_EncLSTM, x.size(0), x.size(2))
+        device = x.device.type
+        h0 = torch.zeros(self.n_layers_EncLSTM, x.size(0), x.size(2)).to(device)
+        c0 = torch.zeros(self.n_layers_EncLSTM, x.size(0), x.size(2)).to(device)
         lstm_enc, (hn, cn) = self.LSTM(x, (h0,c0))
         lstm_enc = self.dropout(lstm_enc)
         output_enc = self.norm(self.LSTM_enc_GLU(lstm_enc) + x)
@@ -389,7 +412,8 @@ class Decoder_Var_Selection(nn.Module): # input already embedded
         return out
 
     def get_cat_GRN(self, x):
-        cat_after_GRN = torch.Tensor()
+        device = x.device.type
+        cat_after_GRN = torch.Tensor().to(device)
         for index, layer in enumerate(self.GRNs_cat):
             grn = layer(x[:,:,index,:])
             cat_after_GRN = torch.cat((cat_after_GRN, grn.unsqueeze(2)), dim=2)

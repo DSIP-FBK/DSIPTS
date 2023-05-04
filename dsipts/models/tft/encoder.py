@@ -35,8 +35,9 @@ class MultiHeadEnc(nn.Module):
         self.heads = nn.ModuleList([Head_selfEnc(n_embd, head_size, dropout) for _ in range(num_heads)])
         
     def forward(self, queries, keys, values):
+        device = queries.device.type
         B, L = queries.shape[:2]
-        out = torch.zeros(B, L, self.head_size)
+        out = torch.zeros(B, L, self.head_size).to(device)
         for h in self.heads:
             out += h(queries, keys, values)
         out = out/self.num_heads
