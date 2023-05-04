@@ -542,6 +542,7 @@ class TimeSeries():
             trainer.tune(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)
             
         ##clean lr finder
+        files = os.listdir()
         for f in files:
             if '.lr_find' in f:
                 os.remove(f)
