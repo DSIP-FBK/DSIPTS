@@ -130,9 +130,11 @@ class embedding_num_future_variables(nn.Module):
         Returns:
             torch.Tensor: [bs, seq_len, d_model]
         """
+        device = num_fut_tensor.device.type
+
         B, L = num_fut_tensor.shape[0], num_fut_tensor.shape[1]
-        emb_pos_seq = self.get_pos_seq(B, L)
-        embedded_num_past_vars = self.get_num_fut_embedded(num_fut_tensor)
+        emb_pos_seq = self.get_pos_seq(B, L).to(device)
+        embedded_num_past_vars = self.get_num_fut_embedded(num_fut_tensor).to(device)
         embedded_num_past_vars = torch.cat((embedded_num_past_vars, emb_pos_seq), dim=2)
         return embedded_num_past_vars
     
@@ -144,14 +146,14 @@ class embedding_num_future_variables(nn.Module):
 
     def get_num_fut_embedded(self, vars):
         # vars = [B, L, channels]
-        embed_vars = torch.Tensor()
-        _, L, _ = vars.shape # get_the number of steps, number of channels will be always the same
+        device = vars.device.type
+
+        embed_vars = torch.Tensor().to(device)
+
+        L= vars.shape[2] # get_the number of steps, number of channels will be always the same
         for index in range(L):
             emb = self.fut_num_linears[index](vars[:,index,:]).unsqueeze(1)
             embed_vars = torch.cat((embed_vars, emb.unsqueeze(2)), dim=1)
-        # for index, layer in enumerate(self.fut_num_linears):
-        #     emb = layer(vars[:, :, index].unsqueeze(2))
-        #     embed_vars = torch.cat((embed_vars, emb.unsqueeze(2)), dim=2)
         return embed_vars
     
 class GLU(nn.Module):
@@ -286,6 +288,7 @@ class Encoder_Var_Selection(nn.Module): # input already embedded
         Returns:
             torch.Tensor: [bs, past_steps, d_model]
         """
+
         # # categorical var_selection
         var_sel = self.get_cat_GRN(categorical)
         to_be_flat = categorical
@@ -300,14 +303,18 @@ class Encoder_Var_Selection(nn.Module): # input already embedded
         return out
 
     def get_cat_GRN(self, x: torch.Tensor) -> torch.Tensor:
-        cat_after_GRN = torch.Tensor()
+        device = x.device.type
+
+        cat_after_GRN = torch.Tensor().to(device)
         for index, layer in enumerate(self.GRNs_cat):
             grn = layer(x[:,:,index,:])
             cat_after_GRN = torch.cat((cat_after_GRN, grn.unsqueeze(2)), dim=2)
         return cat_after_GRN
     
     def get_num_GRN(self, x: torch.Tensor) -> torch.Tensor:
-        num_after_GRN = torch.Tensor()
+        device = x.device.type
+
+        num_after_GRN = torch.Tensor().to(device)
 
         for index, layer in enumerate(self.GRNs_num):
             grn = layer(x[:,:,index,:])
