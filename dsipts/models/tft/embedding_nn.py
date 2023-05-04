@@ -352,8 +352,9 @@ class Encoder_LSTM(nn.Module):
         Returns:
             list of tensors: [output_enc, hn, cn] where hn and cn must be used for Decoder_LSTM. 
         """
-        h0 = torch.zeros(self.n_layers_EncLSTM, x.size(0), x.size(2))
-        c0 = torch.zeros(self.n_layers_EncLSTM, x.size(0), x.size(2))
+        device = x.device.type
+        h0 = torch.zeros(self.n_layers_EncLSTM, x.size(0), x.size(2)).to(device)
+        c0 = torch.zeros(self.n_layers_EncLSTM, x.size(0), x.size(2)).to(device)
         lstm_enc, (hn, cn) = self.LSTM(x, (h0,c0))
         lstm_enc = self.dropout(lstm_enc)
         output_enc = self.norm(self.LSTM_enc_GLU(lstm_enc) + x)
