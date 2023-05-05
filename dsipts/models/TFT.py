@@ -118,8 +118,6 @@ class TFT(Base):
         Returns:
             torch.tensor: result
         """
-        import pdb
-        pdb.set_trace()
         
         embed_num_past = self.emb_num_past_var(batch['x_num_past'])
         # embed_past = torch.cat((embed_num_past, embed_categorical_past), dim = 2)
@@ -149,6 +147,8 @@ class TFT(Base):
 
             # start iterative procedure
             for tau in range(1,self.future_steps+1):
+                import pdb
+                pdb.set_trace()
                 embed_tau_y = self.emb_num_fut_var(decoder_out)
                 variable_selection_fut = self.DecVariableSelection(embed_categorical_future[:,:tau,:,:], embed_tau_y)
                 fut_LSTM = self.DecLSTM(variable_selection_fut, hn, cn)
