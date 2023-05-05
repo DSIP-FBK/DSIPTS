@@ -40,11 +40,11 @@ class TFT(Base):
             past_steps (int): past context steps
             future_steps (int): future steps to be predicted
             past_channels (int): number of variables used in past steps
-            future_channels (int): _description_
-            embs (List[int]): _description_
-            d_model (int): _description_
-            num_heads (int): _description_
-            head_size (int): _description_
+            future_channels (int): [now not used] number of future numerical variables for predictions
+            embs (List[int]): embedding dimensions for Embedding Layers of categorical variables
+            d_model (int): dimension of the model
+            num_heads (int): number of heads used in Encoder and Decoder multihead attentions
+            head_size (int): size of tensors 
             fw_exp (int): _description_
             dropout (float): _description_
             n_layer_encoder (int): _description_
@@ -92,7 +92,7 @@ class TFT(Base):
         else:
             self.mul = 3
             self.outLinear = nn.Linear(d_model, out_channels*len(quantiles))
-            
+
         assert (len(quantiles) ==0) or (len(quantiles)==3)
         if len(quantiles)>0:
             self.use_quantiles = True
