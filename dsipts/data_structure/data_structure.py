@@ -534,7 +534,7 @@ class TimeSeries():
 
         mc = MetricsCallback(dirpath)
         ## TODO se ci sono 2 o piu gpu MetricsCallback non funziona (secondo me fa una istanza per ogni dataparallel che lancia e poi non riesce a recuperare info)
-        trainer = pl.Trainer(logger = logger,max_epochs=max_epochs,callbacks=[checkpoint_callback,mc],
+        trainer = pl.Trainer(default_root_dir=dirpath,logger = logger,max_epochs=max_epochs,callbacks=[checkpoint_callback,mc],
                              auto_lr_find=auto_lr_find, accelerator=accelerator,devices=devices,strategy=strategy,
                              precision=precision,gradient_clip_val=gradient_clip_val, gradient_clip_algorithm=gradient_clip_algorithm)#,devices=1)
 
@@ -542,10 +542,10 @@ class TimeSeries():
             trainer.tune(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)
             
         ##clean lr finder
-        files = os.listdir()
+        files = os.listdir(dirpath)
         for f in files:
             if '.lr_find' in f:
-                os.remove(f)
+                os.remove(os.path.join(dirpath,f))
  
         trainer.fit(self.model, train_dl,valid_dl)
         self.checkpoint_file_best = checkpoint_callback.best_model_path
@@ -558,15 +558,15 @@ class TimeSeries():
         
         self.losses = mc.metrics
 
-        files = os.listdir()
+        files = os.listdir(dirpath)
         ##accrocchio per multi gpu
         for f in files:
             if '__losses__.csv' in f:
                 if len(self.losses['val_loss'])>0:
                     self.losses = pd.DataFrame(self.losses)
                 else:
-                    self.losses = pd.read_csv(f)
-                os.remove(f)
+                    self.losses = pd.read_csv(os.path.join(os.path.join(dirpath,f)))
+                os.remove(os.path.join(os.path.join(dirpath,f)))
         if type(self.losses)==dict:
             self.losses = pd.DataFrame()
         try:
