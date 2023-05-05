@@ -118,6 +118,8 @@ class TFT(Base):
         Returns:
             torch.tensor: result
         """
+        import pdb
+        pdb.set_trace()
         
         embed_num_past = self.emb_num_past_var(batch['x_num_past'])
         # embed_past = torch.cat((embed_num_past, embed_categorical_past), dim = 2)
