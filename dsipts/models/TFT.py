@@ -140,10 +140,14 @@ class TFT(Base):
         encoded = self.Encoder(encoding, encoding, encoding)
 
         if self.use_yprec_fut:
-            output = torch.Tensor()
-            B = x_cat_future.shape[0]
+            # init output tensor on the right device
+            device = batch['x_num_past'].device.type
+            output = torch.Tensor().to(device)
+            # init decoder_out to store actual value predicted of the target variable
             idx_target = batch['idx_target'][0,0].item()
             decoder_out = batch['x_num_past'][:,-1,idx_target].unsqueeze(1).unsqueeze(2)
+
+            # start iterative procedure
             for tau in range(1,self.future_steps+1):
                 embed_tau_y = self.emb_num_fut_var(decoder_out)
                 variable_selection_fut = self.DecVariableSelection(embed_categorical_future[:,:tau,:,:], embed_tau_y)
@@ -152,17 +156,23 @@ class TFT(Base):
                 pred_decoded = self.Decoder(pred_decoding, encoded, encoded)
                 out = self.postTransformer(pred_decoded, pred_decoding, fut_LSTM)
                 out = self.outLinear(out) # [B, tau, self.mul]
+                # self.mul, by assert in __init__, ==1 or ==3
                 if self.mul==1:
                     decoder_out = torch.cat((decoder_out, out[:,-1,:].unsqueeze(2)), dim = 1)
                     output = torch.cat((output, out[:,-1,:].unsqueeze(1)), dim = 1)
                 else:
+                    # self.mul ==3 -> store the median quantile[q=0.5] predicted in the dec_out
                     dec_out = out[:,:,1].unsqueeze(2)
+                    # cat to decoder_out only the actual value
                     decoder_out = torch.cat((decoder_out, dec_out[:,-1,:].unsqueeze(2)), dim = 1)
+                    # cat to output all the quantiles predicted
                     output = torch.cat((output, out[:,-1,:].unsqueeze(1)), dim = 1)
+            # ignore the first value y_0 used to start the iterative procedure
             out = decoder_out[:,1:,:]
             B, L, _ = output.shape
             return output.reshape(B,L,-1,self.mul)
         else:
+            # direct prediction mod
             variable_selection_fut = self.DecVariableSelection(embed_categorical_future)
             fut_LSTM = self.DecLSTM(variable_selection_fut, hn, cn)
             decoding = self.DecGRN(fut_LSTM)
