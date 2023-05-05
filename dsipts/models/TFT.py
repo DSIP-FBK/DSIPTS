@@ -147,6 +147,7 @@ class TFT(Base):
 
             # start iterative procedure
             for tau in range(1,self.future_steps+1):
+                print(tau)
                 import pdb
                 pdb.set_trace()
                 embed_tau_y = self.emb_num_fut_var(decoder_out)
