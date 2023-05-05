@@ -191,4 +191,4 @@ class TFT(Base):
         Returns:
             torch.tensor: result
         """
-        return self(batch)
+        return self(batch) # exactly the same computations of forward
