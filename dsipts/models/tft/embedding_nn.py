@@ -130,8 +130,6 @@ class embedding_num_future_variables(nn.Module):
             torch.Tensor: [bs, seq_len, num_variables, d_model]
         """
         device = num_fut_tensor.device.type
-        import pdb
-        pdb.set_trace()
         B, L = num_fut_tensor.shape[0], num_fut_tensor.shape[1]
         pos_seq = self.get_pos_seq(B, L).to(device)
         emb_pos_seq = self.emb_pos_layer(pos_seq)
