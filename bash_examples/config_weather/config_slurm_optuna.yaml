@@ -88,5 +88,6 @@ hydra:
 
 
     params:
-      architecture: mymodel ##here put the architecture you want to finetune
-      model_configs.hidden_RNN: choice(64,128,256) 
+      architecture: mymodel                                #architecture you want to finetune
+      model_configs.num_layers_RNN: choice(1,2,3)          #parameters you want to explore, categorical
+      model_configs.persistence_weight: range(0.1,0.9,0.1) #or continuous

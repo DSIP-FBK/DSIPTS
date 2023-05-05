@@ -265,7 +265,7 @@ It is possible also to perform a fine tuning procedure on a specific model, in t
 ```
 python train.py --config-dir=config_weather --config-name=config_slurm -m architecture=mymodel model_configs.hidden_RNN=32,64,128
 ```
-will spawn 3 paralle process trainin the same model with three different values of `hidden_RNN`. In case of multiple parameters to test hydra will generate all the couples of possibilities. This approach can explode very fast, for this reason it is possible to use `optuna`
+will spawn 3 paralle process trainin the same model with three different values of `hidden_RNN`. In case of multiple parameters to test hydra will generate all the couples of possibilities. This approach can explode very quickly, for this reason it is possible to use `optuna`
 for exploring the space of the configurations:
 
 ```
