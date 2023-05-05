@@ -130,9 +130,11 @@ class embedding_num_future_variables(nn.Module):
             torch.Tensor: [bs, seq_len, d_model]
         """
         device = num_fut_tensor.device.type
-
+        import pdb
+        pdb.set_trace()
         B, L = num_fut_tensor.shape[0], num_fut_tensor.shape[1]
-        emb_pos_seq = self.get_pos_seq(B, L).to(device)
+        pos_seq = self.get_pos_seq(B, L).to(device)
+        emb_pos_seq = self.emb_pos_layer(pos_seq)
         embedded_num_past_vars = self.get_num_fut_embedded(num_fut_tensor).to(device)
         embedded_num_past_vars = torch.cat((embedded_num_past_vars, emb_pos_seq), dim=2)
         return embedded_num_past_vars
@@ -140,15 +142,11 @@ class embedding_num_future_variables(nn.Module):
     def get_pos_seq(self, bs, length):
         pos_seq = torch.arange(0, length)
         pos_seq = pos_seq.repeat(bs,1).unsqueeze(2)
-        pos_seq = self.emb_pos_layer(pos_seq)
         return pos_seq
 
     def get_num_fut_embedded(self, vars):
-        # vars = [B, L, channels]
         device = vars.device.type
-
         embed_vars = torch.Tensor().to(device)
-
         L= vars.shape[2] # get_the number of steps, number of channels will be always the same
         for index in range(L):
             emb = self.fut_num_linears[index](vars[:,index,:]).unsqueeze(1)
