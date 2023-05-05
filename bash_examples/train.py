@@ -52,7 +52,7 @@ def train(conf: DictConfig) -> None:
     if version_modifier!='':
         version = version+'_'+version_modifier
     conf.ts.version = version
-    selection = HydraConfig.get()['runtime']['choices'][K]+' '+version
+    selection = HydraConfig.get()['runtime']['choices'][K]+'_'+version
     logging.info(f"{''.join(['#']*100)}")
     logging.info(f"{selection:^100}")  
     logging.info(f"{''.join(['#']*100)}")
@@ -145,7 +145,7 @@ def train(conf: DictConfig) -> None:
     used_config = os.path.join(path,'config_used')
     if not os.path.exists(used_config):
         os.mkdir(used_config)
-    with open(os.path.join(used_config,HydraConfig.get()['runtime']['choices'][K]+'.yaml'),'w') as f:
+    with open(os.path.join(used_config,selection+'.yaml'),'w') as f:
         f.write(OmegaConf.to_yaml(conf))
     return valid_loss ##for optuna!    
         
