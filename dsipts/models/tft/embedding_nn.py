@@ -124,10 +124,10 @@ class embedding_num_future_variables(nn.Module):
         """Embedding the target varible. (Only one)
 
         Args:
-            y (torch.Tensor): [bs, seq_len, 1] past and future steps of scaled target variable
+            y (torch.Tensor): [bs, seq_len, 1] future steps of scaled target variable
 
         Returns:
-            torch.Tensor: [bs, seq_len, d_model]
+            torch.Tensor: [bs, seq_len, num_variables, d_model]
         """
         device = num_fut_tensor.device.type
         import pdb
@@ -147,7 +147,7 @@ class embedding_num_future_variables(nn.Module):
     def get_num_fut_embedded(self, vars):
         device = vars.device.type
         embed_vars = torch.Tensor().to(device)
-        L= vars.shape[2] # get_the number of steps, number of channels will be always the same
+        L= vars.shape[1] # get_the number of steps, number of channels will be always the same
         for index in range(L):
             emb = self.fut_num_linears[index](vars[:,index,:]).unsqueeze(1)
             embed_vars = torch.cat((embed_vars, emb.unsqueeze(2)), dim=1)
