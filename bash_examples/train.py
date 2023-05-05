@@ -52,8 +52,9 @@ def train(conf: DictConfig) -> None:
     if version_modifier!='':
         version = version+'_'+version_modifier
     conf.ts.version = version
+    selection = HydraConfig.get()['runtime']['choices'][K]+' '+version
     logging.info(f"{''.join(['#']*100)}")
-    logging.info(f"{HydraConfig.get()['runtime']['choices'][K]:^100}")  
+    logging.info(f"{selection:^100}")  
     logging.info(f"{''.join(['#']*100)}")
 
     ##OCCHIO CHE tutti questi dataset hanno y come target! ###############################################

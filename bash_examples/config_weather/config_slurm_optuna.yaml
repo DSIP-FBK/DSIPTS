@@ -69,7 +69,7 @@ hydra:
   output_subdir: null 
   sweeper:
     sampler:
-      _target_: optuna.samplers.TPESampler
+      _target_: optuna.samplers.TPESampler ## see https://optuna.readthedocs.io/en/stable/reference/samplers/index.html for other samplers
       seed: 123
       consider_prior: true
       prior_weight: 1.0

@@ -271,7 +271,57 @@ for exploring the space of the configurations:
 ```
 python train.py --config-dir=config_weather --config-name=config_slurm_optuna -m
 ```
-In this case the configuration file
+In this case the configuration file should include the following part:
+
+```
+defaults:
+  - _self_
+  - architecture: null 
+  - override hydra/launcher: submitit_slurm #SLURM STUFF 
+  - override hydra/sweeper: optuna          ##OPTUNA SWEEPER
+
+hydra:  ##SLURM STUFFS
+  launcher:
+    submitit_folder: ${hydra.sweep.dir}/.submitit/%j
+    timeout_min: 600
+    partition: gpu-V100
+    mem_gb: 6
+    nodes: 1
+    gres: gpu:1
+    name: ${hydra.job.name}
+    _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
+    setup:
+      - conda activate tt  
+ 
+
+  output_subdir: null 
+  sweeper:
+    sampler: ##OPTUNA STUFFS
+      _target_: optuna.samplers.TPESampler ## see https://optuna.readthedocs.io/en/stable/reference/samplers/index.html for other samplers
+      seed: 123
+      consider_prior: true
+      prior_weight: 1.0
+      consider_magic_clip: true
+      consider_endpoints: false
+      n_startup_trials: 10
+      n_ei_candidates: 24
+      multivariate: false
+      warn_independent_sampling: true
+    _target_: hydra_plugins.hydra_optuna_sweeper.optuna_sweeper.OptunaSweeper
+    direction: minimize
+    storage: null
+    study_name: tft
+    n_trials: 3 ## put the number of maximun trials
+    n_jobs: 3   ## parallel jobs
+
+
+    params:
+      architecture: mymodel                                #architecture you want to finetune
+      model_configs.num_layers_RNN: choice(1,2,3)          #parameters you want to explore, categorical
+      model_configs.persistence_weight: range(0.1,0.9,0.1) #or continuous
+
+
+```
 
 
 
