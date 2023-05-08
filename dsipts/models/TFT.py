@@ -71,7 +71,7 @@ class TFT(Base):
         self.head_size = head_size # it can vary according to strategies
         
         self.emb_cat_var = embedding_nn.embedding_cat_variables(self.seq_len, future_steps, d_model, embs)
-        self.emb_num_past_var = embedding_nn.embedding_num_past_variables(past_steps, past_channels, d_model)
+        self.emb_num_past_var = embedding_nn.embedding_num_past_variables(past_channels, d_model)
         # Encoder (past)
         self.EncVariableSelection = embedding_nn.Encoder_Var_Selection(self.use_target_past, len(embs)+3, past_channels, d_model, dropout)
         self.EncLSTM = embedding_nn.Encoder_LSTM(num_layers_RNN, d_model, dropout)
@@ -118,12 +118,14 @@ class TFT(Base):
         Returns:
             torch.tensor: result
         """
-        
+        import pdb
+        pdb.set_trace()
+        # numerical past var
         embed_num_past = self.emb_num_past_var(batch['x_num_past'])
-        # embed_past = torch.cat((embed_num_past, embed_categorical_past), dim = 2)
+
+        # categorical past var
         x_cat_past = batch['x_cat_past']
         x_cat_future = batch['x_cat_future']
-        
         embed_categorical = self.emb_cat_var(torch.cat((x_cat_past,x_cat_future), dim=1))
         embed_categorical_past = embed_categorical[:,:self.past_steps,:,:]
         embed_categorical_future = embed_categorical[:,-self.future_steps:,:,:]
