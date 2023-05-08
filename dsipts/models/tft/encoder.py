@@ -70,16 +70,41 @@ class EncoderLayer(nn.Module):
         q = q + self.ffn(self.norm2(q))
         return q
 
-#*   ENCODER   #
+#   ENCODER   #
 class Encoder(nn.Module):
-    def __init__(self, n_enc, n_embd, num_heads, head_size, fw_exp, dropout) :
+    def __init__(self, n_enc: int, n_embd: int, num_heads: int, head_size: int, fw_exp: int, dropout: float):
+        """Encoder
+
+        Args:
+            n_enc (int): number of encoder layers
+            n_embd (int): model dimension
+            num_heads (int): number of heads for each layer
+            head_size (int): size of layers heads
+            fw_exp (int): multiplicative factor for expansion in FFN
+            dropout (float): 
+        """
         super().__init__()
         self.layers = nn.ModuleList([EncoderLayer(n_embd, num_heads, head_size, fw_exp, dropout) 
                                         for _ in range(n_enc)])
         self.norm = nn.LayerNorm(n_embd)
 
-    def forward(self, q, k, v):
+    def forward(self, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
+        """Encoder:
+        - Multi Head SelfAttention on Encoder
+        - Feed Forward Network
+
+        Args:
+            q (torch.Tensor): queries
+            k (torch.Tensor): keys
+            v (torch.Tensor): values
+
+        Returns:
+            torch.Tensor: encoded tensor
+        """
         encoding = q
+        # iterate queries over encoder layers
         for layer in self.layers:
             encoding = layer(encoding, k, v)
+        # final normalization
+        decoding = self.norm(decoding)
         return encoding

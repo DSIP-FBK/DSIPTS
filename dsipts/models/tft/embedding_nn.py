@@ -286,7 +286,6 @@ class Encoder_Var_Selection(nn.Module): # input already embedded
             dropout (float): -
         """
         super().__init__()
-
         self.use_target_past = use_target_past
 
         #categorical
@@ -306,8 +305,8 @@ class Encoder_Var_Selection(nn.Module): # input already embedded
             tot_var = tot_var + n_past_num_var
 
         #flatten
-        emb_dims = [d_model*tot_var, int((d_model+tot_var)/2), tot_var] 
-        self.flatten_GRN = flatten_GRN(emb_dims, dropout)
+        flat_emb_dims = [d_model*tot_var, int(((d_model+1)*tot_var)/2), tot_var] 
+        self.flatten_GRN = flatten_GRN(flat_emb_dims, dropout)
 
     def forward(self, categorical: torch.Tensor, y: torch.Tensor=None) -> torch.Tensor:
         """Variable Selection Network in Encoder(past)
@@ -361,7 +360,6 @@ class Encoder_Var_Selection(nn.Module): # input already embedded
         return num_after_GRN
     
     def get_flat_GRN(self, to_be_flat: torch.Tensor) -> torch.Tensor:
-
         emb = torch.flatten(to_be_flat, start_dim=2)
         var_sel_wei = self.flatten_GRN(emb)
         return var_sel_wei
@@ -369,10 +367,11 @@ class Encoder_Var_Selection(nn.Module): # input already embedded
 class Encoder_LSTM(nn.Module):
     def __init__(self, n_layers_LSTM: int, d_model: int, dropout: float):
         """LSTM Encoder with GLU, Add and Norm
+        norm( x + GLU(dropout( LSTM(x) )) )
 
         Args:
             n_layers_EncLSTM (int): number of layers involved by LSTM 
-            d_model (int): -
+            d_model (int): model dimension
             dropout (float): -
         """
         super().__init__()
@@ -392,75 +391,95 @@ class Encoder_LSTM(nn.Module):
         Returns:
             list of tensors: [output_enc, hn, cn] where hn and cn must be used for Decoder_LSTM. 
         """
+        # init and move to device h0 and c0 of RNN 
         device = x.device.type
         h0 = torch.zeros(self.n_layers_EncLSTM, x.size(0), x.size(2)).to(device)
         c0 = torch.zeros(self.n_layers_EncLSTM, x.size(0), x.size(2)).to(device)
+
+        # computations
         lstm_enc, (hn, cn) = self.LSTM(x, (h0,c0))
         lstm_enc = self.dropout(lstm_enc)
         output_enc = self.norm(self.LSTM_enc_GLU(lstm_enc) + x)
         return [output_enc, hn, cn]
     
 class Decoder_Var_Selection(nn.Module): # input already embedded
-    def __init__(self, use_yprec: bool, n_fut_cat_var: int, n_fut_tar_var: int, d_model: int, dropout: float):
+    def __init__(self, use_yprec: bool, n_fut_cat_var: int, n_fut_num_var: int, d_model: int, dropout: float):
         """Variable Selection Network in Decoder(future)
+        Apply GRN to each variable, compute selection weights
+        Element-wise multiplication to have a Tensor [bs, seq_len, d_model] encoding the single variable.
 
         Args:
             use_yprec (bool): True if we want to use the last predicted values of target variable(s)
             n_fut_cat_var (int): number of categorical variables for future steps
             n_fut_tar_var (int): number of target variables for future steps. If use_yprec==False it is ignored
-            d_model (int): -
+            d_model (int): model dimension
             dropout (float): -
         """
         super().__init__()
         self.use_yprec = use_yprec
+
         #categorical
         self.n_grn_cat = n_fut_cat_var
         self.GRNs_cat = nn.ModuleList([
             GRN(d_model, dropout) for _ in range(self.n_grn_cat)
         ])
-        self.tot_var = n_fut_cat_var
+        tot_var = n_fut_cat_var
+
         #numerical
+        # if use_yprec==True, we apply selection on more varibles and we have to enlarge the number of GRNs
         if use_yprec:
-            self.n_grn_num = n_fut_tar_var
+            self.n_grn_num = n_fut_num_var
             self.GRNs_num = nn.ModuleList([
                 GRN(d_model, dropout) for _ in range(self.n_grn_num)
             ])
-            self.tot_var = self.tot_var+n_fut_tar_var
+            tot_var = tot_var + n_fut_num_var
+
         #flatten
-        emb_dims = [d_model*self.tot_var, int((d_model+self.tot_var)/2), self.tot_var]
-        self.flatten_GRN = flatten_GRN(emb_dims, dropout)
+        flat_emb_dims = [d_model*tot_var, int(((d_model+1)*tot_var)/2), tot_var]
+        self.flatten_GRN = flatten_GRN(flat_emb_dims, dropout)
 
     def forward(self, categorical: torch.Tensor, y: torch.Tensor=None) -> torch.Tensor:
         """Variable Selection Network in Decoder(future)
 
         Args:
-            categorical (torch.Tensor): [bs, past_steps, n_cat_var, d_model] fut_cat_variables to be selected
-            y (torch.Tensor, optional): [bs, past_steps, d_model]. Defaults to None.
+            categorical (torch.Tensor): [bs, fut_steps, n_cat_var, d_model] fut_cat_var to be selected
+            y (torch.Tensor, optional): [bs, fut_steps, n_num_var, d_model] fut_num_var to be selected if the process is iterative. Defaults to None.
 
         Returns:
-            torch.Tensor: [bs, past_steps, d_model]
+            torch.Tensor: [bs, fut_steps, d_model]
         """
+        # categorical GRNs
         var_sel = self.get_cat_GRN(categorical)
         to_be_flat = categorical
+
+        # numerical GRNs
+        # computed and concatenated to categorical ones
         if y is not None:
-            assert self.use_yprec==True
             num_after_GRN = self.get_num_GRN(y)
+            # concat over second dimension parallelizing everything
             var_sel = torch.cat((var_sel, num_after_GRN), dim = 2)
             to_be_flat = torch.cat((to_be_flat, y), dim=2)
+
+        # GRN for flattened variables
         var_sel_wei = self.get_flat_GRN(to_be_flat)
+        
+        # element-wise multiplication
         out = var_sel*var_sel_wei.unsqueeze(3)
+        # obtaining [bs, fut_steps, d_model] by mean over the second dimension
         out = torch.sum(out, 2)/out.size(2)
         return out
 
-    def get_cat_GRN(self, x):
+    def get_cat_GRN(self, x: torch.Tensor) -> torch.Tensor:
         device = x.device.type
+        # cat_after_GRN to store variables in parallel over the second dimension
         cat_after_GRN = torch.Tensor().to(device)
         for index, layer in enumerate(self.GRNs_cat):
             grn = layer(x[:,:,index,:])
             cat_after_GRN = torch.cat((cat_after_GRN, grn.unsqueeze(2)), dim=2)
         return cat_after_GRN
     
-    def get_num_GRN(self, x):
+    def get_num_GRN(self, x: torch.Tensor) -> torch.Tensor:
+        # num_after_GRN to store variables in parallel over the second dimension
         device = x.device.type
         num_after_GRN = torch.Tensor().to(device)
         for index, layer in enumerate(self.GRNs_num):
@@ -469,7 +488,6 @@ class Decoder_Var_Selection(nn.Module): # input already embedded
         return num_after_GRN
     
     def get_flat_GRN(self, to_be_flat: torch.Tensor) -> torch.Tensor:
-        # apply flatten_GRN and softmax
         emb = torch.flatten(to_be_flat, start_dim=2)
         var_sel_wei = self.flatten_GRN(emb)
         return var_sel_wei
@@ -477,10 +495,11 @@ class Decoder_Var_Selection(nn.Module): # input already embedded
 class Decoder_LSTM(nn.Module):
     def __init__(self, n_layers_LSTM: int, d_model: int, dropout: float):
         """LSTM Decoder with GLU, Add and Norm
+        norm( x + GLU(dropout( LSTM(x) )) )
 
         Args:
             n_layers_LSTM (int): number of layers involved by LSTM 
-            d_model (int): -
+            d_model (int): model dimension
             dropout (float): -
         """
         super().__init__()
@@ -502,7 +521,7 @@ class Decoder_LSTM(nn.Module):
         Returns:
             torch.Tensor: [bs, past_steps, d_model]
         """
-        lstm_dec, _ = self.LSTM(x, (hn,cn))
+        lstm_dec, _ = self.LSTM(x, (hn,cn)) # we ignore the (hc,cn) coming from LSTM, no needed for future computations
         lstm_dec = self.dropout(lstm_dec)
         output_dec = self.norm(self.LSTM_enc_GLU(lstm_dec) + x)
         return output_dec
@@ -510,9 +529,10 @@ class Decoder_LSTM(nn.Module):
 class postTransformer(nn.Module):
     def __init__(self, d_model: int, dropout: float):
         """Last part of TFT after decoder and before last linear
+        norm( res_conn_postLSTM + ( GLU(GRN( norm(res_conn_postGRN + GLU(dropout(x))) )) ) )
 
         Args:
-            d_model (int): -
+            d_model (int): model dimension
             dropout (float): -
         """
         super().__init__()
@@ -535,7 +555,10 @@ class postTransformer(nn.Module):
             torch.Tensor: [bs, past_steps, d_model]
         """
         x = self.dropout(x)
+        # first res_conn
         x = self.norm1(res_conn_dec + self.GLU1(x))
         x = self.GRN(x)
+        #second res_conn
         out = self.norm2(res_conn_grn + self.GLU2(x))
         return out
+    

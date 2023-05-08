@@ -111,22 +111,55 @@ class DecoderLayer(nn.Module):
         self.norm2 = nn.LayerNorm(n_embd)
         self.norm3 = nn.LayerNorm(n_embd)
 
-    def forward(self, q, k, v): # q = x_future, k = output of encoder, v = y_past
+    def forward(self, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor) -> torch.Tensor: 
+        # q = x_future, k = output of encoder, v = output of encoder
+        # decoder self attention over future values
         q = q + self.self_heads(self.norm1(q))
+        # cross attention among decoder and encoder
         q = q + self.cross_heads(self.norm2(q), k, v)
+        # Feed Forward Network
         q = q + self.ffn(self.norm3(q))
         return q
 
 #   DECODER   #
 class Decoder(nn.Module):
-    def __init__(self, n_dec, n_embd, num_heads, head_size, fw_exp, lag, dropout) :
+    def __init__(self, n_dec: int, n_embd: int, num_heads: int, head_size: int, fw_exp: int, lag: int, dropout: float) :
+        """Decoder
+
+        Args:
+            n_dec (int): number of decoder layers
+            n_embd (int): model dimension
+            num_heads (int): number of heads for each layer 
+            head_size (int): size of layers' heads
+            fw_exp (int): multiplicative factor for expansion in FFN
+            lag (int): maximum number of future steps computable. Used in Head_selfDec
+            dropout (float):
+        """
         super().__init__()
+        # list of decoder layers
         self.layers = nn.ModuleList([DecoderLayer(n_embd, num_heads, head_size, fw_exp, lag, dropout)
                                         for _ in range(n_dec)])
         self.norm = nn.LayerNorm(n_embd)
 
-    def forward(self, q, k, v):
+    def forward(self, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
+        """Decoder: 
+        - Multi Head SelfAttention on Decoder
+        - Multi Head CrossAttention among Decoder queries and Encoder keys and values
+        - Feed Forward Network
+
+        Args:
+            q (torch.Tensor): queries 
+            k (torch.Tensor): keys
+            v (torch.Tensor): values
+
+        Returns:
+            torch.Tensor: decoded tensor
+        """
         decoding = q
+        # iterate queries over decoder layers
         for layer in self.layers:
             decoding = layer(decoding, k, v)
+        # final normalization
+        decoding = self.norm(decoding)
         return decoding
+    
