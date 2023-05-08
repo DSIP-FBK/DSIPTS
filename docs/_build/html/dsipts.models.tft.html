@@ -504,7 +504,7 @@ registered hooks while the latter silently ignores them.</p>
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.embedding_cat_variables">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.embedding_nn.</span></span><span class="sig-name descname"><span class="pre">embedding_cat_variables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seq_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emb_dims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_cat_variables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_cat_variables" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Class for embedding categorical variables, adding 3 positional variables during forward</p>
+<p>Class for embedding categorical variables, adding 3 positional variables during forward.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -518,16 +518,17 @@ registered hooks while the latter silently ignores them.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.embedding_cat_variables.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_cat_variables.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_cat_variables.forward" title="Permalink to this definition"></a></dt>
-<dd><p>All components of x are concatenated with 3 new variables for data augmentation, in the order:
+<dd><p>Must be applied to both past and future variables: a concatenation needed!
+To x’s components, 3 new variables are added; in the order:
 - pos_seq: assign at each step its time-position
-- pos_fut: assign at each step its future position. 0 if it is a past step
+- pos_fut: assign at each step its future position. 0 if it is a past step, 1-self.seq_len for future.
 - is_fut: explicit for each step if it is a future(1) or past one(0)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>) – [bs, seq_len, num_vars]</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>[bs, seq_len num_vars+3, n_embd]</p>
+<dd class="field-even"><p>[bs, seq_len num_vars+3, num_vars, n_embd]</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>torch.Tensor</p>
@@ -603,7 +604,17 @@ registered hooks while the latter silently ignores them.</p>
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.embedding_num_past_variables">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.embedding_nn.</span></span><span class="sig-name descname"><span class="pre">embedding_num_past_variables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_num_past_variables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_num_past_variables" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
+<p>NN to embed past numerical variables.
+Only past, do not concat with future</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>steps</strong> (<em>int</em>) – number of time steps of the</p></li>
+<li><p><strong>channels</strong> (<em>int</em>) – _description_</p></li>
+<li><p><strong>d_model</strong> (<em>int</em>) – _description_</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.embedding_num_past_variables.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_past_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_num_past_variables.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_num_past_variables.forward" title="Permalink to this definition"></a></dt>

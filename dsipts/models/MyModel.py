@@ -220,6 +220,9 @@ class MyModel(Base):
             weights = self.persistence_weight/(torch.abs(y_hat[:,:,:,idx]-y_persistence) +0.1)
 
             loss = torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y'])*weights)
+        elif self.loss_type=='log':
+            idx = 1 if self.use_quantiles else 0
+            loss = torch.exp(torch.mean(torch.log(torch.pow(y_hat[:,:,:,idx],2)+0.001)-torch.log(torch.pow(batch['y'],2)+0.001))*0.5)
         else:
             loss = mse_loss
         

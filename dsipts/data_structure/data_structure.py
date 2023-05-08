@@ -574,9 +574,12 @@ class TimeSeries():
         except:
             logging.info(f'There is a problem loading the weights on file {self.checkpoint_file_last}')
 
-
-        
-        return self.losses.val_loss.values[-1]
+        try:
+            val_loss = self.losses.val_loss.values[-1]
+        except:
+            logging.info(f'Can not extract the validation loss, maybe it is a persistent model')
+            val_loss = 100
+        return val_loss 
     
     def inference_on_set(self,batch_size:int=100,num_workers:int=4,split_params:Union[None,dict]=None,set:str='test',rescaling:bool=True)->pd.DataFrame:
         """This function allows to get the prediction on a particular set (train, test or validation). TODO add inference on a custom dataset
