@@ -11,3 +11,4 @@ plotly-express
 kaleido
 sphinx
 sphinx_rtd_theme
+hydra-core

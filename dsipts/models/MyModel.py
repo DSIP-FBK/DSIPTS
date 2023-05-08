@@ -14,7 +14,9 @@ class Block(nn.Module):
         super(Block, self).__init__()
 
         self.dilations = nn.ModuleList()
-        self.steps = int(np.floor(np.sqrt(input_size)))
+        self.steps = int(np.floor(np.log2(input_size)))-1
+        if self.steps <=1:
+            self.steps = 1
         for i in range(self.steps):
             self.dilations.append(nn.Conv1d(input_channels, output_channels, kernel_sie, stride=1,padding='same',dilation=2**i))
         self.sum_layers = sum_layers
