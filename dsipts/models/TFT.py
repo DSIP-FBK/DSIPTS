@@ -115,13 +115,29 @@ class TFT(Base):
         self.scheduler_config = scheduler_config
   
     def forward(self, batch:dict) -> torch.Tensor:
-        """It is mandatory to implement this method
+        """ --- TFT ---
+        This Model can perform iterative and direct predictions:
+        - ITERATIVE:\n
+        yhat_i(q,t,tau) = f_q( tau, y_{i,t-k:t}, x_{i,t-k:t+tau} )
+        - DIRECT:\n
+        yhat_i(q,t,tau) = f_q( tau, x_{i,t-k:t+tau} )
+         
+        - q is the quantile taken in consideration,
+        - t the time when the prediction starts, 
+        - tau the future step we are predicting
+
+        Structure of the Model:
+        - Gating Mechanism
+        - Variable Selection Network
+        - Interpretable Multi-head Attention
+        - Quantile output
+
 
         Args:
             batch (dict): batch of the dataloader
 
         Returns:
-            torch.Tensor: result
+            torch.Tensor: [Bs, future_steps, -1, number of quantiles computed for each timestep]
         """
         import pdb
         pdb.set_trace()
