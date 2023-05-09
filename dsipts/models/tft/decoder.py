@@ -119,15 +119,17 @@ class DecoderLayer(nn.Module):
         self.norm2 = nn.LayerNorm(n_embd)
         self.norm3 = nn.LayerNorm(n_embd)
 
-    def forward(self, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor) -> torch.Tensor: 
+    def forward(self, queries: torch.Tensor, keys: torch.Tensor, values: torch.Tensor) -> torch.Tensor: 
         # q = x_future, k = output of encoder, v = output of encoder
         # decoder self attention over future values
-        q = q + self.linear1_to_embd( self.self_heads(self.norm1(q)))
+        import pdb
+        pdb.set_trace()
+        queries = queries + self.linear1_to_embd( self.self_heads(self.norm1(queries), keys, values))
         # cross attention among decoder and encoder
-        q = q + self.linear2_to_embd( self.cross_heads(self.norm2(q), k, v))
+        queries = queries + self.linear2_to_embd( self.cross_heads(self.norm2(queries), keys, values))
         # Feed Forward Network
-        q = q + self.ffn(self.norm3(q))
-        return q
+        queries = queries + self.ffn(self.norm3(queries))
+        return queries
 
 #   DECODER   #
 class Decoder(nn.Module):
@@ -149,7 +151,7 @@ class Decoder(nn.Module):
                                         for _ in range(n_dec)])
         self.norm = nn.LayerNorm(n_embd)
 
-    def forward(self, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
+    def forward(self, queries: torch.Tensor, keys: torch.Tensor, values: torch.Tensor) -> torch.Tensor:
         """Decoder: 
         - Multi Head SelfAttention on Decoder
         - Multi Head CrossAttention among Decoder queries and Encoder keys and values
@@ -163,10 +165,10 @@ class Decoder(nn.Module):
         Returns:
             torch.Tensor: decoded tensor
         """
-        decoding = q
+        decoding = queries
         # iterate queries over decoder layers
         for layer in self.layers:
-            decoding = layer(decoding, k, v)
+            decoding = layer(decoding, keys, values)
         # final normalization
         decoding = self.norm(decoding)
         return decoding
