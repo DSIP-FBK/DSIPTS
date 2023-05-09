@@ -14,6 +14,9 @@ class Head_selfEnc(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, queries, keys, values):
+        
+        import pdb
+        pdb.set_trace()
         queries = self.query(queries)
         keys = self.key(keys)
         wei = queries @ keys.transpose(-2,-1) * self.head_size**-0.5 # (B, T, head_size) @ (B, head_size, T) -> (B, T, T)
@@ -34,6 +37,9 @@ class MultiHeadEnc(nn.Module):
         self.common_values_linear = nn.Linear(n_embd, head_size, bias=False)
 
     def forward(self, queries, keys, values):
+        
+        import pdb
+        pdb.set_trace()
         device = queries.device.type
         B, L = queries.shape[:2]
         out = torch.zeros(B, L, self.head_size).to(device)
@@ -67,11 +73,14 @@ class EncoderLayer(nn.Module):
         self.norm1 = nn.LayerNorm(n_embd)
         self.norm2 = nn.LayerNorm(n_embd)
 
-    def forward(self, q, k, v):
-        q = q + self.heads(self.norm1(q), k, v)
-        q = self.linear_to_embd(q)
-        q = q + self.ffn(self.norm2(q))
-        return q
+    def forward(self, queries, keys, values):
+        
+        import pdb
+        pdb.set_trace()
+        queries = queries + self.heads(self.norm1(queries), keys, values)
+        queries = self.linear_to_embd(queries)
+        queries = queries + self.ffn(self.norm2(queries))
+        return queries
 
 #   ENCODER   #
 class Encoder(nn.Module):
@@ -91,7 +100,7 @@ class Encoder(nn.Module):
                                         for _ in range(n_enc)])
         self.norm = nn.LayerNorm(n_embd)
 
-    def forward(self, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
+    def forward(self, queries: torch.Tensor, keys: torch.Tensor, values: torch.Tensor) -> torch.Tensor:
         """Encoder:
         - Multi Head SelfAttention on Encoder
         - Feed Forward Network
@@ -104,10 +113,12 @@ class Encoder(nn.Module):
         Returns:
             torch.Tensor: encoded tensor
         """
-        encoding = q
+        import pdb
+        pdb.set_trace()
+        encoding = queries
         # iterate queries over encoder layers
         for layer in self.layers:
-            encoding = layer(encoding, k, v)
+            encoding = layer(encoding, keys, values)
         # final normalization
         encoding = self.norm(encoding)
         return encoding
