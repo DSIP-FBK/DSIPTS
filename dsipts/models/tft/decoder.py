@@ -16,7 +16,8 @@ class Head_selfDec(nn.Module):
 
     def forward(self, queries, keys, values):
         T = queries.shape[1]
-
+        import pdb
+        pdb.set_trace()
         queries = self.query(queries)
         keys = self.key(keys)
         wei = queries @ keys.transpose(-2,-1) * self.head_size**-0.5 # (B, T, head_size) @ (B, head_size, T) -> (B, T, T)
@@ -40,6 +41,8 @@ class Head_crossDec(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, queries, keys, values):
+        import pdb
+        pdb.set_trace()
         queries = self.query(queries)
         keys = self.key(keys)
         wei = queries @ keys.transpose(-2,-1) * (self.head_size**-0.5) # (B, T, head_size) @ (B, head_size, T) -> (B, T, T)
@@ -61,6 +64,9 @@ class MultiHead_selfDec(nn.Module):
         self.common_values_linear = nn.Linear(n_embd, head_size, bias=False)
 
     def forward(self, queries, keys, values):
+        import pdb
+        pdb.set_trace()
+        
         device = queries.device.type
         B, L = queries.shape[:2]
         out = torch.zeros(B, L, self.head_size).to(device)
@@ -82,6 +88,9 @@ class MultiHead_crossDec(nn.Module):
         self.common_values_linear = nn.Linear(n_embd, head_size, bias=False)
 
     def forward(self, queries, keys, values):
+        import pdb
+        pdb.set_trace()
+        
         device = queries.device.type
         B, L = queries.shape[:2]
         out = torch.zeros(B, L, self.head_size).to(device)
