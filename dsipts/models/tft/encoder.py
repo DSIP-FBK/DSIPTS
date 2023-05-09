@@ -109,5 +109,5 @@ class Encoder(nn.Module):
         for layer in self.layers:
             encoding = layer(encoding, k, v)
         # final normalization
-        decoding = self.norm(decoding)
+        encoding = self.norm(encoding)
         return encoding
