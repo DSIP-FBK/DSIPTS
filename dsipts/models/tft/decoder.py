@@ -121,8 +121,6 @@ class DecoderLayer(nn.Module):
     def forward(self, queries: torch.Tensor, keys: torch.Tensor, values: torch.Tensor) -> torch.Tensor: 
         # q = x_future, k = output of encoder, v = output of encoder
         # decoder self attention over future values
-        import pdb
-        pdb.set_trace()
         queries = queries + self.linear1_to_embd( self.self_heads(self.norm1(queries), queries, queries))
         # cross attention among decoder and encoder
         queries = queries + self.linear2_to_embd( self.cross_heads(self.norm2(queries), keys, values))
