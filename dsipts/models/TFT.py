@@ -116,22 +116,23 @@ class TFT(Base):
   
     def forward(self, batch:dict) -> torch.Tensor:
         """ --- TFT ---
-        This Model can perform iterative and direct predictions:
-        - ITERATIVE:\n
-        yhat_i(q,t,tau) = f_q( tau, y_{i,t-k:t}, x_{i,t-k:t+tau} )
-        - DIRECT:\n
-        yhat_i(q,t,tau) = f_q( tau, x_{i,t-k:t+tau} )
+        This Model can perform iterative and direct predictions:\n
+        ITERATIVE:\n
+        yhat_i(q,t,tau) = f_q( tau, y_{i,t-k:t}, x_{i,t-k:t+tau} )\n
+        DIRECT:\n
+        yhat_i(q,t,tau) = f_q( tau, x_{i,t-k:t+tau} )\n
          
         - q is the quantile taken in consideration,
         - t the time when the prediction starts, 
         - tau the future step we are predicting
 
         Structure of the Model:
-        - Gating Mechanism
-        - Variable Selection Network
-        - Interpretable Multi-head Attention
-        - Quantile output
-
+        - Gating Mechanisms: GRN and GLU give the model the flexibility 
+        to apply non-linear processing only where needed.
+        - Variable Selection Network: it is intended as instance-wise variable selection 
+        removing any unnecessary noisy inputs and focunsing on the most saient ones
+        - Interpretable Multi-head Attention: weights shared across all heads
+        - Quantile output: the model can predict the single value of y or its quantiles.
 
         Args:
             batch (dict): batch of the dataloader
@@ -139,8 +140,9 @@ class TFT(Base):
         Returns:
             torch.Tensor: [Bs, future_steps, -1, number of quantiles computed for each timestep]
         """
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
+
         # numerical past var
         embed_num_past = self.emb_num_past_var(batch['x_num_past'])
 
@@ -211,8 +213,7 @@ class TFT(Base):
         # daje roma
     
     def inference(self, batch:dict)->torch.tensor:
-        """Care here, we need to implement it because for predicting the N-step it will use the prediction at step N-1. TODO fix if because I did not implement the
-        know continuous variable presence here
+        """Exactly equal to forward method
 
         Args:
             batch (dict): batch of the dataloader

@@ -14,7 +14,7 @@ split_params:
 
 model_configs: #
   d_model: 128
-  num_heads: 16
+  num_heads: 3
   dropout: 0.3
   head_size: 128
   fw_exp: 2
@@ -23,7 +23,6 @@ model_configs: #
   num_layers_RNN: 2
   use_target_past: True
   use_yprec_fut: True
-
 
 train_config:
   batch_size: 256
