@@ -15,8 +15,8 @@ class Head_selfEnc(nn.Module):
 
     def forward(self, queries, keys, values):
         
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
         queries = self.query(queries)
         keys = self.key(keys)
         wei = queries @ keys.transpose(-2,-1) * self.head_size**-0.5 # (B, T, head_size) @ (B, head_size, T) -> (B, T, T)
@@ -38,8 +38,8 @@ class MultiHeadEnc(nn.Module):
 
     def forward(self, queries, keys, values):
         
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
         device = queries.device.type
         B, L = queries.shape[:2]
         out = torch.zeros(B, L, self.head_size).to(device)
@@ -75,10 +75,9 @@ class EncoderLayer(nn.Module):
 
     def forward(self, queries, keys, values):
         
-        import pdb
-        pdb.set_trace()
-        queries = queries + self.heads(self.norm1(queries), keys, values)
-        queries = self.linear_to_embd(queries)
+        # import pdb
+        # pdb.set_trace()
+        queries = queries + self.linear_to_embd(self.heads(self.norm1(queries), keys, values))
         queries = queries + self.ffn(self.norm2(queries))
         return queries
 
@@ -113,8 +112,8 @@ class Encoder(nn.Module):
         Returns:
             torch.Tensor: encoded tensor
         """
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
         encoding = queries
         # iterate queries over encoder layers
         for layer in self.layers:
