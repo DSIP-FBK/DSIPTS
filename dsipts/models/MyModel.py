@@ -21,8 +21,8 @@ class Block(nn.Module):
             self.dilations.append(nn.Conv1d(input_channels, output_channels, kernel_sie, stride=1,padding='same',dilation=2**i))
         self.sum_layers = sum_layers
         mul = 1 if sum_layers else self.steps 
-        self.conv_final = nn.Conv1d(output_channels*mul, output_channels, kernel_sie, stride=1,padding='same')
-
+        self.conv_final = nn.Conv1d(output_channels*mul, output_channels*mul, kernel_sie, stride=1,padding='same')
+        self.out_channels = output_channels*mul
     def forward(self, x: torch.tensor) -> torch.tensor:
         x = Permute()(x)
         tmp = []
@@ -157,20 +157,20 @@ class MyModel(Base):
             self.conv_decoder = Block(future_channels+emb_channels,kernel_size,hidden_RNN//4,self.future_steps,sum_emb) 
             #nn.Sequential(Permute(),nn.Linear(past_steps,past_steps*2),  nn.PReLU(),nn.Dropout(0.2),nn.Linear(past_steps*2, future_steps),nn.Dropout(0.3),nn.Conv1d(hidden_RNN, hidden_RNN//8, 3, stride=1,padding='same'),   Permute())
         if self.kind=='lstm':
-            self.Encoder = nn.LSTM(input_size= hidden_RNN//4,
+            self.Encoder = nn.LSTM(input_size= self.conv_encoder.out_channels,#, hidden_RNN//4,
                                    hidden_size=hidden_RNN//4,
                                    num_layers = num_layers_RNN,
                                    batch_first=True,bidirectional=True)
-            self.Decoder = nn.LSTM(input_size= hidden_RNN//4,
+            self.Decoder = nn.LSTM(input_size= self.conv_decoder.out_channels,#, hidden_RNN//4,
                                    hidden_size=hidden_RNN//4,
                                    num_layers = num_layers_RNN,
                                    batch_first=True,bidirectional=True)
         elif self.kind=='gru':
-            self.Encoder = nn.GRU(input_size= hidden_RNN//4,
+            self.Encoder = nn.GRU(input_size=self.conv_encoder.out_channels,#, hidden_RNN//4,
                                   hidden_size=hidden_RNN//4,
                                   num_layers = num_layers_RNN,
                                   batch_first=True,bidirectional=True)
-            self.Decoder = nn.GRU(input_size= hidden_RNN//4,
+            self.Decoder = nn.GRU(input_size= self.conv_decoder.out_channels,#, hidden_RNN//4,
                                   hidden_size=hidden_RNN//4,
                                   num_layers = num_layers_RNN,
                                   batch_first=True,bidirectional=True)
@@ -276,6 +276,8 @@ class MyModel(Base):
                 tmp.append(self.embs[i](cat_past[:,:,i]))
         if self.sum_emb and (len(self.embs)>0):
             tmp.append(tmp_emb)
+        #import pdb
+        #pdb.set_trace()
         tot = torch.cat(tmp,2)
 
         out, hidden = self.Encoder(self.conv_encoder(tot))      
