@@ -18,13 +18,12 @@ model_configs:
   dropout: 0.3
   head_size: 64
   fw_exp: 2
-  n_layer_encoder: 2
-  n_layer_decoder: 2
-  num_layers_RNN: 2
-  use_target_past: True
-  use_yprec_fut: True
+  n_layer_encoder: 3
+  n_layer_decoder: 3
+  num_layers_RNN: 3
+  use_target_past: False
+  use_yprec_fut: False
 
 train_config:
   batch_size: 256
   max_epochs: 100
-                             
