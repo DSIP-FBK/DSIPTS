@@ -144,7 +144,7 @@ class TFT(Base):
         # pdb.set_trace()
 
         # numerical past var
-        embed_num_past = self.emb_num_past_var(batch['x_num_past'])
+        
 
         # categorical past var
         x_cat_past = batch['x_cat_past']
@@ -158,6 +158,7 @@ class TFT(Base):
         ### PAST #############
         #Variable Selection
         if self.use_target_past:
+            embed_num_past = self.emb_num_past_var(batch['x_num_past'])
             variable_selection_past = self.EncVariableSelection(embed_categorical_past, embed_num_past)
         else:
             variable_selection_past = self.EncVariableSelection(embed_categorical_past)
