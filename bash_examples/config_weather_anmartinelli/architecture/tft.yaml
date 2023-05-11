@@ -24,6 +24,7 @@ model_configs:
   use_target_past: False
   use_yprec_fut: False
 
+
 train_config:
-  batch_size: 256
-  max_epochs: 50
+  batch_size: 128
+  max_epochs: 250

@@ -25,7 +25,7 @@ class TFT(Base):
                  n_layer_decoder:int,
                  num_layers_RNN:int,
                  out_channels:int,
-                 quantiles:List[int]=[],
+                 quantiles:List[float]=[],
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
         """TFT model 'arXiv:1912.09363v3 [stat.ML] 27 Sep 2020'
