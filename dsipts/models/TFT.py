@@ -142,8 +142,8 @@ class TFT(Base):
         """
         
         # categorical past var
-        x_cat_past = batch['x_cat_past']
-        x_cat_future = batch['x_cat_future']
+        x_cat_past = batch['x_cat_past'].to(self.device)
+        x_cat_future = batch['x_cat_future'].to(self.device)
         #embed all categorical values
         embed_categorical = self.emb_cat_var(torch.cat((x_cat_past,x_cat_future), dim=1))
         # split for past and future
@@ -154,7 +154,7 @@ class TFT(Base):
         #Variable Selection
         if self.use_target_past:
             # numerical past var
-            embed_num_past = self.emb_num_past_var(batch['x_num_past'])
+            embed_num_past = self.emb_num_past_var(batch['x_num_past'].to(self.device))
             variable_selection_past = self.EncVariableSelection(embed_categorical_past, embed_num_past)
         else:
             variable_selection_past = self.EncVariableSelection(embed_categorical_past)
@@ -171,7 +171,7 @@ class TFT(Base):
             output = torch.Tensor().to(device)
             # init decoder_out to store actual value predicted of the target variable
             idx_target = batch['idx_target'][0,0].item()
-            decoder_out = batch['x_num_past'][:,-1,idx_target].unsqueeze(1).unsqueeze(2)
+            decoder_out = batch['x_num_past'][:,-1,idx_target].unsqueeze(1).unsqueeze(2).to(self.device)
 
             # start iterative procedure
             for tau in range(1,self.future_steps+1):
