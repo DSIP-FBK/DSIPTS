@@ -167,14 +167,13 @@ class TFT(Base):
         ### FUTURE ###########
         if self.use_yprec_fut:
             # init output tensor on the right device
-            device = batch['x_num_past'].device.type
-            output = torch.Tensor().to(device)
+            output = torch.Tensor().to(self.device)
             # init decoder_out to store actual value predicted of the target variable
             idx_target = batch['idx_target'][0,0].item()
             decoder_out = batch['x_num_past'][:,-1,idx_target].unsqueeze(1).unsqueeze(2).to(self.device)
 
             # start iterative procedure
-            for tau in range(1,self.future_steps+1):
+            for tau in range(1, self.future_steps+1):
                 embed_tau_y = self.emb_num_fut_var(decoder_out)
                 variable_selection_fut = self.DecVariableSelection(embed_categorical_future[:,:tau,:,:], embed_tau_y)
                 fut_LSTM = self.DecLSTM(variable_selection_fut, hn, cn)
