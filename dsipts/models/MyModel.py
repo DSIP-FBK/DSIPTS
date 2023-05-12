@@ -323,8 +323,8 @@ class MyModel(Base):
             tmp = torch.cat([tot,out],axis=2)
         else:
             tmp = out
-        import pdb
-        pdb.set_trace()
+        #import pdb
+        #pdb.set_trace()
         for j in range(self.out_channels*self.mul):
             res.append(self.final_linear[j](tmp))
 
