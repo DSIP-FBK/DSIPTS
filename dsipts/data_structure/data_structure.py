@@ -542,10 +542,12 @@ class TimeSeries():
             trainer.tune(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)
             
         ##clean lr finder
-        files = os.listdir(dirpath)
-        for f in files:
-            if '.lr_find' in f:
-                os.remove(os.path.join(dirpath,f))
+      
+            files = os.listdir(dirpath)
+    
+            for f in files:
+                if '.lr_find' in f:
+                    os.remove(os.path.join(dirpath,f))
  
         trainer.fit(self.model, train_dl,valid_dl)
         self.checkpoint_file_best = checkpoint_callback.best_model_path
