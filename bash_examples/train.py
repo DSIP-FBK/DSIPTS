@@ -63,7 +63,7 @@ def train(conf: DictConfig) -> None:
             import pickle
             res = pickle.load(f)
         data = res['data']
-        data.rename(colums={'tempo':'time'},inplace=True)
+        data.rename(columns={'tempo':'time'},inplace=True)
         
     else:
         data, columns = read_public_dataset(**conf.dataset)
