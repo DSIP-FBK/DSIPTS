@@ -1,0 +1,26 @@
+# @package _global_
+
+model:
+  type: 'linear'
+  
+ts:
+  name: 'linear_d'
+  version: 1
+  enrich: []
+  use_covariates: true
+
+model_configs:
+  cat_emb_dim: 64
+  kernel_size: 5
+  sum_emb: true
+  hidden_size: 512
+  kind: 'dlinear'
+  dropout_rate: 0.2
+  use_bn: false  
+  activation: 'selu'
+
+train_config:
+  batch_size: 128
+  max_epochs: 250           
+  gradient_clip_val: null
+  gradient_clip_algorithm: 'norm'

@@ -1,0 +1,33 @@
+# @package _global_
+
+model:
+  type: 'informer'
+  
+ts:
+  name: 'informer'
+  version: 1
+  enrich: []
+  use_covariates: true
+
+split_params:
+  shift: 4 ##this will use the shifted data and it is more like the original one
+  keep_entire_seq_while_shifting: True
+
+
+model_configs:
+  d_model: 128
+  hidden_size: 128
+  num_heads: 16
+  dropout_rate: 0.2
+  n_layer_encoder: 4
+  n_layer_decoder: 2
+  mix: True
+  activation: 'gelu'
+  attn: 'prob'
+  distil: True
+  factor: 5
+
+train_config:
+  batch_size: 256
+  max_epochs: 250
+                             

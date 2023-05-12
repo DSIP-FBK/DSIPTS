@@ -58,9 +58,24 @@ def train(conf: DictConfig) -> None:
     logging.info(f"{''.join(['#']*100)}")
 
     ##OCCHIO CHE tutti questi dataset hanno y come target! ###############################################
-    data, columns = read_public_dataset(**conf.dataset)
+    if conf.dataset.dataset == 'edison':
+        with open(os.path.join(conf.dataset.path,'edison.pkl'),'rb') as f:
+            import pickle
+            res = pickle.load(f)
+        data = res['data']
+        data.rename(colums={'tempo':'time'},inplace=True)
+        
+    else:
+        data, columns = read_public_dataset(**conf.dataset)
     ts = TimeSeries(conf.ts.name)
-    ts.load_signal(data, enrich_cat= conf.ts.enrich,target_variables=['y'], past_variables=columns if conf.ts.use_covariates else [])
+    if conf.dataset.dataset == 'edison':
+        if  conf.ts.use_covariates:
+            ts.load_signal(data, cat_var= res['cat'],target_variables=['y'], past_variables=[], future_variables=[])
+        else:
+            ts.load_signal(data, cat_var= res['cat'],target_variables=['y'], past_variables=res['mete'], future_variables=res['meteo'])
+
+    else:
+        ts.load_signal(data, enrich_cat= conf.ts.enrich,target_variables=['y'], past_variables=columns if conf.ts.use_covariates else [])
     ######################################################################################################
     
     

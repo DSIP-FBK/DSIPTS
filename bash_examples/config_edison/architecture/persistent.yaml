@@ -1,0 +1,18 @@
+# @package _global_
+
+model:
+  type: 'persistent'
+  
+ts:
+  name: 'persisten'
+  version: 1
+  enrich: []
+  use_covariates: false
+
+split_params:
+  shift: 0
+
+train_config:
+  batch_size: 256
+  max_epochs: 0
+                             

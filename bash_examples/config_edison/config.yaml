@@ -1,5 +1,5 @@
 dataset:
-  dataset: 'edison'  
+  dataset: 'weather'  
   path: '/home/agobbi/Projects/ExpTS/data'
 
 scheduler_config:
@@ -52,16 +52,22 @@ defaults:
   - override hydra/launcher: submitit_slurm #joblib 
 
 hydra:
+  #launcher: #joblib
+  #  n_jobs:   2 
   launcher:
     submitit_folder: ${hydra.sweep.dir}/.submitit/%j
     timeout_min: 600
-    partition: gpu-V100
-    mem_gb: 6
-    nodes: 1
-    gres: gpu:1
-    array_parallelism: 10 ##altrimenti roldano si arrabbia
+    cpus_per_task: null
+    gpus_per_node: 1
+    tasks_per_node: 1
+    mem_gb: null
+    nodes: 4
     name: ${hydra.job.name}
     _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
+    cpus_per_gpu: null
+    gpus_per_task: 1
+    mem_per_gpu: null
+    mem_per_cpu: null
     setup:
       - conda activate tt  
  
