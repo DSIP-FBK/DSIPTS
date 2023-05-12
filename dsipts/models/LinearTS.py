@@ -59,6 +59,7 @@ class LinearTS(Base):
                  kind:str='linear',
                  use_bn:bool=False,
                  quantiles:List[int]=[],
+                  n_classes:int=0,
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
         """Linear model from https://github.com/cure-lab/LTSF-Linear/blob/main/run_longExp.py
@@ -79,6 +80,7 @@ class LinearTS(Base):
             kind (str, optional): one among linear, dlinear (de-trending), nlinear (differential). Defaults to 'linear'.
             use_bn (bool, optional): if true BN layers will be added and dropouts will be removed. Default False
             quantiles (List[int], optional):  we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
+            n_classes (int): number of classes (0 in regression)
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
         """
@@ -102,11 +104,23 @@ class LinearTS(Base):
         self.future_channels = future_channels 
         self.embs = nn.ModuleList()
         self.sum_emb = sum_emb
-        assert (len(quantiles) ==0) or (len(quantiles)==3)
-        if len(quantiles)>0:
-            self.use_quantiles = True
+
+        if n_classes==0:
+            self.is_classification = False
+            if len(quantiles)>0:
+                self.use_quantiles = True
+                self.mul = len(quantiles)
+                self.loss = QuantileLossMO(quantiles)
+            else:
+                self.use_quantiles = False
+                self.mul = 1
+                self.loss = L1Loss()
         else:
+            self.is_classification = True
             self.use_quantiles = False
+            self.mul = n_classes
+            self.loss = torch.nn.CrossEntropyLoss()
+            #assert out_channels==1, "Classification require only one channel"
         
         emb_channels = 0
         self.optim_config = optim_config
@@ -126,12 +140,7 @@ class LinearTS(Base):
     
         ## ne faccio uno per ogni canale
         self.linear =  nn.ModuleList()
-        if  self.use_quantiles:
-            self.loss = QuantileLossMO(quantiles)
-            self.mul = 3
-        else:
-            self.loss = L1Loss()
-            self.mul = 1 
+
             
         if kind=='dlinear':
             self.decompsition = series_decomp(kernel_size)    

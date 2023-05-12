@@ -26,6 +26,7 @@ class RNN(Base):
                  dropout_rate:float=0.1,
                  use_bn:bool=False,
                  quantiles:List[int]=[],
+                  n_classes:int=0,
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
         """ Recurrent model with an encoder decoder structure
@@ -47,6 +48,7 @@ class RNN(Base):
             dropout_rate (float, optional): dropout rate in Dropout layers
             use_bn (bool, optional): if true BN layers will be added and dropouts will be removed
             quantiles (List[int], optional): we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
+            n_classes (int): number of classes (0 in regression)
 
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
@@ -74,13 +76,22 @@ class RNN(Base):
         self.sum_emb = sum_emb
         self.kind = kind
         
-        assert (len(quantiles) ==0) or (len(quantiles)==3)
-        if len(quantiles)>0:
-            self.use_quantiles = True
-            self.mul = 3
+        if n_classes==0:
+            self.is_classification = False
+            if len(quantiles)>0:
+                self.use_quantiles = True
+                self.mul = len(quantiles)
+                self.loss = QuantileLossMO(quantiles)
+            else:
+                self.use_quantiles = False
+                self.mul = 1
+                self.loss = L1Loss()
         else:
+            self.is_classification = True
             self.use_quantiles = False
-            self.mul = 1
+            self.mul = n_classes
+            self.loss = torch.nn.CrossEntropyLoss()
+            #assert out_channels==1, "Classification require only one channel"
         
         emb_channels = 0
         self.optim_config = optim_config
@@ -144,11 +155,7 @@ class RNN(Base):
                                             nn.Linear(hidden_RNN//8,1)))
 
   
-        if  self.use_quantiles:
-            self.loss = QuantileLossMO(quantiles)
-        else:
-            self.loss = L1Loss()
-        #self.device = get_device()
+
     def forward(self, batch):
         """It is mandatory to implement this method
 

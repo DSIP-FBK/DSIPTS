@@ -61,6 +61,7 @@ class MyModel(Base):
                  quantiles:List[int]=[],
                  dropout_rate:float=0.1,
                  use_bn:bool=False,
+                  n_classes:int=0,
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
         """ Custom encoder-decoder 
@@ -83,6 +84,8 @@ class MyModel(Base):
             quantiles (List[int], optional): we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
             dropout_rate (float, optional): dropout rate in Dropout layers
             use_bn (bool, optional): if true BN layers will be added and dropouts will be removed
+            n_classes (int): number of classes (0 in regression)
+
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
 
@@ -109,13 +112,22 @@ class MyModel(Base):
         self.sum_emb = sum_emb
         self.kind = kind
         self.out_channels = out_channels
-        assert (len(quantiles) ==0) or (len(quantiles)==3)
-        if len(quantiles)>0:
-            self.use_quantiles = True
-            self.mul = 3
+        if n_classes==0:
+            self.is_classification = False
+            if len(quantiles)>0:
+                self.use_quantiles = True
+                self.mul = len(quantiles)
+                self.loss = QuantileLossMO(quantiles)
+            else:
+                self.use_quantiles = False
+                self.mul = 1
+                self.loss = L1Loss()
         else:
+            self.is_classification = True
             self.use_quantiles = False
-            self.mul = 1
+            self.mul = n_classes
+            self.loss = torch.nn.CrossEntropyLoss()
+            #assert out_channels==1, "Classification require only one channel"
         
         emb_channels = 0
         self.optim_config = optim_config
@@ -180,10 +192,14 @@ class MyModel(Base):
         for _ in range(out_channels*self.mul):
             self.final_linear.append(nn.Sequential(nn.Linear(hidden_RNN//2+emb_channels,hidden_RNN//4), 
                                             activation(),
+                                            Permute() if use_bn else nn.Identity() ,
                                             nn.BatchNorm1d(hidden_RNN//4) if use_bn else nn.Dropout(dropout_rate) ,
+                                            Permute() if use_bn else nn.Identity() ,
                                             nn.Linear(hidden_RNN//4,hidden_RNN//8),
                                             activation(),
+                                             Permute() if use_bn else nn.Identity() ,
                                             nn.BatchNorm1d(hidden_RNN//8) if use_bn else nn.Dropout(dropout_rate) ,
+                                            Permute() if use_bn else nn.Identity() ,
                                             nn.Linear(hidden_RNN//8,hidden_RNN//16),
                                             activation(),
                                             nn.Dropout(dropout_rate),
@@ -191,11 +207,7 @@ class MyModel(Base):
         
         self.loss_type = loss_type
         
-        if  self.use_quantiles:
-            self.loss = QuantileLossMO(quantiles)
-        else:
-            self.loss = L1Loss()
-        #self.device = get_device()
+
         
     def compute_loss(self,batch):
         """
@@ -224,6 +236,7 @@ class MyModel(Base):
             loss = torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y'])*weights)
         elif self.loss_type=='log':
             idx = 1 if self.use_quantiles else 0
+            ##THIS DOES NOT WORK
             loss = torch.exp(torch.mean(torch.log(torch.pow(y_hat[:,:,:,idx],2)+0.001)-torch.log(torch.pow(batch['y'],2)+0.001))*0.5)
         else:
             loss = mse_loss
@@ -255,7 +268,7 @@ class MyModel(Base):
             torch.tensor: result
         """
         x =  batch['x_num_past'].to(self.device)
-
+        
         if 'x_cat_future' in batch.keys():
             cat_future = batch['x_cat_future'].to(self.device)
         if 'x_cat_past' in batch.keys():
@@ -310,7 +323,8 @@ class MyModel(Base):
             tmp = torch.cat([tot,out],axis=2)
         else:
             tmp = out
-            
+        import pdb
+        pdb.set_trace()
         for j in range(self.out_channels*self.mul):
             res.append(self.final_linear[j](tmp))
 
