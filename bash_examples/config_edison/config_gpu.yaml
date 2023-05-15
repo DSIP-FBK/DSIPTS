@@ -1,5 +1,5 @@
 dataset:
-  dataset: 'weather'  
+  dataset: 'edison'  
   path: '/home/agobbi/Projects/ExpTS/data'
 
 scheduler_config:
@@ -11,8 +11,8 @@ optim_config:
   weight_decay: 0.01
 
 model_configs:
-  past_steps: 16
-  future_steps: 16
+  past_steps: 196
+  future_steps: 65
   quantiles: [] #[0.1,0.5,0.9]
   past_channels : null #dataset dependent
   future_channels : null #dataset dependent
@@ -20,11 +20,11 @@ model_configs:
   out_channels: null #dataset dependent
 
 split_params:
-  perc_train: 0.7
-  perc_valid: 0.1
-  range_train: null
-  range_validation: null 
-  range_test: null
+  perc_train: null
+  perc_valid: null
+  range_train: ['2017-11-15','2020-01-01']
+  range_validation: ['2020-01-01', '2020-12-01' ]
+  range_test: ['2021-03-05','2022-04-06']
   shift: 0
   starting_point: null
   skip_step: 1
@@ -33,13 +33,13 @@ split_params:
 
 
 train_config:
-  dirpath: "/home/agobbi/Projects/ExpTS" 
+  dirpath: "/home/agobbi/Projects/ExpTS/edison" 
   num_workers: 0
   auto_lr_find: true
   devices: [0]                   
 
 inference:
-  output_path: "/home/agobbi/Projects/ExpTS" 
+  output_path: "/home/agobbi/Projects/ExpTS/edison" 
   load_last: true
   batch_size: 200 
   num_workers: 4
@@ -52,8 +52,8 @@ defaults:
   - override hydra/launcher: joblib 
 
 hydra:
-  #launcher: #joblib
-  #  n_jobs:   2 
+  launcher: 
+    n_jobs:   4 
 
   output_subdir: null 
   sweeper:
