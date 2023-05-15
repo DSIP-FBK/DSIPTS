@@ -258,7 +258,8 @@ class Encoder(nn.Module):
         return post_process
     
     def forward(self, x):
-        
+        import pdb
+        pdb.set_trace()
         s = self.stem(2 * x - 1.0)
         for cell in self.pre_process:
             s = cell(s)
@@ -309,8 +310,7 @@ class Encoder(nn.Module):
                 idx_dec += 1
             else:
                 s = cell(s)
-        import pdb
-        pdb.set_trace()
+
         for cell in self.post_process:
             s = cell(s)
         # print(s.shape)

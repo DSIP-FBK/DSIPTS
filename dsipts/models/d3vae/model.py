@@ -31,7 +31,7 @@ class diffusion_generate(nn.Module):
             batch_first=True,
         )
 
-        self.generative = Encoder( channel_mult,mult,prediction_length,
+        self.generative = Encoder(channel_mult,mult,prediction_length,
                                   #sequence_length,
                                   num_preprocess_blocks,num_preprocess_cells,num_channels_enc,arch_instance,num_latent_per_group,num_channels_dec,groups_per_scale,num_postprocess_blocks,num_postprocess_cells,embedding_dimension,hidden_size,target_dim,sequence_length,num_layers,dropout_rate)
         self.diffusion = GaussianDiffusion(
@@ -116,7 +116,7 @@ class denoise_net(nn.Module):
         """
         # Embed the original time series.
         input = self.embedding(past_time_feat, mark)
-        input, _ = self.diffusion_gen.rnn(input)
+        #input, _ = self.diffusion_gen.rnn(input)
         # Output the distribution of the generative results, the sampled generative results and the total correlations of the generative model.
         output, y_noisy, total_c, all_z = self.diffusion_gen(input, future_time_feat, t)
         import pdb
@@ -147,14 +147,12 @@ class pred_net(denoise_net):
         input = torch.cat([x_t, input], dim=-1)
         input = input.unsqueeze(1)
         logits, tc, all_z= self.diffusion_gen.generative(input)
-        import pdb;pdb.set_trace()
         output = self.diffusion_gen.generative.decoder_output(logits)
         y = output.mu.float().requires_grad_()
     
         try:
             E = self.score_net(y).sum()
             grad_x = torch.autograd.grad(E, y, create_graph=True,allow_unused=True)[0]
-            #
             print('WTF??')
         except:
             grad_x = 0

@@ -157,7 +157,7 @@ class GaussianDiffusion(nn.Module):
         
         y_noisy = y_noisy.reshape(B1,1, T1,-1)
 
-        logits, total_c, all_z = self.generative(x_noisy)
+        logits, total_c, all_z = self.generative(x_noisy) ##forward dell'encoder
         
         output = self.generative.decoder_output(logits)
         return output, y_noisy, total_c, all_z
