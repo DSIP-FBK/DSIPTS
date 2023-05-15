@@ -150,6 +150,7 @@ class pred_net(denoise_net):
         y = output.mu.float().requires_grad_()
     
         try:
+            E = self.score_net(y).sum()
             grad_x = torch.autograd.grad(E, y, create_graph=True,allow_unused=True)[0]
             #
             print('WTF??')

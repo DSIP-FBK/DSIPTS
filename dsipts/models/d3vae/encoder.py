@@ -269,8 +269,8 @@ class Encoder(nn.Module):
                 combiner_cells_s.append(s)
             else:
                 s = cell(s)
-        import pdb
-        pdb.set_trace()  
+        #import pdb
+        #pdb.set_trace()  
         combiner_cells_enc.reverse()
         combiner_cells_s.reverse()
         idx_dec = 0
@@ -288,8 +288,8 @@ class Encoder(nn.Module):
         s = s.expand(batch_size, -1, -1, -1)
         total_c = 0
         idx_dec = 0
-        import pdb
-        pdb.set_trace()
+        #import pdb
+        #pdb.set_trace()
         for cell in self.dec_tower:
             if cell.cell_type == 'combiner_dec':
                 if idx_dec > 0:
