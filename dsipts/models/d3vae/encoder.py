@@ -146,10 +146,10 @@ class Encoder(nn.Module):
         spatial_scaling = 2 ** (self.num_preprocess_blocks) #4
     
         prior_ftr0_size = (int(c_scaling * self.num_channels_dec), 
-                           sequence_length// spatial_scaling, #prediction_length
+                           prediction_length// spatial_scaling, #prediction_length
                            (embedding_dimension + hidden_size + 1) // spatial_scaling)
         self.prior_ftr0 = nn.Parameter(torch.rand(size=prior_ftr0_size), requires_grad=True)
-        self.z0_size = [self.num_latent_per_group, sequence_length // spatial_scaling, #prediction_length
+        self.z0_size = [self.num_latent_per_group, prediction_length // spatial_scaling, #prediction_length
                         (embedding_dimension+ hidden_size + 1) // spatial_scaling]
 
         self.pre_process = self.init_pre_process(self.mult)
