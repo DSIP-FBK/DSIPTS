@@ -270,8 +270,8 @@ class Encoder(nn.Module):
                 combiner_cells_s.append(s)
             else:
                 s = cell(s)
-        import pdb
-        pdb.set_trace()  
+        #import pdb
+        #pdb.set_trace()  
         combiner_cells_enc.reverse()
         combiner_cells_s.reverse()
         idx_dec = 0
