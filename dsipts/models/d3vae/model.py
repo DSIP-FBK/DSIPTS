@@ -31,8 +31,8 @@ class diffusion_generate(nn.Module):
             batch_first=True,
         )
 
-        self.generative = Encoder( channel_mult,mult,sequence_length,
-                                  #prediction_length,
+        self.generative = Encoder( channel_mult,mult,prediction_length,
+                                  #sequence_length,
                                   num_preprocess_blocks,num_preprocess_cells,num_channels_enc,arch_instance,num_latent_per_group,num_channels_dec,groups_per_scale,num_postprocess_blocks,num_postprocess_cells,embedding_dimension,hidden_size,target_dim,sequence_length,num_layers,dropout_rate)
         self.diffusion = GaussianDiffusion(
             self.generative,
