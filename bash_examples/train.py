@@ -72,8 +72,8 @@ def train(conf: DictConfig) -> None:
         if  conf.ts.use_covariates:
             ts.load_signal(data, cat_var= res['cat'],target_variables=['y'], past_variables=[], future_variables=[])
         else:
-            import pdb
-            pdb.set_trace()
+            #import pdb
+            #pdb.set_trace()
             ts.load_signal(data, cat_var= res['cat'],target_variables=['y'], past_variables=res['meteo'], future_variables=res['meteo'])
 
     else:
