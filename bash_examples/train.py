@@ -72,7 +72,7 @@ def train(conf: DictConfig) -> None:
         if  conf.ts.use_covariates:
             ts.load_signal(data, cat_var= res['cat'],target_variables=['y'], past_variables=[], future_variables=[])
         else:
-            ts.load_signal(data, cat_var= res['cat'],target_variables=['y'], past_variables=res['mete'], future_variables=res['meteo'])
+            ts.load_signal(data, cat_var= res['cat'],target_variables=['y'], past_variables=res['meteo'], future_variables=res['meteo'])
 
     else:
         ts.load_signal(data, enrich_cat= conf.ts.enrich,target_variables=['y'], past_variables=columns if conf.ts.use_covariates else [])
