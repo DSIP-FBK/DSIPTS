@@ -64,19 +64,15 @@ def train(conf: DictConfig) -> None:
             res = pickle.load(f)
         data = res['data']
         data.rename(columns={'tempo':'time'},inplace=True)
-        import pdb
-        pdb.set_trace()
-        data[res['meteo']]=data[res['meteo']] 
+        data[res['meteo']]=data[res['meteo']].interpolate()
     else:
         data, columns = read_public_dataset(**conf.dataset)
     ts = TimeSeries(conf.ts.name)
     if conf.dataset.dataset == 'edison':
         if  conf.ts.use_covariates:
-            ts.load_signal(data, cat_var= res['cat'],target_variables=['y'], past_variables=[], future_variables=[])
-        else:
-            #import pdb
-            #pdb.set_trace()
             ts.load_signal(data, cat_var= res['cat'],target_variables=['y'], past_variables=res['meteo'], future_variables=res['meteo'])
+        else:
+            ts.load_signal(data, cat_var= res['cat'],target_variables=['y'], past_variables=[], future_variables=[])
 
     else:
         ts.load_signal(data, enrich_cat= conf.ts.enrich,target_variables=['y'], past_variables=columns if conf.ts.use_covariates else [])
