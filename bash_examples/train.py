@@ -64,7 +64,9 @@ def train(conf: DictConfig) -> None:
             res = pickle.load(f)
         data = res['data']
         data.rename(columns={'tempo':'time'},inplace=True)
-        
+        import pdb
+        pdb.set_trace()
+        data[res['meteo']]=data[res['meteo']] 
     else:
         data, columns = read_public_dataset(**conf.dataset)
     ts = TimeSeries(conf.ts.name)
