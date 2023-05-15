@@ -119,8 +119,7 @@ class denoise_net(nn.Module):
         #input, _ = self.diffusion_gen.rnn(input)
         # Output the distribution of the generative results, the sampled generative results and the total correlations of the generative model.
         output, y_noisy, total_c, all_z = self.diffusion_gen(input, future_time_feat, t)
-        import pdb
-        pdb.set_trace()
+  
         # Score matching.
         sigmas_t = self.extract(self.sigmas.to(y_noisy.device), t, y_noisy.shape)
         y = future_time_feat.unsqueeze(1).float()

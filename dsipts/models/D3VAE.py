@@ -134,7 +134,7 @@ class D3VAE(Base):
         
         :meta private:
         """
-        '''
+        
         copy_parameters(self.denoise_net, self.pred_net)
         batch_x = batch['x_num_past'].to(self.device)
         batch_x_mark = batch['x_cat_past'].to(self.device)
@@ -143,8 +143,8 @@ class D3VAE(Base):
         
         _, out, _, _ = self.pred_net(batch_x, batch_x_mark)
         mse = self.loss(out.squeeze(1), batch_y)
-        '''
-        mse = torch.tensor(0.0)
+        
+        
         return mse
 
         
