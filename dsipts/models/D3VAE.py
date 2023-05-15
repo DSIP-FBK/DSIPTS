@@ -44,8 +44,6 @@ class D3VAE(Base):
                  quantiles,
                  target_dim,
                  embedding_dimension=32,
-                 prediction_length=16,
-                 sequence_length=16,
                  scale=0.1,
                  hidden_size=64,
                  num_layers=2,
@@ -73,13 +71,15 @@ class D3VAE(Base):
                  )->None:
      
         input_dim = past_channels
+        sequence_length = past_steps
+        prediction_length = future_steps
 
-        
         ##pytotch lightening stuff
         self.save_hyperparameters(logger=False)
         
         super().__init__()
-
+        
+        
         self.gen_net = diffusion_generate(target_dim,embedding_dimension,prediction_length,sequence_length,scale,hidden_size,num_layers,dropout_rate,diff_steps,loss_type,beta_end,beta_schedule, channel_mult,mult,
                  num_preprocess_blocks,num_preprocess_cells,num_channels_enc,arch_instance,num_latent_per_group,num_channels_dec,groups_per_scale,num_postprocess_blocks,num_postprocess_cells).to(self.device)
         
