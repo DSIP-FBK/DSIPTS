@@ -285,6 +285,8 @@ class Encoder(nn.Module):
         s = s.expand(batch_size, -1, -1, -1)
         total_c = 0
         idx_dec = 0
+        import pdb
+        pdb.set_trace()
         for cell in self.dec_tower:
             if cell.cell_type == 'combiner_dec':
                 if idx_dec > 0:

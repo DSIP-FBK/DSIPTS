@@ -78,8 +78,7 @@ class D3VAE(Base):
         
         super().__init__()
         
-        import pdb
-        pdb.set_trace()
+        
         self.gen_net = diffusion_generate(target_dim,embedding_dimension,prediction_length,sequence_length,scale,hidden_size,num_layers,dropout_rate,diff_steps,loss_type,beta_end,beta_schedule, channel_mult,mult,
                  num_preprocess_blocks,num_preprocess_cells,num_channels_enc,arch_instance,num_latent_per_group,num_channels_dec,groups_per_scale,num_postprocess_blocks,num_postprocess_cells).to(self.device)
         
@@ -151,8 +150,7 @@ class D3VAE(Base):
     def forward(self,batch:dict)->torch.tensor:
         
         B = batch['x_num_past'].shape[0]
-        import pdb
-        pdb.set_trace()
+
         
         t = torch.randint(0, self.diff_step, (B,)).long().to(self.device)
         
