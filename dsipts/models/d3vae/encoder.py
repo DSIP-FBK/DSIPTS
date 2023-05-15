@@ -258,8 +258,9 @@ class Encoder(nn.Module):
         return post_process
     
     def forward(self, x):
-        import pdb
-        pdb.set_trace()
+
+        x, _ = self.rnn(x.squeeze().permute(0,2,1))
+        x = x.permute(0,2,1).unsqueeze(1)
         s = self.stem(2 * x - 1.0)
         for cell in self.pre_process:
             s = cell(s)
@@ -272,8 +273,7 @@ class Encoder(nn.Module):
                 combiner_cells_s.append(s)
             else:
                 s = cell(s)
-        #import pdb
-        #pdb.set_trace()  
+
         combiner_cells_enc.reverse()
         combiner_cells_s.reverse()
         idx_dec = 0
