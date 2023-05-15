@@ -259,7 +259,6 @@ class Encoder(nn.Module):
     
     def forward(self, x):
 
-
         s = self.stem(2 * x - 1.0)
         for cell in self.pre_process:
             s = cell(s)
@@ -316,9 +315,11 @@ class Encoder(nn.Module):
         import pdb
         pdb.set_trace()
         logits = self.image_conditional(s)
-        logits, _ = self.rnn(logits.squeeze().permute(0,2,1))
-        logits = logits.permute(0,2,1).unsqueeze(1)
-        
+        tmp_tot =[]
+        for i in range(idx_dec):
+            tmp, _ = self.rnn(logits[:,i,:,:].squeeze().permute(0,2,1))
+            tmp_tot.append(tmp.permute(0,2,1))
+        logits = torch.cat(tmp_tot,1)
         logits = self.projection(logits[...,-(self.input_size + self.hidden_size):])
         # total_c = torch.mean(torch.tensor(total_c))
         total_c = total_c/idx_dec
