@@ -312,14 +312,13 @@ class Encoder(nn.Module):
         for cell in self.post_process:
             s = cell(s)
         # print(s.shape)
-        import pdb
-        pdb.set_trace()
+
         logits = self.image_conditional(s)
         tmp_tot =[]
         for i in range(idx_dec):
             tmp, _ = self.rnn(logits[:,i,:,:].squeeze().permute(0,2,1))
             tmp_tot.append(tmp.permute(0,2,1))
-        logits = torch.cat(tmp_tot,1)
+        logits = torch.stack(tmp_tot,1)
         logits = self.projection(logits[...,-(self.input_size + self.hidden_size):])
         # total_c = torch.mean(torch.tensor(total_c))
         total_c = total_c/idx_dec
