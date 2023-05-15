@@ -147,6 +147,7 @@ class pred_net(denoise_net):
         input = torch.cat([x_t, input], dim=-1)
         input = input.unsqueeze(1)
         logits, tc, all_z= self.diffusion_gen.generative(input)
+        import pdb;pdb.set_trace()
         output = self.diffusion_gen.generative.decoder_output(logits)
         y = output.mu.float().requires_grad_()
     
