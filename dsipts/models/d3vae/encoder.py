@@ -308,8 +308,8 @@ class Encoder(nn.Module):
                 idx_dec += 1
             else:
                 s = cell(s)
-        import pdb
-        pdb.set_trace()
+        #import pdb
+        #pdb.set_trace()
         for cell in self.post_process:
             s = cell(s)
         # print(s.shape)
