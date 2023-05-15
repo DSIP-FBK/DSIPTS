@@ -258,7 +258,7 @@ class Encoder(nn.Module):
         return post_process
     
     def forward(self, x):
-        x = self.rnn(x)
+        x,_ = self.rnn(x)
         s = self.stem(2 * x - 1.0)
         for cell in self.pre_process:
             s = cell(s)
