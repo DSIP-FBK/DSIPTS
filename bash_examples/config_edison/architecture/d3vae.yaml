@@ -13,7 +13,6 @@ split_params:
   shift: 0 ##this will use the shifted data and it is more like the original one
 
 model_configs:
-  target_dim: 1
   embedding_dimension: 64
   scale: 0.1
   hidden_size: 128

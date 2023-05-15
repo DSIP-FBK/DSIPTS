@@ -42,7 +42,6 @@ class D3VAE(Base):
                  embs,
                  out_channels,
                  quantiles,
-                 target_dim,
                  embedding_dimension=32,
                  scale=0.1,
                  hidden_size=64,
@@ -73,13 +72,14 @@ class D3VAE(Base):
         input_dim = past_channels
         sequence_length = past_steps
         prediction_length = future_steps
-
+        target_dim = out_channels
         ##pytotch lightening stuff
         self.save_hyperparameters(logger=False)
         
         super().__init__()
         
-        
+        import pdb
+        pdb.set_trace()
         self.gen_net = diffusion_generate(target_dim,embedding_dimension,prediction_length,sequence_length,scale,hidden_size,num_layers,dropout_rate,diff_steps,loss_type,beta_end,beta_schedule, channel_mult,mult,
                  num_preprocess_blocks,num_preprocess_cells,num_channels_enc,arch_instance,num_latent_per_group,num_channels_dec,groups_per_scale,num_postprocess_blocks,num_postprocess_cells).to(self.device)
         
@@ -151,7 +151,8 @@ class D3VAE(Base):
     def forward(self,batch:dict)->torch.tensor:
         
         B = batch['x_num_past'].shape[0]
-
+        import pdb
+        pdb.set_trace()
         
         t = torch.randint(0, self.diff_step, (B,)).long().to(self.device)
         
