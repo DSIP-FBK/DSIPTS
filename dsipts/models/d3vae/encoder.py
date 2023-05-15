@@ -146,10 +146,10 @@ class Encoder(nn.Module):
         spatial_scaling = 2 ** (self.num_preprocess_blocks) #4
     
         prior_ftr0_size = (int(c_scaling * self.num_channels_dec), 
-                           prediction_length// spatial_scaling, #prediction_length
+                           sequence_length// spatial_scaling, #prediction_length
                            (embedding_dimension + hidden_size + 1) // spatial_scaling)
         self.prior_ftr0 = nn.Parameter(torch.rand(size=prior_ftr0_size), requires_grad=True)
-        self.z0_size = [self.num_latent_per_group, prediction_length // spatial_scaling, #prediction_length
+        self.z0_size = [self.num_latent_per_group, sequence_length // spatial_scaling, #prediction_length
                         (embedding_dimension+ hidden_size + 1) // spatial_scaling]
 
         self.pre_process = self.init_pre_process(self.mult)
@@ -259,8 +259,7 @@ class Encoder(nn.Module):
     
     def forward(self, x):
 
-        x, _ = self.rnn(x.squeeze().permute(0,2,1))
-        x = x.permute(0,2,1).unsqueeze(1)
+
         s = self.stem(2 * x - 1.0)
         for cell in self.pre_process:
             s = cell(s)
@@ -314,7 +313,12 @@ class Encoder(nn.Module):
         for cell in self.post_process:
             s = cell(s)
         # print(s.shape)
+        import pdb
+        pdb.set_trace()
         logits = self.image_conditional(s)
+        logits, _ = self.rnn(logits.squeeze().permute(0,2,1))
+        logits = logits.permute(0,2,1).unsqueeze(1)
+        
         logits = self.projection(logits[...,-(self.input_size + self.hidden_size):])
         # total_c = torch.mean(torch.tensor(total_c))
         total_c = total_c/idx_dec
