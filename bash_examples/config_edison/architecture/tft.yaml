@@ -2,7 +2,7 @@
 
 model:
   type: 'tft'
-  
+  retrain: false
 ts:
   name: 'tft'
   version: 1

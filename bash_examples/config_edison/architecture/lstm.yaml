@@ -2,7 +2,7 @@
   
 model:
   type: 'rnn'
-  
+  retrain: false
 ts:
   name: 'lstm'
   version: 1

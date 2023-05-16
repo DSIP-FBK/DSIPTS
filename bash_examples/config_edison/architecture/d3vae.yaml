@@ -2,7 +2,7 @@
 
 model:
   type: 'd3vae'
-  
+  retrain: false
 ts:
   name: 'd3vae'
   version: 1

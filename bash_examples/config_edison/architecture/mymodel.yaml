@@ -2,7 +2,7 @@
 
 model:
   type: 'mymodel'
-  
+  retrain: false
 ts:
   name: 'mymodel'
   version: 1

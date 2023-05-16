@@ -2,6 +2,7 @@
 
 model:
   type: 'attention'
+  retrain: false
   
 ts:
   name: 'attention'
