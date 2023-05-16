@@ -53,7 +53,8 @@ defaults:
 
 hydra:
   launcher: 
-    n_jobs:   5
+    _target_: hydra_plugins.hydra_joblib_launcher.joblib_launcher.JoblibLauncher
+    n_jobs:  1
     verbose: 0
 
   output_subdir: null 
