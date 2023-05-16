@@ -11,7 +11,6 @@ import plotly.express as px
 from sklearn.metrics import mean_squared_error
 from typing import List
 
-
 def rmse(x:np.array,y:np.array)->float:
     """custom RMSE avoinding nan
 
