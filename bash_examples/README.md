@@ -119,6 +119,7 @@ defaults:
 hydra:
   launcher:
     n_jobs: 2                  # parameters indicate the number of parallel jobs in case of multirun
+    batch_size:1               #one worker per job
   output_subdir: null          # do not save any file
   sweeper:
     params:
