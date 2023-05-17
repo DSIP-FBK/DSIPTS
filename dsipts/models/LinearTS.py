@@ -203,7 +203,7 @@ class LinearTS(Base):
         if 'x_cat_past' in batch.keys():
             cat_past = batch['x_cat_past'].to(self.device)
         if 'x_num_future' in batch.keys():
-            x_future = batch['x_num_past'].to(self.device)
+            x_future = batch['x_num_future'].to(self.device)
         else:
             x_future = None
             
@@ -239,8 +239,7 @@ class LinearTS(Base):
         if x_future is not None:
             tmp.append(x_future)
         if len(tmp)>0:           
-            import pdb
-            pdb.set_trace()
+
             tot_future = torch.cat(tmp,2).flatten(1)
             tot = torch.cat([tot_past,tot_future],1)
             
