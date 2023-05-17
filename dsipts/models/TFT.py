@@ -110,7 +110,6 @@ class TFT(Base):
             self.outLinear = nn.Linear(d_model, out_channels*len(quantiles))
             self.loss = QuantileLossMO(quantiles)
 
-        # ask to aGobbi
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
   

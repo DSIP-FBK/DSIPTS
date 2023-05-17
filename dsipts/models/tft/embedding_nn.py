@@ -305,7 +305,8 @@ class Encoder_Var_Selection(nn.Module): # input already embedded
             tot_var = tot_var + n_past_num_var
 
         #flatten
-        flat_emb_dims = [d_model*tot_var, int(((d_model+1)*tot_var)/2), tot_var] 
+        flat_emb_dims = [d_model*tot_var, int(((d_model+1)*tot_var)/2), tot_var]
+        
         self.flatten_GRN = flatten_GRN(flat_emb_dims, dropout)
 
     def forward(self, categorical: torch.Tensor, y: torch.Tensor=None) -> torch.Tensor:
