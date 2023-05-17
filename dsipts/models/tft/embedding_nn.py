@@ -265,8 +265,6 @@ class flatten_GRN(nn.Module):
         Returns:
             torch.Tensor: [bs, seq_len, emb_dims[-1]]
         """
-        import pdb 
-        pdb.set_trace()
         res_conn = self.dropout_res_conn(self.res_conn(x).squeeze(3))
         eta1 = self.elu(self.linear1(x))
         eta2 = self.dropout(self.linear2(eta1))
@@ -337,12 +335,12 @@ class Encoder_Var_Selection(nn.Module): # input already embedded
             to_be_flat = torch.cat((to_be_flat, y), dim=2)
 
         # GRN for flattened variables
-        import pdb
-        pdb.set_trace()
         var_sel_wei = self.flatten_GRN(to_be_flat)
-
-        # element-wise multiplication
+        # element-wise multiplication: each variable is multiplied by its own weight
         out = var_sel*var_sel_wei.unsqueeze(3)
+
+        # Take the mean over all variables to get the embedded single timestep
+        #* This sum is the first time variables are connected in computation
         # obtaining [bs, past_steps, d_model] by mean over the second dimension
         out = torch.sum(out, dim = 2)/out.shape[2]
         return out
@@ -467,9 +465,6 @@ class Decoder_Var_Selection(nn.Module): # input already embedded
 
         # GRN for flattened variables
         var_sel_wei = self.flatten_GRN(to_be_flat)
-        import pdb
-        pdb.set_trace()
-        
         # element-wise multiplication
         out = var_sel*var_sel_wei.unsqueeze(3)
         # obtaining [bs, fut_steps, d_model] by mean over the second dimension
