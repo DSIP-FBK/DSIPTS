@@ -231,7 +231,7 @@ class GRN(nn.Module):
         return out
 
 class flatten_GRN(nn.Module):
-    def __init__(self, emb_dims: list, dropout: float):
+    def __init__(self, d_model: int, num_var: int, dropout: float):
         """Modified GRN for flattened variables
         We start from the starting dimension (emb_dims[0]) and gradually switch to mid dimension (emb_dims[1]).
         Ending with end dimension (emb_dims[2]), which will be the total number of variables to be selected.
@@ -240,19 +240,19 @@ class flatten_GRN(nn.Module):
         Norm(x + GLU(dropout( linear(ELU(linear)) )) )
 
         Args:
-            emb_dims (list): [start_emb: int, mid_emb: int, end_emb: int] list of int for dimensions
+            d_model (int): model dimension
             dropout (float): -
         """
         super().__init__()
-        start_emb, mid_emb, end_emb = emb_dims
-        self.res_conn = nn.Linear(start_emb, end_emb, bias = False)
+
+        self.res_conn = nn.Linear(d_model, 1, bias = False)
         self.dropout_res_conn = nn.Dropout(dropout)
-        self.linear1 = nn.Linear(start_emb, mid_emb, bias = False) 
+        self.linear1 = nn.Linear(d_model, d_model//2, bias = False) 
         self.elu = nn.ELU()
-        self.linear2 = nn.Linear(mid_emb, end_emb, bias = False)
+        self.linear2 = nn.Linear(d_model//2, 1, bias = False)
         self.dropout = nn.Dropout(dropout)
-        self.glu = GLU(end_emb)
-        self.norm = nn.LayerNorm(end_emb)
+        self.glu = GLU(1)
+        self.norm = nn.LayerNorm(num_var)
         self.softmax = nn.Softmax(dim=2)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -265,10 +265,13 @@ class flatten_GRN(nn.Module):
         Returns:
             torch.Tensor: [bs, seq_len, emb_dims[-1]]
         """
-        res_conn = self.dropout_res_conn(self.res_conn(x))
+        import pdb 
+        pdb.set_trace()
+        res_conn = self.dropout_res_conn(self.res_conn(x).squeeze(3))
         eta1 = self.elu(self.linear1(x))
         eta2 = self.dropout(self.linear2(eta1))
-        out = self.norm(res_conn + self.glu(eta2))
+        res_conn += self.glu(eta2).squeeze(3)
+        out = self.norm(res_conn)
         out = self.softmax(out)
         return out
 
@@ -305,9 +308,9 @@ class Encoder_Var_Selection(nn.Module): # input already embedded
             tot_var = tot_var + n_past_num_var
 
         #flatten
-        flat_emb_dims = [d_model*tot_var, int(((d_model+1)*tot_var)/2), tot_var]
+        # flat_emb_dims = [d_model*tot_var, int(((d_model+1)*tot_var)/2), tot_var]
         
-        self.flatten_GRN = flatten_GRN(flat_emb_dims, dropout)
+        self.flatten_GRN = flatten_GRN(d_model, tot_var, dropout)
 
     def forward(self, categorical: torch.Tensor, y: torch.Tensor=None) -> torch.Tensor:
         """Variable Selection Network in Encoder(past)
@@ -361,8 +364,7 @@ class Encoder_Var_Selection(nn.Module): # input already embedded
         return num_after_GRN
     
     def get_flat_GRN(self, to_be_flat: torch.Tensor) -> torch.Tensor:
-        emb = torch.flatten(to_be_flat, start_dim=2)
-        var_sel_wei = self.flatten_GRN(emb)
+        var_sel_wei = self.flatten_GRN(to_be_flat)
         return var_sel_wei
 
 class Encoder_LSTM(nn.Module):
