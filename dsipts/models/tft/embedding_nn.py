@@ -437,9 +437,9 @@ class Decoder_Var_Selection(nn.Module): # input already embedded
             ])
             tot_var = tot_var + n_fut_num_var
 
-        #flatten
-        flat_emb_dims = [d_model*tot_var, int(((d_model+1)*tot_var)/2), tot_var]
-        self.flatten_GRN = flatten_GRN(flat_emb_dims, dropout)
+        # #flatten
+        # flat_emb_dims = [d_model*tot_var, int(((d_model+1)*tot_var)/2), tot_var]
+        self.flatten_GRN = flatten_GRN(d_model, tot_var, dropout)
 
     def forward(self, categorical: torch.Tensor, y: torch.Tensor=None) -> torch.Tensor:
         """Variable Selection Network in Decoder(future)
