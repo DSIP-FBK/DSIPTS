@@ -140,10 +140,10 @@ def train(conf: DictConfig) -> None:
     dirpath = os.path.join(conf.train_config.dirpath,'weights',conf.model.type,conf.ts.name, version)
     logging.info(f'Model and weights will be placed and read from {dirpath}')
     
-    retrain = False
+    retrain = True
     ##if there is a model file look if you want to retrain it
     if os.path.exists(os.path.join(dirpath,'model.pkl')):
-        if conf.model.get('retrain',True):
+        if conf.model.get('retrain',False):
             pass
         else:
             retrain = False
