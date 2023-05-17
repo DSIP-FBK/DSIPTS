@@ -337,7 +337,9 @@ class Encoder_Var_Selection(nn.Module): # input already embedded
             to_be_flat = torch.cat((to_be_flat, y), dim=2)
 
         # GRN for flattened variables
-        var_sel_wei = self.get_flat_GRN(to_be_flat)
+        import pdb
+        pdb.set_trace()
+        var_sel_wei = self.flatten_GRN(to_be_flat)
 
         # element-wise multiplication
         out = var_sel*var_sel_wei.unsqueeze(3)
@@ -363,9 +365,9 @@ class Encoder_Var_Selection(nn.Module): # input already embedded
             num_after_GRN = torch.cat((num_after_GRN, grn.unsqueeze(2)), dim=2)
         return num_after_GRN
     
-    def get_flat_GRN(self, to_be_flat: torch.Tensor) -> torch.Tensor:
-        var_sel_wei = self.flatten_GRN(to_be_flat)
-        return var_sel_wei
+    # def get_flat_GRN(self, to_be_flat: torch.Tensor) -> torch.Tensor:
+    #     var_sel_wei = self.flatten_GRN(to_be_flat)
+    #     return var_sel_wei
 
 class Encoder_LSTM(nn.Module):
     def __init__(self, n_layers_LSTM: int, d_model: int, dropout: float):
@@ -464,7 +466,9 @@ class Decoder_Var_Selection(nn.Module): # input already embedded
             to_be_flat = torch.cat((to_be_flat, y), dim=2)
 
         # GRN for flattened variables
-        var_sel_wei = self.get_flat_GRN(to_be_flat)
+        var_sel_wei = self.flatten_GRN(to_be_flat)
+        import pdb
+        pdb.set_trace()
         
         # element-wise multiplication
         out = var_sel*var_sel_wei.unsqueeze(3)
@@ -490,10 +494,10 @@ class Decoder_Var_Selection(nn.Module): # input already embedded
             num_after_GRN = torch.cat((num_after_GRN, grn.unsqueeze(2)), dim=2)
         return num_after_GRN
     
-    def get_flat_GRN(self, to_be_flat: torch.Tensor) -> torch.Tensor:
-        emb = torch.flatten(to_be_flat, start_dim=2)
-        var_sel_wei = self.flatten_GRN(emb)
-        return var_sel_wei
+    # def get_flat_GRN(self, to_be_flat: torch.Tensor) -> torch.Tensor:
+    #     emb = torch.flatten(to_be_flat, start_dim=2)
+    #     var_sel_wei = self.flatten_GRN(emb)
+    #     return var_sel_wei
     
 class Decoder_LSTM(nn.Module):
     def __init__(self, n_layers_LSTM: int, d_model: int, dropout: float):
