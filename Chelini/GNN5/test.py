@@ -4,8 +4,8 @@ from configparser import ConfigParser
 import torch
 from torch.utils.data import DataLoader
 
-from model1 import GAT
-from inference import get_plot, get_adj_density
+from model import GAT
+from inference import get_plot
 
 def test(config: ConfigParser, name_model:str) -> None:
     print(f'{" Upload the dataframe ":=^60s}')
@@ -56,14 +56,3 @@ def test(config: ConfigParser, name_model:str) -> None:
     model.load_state_dict(torch.load(os.path.join(config['paths']['net_weights_train'], f"{name_model}")))
     model.to(device)
     print(f'{f" configuration {id_model} ":=^60s}')
-
-   
-    if os.path.exists(os.path.join(config['paths']['net_weights'], f'loss_{id_model}.pkl')):
-        get_plot(model = model, 
-                config = config,
-                show = False)
-        if os.path.exists(os.path.join(config['paths']['prediction'], f'adj_{id_model}.pkl')):
-            adj = (((torch.sign(model.A.detach().sigmoid()-0.5)+1)/2).masked_fill(model.mask == 0, 0)).cpu()
-            adj = adj.masked_fill(adj == 0.5, 1)
-            get_adj_density(adj, 
-                            config = config)

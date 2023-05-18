@@ -1,19 +1,17 @@
 import os
 import pickle
-from datetime import datetime
+import argparse
 from configparser import ConfigParser
 
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import DataLoader
+from datetime import datetime
 
-import argparse
+import torch
+from torch.utils.data import DataLoader
 
 from model import GAT
 
 from train import training
-from inference import get_plot, print_csv, get_adj_density
+from inference import get_plot
 from test import test
 from data_manipulation.data_generation import MyDataset
     
@@ -60,9 +58,9 @@ def train(config: ConfigParser) -> None:
 
     id_model = config['model']['id_model']
     
-    print(f'{f" Configuration (hidden, num_layer1, num_layer2, lr) = ({id_model})":=^60s}')
+    print(f'{f" Configuration (hid_out_features1, hid_out_features2, num_layer1, num_layer2, nfeat_out_gnn, lr, weight_decay) = ({id_model})":=^60s}')
     model = GAT(in_feat = params_model["in_feat"], 
-                hid = params_model["hidden"],
+                nfeat_out_gnn = params_model["nfeat_out_gnn"],
                 num_layer1=params_model["num_layer1"],
                 num_layer2=params_model["num_layer2"],
                 hid_out_features1 = params_model["hid_out_features1"],
@@ -101,10 +99,13 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--config", type=str, required = True, help="Config file")
 
     # parametri extra
-    parser.add_argument("-hl", "--hidden", type=str, help="hidden layer")
     parser.add_argument("-lr", "--lr", type=str, help = "learning rate of the optimization step")
-    parser.add_argument("-nl1", "--num_layer1", type=str, help = "number of layer of GAT")
-    parser.add_argument("-nl2", "--num_layer2", type=str, help = "number of layer of GAT")
+    parser.add_argument("-nl1", "--num_layer1", type=str, help = "number of layer of GNN")
+    parser.add_argument("-nl2", "--num_layer2", type=str, help = "number of layer of GNN")
+    parser.add_argument("-hl1", "--hid_out_features1", type=str, help = "hidden layer firts GNN")
+    parser.add_argument("-hl2", "--hid_out_features2", type=str, help = "hidden layer second GNN")
+    parser.add_argument("-hfg", "--nfeat_out_gnn", type=str, help = "hidden layer for the output of the GNN")
+    parser.add_argument("-wd", "--weight_decay", type=str, help = "weight decay")
 
     # non posso avere più di un'operazione alla volta
     parser.add_argument("-d", "--dataset", action="store_true", help = "data manipulation")
@@ -131,7 +132,7 @@ if __name__ == "__main__":
     
     print(f'{" Setting new possible parameters for the model ":=^60s}')
     config['model']['id_model'] = ""
-    for i, key in enumerate(["hidden", "num_layer1", "num_layer2", "lr"]):
+    for i, key in enumerate(["hid_out_features1", "hid_out_features2", "num_layer1", "num_layer2", "nfeat_out_gnn", "lr", "weight_decay"]):
         exists = True
         try:
             getattr(args, key)
@@ -139,7 +140,7 @@ if __name__ == "__main__":
             exists = False
         if exists:
             if getattr(args, key) is not None:
-                if key != "lr":
+                if key not in ["lr", "weight_decay"]:
                     config['model'][key] = f"{getattr(args, key)}"
                 else:
                     config['optimizer'][key] = f"{getattr(args, key)}"
@@ -147,7 +148,7 @@ if __name__ == "__main__":
         if i ==0:
             config['model']['id_model'] = f"{config['model'][key]}" 
         else:
-            if key != "lr":
+            if key not in ["lr", "weight_decay"]:
                 config['model']['id_model'] = f"{config['model']['id_model']}_{config['model'][key]}" 
             else:
                 config['model']['id_model'] = f"{config['model']['id_model']}_{config['optimizer'][key]}" 

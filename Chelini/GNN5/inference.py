@@ -69,19 +69,18 @@ def print_csv(model,
     pred.to_csv(os.path.join(config['paths']['prediction'], f"{config['model']['id_model']}_pred.csv"))
 
 
-
 def get_plot(model,
              config:ConfigParser,
              ds: dict,
              show = False):
     
-    id_model = f"{config['model']['id_model']}"
-    
+    id_model = config['model']['id_model']
+
     ################## Carico i file che mi servono ################
     path_losses = os.path.join(config['paths']['net_weights'], f'loss_{id_model}.pkl')
     path_date = os.path.join(config['paths']['dataset'], f"dates.pkl")    
     name_scaler = 'scaler_sc.pkl' if config.getboolean('dataset','sc') else 'scaler_min_max.pkl'
-    
+
     with open(os.path.join(config['paths']['dataset'], name_scaler), 'rb') as f:
         scaler =  pickle.load(f) 
     
@@ -91,7 +90,7 @@ def get_plot(model,
     with open(path_date, 'rb') as f :
         dates = pickle.load(f)    
         
-    batch_size = 16 #config.getint('dataset', 'batch_size')
+    batch_size = config.getint('dataset', 'batch_size')
     lag = {}
     dl = {}
     for key in ds.keys():
@@ -101,18 +100,9 @@ def get_plot(model,
         
      
     
-    fig, ax = plt.subplots(4, 2, figsize=(30, 20),  constrained_layout = True)
+    fig, ax = plt.subplots(4, 2, figsize=(40, 20),  constrained_layout = True)
     fig.suptitle(f'results of the model ({id_model})', fontsize = 30)
 
-    gs = {}
-    for i, key in enumerate(['train', 'validation']):
-        gs[key] = ax[2+i, 0].get_gridspec()
-    # remove the underlying axes
-    lag_plot = {}
-    for i, key in enumerate(['train', 'validation']):
-        for a in ax[2+i,:]:
-            a.remove()
-        lag_plot[key] = fig.add_subplot(gs[key][2+i, 0:])
     
     fontsize_legend = 15
     fontsize_title = 20
@@ -168,7 +158,7 @@ def get_plot(model,
     print(f'{" lag plot ":=^60s}')
     hour = [10,30]
     split = {'train': (np.datetime64('2019-06-01T00:00:00'), np.datetime64('2019-09-01T00:00:00')),
-             'validation': (np.datetime64('2020-05-01T00:00:00'), np.datetime64('2020-08-01T00:00:00')),
+             'validation': (np.datetime64('2020-05-01T00:00:00'),np.datetime64('2020-08-01T00:00:00')),
              'test': (np.datetime64('2021-08-01T00:00:00'), np.datetime64('2021-11-01T00:00:00'))}
 
     for j, key in enumerate(['train', 'validation']):
@@ -180,7 +170,7 @@ def get_plot(model,
             date_tmp[h] = set(date_tmp[h][h].values)
 
         intersection = date_tmp[hour[0]]
-        for h in hour[1:]:  
+        for h in hour[1:]:
             intersection = intersection.intersection(date_tmp[h])
 
         date_tmp = dates[key][dates[key][hour[0]].isin(list(intersection))]
@@ -195,26 +185,13 @@ def get_plot(model,
                             scaler = scaler, 
                             hour = [x-1 for x in hour], 
                             config = config)
-        pred = {}
-        real = {}
+
         for i, h in enumerate(hour):
-            pred[h]={}    
-            for j, date in enumerate(date_tmp[h]):
-                key_date = date + np.timedelta64(h, 'h') - np.timedelta64(hour[0], 'h')
-                pred[h][key_date] = yh[j,i].item()
-
-        for i, date in enumerate(date_tmp[hour[0]]):
-            real[date] = y[i,0]
-
-        df = pd.DataFrame(real.items())
-        lag_plot[key].plot(df[0],df[1], label = 'real')
-        lag_plot[key].set_ylim([df[1].max()+10,df[1].min()-10])
-        for h in hour:
-            df = pd.DataFrame(pred[h].items())
-            lag_plot[key].plot(df[0],df[1], label = f"hour {h}")
-        lag_plot[key].tick_params(axis = 'x', rotation = 55)
-        lag_plot[key].set_title(f"lag plot in {key}", fontsize = fontsize_title)
-        lag_plot[key].legend()
+            ax[2+j,i].plot(yh[:,i], label = f"pred hour {h}")
+            ax[2+j,i].plot(y[:,i], label = f"real hour {h}")
+            ax[2+j,i].set_title(f"lag plot in {key} for the lag {h}", fontsize = fontsize_title)
+            ax[2+j,i].tick_params(axis = 'x', rotation = 55)
+            ax[2+j,i].legend()
 
     ############ aggiusto la grandezza dei valori sulla x #########
     plt.savefig(os.path.join(config['paths']['images'], f'{id_model}.png'))
@@ -222,46 +199,3 @@ def get_plot(model,
         plt.show()
     else:
         plt.close(fig)
-
-def get_adj_density(x: torch.tensor, 
-                    config: ConfigParser, 
-                    show = False):
-
-    id_model = config['model']['id_model']
-    lines, cols = x.shape
-    fontsize = 30
-    #fig, ax = plt.subplots(1,2, figsize=(40, 20),  constrained_layout = True)
-    fig = plt.figure(figsize=(70, 40))
-    fig.suptitle("Adjacency matrix",fontsize = fontsize*2)
-
-    grid = plt.GridSpec(4, 4, hspace=0.3, wspace=0.3)
-    density = fig.add_subplot(grid[:2, :2])
-    matrix = fig.add_subplot(grid[:2, 2:])
-    ts_density = fig.add_subplot(grid[2:, :])
-
-    hight = (torch.sum(x,0)/torch.tensor(range(lines)))[1:]
-
-    density.bar(np.arange(1,cols), height = hight.numpy())
-    density.set_ylabel('density', fontsize = fontsize)
-    density.set_xlabel('hour', fontsize = fontsize)
-    density.tick_params(axis='both', which='major', labelsize=30)
-    print(x.unique())
-
-    matrix.matshow(x, interpolation='nearest')
-    matrix.set_xlabel('hour', fontsize = fontsize)
-    matrix.tick_params(axis='both', which='major', labelsize=30)
-    
-    
-    path_adj = os.path.join(config['paths']['prediction'], f'adj_{id_model}.pkl') 
-    with open(path_adj, 'rb') as f:
-        density_ts = pickle.load(f)
-    ts_density.plot(range(len(density_ts)), density_ts)
-    ts_density.tick_params(axis='both', which='major', labelsize=30)
-    ts_density.set_ylim(0,1)
-
-    saving_path = os.path.join(config['paths']['images'], f"adj_{id_model}.png")
-    plt.savefig(saving_path)
-    if show:
-        plt.show(show)
-    else:
-        plt.close()

@@ -28,9 +28,8 @@ def get_prediction(model,
     else: 
         model.eval()
         is_train = False
-    alpha = 0.15
-    gamma = 25.
-    m = config.getfloat('dataset','scaler')
+    alpha = 0.2
+    gamma = 2e-3
     with torch.set_grad_enabled(is_train):
         for batch in iter(dataloader):
             if train:
@@ -39,12 +38,13 @@ def get_prediction(model,
             yh, x, A = model(batch[0].to(model.device))
             
             ########### Computing the loss function ##############
-            l1 = loss_function(input = yh*m, target = batch[1].float().to(model.device)*m)
-            l2 = 0.5*torch.sum(torch. matmul(x, A))
+            l1 = (1-alpha)*loss_function(input = yh, target = batch[1].float().to(model.device))
+            l2 = alpha*0.5*torch.sum(torch. matmul(x, A))
             l3 = torch.norm(A)*gamma
-            
-            loss = (1-alpha)*l1 + alpha*l2 + l3
-            
+            loss = l1 + l2 + l3
+            """print(l1)
+            print(l2)
+            print(l3)"""
             if train:
                 loss.backward()
                 optimizer.step()
@@ -93,7 +93,7 @@ def training(model,
     # IN QUESTO MODO ELIMINO IL PROBLEMA DEL BUFFERING DATO CHE TQDM STAMPA OGNI RIGA
     with tqdm(total=epoch) as progress_bar: 
         for e in range(epoch):
-            if (e+1)%50 == 0:
+            if (e+1)%100 == 0:
                 scheduler.step()
             ##TRAIN STEP
             loss_t = get_prediction(model = model, 
@@ -111,34 +111,35 @@ def training(model,
                                     optimizer = optimizer,
                                     config = config)
             
-            for i, key in enumerate(loss_train.keys()):
-                loss_train[key].append(loss_t[i]/config.getint('dataset', 'n_obs_train'))
-                loss_validation[key].append(loss_v[i]/config.getint('dataset', 'n_obs_validation'))
+            if (e+1) > 5:
+                for i, key in enumerate(loss_train.keys()):
+                    loss_train[key].append(loss_t[i]/len(dataloader_train))
+                    loss_validation[key].append(loss_v[i]/len(dataloader_validation))
 
-            if e%k==0:
-                print(f" epoch {e+1} ".center(30, "#"))
-                print("train loss == ", loss_train['loss'][-1])
-                print("validation loss == ",loss_validation['loss'][-1])   
-                if e == 0: 
-                    progress_bar.update(1)
-                else:
-                    progress_bar.update(k)
-                sys.stdout.flush()
-	    
-            if np.isnan(loss_validation['loss'][-1]):
-                    print("NAN in the validation loss")
-                    for i, key in enumerate(loss_validation.keys()):
-                        if (key != "loss") & (np.isnan(loss_validation[key][-1])):
-                            print(key)
-                    break
-            if np.isnan(loss_train['loss'][-1]):
-                    print("NAN in the train loss")
-                    for i, key in enumerate(loss_train.keys()):
-                        if (key != "loss") & (np.isnan(loss_train[key][-1])):
-                            print(key)
-                    break
+                if e%k==0:
+                    print(f" epoch {e+1} ".center(30, "#"))
+                    print("train loss == ", loss_train['loss'][-1])
+                    print("validation loss == ",loss_validation['loss'][-1])   
+                    if e == 0: 
+                        progress_bar.update(1)
+                    else:
+                        progress_bar.update(k)
+                    sys.stdout.flush()
+
+                if np.isnan(loss_validation['loss'][-1]):
+                        print("NAN in the validation loss")
+                        for i, key in enumerate(loss_validation.keys()):
+                            if (key != "loss") & (np.isnan(loss_validation[key][-1])):
+                                print(key)
+                        break
+                if np.isnan(loss_train['loss'][-1]):
+                        print("NAN in the train loss")
+                        for i, key in enumerate(loss_train.keys()):
+                            if (key != "loss") & (np.isnan(loss_train[key][-1])):
+                                print(key)
+                        break
             
-            if e > 5:
+            
                 if loss_validation['loss'][-1] < be:
                     be = loss_validation['loss'][-1]
                     torch.save(model.state_dict(), saving_path)           

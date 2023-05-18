@@ -4,11 +4,9 @@ import torch.nn as nn
 class pre_processing(torch.nn.Module):
     def __init__(self, 
                  in_feat:int, 
-                 hid:int,
-                 emb:dict, 
+                 emb:dict,
                  device):
         super(pre_processing, self).__init__()
-        self.hid = hid
         self.in_feat = in_feat
         self.emb = nn.ModuleDict({})
         out = 0
@@ -21,6 +19,7 @@ class pre_processing(torch.nn.Module):
         # sommo le tre variabili non categoriche dell'input
         out += 3
         
+        self.norm = nn.BatchNorm1d(265)
         self.linear = nn.Sequential(nn.Linear(in_features = out, 
                                               out_features = 128),
                                     nn.ReLU(), 
@@ -37,79 +36,28 @@ class pre_processing(torch.nn.Module):
         for i,key in enumerate(self.emb.keys()):
             out.append(self.emb[key](x[:, :,i].int().to(x.device.type)))
         out = torch.cat(out,-1)    
+        out = self.norm(out.float())
         out = torch.cat((out, x[:,:,-3:]),-1)
         out = self.linear(out.float())
-        
         out = torch.cat((out, x[:,:,-1:]),-1)
+        
         return out.float()
 
     
-class Kernel(torch.nn.Module):
-    def __init__(self, 
-                 d: int,
-                 hid: int, 
-                 past: int,
-                 future: int
-                ):
-        super(Kernel, self).__init__()
-        
-        # Siccome non posso generare una matrice simmetrica definita positiva 
-        # costruisco una matrice "d x hid" che poi trasformo in simmetrica definita positiva
-        self.d = d
-        self.hid = hid
-        self.past = past
-        self.future = future
-        self.softmax = nn.Softmax(dim = 1)
-        # Parametri da imparare
-        self.smoothing = torch.nn.Parameter(torch.randn(1))
-        self.W = torch.nn.Parameter(torch.randn(self.d, self.hid))
-        
-        self.sig = nn.Sigmoid()
-        
-    def forward(self, x, y, A):
-        x_p = x[:,:self.past,:]
-        x_f = x[:,self.past:,:]
-        B, P, O = x_p.shape
-        B, P1, O = x_f.shape
-        
-        # now the matrix is positive definite
-        theta = torch.matmul(self.W, self.W.T)
-        theta = (theta+theta.T)/2
-        
-        diff = x_p.view(B,1,P,O)-x_f.view(B,P1,1,O)
-        w = torch.matmul(diff, theta)
-        w = torch.matmul(w,torch.transpose(diff, -2,-1))
-        w = -0.5*w/(self.sig(self.smoothing)*0.01)
-        
-        # B, F, P, P ---> B, F, P
-        # indico i pesi di ogni osservazione del passato per quanto riguarda la i-esima osservazione nel futuro
-        alpha = torch.diagonal(w,dim1=-1, dim2=-2)
-        # devo fare la trasposta perchè i vettori sono per riga e non per colonna
-        A_tmp = A[self.past:,:self.past]
-        A_tmp = self.softmax(A_tmp.masked_fill(A_tmp == 0, float('-inf')))
-        alpha = alpha.masked_fill(A_tmp < 4e-3, float('-inf'))
-        alpha = self.softmax(alpha)
-        yh = torch.matmul(alpha,y)
-        
-        return yh
 
 class my_gcnn(torch.nn.Module):
 
     def __init__(self, 
                  in_channels: int, 
                  out_channels: int,
-                 nodes: int,
                  relu: bool = True):
-
         super(my_gcnn, self).__init__()
 
         self.in_channels = in_channels
         self.out_channels = out_channels
-        self.nodes = nodes
         self.lin = nn.Linear(in_channels, 
                              out_channels, 
                              bias = False)
-        self.I = torch.diag(torch.ones(self.nodes))
         self.relu = nn.ReLU()
         if relu:
             self.act = nn.ReLU()
@@ -120,29 +68,38 @@ class my_gcnn(torch.nn.Module):
     def forward(self,
                 x0: tuple) -> torch.tensor:
         x, A = x0
-        
         # Inserisco una threshold
         # se i valori sono più piccoli di un tot significa che non ci è connessione
         D = torch.sign(self.relu(A - 1e-15))
         D = torch.diag((1+torch.sum(D , 1))**(-0.5))
-
-        A_tilde = A + self.I.to(A.device.type)
-
+        node_start = A.shape[0]
+        node_end = A.shape[1]
+        
+        if node_start == node_end:
+            A_tilde = A + torch.diag(torch.ones(node_start)).to(A.device.type)
+            D1 = D2 = D
+        else:
+            I = torch.diag(torch.ones(node_end))[node_end-node_start:]
+            A_tilde = A+I.to(A.device.type)
+            D1 = D**2
+            D2 = torch.diag(torch.ones(node_end)).to(A.device.type)
+            
         x = self.lin(x)
-        out = torch.matmul(D, A)
-        out = torch.matmul(out,D)
+        out = torch.matmul(D1, A_tilde)
+        out = torch.matmul(out,D2)
         out = self.act(torch.matmul(out,x))
         
         return (out.float(), A)
+
     
 class GAT(torch.nn.Module):
     def __init__(self, 
                 in_feat:int, 
-                hid:int,  
                 past: int, 
                 future: int,
                 emb:dict,
                 device,
+                nfeat_out_gnn:int = 16,
                 num_layer1:int = None,
                 num_layer2:int = None,
                 hid_out_features1:int = None,
@@ -151,37 +108,28 @@ class GAT(torch.nn.Module):
         super(GAT, self).__init__()
         
         self.device = device
+        self.out_gnn = nfeat_out_gnn
+        self.hid_out_features1 = hid_out_features1
+        self.hid_out_features2 = hid_out_features2
+        self.num_layer1 = num_layer1
+        self.num_layer2 = num_layer2
         
-        self.hid = hid
         self.in_feat = in_feat         # numero di features di ogni nodo prima del primo GAT        
         self.past = past 
         self.future = future
-        # B = batch size
-        # I = features in the input
-        # O = out preprocessing
-        # O'= out gat
-        # F = Future
-        # P = Past
-        # H = hid
 
         
         ########## PREPROCESSING PART #############
-        # devo convertire le variabili categoriche
-        # B, T, I ---> B, T, O
-        # T = tokens, quindi T in (P,F)
-        
         out = 3
         for key in emb.keys():
             out += emb[key][1]
         self.out_preprocess = out
         self.pre_processing = pre_processing(in_feat = in_feat, 
-                                            hid = hid,
                                             emb = emb, 
                                             device = device)
         
-        N = past + future 
-        d = N//3
-        self.M = torch.nn.Parameter(torch.randn(N, d)) # Matrice di adiacenza
+        N = past + future
+        self.M = torch.nn.Parameter(torch.randn(N, N)) # Matrice di adiacenza
         self.mask = torch.tril(torch.ones(N, N))-torch.diag(torch.ones(N))
         self.relu = nn.ReLU()
         self.softmax = nn.Softmax(dim = 1)
@@ -191,94 +139,84 @@ class GAT(torch.nn.Module):
         # B * P, O ---> B * T, O-1
         if num_layer1 in [0,1]:
             self.gnn1 = my_gcnn(in_channels = self.out_preprocess, 
-                                out_channels = self.out_preprocess-1, 
-                                nodes = past,
+                                out_channels = self.out_gnn, 
                                 relu = False)     
         else:
             layers = [my_gcnn(in_channels = self.out_preprocess, 
-                                      out_channels = hid_out_features1,
-                                      nodes = past)]
+                                      out_channels = hid_out_features1)]
             
             for _ in range(max(0,num_layer1-2)):
                 layers.append(my_gcnn(in_channels = hid_out_features1, 
-                                      out_channels = hid_out_features1,
-                                      nodes = past))
+                                      out_channels = hid_out_features1))
                 
             layers.append(my_gcnn(in_channels = hid_out_features1, 
-                                  out_channels = self.out_preprocess-1, 
-                                  nodes = past,
+                                  out_channels = self.out_gnn,
                                   relu= False))    
             
             self.gnn1 = nn.Sequential(*layers)
-
-        ########## KERNELL PART #############
-        # B, P, O-1 ---> B, P, H
-        
-        self.kernel = Kernel(d = self.out_preprocess-1, 
-                            hid = self.hid, 
-                            past = self.past, 
-                            future = self.future)
-        
-        # weight in R^(B, P, F)
-        # interpreto la diffusione dell'informazione tramite colonna
-        # la colonna indica quanto i nodi del passato influiscano sul un determinato nodo del futuro
-        # tipo matrice di Markov
-        
+            
         ########## SECOND GAT PART #############
         
         if num_layer2 in [0, 1]:
-            self.gnn2 = my_gcnn(in_channels = self.out_preprocess, 
-                                out_channels = 1, 
-                                nodes = future,
+            self.gnn2 = my_gcnn(in_channels = self.out_preprocess-1, 
+                                out_channels = self.out_gnn, 
                                 relu = False)
         else:
-            layers = [my_gcnn(in_channels = self.out_preprocess, 
-                                      out_channels = hid_out_features2,
-                                      nodes = future)]
+            layers = [my_gcnn(in_channels = self.out_preprocess-1, 
+                                      out_channels = hid_out_features2)]
             
             for _ in range(max(0,num_layer2-2)):
                 layers.append(my_gcnn(in_channels = hid_out_features2, 
-                                      out_channels = hid_out_features2,
-                                      nodes = future))
+                                      out_channels = hid_out_features2))
                 
             layers.append(my_gcnn(in_channels = hid_out_features2, 
-                                  out_channels = 1, 
-                                  nodes = future,
+                                  out_channels = self.out_gnn, 
                                   relu = False))    
             
             self.gnn2 = nn.Sequential(*layers)
-                        
+        
+        self.prop_gnn = my_gcnn(in_channels = self.out_gnn, 
+                                out_channels = self.out_gnn, 
+                                relu = False)
+        self.propagation = nn.Sequential(nn.Flatten(-2),
+                                         nn.BatchNorm1d(self.out_gnn*self.future),
+                                         nn.Linear(in_features = self.out_gnn*self.future, 
+                                                   out_features = 128),
+                                         nn.ReLU(), 
+                                         nn.Linear(in_features = 128,
+                                                   out_features = 128),
+                                         nn.ReLU(),
+                                         nn.Linear(in_features = 128,
+                                                   out_features = self.future))
+               
     def forward(self, data):
-        
-        # estraggo i due sottografi      
-        # il primo è riferito al passato 
-        # il secondo è riferito al futuro
-        
+
         A = self.relu(torch.matmul(self.M,self.M.T))
         A = self.softmax(A.masked_fill(self.mask.to(A.device.type) == 0, float('-inf')))
         A = A.masked_fill(self.mask.to(A.device.type) == 0, 0)
+        
         # pre-processing dei dati
         x = self.pre_processing(data)
         
-        
+        # creation of the 2 subgraph
         sg1 = x[:,:self.past,:]
         sg2 = x[:,self.past:,:]
 
-        ########## FIRST GAT PART ######################
-        x1,_ = self.gnn1((sg1, A[:self.past, :self.past]))
-        ########## KERNELL PART ########################
-        x_kernel = torch.cat((x1, sg2[:,:,:-1]),-2)
-        y_kernel = x[:,:self.past,-1:]
-
-        yh = self.kernel(x_kernel,y_kernel, A)
-        x2 = torch.cat((sg2[:,:,:-1],yh),-1)
-        ########## SECOND GAT PART ######################
-        out, _ = self.gnn2((x2, A[self.past:, self.past:]))
-        out = out.reshape(-1,self.future)
+        ########## GNN processing ######################
         
+        x1, _ = self.gnn1((sg1, A[:self.past, :self.past]))
+        x2, _ = self.gnn2((sg2[:,:,:-1], A[self.past:, self.past:]))
+        x = torch.cat((x1,x2),-2)
+        
+        ########## PROPAGATION PART ####################
+        D = torch.sign(self.relu(A - 1e-15))
+        D = torch.diag((1+torch.sum(D , 1))**(-0.5))
+        
+        future, _ = self.prop_gnn((x, A[self.past:,:]))
+        future = self.propagation(future)
         
         ########## PREPARE THE DIRICHLET ENERGY ##########
-        x = torch.cat((sg1, x2),-2)
+        x = torch.matmul(D,x)
         x = torch.cdist(x,x)        
         
-        return out.float(), x, A
+        return future.float(), x, A
