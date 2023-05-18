@@ -1,6 +1,6 @@
 dataset:
   dataset: 'weather'  
-  path: '/home/andrea/TsEXP/data'
+  path: '/home/agobbi/Projects/ExpTS/data'
 
 scheduler_config:
   gamma: 0.1
@@ -32,13 +32,13 @@ split_params:
   future_steps: model_configs@future_steps
 
 train_config:
-  dirpath: "/home/andrea/TsEXP"
+  dirpath: "/home/agobbi/Projexts/ExpTS/test"
   num_workers: 0
-  auto_lr_find: true
+  auto_lr_find: false
   devices: [0]                   
 
 inference:
-  output_path: "/home/andrea/TsEXP" 
+  output_path: "/home/agobbi/Projexts/ExpTS/test"
   load_last: true
   batch_size: 200 
   num_workers: 4
@@ -51,8 +51,12 @@ defaults:
   - override hydra/launcher: joblib
 
 hydra:
-  #launcher:
-  #  n_jobs:   2 
+  launcher:
+    n_jobs:  2
+    verbose: 1
+    pre_dispatch: 1
+    batch_size: 1
+
   output_subdir: null 
   sweeper:
     params:

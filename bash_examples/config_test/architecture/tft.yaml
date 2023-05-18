@@ -13,7 +13,7 @@ split_params:
   shift: 0
 
 model_configs:
-  d_model: 128
+  d_model: 4
   num_heads: 16
   dropout: 0.3
   head_size: 8
@@ -27,5 +27,5 @@ model_configs:
 
 train_config:
   batch_size: 256
-  max_epochs: 5
+  max_epochs: 3
                              

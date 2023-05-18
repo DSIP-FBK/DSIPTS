@@ -10,14 +10,14 @@ ts:
   use_covariates: false
 
 model_configs:
-  cat_emb_dim: 16
-  kernel_size_encoder: 15
+  cat_emb_dim: 4
+  kernel_size_encoder: 3
   sum_emb: true
-  hidden_size: 256
+  hidden_size: 12
   kind: 'dlinear'
 
 
 train_config:
   batch_size: 256
-  max_epochs: 5
+  max_epochs: 2
                    

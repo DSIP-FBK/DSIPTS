@@ -11,11 +11,11 @@ ts:
   
 model_configs:
   cat_emb_dim: 16
-  kernel_size_encoder: 15
+  kernel_size_encoder: 5
   sum_emb: true
-  hidden_size: 256
+  hidden_size: 24
   kind: 'nlinear'
 
 train_config:
   batch_size: 256
-  max_epochs: 5
+  max_epochs: 3

@@ -4,7 +4,7 @@ from dsipts import TimeSeries
 import numpy as np
 import pandas as pd
 
-def load_data_edison(conf):
+def load_data(conf):
     data = pd.read_csv(os.path.join(conf.dataset.path,'data_consumption.csv'))
     data.Time = pd.to_datetime(data.Time)
     data.sort_values(by='Time',inplace=True)
