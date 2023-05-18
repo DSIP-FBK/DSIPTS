@@ -11,7 +11,9 @@ import numpy as np
 import plotly.express as px
 import logging
 import sys
-
+from load_data.load_data_edison import load_data_edison
+from load_data.load_data_public import load_data_public
+from load_data.load_data_incube import load_data_incube
 
 #file_handler = logging.FileHandler(filename='tmp.log')
 #stdout_handler = logging.StreamHandler(stream=sys.stdout)
@@ -58,24 +60,16 @@ def train(conf: DictConfig) -> None:
     logging.info(f"{''.join(['#']*100)}")
 
     ##OCCHIO CHE tutti questi dataset hanno y come target! ###############################################
+    
+    
     if conf.dataset.dataset == 'edison':
-        with open(os.path.join(conf.dataset.path,'edison.pkl'),'rb') as f:
-            import pickle
-            res = pickle.load(f)
-        data = res['data']
-        data.rename(columns={'tempo':'time'},inplace=True)
-        data[res['meteo']]=data[res['meteo']].interpolate()
+        ts = load_data_edison(conf)
+    elif conf.dataset.dataset == 'incube': 
+        ts = load_data_incube(conf)
     else:
-        data, columns = read_public_dataset(**conf.dataset)
-    ts = TimeSeries(conf.ts.name)
-    if conf.dataset.dataset == 'edison':
-        if  conf.ts.use_covariates:
-            ts.load_signal(data, cat_var= res['cat'],target_variables=['y'], past_variables=res['meteo'], future_variables=res['meteo'])
-        else:
-            ts.load_signal(data, cat_var= res['cat'],target_variables=['y'], past_variables=[], future_variables=[])
+        ts = load_data_public(conf)
+        
 
-    else:
-        ts.load_signal(data, enrich_cat= conf.ts.enrich,target_variables=['y'], past_variables=columns if conf.ts.use_covariates else [])
     ######################################################################################################
     
     
@@ -168,6 +162,8 @@ def train(conf: DictConfig) -> None:
     split_params = conf.split_params
     split_params['past_steps'] = model_conf['past_steps']
     split_params['future_steps'] = model_conf['future_steps']
+    ## I save it here so i can use intermediate pth weights!
+    ts.save(os.path.join(conf.train_config.dirpath,'model'))
     valid_loss = ts.train_model(split_params=split_params,**conf.train_config)
     ts.save(os.path.join(conf.train_config.dirpath,'model'))
     ##save the config for the comparison task

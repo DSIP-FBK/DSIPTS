@@ -1,0 +1,28 @@
+# @package _global_
+
+model:
+  type: 'mymodel'
+  retrain: false
+ts:
+  name: 'mymodel'
+  version: 1
+  enrich: []
+  use_covariates: true
+
+model_configs:
+  cat_emb_dim: 128
+  hidden_RNN: 256
+  num_layers_RNN: 6
+  kernel_size: 3
+  kind: 'gru'
+  sum_emb: true
+  persistence_weight: 0.2
+  use_bn: true
+  activation: 'relu'
+  loss_type: 'linear_penalization'
+
+train_config:
+  batch_size: 128
+  max_epochs: 100
+  gradient_clip_val: null
+  gradient_clip_algorithm: 'norm'
