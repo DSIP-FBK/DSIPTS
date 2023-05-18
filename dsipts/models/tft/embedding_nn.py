@@ -367,10 +367,10 @@ class Encoder_Var_Selection(nn.Module): # input already embedded
     #     var_sel_wei = self.flatten_GRN(to_be_flat)
     #     return var_sel_wei
 
-class Encoder_LSTM(nn.Module):
-    def __init__(self, n_layers_LSTM: int, d_model: int, dropout: float):
-        """LSTM Encoder with GLU, Add and Norm
-        norm( x + GLU(dropout( LSTM(x) )) )
+class Encoder_RNN(nn.Module):
+    def __init__(self, type_RNN: str, n_layers_RNN: int, d_model: int, dropout: float):
+        """RNN Encoder with GLU, Add and Norm
+        norm( x + RNN(dropout( LSTM(x) )) )
 
         Args:
             n_layers_EncLSTM (int): number of layers involved by LSTM 
@@ -378,11 +378,20 @@ class Encoder_LSTM(nn.Module):
             dropout (float): -
         """
         super().__init__()
-        self.n_layers_EncLSTM = n_layers_LSTM
+        self.type_RNN = type_RNN
+        self.n_layers_RNN = n_layers_RNN
         self.hidden_size = d_model
-        self.LSTM = nn.LSTM(input_size=d_model, hidden_size=self.hidden_size, num_layers=self.n_layers_EncLSTM, batch_first = True)
+        if type_RNN == 'LSTM':
+            self.RNN = nn.LSTM(input_size=d_model, hidden_size=self.hidden_size, num_layers=self.n_layers_RNN, 
+                               batch_first=True, bias=False, dropout=dropout)
+        elif type_RNN == 'GRU':
+            self.RNN = nn.GRU(input_size=d_model, hidden_size=self.hidden_size, num_layers=self.n_layers_RNN, 
+                              batch_first=True, bias=False, dropout=dropout)
+        else:
+            raise Exception("NO VALID RNN TYPE\n > Check the spell")
+
         self.dropout = nn.Dropout(dropout)
-        self.LSTM_enc_GLU = GLU(d_model)
+        self.RNN_enc_GLU = GLU(d_model)
         self.norm = nn.LayerNorm(d_model)
 
     def forward(self, x: torch.Tensor) -> list:
@@ -396,14 +405,18 @@ class Encoder_LSTM(nn.Module):
         """
         # init and move to device h0 and c0 of RNN 
         device = x.device.type
-        h0 = torch.zeros(self.n_layers_EncLSTM, x.size(0), x.size(2)).to(device)
-        c0 = torch.zeros(self.n_layers_EncLSTM, x.size(0), x.size(2)).to(device)
+        if self.type_RNN == 'LSTM':
+            h0 = torch.zeros(self.n_layers_RNN, x.size(0), x.size(2)).to(device)
+            c0 = torch.zeros(self.n_layers_RNN, x.size(0), x.size(2)).to(device)
+            # computations
+            rnn_enc, hn = self.RNN(x, (h0,c0))
+        elif self.type_RNN == 'GRU':
+            h0 = torch.zeros(self.n_layers_RNN, x.size(0), x.size(2)).to(device)
+            rnn_enc, hn = self.RNN(x, h0)
 
-        # computations
-        lstm_enc, (hn, cn) = self.LSTM(x, (h0,c0))
-        lstm_enc = self.dropout(lstm_enc)
-        output_enc = self.norm(self.LSTM_enc_GLU(lstm_enc) + x)
-        return [output_enc, hn, cn]
+        rnn_enc = self.dropout(rnn_enc)
+        output_enc = self.norm(self.RNN_enc_GLU(rnn_enc) + x)
+        return output_enc, hn
     
 class Decoder_Var_Selection(nn.Module): # input already embedded
     def __init__(self, use_yprec: bool, n_fut_cat_var: int, n_fut_num_var: int, d_model: int, dropout: float):
@@ -494,9 +507,9 @@ class Decoder_Var_Selection(nn.Module): # input already embedded
     #     var_sel_wei = self.flatten_GRN(emb)
     #     return var_sel_wei
     
-class Decoder_LSTM(nn.Module):
-    def __init__(self, n_layers_LSTM: int, d_model: int, dropout: float):
-        """LSTM Decoder with GLU, Add and Norm
+class Decoder_RNN(nn.Module):
+    def __init__(self, type_RNN: str, n_layers_RNN: int, d_model: int, dropout: float):
+        """RNN Decoder with GLU, Add and Norm
         norm( x + GLU(dropout( LSTM(x) )) )
 
         Args:
@@ -505,15 +518,23 @@ class Decoder_LSTM(nn.Module):
             dropout (float): -
         """
         super().__init__()
-        self.n_layers_DecLSTM = n_layers_LSTM
+        self.type_RNN = type_RNN
+        self.n_layers_RNN = n_layers_RNN
         self.hidden_size = d_model
-        self.LSTM = nn.LSTM(input_size=d_model, hidden_size=self.hidden_size, num_layers=self.n_layers_DecLSTM, batch_first = True)
+        if type_RNN == 'LSTM':
+            self.RNN = nn.LSTM(input_size=d_model, hidden_size=self.hidden_size, num_layers=self.n_layers_RNN, 
+                               batch_first=True, bias=False, dropout=dropout)
+        elif type_RNN == 'GRU':
+            self.RNN = nn.GRU(input_size=d_model, hidden_size=self.hidden_size, num_layers=self.n_layers_RNN, 
+                              batch_first=True, bias=False, dropout=dropout)
+        else:
+            raise Exception("NO VALID RNN TYPE\n > Check the spell")
         self.dropout = nn.Dropout(dropout)
         self.LSTM_enc_GLU = GLU(d_model)
         self.norm = nn.LayerNorm(d_model)
 
-    def forward(self, x: torch.Tensor, hn: torch.Tensor, cn: torch.Tensor) -> torch.Tensor:
-        """LSTM Decoder with GLU, Add and Norm
+    def forward(self, x: torch.Tensor, hn) -> torch.Tensor:
+        """RNN Decoder with GLU, Add and Norm
 
         Args:
             x (torch.Tensor): [bs, past_steps, d_model] main Tensor
@@ -523,9 +544,9 @@ class Decoder_LSTM(nn.Module):
         Returns:
             torch.Tensor: [bs, past_steps, d_model]
         """
-        lstm_dec, _ = self.LSTM(x, (hn,cn)) # we ignore the (hc,cn) coming from LSTM, no needed for future computations
-        lstm_dec = self.dropout(lstm_dec)
-        output_dec = self.norm(self.LSTM_enc_GLU(lstm_dec) + x)
+        rnn_dec, _ = self.RNN(x, hn) # we ignore the (hc,cn) coming from LSTM, no needed for future computations
+        rnn_dec = self.dropout(rnn_dec)
+        output_dec = self.norm(self.LSTM_enc_GLU(rnn_dec) + x)
         return output_dec
 
 class postTransformer(nn.Module):
