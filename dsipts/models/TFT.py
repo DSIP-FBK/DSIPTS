@@ -25,7 +25,7 @@ class TFT(Base):
                  n_layer_decoder:int,
                  num_layers_RNN:int,
                  out_channels:int,
-                 type_RNN: str,
+                 type_RNN: int,
                  quantiles:List[float]=[],
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
