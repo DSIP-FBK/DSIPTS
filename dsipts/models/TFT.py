@@ -63,6 +63,7 @@ class TFT(Base):
         # strategy applied
         self.use_target_past = use_target_past
         self.use_yprec_fut = use_yprec_fut
+        self.type_RNN = type_RNN
         
         # params for structure of data and model
         self.past_steps = past_steps
@@ -84,13 +85,13 @@ class TFT(Base):
 
         # - Encoder (past)
         self.EncVariableSelection = embedding_nn.Encoder_Var_Selection(self.use_target_past, len(embs)+3, past_channels, d_model, dropout)
-        self.EncLSTM = embedding_nn.Encoder_RNN(type_RNN, num_layers_RNN, d_model, dropout)
+        self.EncRNN = embedding_nn.Encoder_RNN(type_RNN, num_layers_RNN, d_model, dropout)
         self.EncGRN = embedding_nn.GRN(d_model, dropout)
         self.Encoder = encoder.Encoder(n_layer_encoder, d_model, num_heads, self.head_size, fw_exp, dropout)
         
         # - Decoder (future)
         self.DecVariableSelection = embedding_nn.Decoder_Var_Selection(self.use_yprec_fut, len(embs)+3, out_channels+1, d_model, dropout)
-        self.DecLSTM = embedding_nn.Decoder_RNN(type_RNN, num_layers_RNN, d_model, dropout)
+        self.DecRNN = embedding_nn.Decoder_RNN(type_RNN, num_layers_RNN, d_model, dropout)
         self.DecGRN = embedding_nn.GRN(d_model, dropout)
         self.Decoder = decoder.Decoder(n_layer_decoder, d_model, num_heads, self.head_size, fw_exp, future_steps, dropout)
         
@@ -158,9 +159,9 @@ class TFT(Base):
             variable_selection_past = self.EncVariableSelection(embed_categorical_past, embed_num_past)
         else:
             variable_selection_past = self.EncVariableSelection(embed_categorical_past)
-        # LSTM and GRN
-        past_LSTM, hn, cn = self.EncLSTM(variable_selection_past)
-        encoding = self.EncGRN(past_LSTM)
+        # RNN and GRN
+        past_RNN, hn = self.EncRNN(variable_selection_past)
+        encoding = self.EncGRN(past_RNN)
         # Encoder
         encoded = self.Encoder(encoding, encoding, encoding)
 
@@ -176,10 +177,10 @@ class TFT(Base):
             for tau in range(1, self.future_steps+1):
                 embed_tau_y = self.emb_num_fut_var(decoder_out)
                 variable_selection_fut = self.DecVariableSelection(embed_categorical_future[:,:tau,:,:], embed_tau_y)
-                fut_LSTM = self.DecLSTM(variable_selection_fut, hn, cn)
-                pred_decoding = self.DecGRN(fut_LSTM)
+                fut_RNN = self.DecRNN(variable_selection_fut, hn)
+                pred_decoding = self.DecGRN(fut_RNN)
                 pred_decoded = self.Decoder(pred_decoding, encoded, encoded)
-                out = self.postTransformer(pred_decoded, pred_decoding, fut_LSTM)
+                out = self.postTransformer(pred_decoded, pred_decoding, fut_RNN)
                 out = self.outLinear(out) # [B, tau, self.mul]
                 # self.mul, by assert in __init__, ==1 or ==3
                 if self.mul==1:
@@ -199,10 +200,10 @@ class TFT(Base):
         else:
             # direct prediction mod
             variable_selection_fut = self.DecVariableSelection(embed_categorical_future)
-            fut_LSTM = self.DecLSTM(variable_selection_fut, hn, cn)
-            decoding = self.DecGRN(fut_LSTM)
+            fut_RNN = self.DecRNN(variable_selection_fut, hn)
+            decoding = self.DecGRN(fut_RNN)
             decoded = self.Decoder(decoding, encoded, encoded)
-            out = self.postTransformer(decoded, decoding, fut_LSTM)
+            out = self.postTransformer(decoded, decoding, fut_RNN)
             out = self.outLinear(out)
             B, L, _ = out.shape
             return out.reshape(B,L,-1,self.mul)
