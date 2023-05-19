@@ -52,7 +52,7 @@ class MultiHeadEnc(nn.Module):
 
 class FFN(nn.Module):
 
-    def __init__(self, n_embd, fw_exp) :
+    def __init__(self, n_embd, fw_exp):
         super().__init__()
         self.net = nn.Sequential(
             nn.Linear(n_embd, fw_exp*n_embd),

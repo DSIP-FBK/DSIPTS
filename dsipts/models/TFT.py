@@ -25,7 +25,8 @@ class TFT(Base):
                  n_layer_decoder:int,
                  num_layers_RNN:int,
                  out_channels:int,
-                 quantiles:List[int]=[],
+                 type_RNN: int,
+                 quantiles:List[float]=[],
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
         """TFT model 'arXiv:1912.09363v3 [stat.ML] 27 Sep 2020'
@@ -62,6 +63,7 @@ class TFT(Base):
         # strategy applied
         self.use_target_past = use_target_past
         self.use_yprec_fut = use_yprec_fut
+        self.type_RNN = type_RNN
         
         # params for structure of data and model
         self.past_steps = past_steps
@@ -83,13 +85,13 @@ class TFT(Base):
 
         # - Encoder (past)
         self.EncVariableSelection = embedding_nn.Encoder_Var_Selection(self.use_target_past, len(embs)+3, past_channels, d_model, dropout)
-        self.EncLSTM = embedding_nn.Encoder_LSTM(num_layers_RNN, d_model, dropout)
+        self.EncRNN = embedding_nn.Encoder_RNN(type_RNN, num_layers_RNN, d_model, dropout)
         self.EncGRN = embedding_nn.GRN(d_model, dropout)
         self.Encoder = encoder.Encoder(n_layer_encoder, d_model, num_heads, self.head_size, fw_exp, dropout)
         
         # - Decoder (future)
         self.DecVariableSelection = embedding_nn.Decoder_Var_Selection(self.use_yprec_fut, len(embs)+3, out_channels+1, d_model, dropout)
-        self.DecLSTM = embedding_nn.Decoder_LSTM(num_layers_RNN, d_model, dropout)
+        self.DecRNN = embedding_nn.Decoder_RNN(type_RNN, num_layers_RNN, d_model, dropout)
         self.DecGRN = embedding_nn.GRN(d_model, dropout)
         self.Decoder = decoder.Decoder(n_layer_decoder, d_model, num_heads, self.head_size, fw_exp, future_steps, dropout)
         
@@ -110,7 +112,6 @@ class TFT(Base):
             self.outLinear = nn.Linear(d_model, out_channels*len(quantiles))
             self.loss = QuantileLossMO(quantiles)
 
-        # ask to aGobbi
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
   
@@ -140,15 +141,10 @@ class TFT(Base):
         Returns:
             torch.Tensor: [Bs, future_steps, -1, number of quantiles computed for each timestep]
         """
-        # import pdb
-        # pdb.set_trace()
-
-        # numerical past var
         
-
         # categorical past var
-        x_cat_past = batch['x_cat_past']
-        x_cat_future = batch['x_cat_future']
+        x_cat_past = batch['x_cat_past'].to(self.device)
+        x_cat_future = batch['x_cat_future'].to(self.device)
         #embed all categorical values
         embed_categorical = self.emb_cat_var(torch.cat((x_cat_past,x_cat_future), dim=1))
         # split for past and future
@@ -158,33 +154,33 @@ class TFT(Base):
         ### PAST #############
         #Variable Selection
         if self.use_target_past:
-            embed_num_past = self.emb_num_past_var(batch['x_num_past'])
+            # numerical past var
+            embed_num_past = self.emb_num_past_var(batch['x_num_past'].to(self.device))
             variable_selection_past = self.EncVariableSelection(embed_categorical_past, embed_num_past)
         else:
             variable_selection_past = self.EncVariableSelection(embed_categorical_past)
-        # LSTM and GRN
-        past_LSTM, hn, cn = self.EncLSTM(variable_selection_past)
-        encoding = self.EncGRN(past_LSTM)
+        # RNN and GRN
+        past_RNN, hn = self.EncRNN(variable_selection_past)
+        encoding = self.EncGRN(past_RNN)
         # Encoder
         encoded = self.Encoder(encoding, encoding, encoding)
 
         ### FUTURE ###########
         if self.use_yprec_fut:
             # init output tensor on the right device
-            device = batch['x_num_past'].device.type
-            output = torch.Tensor().to(device)
+            output = torch.Tensor().to(self.device)
             # init decoder_out to store actual value predicted of the target variable
             idx_target = batch['idx_target'][0,0].item()
-            decoder_out = batch['x_num_past'][:,-1,idx_target].unsqueeze(1).unsqueeze(2)
+            decoder_out = batch['x_num_past'][:,-1,idx_target].unsqueeze(1).unsqueeze(2).to(self.device)
 
             # start iterative procedure
-            for tau in range(1,self.future_steps+1):
+            for tau in range(1, self.future_steps+1):
                 embed_tau_y = self.emb_num_fut_var(decoder_out)
                 variable_selection_fut = self.DecVariableSelection(embed_categorical_future[:,:tau,:,:], embed_tau_y)
-                fut_LSTM = self.DecLSTM(variable_selection_fut, hn, cn)
-                pred_decoding = self.DecGRN(fut_LSTM)
+                fut_RNN = self.DecRNN(variable_selection_fut, hn)
+                pred_decoding = self.DecGRN(fut_RNN)
                 pred_decoded = self.Decoder(pred_decoding, encoded, encoded)
-                out = self.postTransformer(pred_decoded, pred_decoding, fut_LSTM)
+                out = self.postTransformer(pred_decoded, pred_decoding, fut_RNN)
                 out = self.outLinear(out) # [B, tau, self.mul]
                 # self.mul, by assert in __init__, ==1 or ==3
                 if self.mul==1:
@@ -204,10 +200,10 @@ class TFT(Base):
         else:
             # direct prediction mod
             variable_selection_fut = self.DecVariableSelection(embed_categorical_future)
-            fut_LSTM = self.DecLSTM(variable_selection_fut, hn, cn)
-            decoding = self.DecGRN(fut_LSTM)
+            fut_RNN = self.DecRNN(variable_selection_fut, hn)
+            decoding = self.DecGRN(fut_RNN)
             decoded = self.Decoder(decoding, encoded, encoded)
-            out = self.postTransformer(decoded, decoding, fut_LSTM)
+            out = self.postTransformer(decoded, decoding, fut_RNN)
             out = self.outLinear(out)
             B, L, _ = out.shape
             return out.reshape(B,L,-1,self.mul)

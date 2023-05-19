@@ -8,12 +8,12 @@ scheduler_config:
 
 optim_config:
   lr: 0.00005
-  weight_decay: 0.01
+  weight_decay: 0.0
 
 model_configs:
   past_steps: 16
   future_steps: 16
-  quantiles: [] #[0.1,0.5,0.9]
+  quantiles: [0.1,0.5,0.9]
   past_channels : null #dataset dependent
   future_channels : null #dataset dependent
   embs: null #dataset dependent
@@ -54,7 +54,7 @@ defaults:
 hydra:
   launcher:
     submitit_folder: ${hydra.sweep.dir}/.submitit/%j
-    timeout_min: 600
+    timeout_min: 6000
     partition: gpu-V100
     mem_gb: 6
     nodes: 1
