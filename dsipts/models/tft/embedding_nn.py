@@ -524,14 +524,14 @@ class Decoder_RNN(nn.Module):
         self.type_RNN = type_RNN
         self.n_layers_RNN = n_layers_RNN
         self.hidden_size = d_model
-        if type_RNN == 0:
+        if type_RNN == 'lstm':
             self.RNN = nn.LSTM(input_size=d_model, hidden_size=self.hidden_size, num_layers=self.n_layers_RNN, 
                                batch_first=True, bias=False, dropout=dropout)
-        elif type_RNN == 1:
+        elif type_RNN == 'gru':
             self.RNN = nn.GRU(input_size=d_model, hidden_size=self.hidden_size, num_layers=self.n_layers_RNN, 
                               batch_first=True, bias=False, dropout=dropout)
         else:
-            raise Exception("NO VALID RNN TYPE\n > Check the spell")
+            raise Exception(f"NO VALID {type_RNN} RNN TYPE\n > Check the spell")
         self.dropout = nn.Dropout(dropout)
         self.LSTM_enc_GLU = GLU(d_model)
         self.norm = nn.LayerNorm(d_model)
