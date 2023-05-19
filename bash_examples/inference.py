@@ -71,10 +71,17 @@ def inference(conf:DictConfig)->List[pd.DataFrame]:
             res : containing the predictions
             losses : containing the losses during the train
     """
-    ##OCCHIO CHE tutti questi dataset hanno y come target! ###############################################
-    data, columns = read_public_dataset(**conf.dataset)
-    ts = TimeSeries(conf.ts.name)
-    ts.load_signal(data, enrich_cat= conf.ts.enrich,target_variables=['y'], past_variables=columns)
+    if conf.dataset.dataset == 'edison':
+        from load_data.load_data_edison import load_data
+    elif conf.dataset.dataset == 'incube': 
+        from load_data.load_data_incube import load_data
+    else:
+        from load_data.load_data_public import load_data
+    ts = load_data(conf)
+
+    #data, columns = read_public_dataset(**conf.dataset)
+    #ts = TimeSeries(conf.ts.name)
+    #ts.load_signal(data, enrich_cat= conf.ts.enrich,target_variables=['y'], past_variables=columns)
     ######################################################################################################
     
 

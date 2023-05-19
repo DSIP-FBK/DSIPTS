@@ -123,11 +123,11 @@ def compare(conf:DictConfig)-> None:
     
 if __name__ == '__main__': 
  
-    parser = argparse.ArgumentParser(description="Train TS models")
-    parser.add_argument("-c", "--config", type=str, help="configurastion file")
-    args = parser.parse_args()
-    conf = OmegaConf.load(args.config) 
-
-    compare(conf)
+    parser = argparse.ArgumentParser(description="Compare TS models")
+    #parser.add_argument("-c", "--config", type=str, help="configurastion file")
+    #args = parser.parse_args()
+    #conf = OmegaConf.load(args.config) 
+    compare()
+    #compare(conf)
         
   

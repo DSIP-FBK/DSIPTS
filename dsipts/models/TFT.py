@@ -25,7 +25,7 @@ class TFT(Base):
                  n_layer_decoder:int,
                  num_layers_RNN:int,
                  out_channels:int,
-                 type_RNN: int,
+                 kind: str,
                  quantiles:List[float]=[],
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
@@ -52,6 +52,7 @@ class TFT(Base):
             n_layer_decoder (int): _description_
             num_layers_RNN (int): _description_
             out_channels (int): _description_
+            kind (str): gru or lstm layer
             quantiles (List[int], optional): _description_. Defaults to [].
             optim_config (dict, optional): _description_. Defaults to None.
             scheduler_config (dict, optional): _description_. Defaults to None.
@@ -63,7 +64,7 @@ class TFT(Base):
         # strategy applied
         self.use_target_past = use_target_past
         self.use_yprec_fut = use_yprec_fut
-        self.type_RNN = type_RNN
+        self.type_RNN = kind
         
         # params for structure of data and model
         self.past_steps = past_steps
@@ -85,13 +86,13 @@ class TFT(Base):
 
         # - Encoder (past)
         self.EncVariableSelection = embedding_nn.Encoder_Var_Selection(self.use_target_past, len(embs)+3, past_channels, d_model, dropout)
-        self.EncRNN = embedding_nn.Encoder_RNN(type_RNN, num_layers_RNN, d_model, dropout)
+        self.EncRNN = embedding_nn.Encoder_RNN(self.type_RNN, num_layers_RNN, d_model, dropout)
         self.EncGRN = embedding_nn.GRN(d_model, dropout)
         self.Encoder = encoder.Encoder(n_layer_encoder, d_model, num_heads, self.head_size, fw_exp, dropout)
         
         # - Decoder (future)
         self.DecVariableSelection = embedding_nn.Decoder_Var_Selection(self.use_yprec_fut, len(embs)+3, out_channels+1, d_model, dropout)
-        self.DecRNN = embedding_nn.Decoder_RNN(type_RNN, num_layers_RNN, d_model, dropout)
+        self.DecRNN = embedding_nn.Decoder_RNN(self.type_RNN, num_layers_RNN, d_model, dropout)
         self.DecGRN = embedding_nn.GRN(d_model, dropout)
         self.Decoder = decoder.Decoder(n_layer_decoder, d_model, num_heads, self.head_size, fw_exp, future_steps, dropout)
         

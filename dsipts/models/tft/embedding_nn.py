@@ -368,11 +368,12 @@ class Encoder_Var_Selection(nn.Module): # input already embedded
     #     return var_sel_wei
 
 class Encoder_RNN(nn.Module):
-    def __init__(self, type_RNN: int, n_layers_RNN: int, d_model: int, dropout: float):
+    def __init__(self, type_RNN: str, n_layers_RNN: int, d_model: int, dropout: float):
         """RNN Encoder with GLU, Add and Norm
         norm( x + RNN(dropout( LSTM(x) )) )
 
         Args:
+            type_RNN (str): gru or lstm
             n_layers_EncLSTM (int): number of layers involved by LSTM 
             d_model (int): model dimension
             dropout (float): -
@@ -381,10 +382,10 @@ class Encoder_RNN(nn.Module):
         self.type_RNN = type_RNN
         self.n_layers_RNN = n_layers_RNN
         self.hidden_size = d_model
-        if type_RNN == 0:
+        if type_RNN == 'lstm':
             self.RNN = nn.LSTM(input_size=d_model, hidden_size=self.hidden_size, num_layers=self.n_layers_RNN, 
                                batch_first=True, bias=False, dropout=dropout)
-        elif type_RNN == 1:
+        elif type_RNN == 'gru':
             self.RNN = nn.GRU(input_size=d_model, hidden_size=self.hidden_size, num_layers=self.n_layers_RNN, 
                               batch_first=True, bias=False, dropout=dropout)
         else:
@@ -405,15 +406,16 @@ class Encoder_RNN(nn.Module):
         """
         # init and move to device h0 and c0 of RNN 
         device = x.device.type
-        if self.type_RNN == 0:
+        if self.type_RNN == 'lstm':
             h0 = torch.zeros(self.n_layers_RNN, x.size(0), x.size(2)).to(device)
             c0 = torch.zeros(self.n_layers_RNN, x.size(0), x.size(2)).to(device)
             # computations
             rnn_enc, hn = self.RNN(x, (h0,c0))
-        elif self.type_RNN == 1:
+        elif self.type_RNN == 'gru':
             h0 = torch.zeros(self.n_layers_RNN, x.size(0), x.size(2)).to(device)
             rnn_enc, hn = self.RNN(x, h0)
-
+        else:
+            raise Exception("NO VALID RNN TYPE\n > Check the spell")
         rnn_enc = self.dropout(rnn_enc)
         output_enc = self.norm(self.RNN_enc_GLU(rnn_enc) + x)
         return output_enc, hn
@@ -508,11 +510,12 @@ class Decoder_Var_Selection(nn.Module): # input already embedded
     #     return var_sel_wei
     
 class Decoder_RNN(nn.Module):
-    def __init__(self, type_RNN: int, n_layers_RNN: int, d_model: int, dropout: float):
+    def __init__(self, type_RNN: str, n_layers_RNN: int, d_model: int, dropout: float):
         """RNN Decoder with GLU, Add and Norm
         norm( x + GLU(dropout( LSTM(x) )) )
 
         Args:
+            type_RNN (str): lstm or gru
             n_layers_LSTM (int): number of layers involved by LSTM 
             d_model (int): model dimension
             dropout (float): -
