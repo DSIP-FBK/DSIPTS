@@ -4,6 +4,7 @@ dirpath: "/home/agobbi/Projects/ExpTS"
 set: 'test'
 name: 'prova'
 rescaling: false
+batch_size: 128
 
 defaults:
   - _self_

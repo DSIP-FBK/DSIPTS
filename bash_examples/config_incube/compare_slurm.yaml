@@ -4,6 +4,7 @@ dirpath: "/home/agobbi/Projects/ExpTS/incube"
 set: 'test'
 name: 'prova'
 rescaling: true
+batch_size: 128
 
 defaults:
   - _self_
