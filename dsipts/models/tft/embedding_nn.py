@@ -389,7 +389,7 @@ class Encoder_RNN(nn.Module):
             self.RNN = nn.GRU(input_size=d_model, hidden_size=self.hidden_size, num_layers=self.n_layers_RNN, 
                               batch_first=True, bias=False, dropout=dropout)
         else:
-            raise Exception("NO VALID RNN TYPE\n > Check the spell")
+            raise Exception(f"NO VALID {type_RNN} RNN TYPE\n > Check the spell")
 
         self.dropout = nn.Dropout(dropout)
         self.RNN_enc_GLU = GLU(d_model)
@@ -415,7 +415,7 @@ class Encoder_RNN(nn.Module):
             h0 = torch.zeros(self.n_layers_RNN, x.size(0), x.size(2)).to(device)
             rnn_enc, hn = self.RNN(x, h0)
         else:
-            raise Exception("NO VALID RNN TYPE\n > Check the spell")
+            raise Exception(f"NO VALID {self.type_RNN} RNN TYPE\n > Check the spell")
         rnn_enc = self.dropout(rnn_enc)
         output_enc = self.norm(self.RNN_enc_GLU(rnn_enc) + x)
         return output_enc, hn
