@@ -40,7 +40,7 @@ optim_config:
   weight_decay: 0.001
 
 train_config:
-  batch_size: 20
+  batch_size: 16
   max_epochs: 250
   auto_lr_find: false                 
 
