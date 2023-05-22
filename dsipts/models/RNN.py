@@ -172,7 +172,7 @@ class RNN(Base):
         if 'x_cat_past' in batch.keys():
             cat_past = batch['x_cat_past'].to(self.device)
         if 'x_num_future' in batch.keys():
-            x_future = batch['x_num_past'].to(self.device)
+            x_future = batch['x_num_future'].to(self.device)
         else:
             x_future = None
             

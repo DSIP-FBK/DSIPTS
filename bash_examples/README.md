@@ -224,7 +224,7 @@ If the row `override hydra/launcher: joblib` is commented the train will be cons
 Once the models are trained, the relative full configurations are saved in `config_used` and can be used for inference or comparison:
 
 ```
-python compare.py -c config/compare.yaml
+python compare.py --config-dir=config_weather --config-name=compare
 
 ```
 where the compare file is:
@@ -234,7 +234,7 @@ dirpath: "/home/agobbi/Projects/ExpTS" ## where are store the models and where t
 set: 'test'                            ## set to test 
 name: 'prova'
 rescaling: false                       ## sometimes want to get the MSE on the scaled data
-
+batch_size: 32                         ## batch size for the dataloader
 ```
 
 or:
