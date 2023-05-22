@@ -3,5 +3,5 @@ models: 'config_edison'
 dirpath: "/home/agobbi/Projects/ExpTS/edison"
 set: 'test'
 name: 'prova'
-rescaling: false
+rescaling: true
 batch_size: 32
