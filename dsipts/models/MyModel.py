@@ -190,7 +190,7 @@ class MyModel(Base):
             print('Specify kind= lstm or gru please')
         self.final_linear = nn.ModuleList()
         for _ in range(out_channels*self.mul):
-            self.final_linear.append(nn.Sequential(nn.Linear(hidden_RNN//2+emb_channels,hidden_RNN//4), 
+            self.final_linear.append(nn.Sequential(nn.Linear(hidden_RNN//2+emb_channels+future_channels,hidden_RNN//4), 
                                             activation(),
                                             Permute() if use_bn else nn.Identity() ,
                                             nn.BatchNorm1d(hidden_RNN//4) if use_bn else nn.Dropout(dropout_rate) ,
@@ -323,8 +323,8 @@ class MyModel(Base):
             tmp = torch.cat([tot,out],axis=2)
         else:
             tmp = out
-        import pdb
-        pdb.set_trace()
+        #import pdb
+        #pdb.set_trace()
         for j in range(self.out_channels*self.mul):
             res.append(self.final_linear[j](tmp))
 
