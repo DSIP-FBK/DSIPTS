@@ -344,7 +344,7 @@ class MyModel(Base):
             if x_future is not None:
                 for i in range(len(self.future_glu)):
                     x_future[:,:,i],score = self.future_glu[i](xf[:,:,i])
-                    score_future+=score
+                    score_future_tot+=score
                 score_future_tot/=len(self.future_glu)
             score = 0.5*(score_past_tot+score_future_tot)
         tmp = [self.initial_linear_encoder(x)]
