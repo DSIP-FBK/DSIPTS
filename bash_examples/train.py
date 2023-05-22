@@ -162,16 +162,17 @@ def train(conf: DictConfig) -> None:
     split_params['future_steps'] = model_conf['future_steps']
     ##save now so we can use it during the trainin step (or use intermediate pth files)
     ts.save(os.path.join(conf.train_config.dirpath,'model'))
-    valid_loss = ts.train_model(split_params=split_params,**conf.train_config)
-    ts.save(os.path.join(conf.train_config.dirpath,'model'))
-    ##save the config for the comparison task
-    
+
+    ##save the config for the comparison task before training so we can get predictions during the training procedure
     path =  HydraConfig.get()['runtime']['config_sources'][1]['path']
     used_config = os.path.join(path,'config_used')
     if not os.path.exists(used_config):
         os.mkdir(used_config)
     with open(os.path.join(used_config,selection+'.yaml'),'w') as f:
         f.write(OmegaConf.to_yaml(conf))
+        
+    valid_loss = ts.train_model(split_params=split_params,**conf.train_config)
+    ts.save(os.path.join(conf.train_config.dirpath,'model'))
     return valid_loss ##for optuna!    
         
 if __name__ == '__main__': 
