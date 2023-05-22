@@ -6,6 +6,40 @@ from .utils import QuantileLossMO,Permute, get_device,L1Loss, get_activation
 from typing import List
 import numpy as np
 import logging
+torch.autograd.set_detect_anomaly(True)
+
+class GLU(nn.Module):
+    def __init__(self, d_model: int):
+        """Gated Linear Unit, 'Gate' block in TFT paper 
+        Sub net of GRN: linear(x) * sigmoid(linear(x))
+        No dimension changes
+
+        Args:
+            d_model (int): model dimension
+        """
+        super().__init__()
+        self.linear = nn.Linear(d_model, d_model)
+        self.activation = nn.ReLU6()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Gated Linear Unit
+        Sub net of GRN: linear(x) * sigmoid(linear(x))
+        No dimension changes: [bs, seq_len, d_model]
+
+        Args:
+            x (torch.Tensor)
+
+        Returns:
+            torch.Tensor
+        """
+
+        ##here comes something like BSxL
+        x1 = (self.activation(self.linear(x.unsqueeze(2)))/6.0).squeeze()
+        out = x1*x #element-wise multiplication
+        
+        ##get the score
+        score = torch.sign(x1).mean()
+        return out,score
 
 class Block(nn.Module):
     def __init__(self,input_channels:int,kernel_sie:int,output_channels:int,input_size:int,sum_layers:bool ):
@@ -61,7 +95,9 @@ class MyModel(Base):
                  quantiles:List[int]=[],
                  dropout_rate:float=0.1,
                  use_bn:bool=False,
-                  n_classes:int=0,
+                 use_glu:bool=True,
+                 glu_percentage: float=1.0,
+                 n_classes:int=0,
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
         """ Custom encoder-decoder 
@@ -84,6 +120,8 @@ class MyModel(Base):
             quantiles (List[int], optional): we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
             dropout_rate (float, optional): dropout rate in Dropout layers
             use_bn (bool, optional): if true BN layers will be added and dropouts will be removed
+            use_glu (bool,optional): use GLU for feature selection. Defaults to True.
+            glu_percentage (float, optiona): percentage of features to use. Defaults to 1.0.
             n_classes (int): number of classes (0 in regression)
 
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
@@ -111,6 +149,7 @@ class MyModel(Base):
         self.embs = nn.ModuleList()
         self.sum_emb = sum_emb
         self.kind = kind
+        self.use_glu = use_glu
         self.out_channels = out_channels
         if n_classes==0:
             self.is_classification = False
@@ -143,6 +182,16 @@ class MyModel(Base):
             logging.info('Using sum')
         else:
             logging.info('Using stacked')
+    
+
+        if self.use_glu:
+            self.past_glu = nn.ModuleList()
+            self.future_glu = nn.ModuleList()
+            for i in range(past_channels):
+                self.past_glu.append(GLU(1))
+            
+            for i in range(future_channels):
+                self.future_glu.append(GLU(1))
     
         self.initial_linear_encoder =  nn.Sequential(Permute(),
                                                     nn.Conv1d(past_channels, (past_channels+hidden_RNN//8)//2, kernel_size, stride=1,padding='same'),
@@ -215,7 +264,7 @@ class MyModel(Base):
         
         :meta private:
         """
-        y_hat = self(batch)
+        y_hat,score = self(batch)
         
         mse_loss = self.loss(y_hat, batch['y'])
         x =  batch['x_num_past'].to(self.device)
@@ -240,8 +289,9 @@ class MyModel(Base):
             loss = torch.exp(torch.mean(torch.log(torch.pow(y_hat[:,:,:,idx],2)+0.001)-torch.log(torch.pow(batch['y'],2)+0.001))*0.5)
         else:
             loss = mse_loss
-        
-        return loss
+        #import pdb
+        #pdb.set_trace()
+        return loss+score*loss/10.0 ##tipo persa il 10%
     def training_step(self, batch, batch_idx):
         """
         pythotrch lightening stuff
@@ -268,15 +318,35 @@ class MyModel(Base):
             torch.tensor: result
         """
         x =  batch['x_num_past'].to(self.device)
-        
         if 'x_cat_future' in batch.keys():
             cat_future = batch['x_cat_future'].to(self.device)
         if 'x_cat_past' in batch.keys():
             cat_past = batch['x_cat_past'].to(self.device)
         if 'x_num_future' in batch.keys():
             x_future = batch['x_num_future'].to(self.device)
+            xf = torch.clone(x_future)
         else:
-            x_future = None  
+            x_future = None     
+            
+        ## first GLU
+        score = 0
+        xp =  torch.clone(x)
+        
+        if self.use_glu:
+            score_past_tot = 0
+            score_future_tot = 0
+            
+            for i in range(len(self.past_glu)):
+                x[:,:,i],score = self.past_glu[i](xp[:,:,i])
+                score_past_tot+=score
+            score_past_tot/=len(self.past_glu)
+            
+            if x_future is not None:
+                for i in range(len(self.future_glu)):
+                    x_future[:,:,i],score = self.future_glu[i](xf[:,:,i])
+                    score_future+=score
+                score_future_tot/=len(self.future_glu)
+            score = 0.5*(score_past_tot+score_future_tot)
         tmp = [self.initial_linear_encoder(x)]
         
         for i in range(len(self.embs)):
@@ -333,6 +403,10 @@ class MyModel(Base):
         B = res.shape[0]
         
       
-        return res.reshape(B,self.future_steps,-1,self.mul)
+        return res.reshape(B,self.future_steps,-1,self.mul), score
 
-    
+    def inference(self, batch:dict)->torch.tensor:
+        
+        res, score = self(batch)
+        logging.info(score)
+        return res
