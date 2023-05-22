@@ -2,7 +2,7 @@
 
 model:
   type: 'mymodel'
-  retrain: false
+  retrain: true
 ts:
   name: 'mymodel'
   version: 1
@@ -10,16 +10,15 @@ ts:
   use_covariates: true
 
 model_configs:
-  cat_emb_dim: 64
-  hidden_RNN: 1024
-  num_layers_RNN: 2
+  cat_emb_dim: 4
+  hidden_RNN: 16
+  num_layers_RNN: 1
   kernel_size: 3
   kind: 'gru'
   sum_emb: true
   persistence_weight: 0.2
   use_bn: false
   use_glu: true
-
   quantiles: [0.1,0.5,0.9]
 
   activation: 'relu'
@@ -27,6 +26,6 @@ model_configs:
 
 train_config:
   batch_size: 128
-  max_epochs: 250
+  max_epochs: 2
   gradient_clip_val: null
   gradient_clip_algorithm: 'norm'
