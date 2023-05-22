@@ -4,3 +4,4 @@ dirpath: "/home/agobbi/Projects/ExpTS/edison"
 set: 'test'
 name: 'prova'
 rescaling: false
+batch_size: 32
