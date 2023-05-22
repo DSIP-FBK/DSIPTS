@@ -2,7 +2,7 @@
 
 model:
   type: 'tft'
-  retrain: false
+  retrain: true
 ts:
   name: 'tft'
   version: 1
@@ -20,11 +20,11 @@ model_configs:
   fw_exp: 3
   n_layer_encoder: 3
   n_layer_decoder: 3
-  num_layers_RNN: 3
+  num_layers_RNN: 5
   kind: gru
   use_target_past: True
   use_yprec_fut: True
-
+  quantiles: [0.1,0.5,0.9]
 
 train_config:
   batch_size: 64

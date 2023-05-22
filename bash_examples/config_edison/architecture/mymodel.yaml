@@ -18,6 +18,8 @@ model_configs:
   sum_emb: true
   persistence_weight: 0.2
   use_bn: false
+  quantiles: [0.1,0.5,0.9]
+
   activation: 'relu'
   loss_type: 'linear_penalization'
 

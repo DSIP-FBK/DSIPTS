@@ -2,7 +2,7 @@
 
 model:
   type: 'd3vae'
-  retrain: false
+  retrain: true
 ts:
   name: 'd3vae'
   version: 1
@@ -41,7 +41,7 @@ optim_config:
 
 train_config:
   batch_size: 16
-  max_epochs: 100
+  max_epochs: 200
   auto_lr_find: false                 
 
 
