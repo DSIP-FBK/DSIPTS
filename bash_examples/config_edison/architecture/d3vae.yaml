@@ -43,5 +43,6 @@ train_config:
   batch_size: 16
   max_epochs: 250
   auto_lr_find: false                 
+  num_workers: 8
 
 
