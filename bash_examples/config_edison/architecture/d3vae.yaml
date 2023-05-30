@@ -41,7 +41,7 @@ optim_config:
 
 train_config:
   batch_size: 16
-  max_epochs: 250
+  max_epochs: 1 ##don't want to train now
   auto_lr_find: false                 
   num_workers: 8
 
