@@ -19,6 +19,7 @@ model_configs:
   persistence_weight: 0.2
   use_bn: false
   use_glu: true
+  glu_percentage: 0.2
 
   quantiles: [0.1,0.5,0.9]
 

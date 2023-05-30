@@ -150,6 +150,7 @@ class MyModel(Base):
         self.sum_emb = sum_emb
         self.kind = kind
         self.use_glu = use_glu
+        self.glu_percentage = glu_percentage
         self.out_channels = out_channels
         if n_classes==0:
             self.is_classification = False
@@ -291,7 +292,7 @@ class MyModel(Base):
             loss = mse_loss
         #import pdb
         #pdb.set_trace()
-        return loss+score*loss/10.0 ##tipo persa il 10%
+        return loss+torch.abs(score-self.glu_percentage)*loss/5.0 ##tipo persa il 20%
     def training_step(self, batch, batch_idx):
         """
         pythotrch lightening stuff
@@ -364,7 +365,7 @@ class MyModel(Base):
         tot = torch.cat(tmp,2)
 
         out, hidden = self.Encoder(self.conv_encoder(tot))      
-
+        
         tmp = []
         for i in range(len(self.embs)):
             if self.sum_emb:

@@ -1,4 +1,4 @@
-models: config_test/config_used]
+models: config_test
 #models: ['config_used/linear.yaml']
 dirpath: "/home/agobbi/Projects/ExpTS"
 set: 'test'
