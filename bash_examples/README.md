@@ -239,10 +239,30 @@ batch_size: 32                         ## batch size for the dataloader
 
 or:
 ```
- python compare_slurm.py --config-dir=config_weather --config-name=compare_slurm -m
+ python compare.py --config-dir=config_weather --config-name=compare_slurm -m
 ```
 
-if you are in a SLURM cluster.
+if you are in a SLURM cluster where che `compare_slurm.yaml` file must contain also something like:
+
+```
+defaults:
+  - _self_
+  - override hydra/launcher: submitit_slurm 
+
+hydra:
+  launcher:
+    submitit_folder: ${hydra.sweep.dir}/.submitit/%j
+    timeout_min: 600
+    partition: gpu-V100
+    mem_gb: 6
+    nodes: 1
+    gres: gpu:1
+    name: ${hydra.job.name}
+    _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
+    setup:
+      - conda activate tt     
+
+```
 
 In the `dirpath` folder `/home/agobbi/Projects/ExpTS/` there are three folder now: `weights` containing the model and the weights, `plots` containing some plots coming from the `compare` script and the `csv` forder containing the files.
 
