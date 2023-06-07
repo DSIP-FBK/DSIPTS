@@ -42,26 +42,24 @@ class GLU(nn.Module):
         return out,score
 
 class Block(nn.Module):
-    def __init__(self,input_channels:int,kernel_size:int,output_channels:int,input_size:int,sum_layers:bool,at_2_power:bool ):
+    def __init__(self,input_channels:int,kernel_size:int,output_channels:int,input_size:int,sum_layers:bool ):
     
     
         super(Block, self).__init__()
 
         self.dilations = nn.ModuleList()
-        if at_2_power:
-            self.steps = int(np.floor(np.log2(input_size)))-1
-        else:
-            self.steps = input_size//2 ##max l/2
+        self.steps = int(np.floor(np.log2(input_size)))-1
+
         if self.steps <=1:
             self.steps = 1
-        #dilation
+       
         for i in range(self.steps):
-            self.dilations.append(nn.Conv1d(input_channels, output_channels, kernel_size, stride=1,padding='same',dilation=2**i if at_2_power else i+1))
-        
-        #subsampling
-        for i in range(input_size-1):
-            self.dilations.append(nn.Conv1d(input_channels, output_channels, i+1, stride=1,padding='same'))
-        
+            #dilation
+            self.dilations.append(nn.Conv1d(input_channels, output_channels, kernel_size, stride=1,padding='same',dilation=2**i))
+            self.dilations.append(nn.Conv1d(input_channels, output_channels, 2**(i+1)+1, stride=2**i,padding='same'))
+      
+
+            
             
         self.sum_layers = sum_layers
         mul = 1 if sum_layers else self.steps 
@@ -107,7 +105,6 @@ class MyModel(Base):
                  use_bn:bool=False,
                  use_glu:bool=True,
                  glu_percentage: float=1.0,
-                 at_2_power: bool = False,
                  n_classes:int=0,
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
@@ -133,7 +130,6 @@ class MyModel(Base):
             use_bn (bool, optional): if true BN layers will be added and dropouts will be removed
             use_glu (bool,optional): use GLU for feature selection. Defaults to True.
             glu_percentage (float, optiona): percentage of features to use. Defaults to 1.0.
-            at_2_power (boolean, optiona): for  dilation convulution. If true only dilation of the form 2**x are checked otherwise all the lags till L/2
             n_classes (int): number of classes (0 in regression)
 
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
@@ -219,16 +215,16 @@ class MyModel(Base):
                                                     nn.BatchNorm1d(  (future_channels+hidden_RNN//8)//2) if use_bn else nn.Dropout(dropout_rate) ,
                                                     nn.Conv1d( (future_channels+hidden_RNN//8)//2, hidden_RNN//8, kernel_size, stride=1,padding='same'),
                                                     Permute())
-        self.conv_encoder = Block(emb_channels+hidden_RNN//8,kernel_size,hidden_RNN//4,self.past_steps,sum_emb,at_2_power)
+        self.conv_encoder = Block(emb_channels+hidden_RNN//8,kernel_size,hidden_RNN//4,self.past_steps,sum_emb)
         
         #nn.Sequential(Permute(), nn.Conv1d(emb_channels+hidden_RNN//8, hidden_RNN//8, kernel_size, stride=1,padding='same'),Permute(),nn.Dropout(0.3))
         #import pdb
         #pdb.set_trace()
         if future_channels+emb_channels==0:
             ## occhio che vuol dire che non ho passato , per ora ci metto una pezza e uso hidden dell'encoder
-            self.conv_decoder = Block(hidden_RNN//2,kernel_size,hidden_RNN//4,self.future_steps,sum_emb,at_2_power) 
+            self.conv_decoder = Block(hidden_RNN//2,kernel_size,hidden_RNN//4,self.future_steps,sum_emb) 
         else:
-            self.conv_decoder = Block(future_channels+emb_channels,kernel_size,hidden_RNN//4,self.future_steps,sum_emb,at_2_power) 
+            self.conv_decoder = Block(future_channels+emb_channels,kernel_size,hidden_RNN//4,self.future_steps,sum_emb) 
             #nn.Sequential(Permute(),nn.Linear(past_steps,past_steps*2),  nn.PReLU(),nn.Dropout(0.2),nn.Linear(past_steps*2, future_steps),nn.Dropout(0.3),nn.Conv1d(hidden_RNN, hidden_RNN//8, 3, stride=1,padding='same'),   Permute())
         if self.kind=='lstm':
             self.Encoder = nn.LSTM(input_size= self.conv_encoder.out_channels,#, hidden_RNN//4,
