@@ -162,7 +162,7 @@ class MyModel(Base):
         self.sum_emb = sum_emb
         self.kind = kind
         self.use_glu = use_glu
-        self.glu_percentage = glu_percentage
+        self.glu_percentage = torch.tensor(glu_percentage).to(self.device)
         self.out_channels = out_channels
         if n_classes==0:
             self.is_classification = False
