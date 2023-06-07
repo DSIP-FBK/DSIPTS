@@ -42,7 +42,7 @@ class GLU(nn.Module):
         return out,score
 
 class Block(nn.Module):
-    def __init__(self,input_channels:int,kernel_sie:int,output_channels:int,input_size:int,sum_layers:bool,at_2_power:bool ):
+    def __init__(self,input_channels:int,kernel_size:int,output_channels:int,input_size:int,sum_layers:bool,at_2_power:bool ):
     
     
         super(Block, self).__init__()
@@ -54,11 +54,18 @@ class Block(nn.Module):
             self.steps = input_size//2 ##max l/2
         if self.steps <=1:
             self.steps = 1
+        #dilation
         for i in range(self.steps):
-            self.dilations.append(nn.Conv1d(input_channels, output_channels, kernel_sie, stride=1,padding='same',dilation=2**i if at_2_power else i+1))
+            self.dilations.append(nn.Conv1d(input_channels, output_channels, kernel_size, stride=1,padding='same',dilation=2**i if at_2_power else i+1))
+        
+        #subsampling
+        for i in range(input_size-1):
+            self.dilations.append(nn.Conv1d(input_channels, output_channels, i+1, stride=1,padding='same'))
+        
+            
         self.sum_layers = sum_layers
         mul = 1 if sum_layers else self.steps 
-        self.conv_final = nn.Conv1d(output_channels*mul, output_channels*mul, kernel_sie, stride=1,padding='same')
+        self.conv_final = nn.Conv1d(output_channels*mul, output_channels*mul, kernel_size, stride=1,padding='same')
         self.out_channels = output_channels*mul
     def forward(self, x: torch.tensor) -> torch.tensor:
         x = Permute()(x)
