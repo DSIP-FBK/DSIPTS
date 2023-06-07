@@ -20,7 +20,7 @@ model_configs:
   use_bn: false
   use_glu: false
   glu_percentage: 0.2
-  at_2_power: false
+  at_2_power: true
   quantiles: [0.1,0.5,0.9]
 
   activation: 'relu'
