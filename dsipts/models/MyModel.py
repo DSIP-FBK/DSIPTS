@@ -212,7 +212,7 @@ class MyModel(Base):
                                                     nn.BatchNorm1d(  (future_channels+hidden_RNN//8)//2) if use_bn else nn.Dropout(dropout_rate) ,
                                                     nn.Conv1d( (future_channels+hidden_RNN//8)//2, hidden_RNN//8, kernel_size, stride=1,padding='same'),
                                                     Permute())
-        self.conv_encoder = Block(emb_channels+hidden_RNN//8,kernel_size,hidden_RNN//4,self.past_steps,sum_emb)
+        self.conv_encoder = Block(emb_channels+hidden_RNN//8,kernel_size,hidden_RNN//4,self.past_steps,sum_emb,at_2_power)
         
         #nn.Sequential(Permute(), nn.Conv1d(emb_channels+hidden_RNN//8, hidden_RNN//8, kernel_size, stride=1,padding='same'),Permute(),nn.Dropout(0.3))
         #import pdb
