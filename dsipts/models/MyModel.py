@@ -56,7 +56,8 @@ class Block(nn.Module):
         for i in range(self.steps):
             #dilation
             self.dilations.append(nn.Conv1d(input_channels, output_channels, kernel_size, stride=1,padding='same',dilation=2**i))
-            self.dilations.append(nn.Conv1d(input_channels, output_channels, 2**(i+1)+1, stride=2**i,padding='same'))
+            p = max((np.ceil(i / 2**i) - 1) * 2**i + (2**(i+1)+1 - 1) * input_size + 1 - i, 0)
+            self.dilations.append(nn.Conv1d(input_channels, output_channels, 2**(i+1)+1, stride=2**i,padding=p))
       
 
             
