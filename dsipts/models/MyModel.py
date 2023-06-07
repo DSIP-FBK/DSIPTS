@@ -56,20 +56,23 @@ class Block(nn.Module):
         for i in range(self.steps):
             #dilation
             self.dilations.append(nn.Conv1d(input_channels, output_channels, kernel_size, stride=1,padding='same',dilation=2**i))
-            p = max((np.ceil(i / 2**i) - 1) * 2**i + (2**(i+1)+1 - 1) * input_size + 1 - i, 0)
-            self.dilations.append(nn.Conv1d(input_channels, output_channels, 2**(i+1)+1, stride=2**i,padding=p))
+            s = 2**(i+1)-1
+            k = 2**(i+1)+1
+            p = int(((s-1)*input_size + k - 1)/2)
+            self.dilations.append(nn.Conv1d(input_channels, output_channels, k, stride=s,padding=p))
       
 
             
             
         self.sum_layers = sum_layers
-        mul = 1 if sum_layers else self.steps 
+        mul = 1 if sum_layers else self.steps*2 
         self.conv_final = nn.Conv1d(output_channels*mul, output_channels*mul, kernel_size, stride=1,padding='same')
         self.out_channels = output_channels*mul
     def forward(self, x: torch.tensor) -> torch.tensor:
         x = Permute()(x)
         tmp = []
         for i in range(self.steps):
+
             tmp.append(self.dilations[i](x))
 
         if self.sum_layers:
