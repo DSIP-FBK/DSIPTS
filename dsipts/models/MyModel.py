@@ -421,5 +421,5 @@ class MyModel(Base):
     def inference(self, batch:dict)->torch.tensor:
         
         res, score = self(batch)
-        logging.info(score)
+        logging.info(score)  ##????
         return res
