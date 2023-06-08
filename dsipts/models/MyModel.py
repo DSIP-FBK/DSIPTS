@@ -289,8 +289,7 @@ class MyModel(Base):
         #pdb.set_trace()
         if self.loss_type == 'linear_penalization':
             idx = 1 if self.use_quantiles else 0
-       
-            persistence_error = self.persistence_weight/torch.sqrt(torch.abs(y_persistence-y_hat[:,:,:,idx])+1)
+            persistence_error = self.persistence_weight*(2.0-10.0*torch.clamp( torch.abs((y_persistence-y_hat[:,:,:,idx])/(0.001+torch.abs(y_persistence))),min=0.0,max=0.1))
             loss = torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y'])*persistence_error)
             #loss = self.persistence_weight*persistence_loss + (1-self.persistence_weight)*mse_loss
         elif self.loss_type == 'inverse_penalization':
