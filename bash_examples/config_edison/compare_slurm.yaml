@@ -1,6 +1,6 @@
 #models: ['config_used/attention.yaml','config_used/persistent.yaml','config_used/linear.yaml','config_used/dlinear.yaml','config_used/nlinear.yaml','config_used/lstm.yaml','config_used/gru.yaml']
 #models: 'config_edison'
-models:  ['config_used/linear_1.yaml','config_used/mymodel_1.yaml','config_used/persistent_1.yaml']
+models:  ['config_edison/config_used/linear_1.yaml','config_edison/config_used/mymodel_1.yaml','config_edison/config_used/persistent_1.yaml']
 
 dirpath: "/home/agobbi/Projects/ExpTS/edison"
 set: 'test'
