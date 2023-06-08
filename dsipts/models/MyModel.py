@@ -306,7 +306,7 @@ class MyModel(Base):
             loss = mse_loss
         #import pdb
         #pdb.set_trace()
-        return loss+torch.abs(score-self.glu_percentage)*loss/5.0 ##tipo persa il 20%
+        return loss#+torch.abs(score-self.glu_percentage)*loss/5.0 ##tipo persa il 20%
     def training_step(self, batch, batch_idx):
         """
         pythotrch lightening stuff
