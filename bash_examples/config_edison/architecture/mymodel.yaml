@@ -11,13 +11,13 @@ ts:
 
 model_configs:
   cat_emb_dim: 32
-  hidden_RNN: 256
-  num_layers_RNN: 2
-  kernel_size: 3
+  hidden_RNN: 128
+  num_layers_RNN: 4
+  kernel_size: 5
   kind: 'gru'
   sum_emb: true
   persistence_weight: 1.0
-  use_bn: false
+  use_bn: true
   use_glu: false
   glu_percentage: 0.2
   quantiles: [0.1,0.5,0.9]
