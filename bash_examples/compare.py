@@ -35,7 +35,7 @@ def compare(conf:DictConfig)-> None:
     tot_losses = []
     tot_predictions = []
     
-    if type( conf.models)==list or type( conf.models)==ListConfig:
+    if (type( conf.models)==list) or (type( conf.models)==ListConfig):
         files =  conf.models
     
     elif os.path.isdir(conf.models):
