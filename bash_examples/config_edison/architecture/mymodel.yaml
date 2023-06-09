@@ -10,13 +10,13 @@ ts:
   use_covariates: true
 
 model_configs:
-  cat_emb_dim: 256
+  cat_emb_dim: 128
   hidden_RNN: 256
   num_layers_RNN: 4
   kernel_size: 5
   kind: 'gru'
   sum_emb: true
-  persistence_weight: 6
+  persistence_weight: 100
   use_bn: true
   use_glu: false
   glu_percentage: 0.2
@@ -26,7 +26,7 @@ model_configs:
   loss_type: 'linear_penalization'
 
 train_config:
-  batch_size: 128
+  batch_size: 64
   max_epochs: 250
   gradient_clip_val: null
   gradient_clip_algorithm: 'norm'
