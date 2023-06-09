@@ -12,9 +12,9 @@ ts:
 model_configs:
   cat_emb_dim: 128
   hidden_RNN: 256
-  num_layers_RNN: 4
+  num_layers_RNN: 2
   kernel_size: 5
-  kind: 'gru'
+  kind: 'lstm'
   sum_emb: true
   persistence_weight: 100
   use_bn: true
