@@ -16,8 +16,8 @@ model_configs:
   kernel_size: 5
   kind: 'gru'
   sum_emb: true
-  persistence_weight: 2
-  use_bn: false
+  persistence_weight: 0.5
+  use_bn: true
   use_glu: false
   glu_percentage: 0.2
   quantiles: [0.1,0.5,0.9]
