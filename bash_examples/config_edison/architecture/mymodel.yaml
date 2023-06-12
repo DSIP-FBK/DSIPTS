@@ -14,15 +14,15 @@ model_configs:
   hidden_RNN: 512
   num_layers_RNN: 8
   kernel_size: 5
-  kind: 'lstm'
+  kind: 'gru'
   sum_emb: true
   persistence_weight: 2
-  use_bn: true
+  use_bn: false
   use_glu: false
   glu_percentage: 0.2
   quantiles: [0.1,0.5,0.9]
 
-  activation: 'relu'
+  activation: 'selu'
   loss_type: 'linear_penalization'
 
 train_config:
