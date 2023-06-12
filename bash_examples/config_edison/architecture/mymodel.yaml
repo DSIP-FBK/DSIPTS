@@ -17,7 +17,7 @@ model_configs:
   kind: 'gru'
   sum_emb: true
   persistence_weight: 0.5
-  use_bn: true
+  use_bn: false
   use_glu: false
   glu_percentage: 0.2
   quantiles: [0.1,0.5,0.9]
