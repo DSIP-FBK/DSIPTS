@@ -3,7 +3,8 @@ from torch import  nn
 import torch
 from .base import Base
 from .utils import QuantileLossMO,Permute, get_device,L1Loss, get_activation
-from typing import List
+from typing import List, Union
+
 import numpy as np
 import logging
 torch.autograd.set_detect_anomaly(True)
@@ -110,6 +111,7 @@ class MyModel(Base):
                  use_glu:bool=True,
                  glu_percentage: float=1.0,
                  n_classes:int=0,
+                 optim:Union[str,None]=None,
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
         """ Custom encoder-decoder 
@@ -182,6 +184,7 @@ class MyModel(Base):
             #assert out_channels==1, "Classification require only one channel"
         
         emb_channels = 0
+        self.optim = optim
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
 

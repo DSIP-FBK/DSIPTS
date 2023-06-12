@@ -56,7 +56,14 @@ class Base(pl.LightningModule):
         
         :meta private:
         """
-        optimizer = optim.Adam(self.parameters(),  **self.optim_config)
+
+        if self.optim is None:
+            optimizer = optim.Adam(self.parameters(),  **self.optim_config)
+        else:
+            self.optim = eval(self.optim)
+            print(self.optim)
+            optimizer = self.optim(self.parameters(),  **self.optim_config)
+            
         self.lr = self.optim_config['lr']
         if self.scheduler_config is not None:
             scheduler = StepLR(optimizer,**self.scheduler_config)

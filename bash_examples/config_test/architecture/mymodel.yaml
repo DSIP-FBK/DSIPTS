@@ -21,7 +21,7 @@ model_configs:
   use_glu: true
   glu_percentage: 0.2
   quantiles: [0.1,0.5,0.9]
-
+  optim: torch.optim.SGD
   activation: 'relu'
   loss_type: 'linear_penalization'
 
