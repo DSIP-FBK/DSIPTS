@@ -63,7 +63,9 @@ class Base(pl.LightningModule):
             optimizer = optim.Adam(self.parameters(),  **self.optim_config)
             self.initialize = True
         else:
-            self.optim = eval(self.optim)
+            ##this is strange, pytorch lighening call twice this if autotune is true
+            if self.initialize==False:
+                self.optim = eval(self.optim)
             print(self.optim)
             optimizer = self.optim(self.parameters(),  **self.optim_config)
             self.initialize = True
