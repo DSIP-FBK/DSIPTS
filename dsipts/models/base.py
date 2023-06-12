@@ -20,6 +20,7 @@ class Base(pl.LightningModule):
         super(Base, self).__init__()
         self.save_hyperparameters(logger=False)
         self.count_epoch = 0
+        self.initialize = False
     @abstractmethod
     def forward(self, batch:dict)-> torch.tensor:
         """Forlward method used during the training loop
@@ -57,13 +58,15 @@ class Base(pl.LightningModule):
         :meta private:
         """
         #import pdb;pdb.set_trace()
+        
         if self.optim is None:
             optimizer = optim.Adam(self.parameters(),  **self.optim_config)
+            self.initialize = True
         else:
             self.optim = eval(self.optim)
             print(self.optim)
             optimizer = self.optim(self.parameters(),  **self.optim_config)
-            
+            self.initialize = True
         self.lr = self.optim_config['lr']
         if self.scheduler_config is not None:
             scheduler = StepLR(optimizer,**self.scheduler_config)
