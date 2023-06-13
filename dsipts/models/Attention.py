@@ -48,8 +48,8 @@ class Attention(Base):
                  out_channels:int,
                  quantiles:List[int]=[],
                  n_classes:int=0,
-                 optim_config:dict=None
-                 ,scheduler_config:dict=None)->None:
+                 optim_config:dict=None,
+                 scheduler_config:dict=None)->None:
         """ Attention model. Using an encoder (past) decoder (future) with cross attention and masks. 
             helping classes (Categorical for instance).
 

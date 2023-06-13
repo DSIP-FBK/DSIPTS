@@ -11,8 +11,8 @@ ts:
 
 model_configs:
   cat_emb_dim: 256
-  hidden_RNN: 512
-  num_layers_RNN: 8
+  hidden_RNN: 128
+  num_layers_RNN: 4
   kernel_size: 5
   kind: 'gru'
   sum_emb: true
@@ -22,7 +22,7 @@ model_configs:
   glu_percentage: 0.2
   quantiles: [0.1,0.5,0.9]
   optim: torch.optim.SGD
-  activation: 'selu'
+  activation: torch.nn.LeakyReLU
   loss_type: 'linear_penalization'
 
 train_config:

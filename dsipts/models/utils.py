@@ -3,10 +3,7 @@ import torch.nn.init as init
 from torch import nn
 
 
-ACTIVATIONS = {'selu': nn.SELU,
-               'relu': nn.ReLU,
-               'prelu': nn.PReLU,   
-    }
+
 
 def get_device():
     return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -59,7 +56,7 @@ class Permute(nn.Module):
         return torch.permute(input,(0,2,1))
     
 def get_activation(activation):
-    return ACTIVATIONS[activation.lower()]
+    return eval(activation)
 
 
 

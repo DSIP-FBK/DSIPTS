@@ -103,7 +103,7 @@ class MyModel(Base):
                  sum_emb:bool,
                  out_channels:int,
                  persistence_weight:float,
-                 activation:str='relu',
+                 activation:str='torch.nn.ReLU',
                  loss_type: str='inverse_penalization',
                  quantiles:List[int]=[],
                  dropout_rate:float=0.1,
@@ -129,7 +129,7 @@ class MyModel(Base):
             sum_emb (bool): if true the contribution of each embedding will be summed-up otherwise stacked
             out_channels (int):  number of output channels
             persistence_weight (float):  weight controlling the divergence from persistence model
-            activation (str, optional): activation fuction
+            activation (str, optional): activation fuction function pytorch
             loss_type (str, optional): this model uses custom losses
             quantiles (List[int], optional): we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
             dropout_rate (float, optional): dropout rate in Dropout layers
@@ -142,7 +142,7 @@ class MyModel(Base):
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
 
         """
-        if activation == 'SELU':
+        if activation == 'torch.nn.SELU':
             logging.info('SELU do not require BN')
             use_bn = False
         if type(activation)==str:

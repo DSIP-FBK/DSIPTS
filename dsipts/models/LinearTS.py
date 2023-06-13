@@ -85,7 +85,7 @@ class LinearTS(Base):
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
         """
   
-        if activation == 'SELU':
+        if activation == 'torch.nn.SELU':
             logging.info('SELU do not require BN')
             use_bn = False
             
