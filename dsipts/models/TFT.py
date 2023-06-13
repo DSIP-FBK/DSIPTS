@@ -4,7 +4,7 @@ from .base import  Base
 from .utils import get_device, QuantileLossMO, L1Loss
 from .tft import encoder, decoder, embedding_nn
 import math
-from typing import List
+from typing import List, Union
 
 class TFT(Base):
     
@@ -27,6 +27,7 @@ class TFT(Base):
                  out_channels:int,
                  kind: str,
                  quantiles:List[float]=[],
+                 optim:Union[str,None]=None,
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
         """TFT model 'arXiv:1912.09363v3 [stat.ML] 27 Sep 2020'
@@ -54,6 +55,7 @@ class TFT(Base):
             out_channels (int): _description_
             kind (str): gru or lstm layer
             quantiles (List[int], optional): _description_. Defaults to [].
+            optim (str, optional): if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
             optim_config (dict, optional): _description_. Defaults to None.
             scheduler_config (dict, optional): _description_. Defaults to None.
         """
@@ -112,7 +114,7 @@ class TFT(Base):
             self.use_quantiles = True
             self.outLinear = nn.Linear(d_model, out_channels*len(quantiles))
             self.loss = QuantileLossMO(quantiles)
-
+        self.optim = optim
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
   

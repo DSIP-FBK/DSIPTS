@@ -16,7 +16,9 @@ model_configs:
   kernel_size_encoder: 5
   kind: 'lstm'
   sum_emb: true
-
+  optim: torch.optim.SGD
+  activation: torch.nn.SELU
+  
 train_config:
   batch_size: 256
   max_epochs: 3

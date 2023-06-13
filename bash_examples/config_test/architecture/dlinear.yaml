@@ -15,7 +15,8 @@ model_configs:
   sum_emb: true
   hidden_size: 12
   kind: 'dlinear'
-
+  optim: torch.optim.SGD
+  activation: torch.nn.LeakyReLU
 
 train_config:
   batch_size: 256

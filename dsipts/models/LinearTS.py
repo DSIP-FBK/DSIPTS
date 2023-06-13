@@ -4,7 +4,7 @@ import torch
 import pytorch_lightning as pl
 from .base import  Base
 from .utils import QuantileLossMO, get_device, L1Loss, get_activation
-from typing import List
+from typing import List, Union
 import logging
 
 class moving_avg(nn.Module):
@@ -60,6 +60,7 @@ class LinearTS(Base):
                  use_bn:bool=False,
                  quantiles:List[int]=[],
                   n_classes:int=0,
+                 optim:Union[str,None]=None,
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
         """Linear model from https://github.com/cure-lab/LTSF-Linear/blob/main/run_longExp.py
@@ -76,11 +77,12 @@ class LinearTS(Base):
             out_channels (int): number of output channels
             hidden_size (int): hidden size of the lienar block
             dropout_rate (float, optional): dropout rate in Dropout layers. Default 0.1
-            activation (str, optional): activation fuction
+            activation (str, optional): activation fuction function pytorch. Default torch.nn.ReLU
             kind (str, optional): one among linear, dlinear (de-trending), nlinear (differential). Defaults to 'linear'.
             use_bn (bool, optional): if true BN layers will be added and dropouts will be removed. Default False
             quantiles (List[int], optional):  we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
             n_classes (int): number of classes (0 in regression)
+            optim (str, optional): if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
         """
@@ -123,6 +125,7 @@ class LinearTS(Base):
             #assert out_channels==1, "Classification require only one channel"
         
         emb_channels = 0
+        self.optim = optim
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
 

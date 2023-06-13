@@ -10,14 +10,14 @@ ts:
   use_covariates: true
 
 model_configs:
-  cat_emb_dim: 256
-  hidden_RNN: 128
-  num_layers_RNN: 4
+  cat_emb_dim: 512
+  hidden_RNN: 512
+  num_layers_RNN: 8
   kernel_size: 5
   kind: 'gru'
   sum_emb: true
   persistence_weight: 0.5
-  use_bn: false
+  use_bn: true
   use_glu: false
   glu_percentage: 0.2
   quantiles: [0.1,0.5,0.9]

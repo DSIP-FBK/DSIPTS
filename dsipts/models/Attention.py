@@ -4,7 +4,7 @@ import torch
 from .base import  Base
 from .utils import get_device, QuantileLossMO,L1Loss
 import math
-from typing import List
+from typing import List,Union
 
 
 def generate_square_subsequent_mask(dim1: int, dim2: int):
@@ -48,6 +48,7 @@ class Attention(Base):
                  out_channels:int,
                  quantiles:List[int]=[],
                  n_classes:int=0,
+                 optim:Union[str,None]=None,
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
         """ Attention model. Using an encoder (past) decoder (future) with cross attention and masks. 
@@ -68,6 +69,7 @@ class Attention(Base):
             out_channels (int): number of output channels
             quantiles (List[int], optional): we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
             n_classes (int): number of classes (0 in regression)
+            optim (str, optional): if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
             optim_config (dict, optional):  configuration for Adam optimizer. Defaults to None.
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
         """
@@ -99,7 +101,8 @@ class Attention(Base):
                 
                 
             
-            
+        self.optim = optim
+ 
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
 

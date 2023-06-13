@@ -129,7 +129,7 @@ class MyModel(Base):
             sum_emb (bool): if true the contribution of each embedding will be summed-up otherwise stacked
             out_channels (int):  number of output channels
             persistence_weight (float):  weight controlling the divergence from persistence model
-            activation (str, optional): activation fuction function pytorch
+            activation (str, optional): activation fuction function pytorch. Default torch.nn.ReLU
             loss_type (str, optional): this model uses custom losses
             quantiles (List[int], optional): we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
             dropout_rate (float, optional): dropout rate in Dropout layers
@@ -137,7 +137,7 @@ class MyModel(Base):
             use_glu (bool,optional): use GLU for feature selection. Defaults to True.
             glu_percentage (float, optiona): percentage of features to use. Defaults to 1.0.
             n_classes (int): number of classes (0 in regression)
-
+            optim (str, optional): if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
 

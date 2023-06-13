@@ -3,7 +3,7 @@ from torch import  nn
 import torch
 from .base import Base
 from .utils import QuantileLossMO,Permute, get_device,L1Loss,get_activation
-from typing import List
+from typing import List,Union
 import logging
 
 class RNN(Base):
@@ -27,6 +27,7 @@ class RNN(Base):
                  use_bn:bool=False,
                  quantiles:List[int]=[],
                   n_classes:int=0,
+                  optim:Union[str,None]=None,
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
         """ Recurrent model with an encoder decoder structure
@@ -44,12 +45,12 @@ class RNN(Base):
             kernel_size (int): kernel size in the encoder convolutional block
             sum_emb (bool): if true the contribution of each embedding will be summed-up otherwise stacked
             out_channels (int):  number of output channels
-            activation (str, optional): activation fuction
+            activation (str, optional): activation fuction function pytorch. Default torch.nn.ReLU
             dropout_rate (float, optional): dropout rate in Dropout layers
             use_bn (bool, optional): if true BN layers will be added and dropouts will be removed
             quantiles (List[int], optional): we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
             n_classes (int): number of classes (0 in regression)
-
+            optim (str, optional): if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
         """
@@ -94,6 +95,7 @@ class RNN(Base):
             #assert out_channels==1, "Classification require only one channel"
         
         emb_channels = 0
+        self.optim = optim
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
 

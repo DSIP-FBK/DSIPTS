@@ -4,7 +4,7 @@ import torch
 from .base import  Base
 from .utils import get_device, QuantileLossMO,L1Loss
 import math
-from typing import List
+from typing import List,Union
 from .d3vae.model import diffusion_generate, denoise_net,pred_net
 from .d3vae.embedding import DataEmbedding
 
@@ -65,7 +65,9 @@ class D3VAE(Base):
                  beta_start=0,
                  
                  freq='h',
+                 optim:Union[str,None]=None,
                  optim_config=None,
+                 
                  scheduler_config=None,
                  )->None:
      
@@ -92,6 +94,7 @@ class D3VAE(Base):
         self.psi = 0.5
         self.gamma = 0.01
         self.lambda1 = 1.0
+        self.optim = optim
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
 

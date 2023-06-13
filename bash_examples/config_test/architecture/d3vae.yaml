@@ -34,7 +34,7 @@ model_configs:
   num_postprocess_blocks: 1
   num_postprocess_cells: 2
   beta_start: 0
-
+  optim: torch.optim.SGD
 
 train_config:
   batch_size: 256

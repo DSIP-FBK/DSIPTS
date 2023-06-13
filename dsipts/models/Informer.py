@@ -3,7 +3,7 @@ from torch import  nn
 import torch
 from .base import Base
 from .utils import QuantileLossMO,Permute, get_device,L1Loss, get_activation
-from typing import List
+from typing import List,Union
 import numpy as np
 import logging
 from .informer.encoder import Encoder, EncoderLayer, ConvLayer, EncoderStack
@@ -38,6 +38,7 @@ class Informer(Base):
                  quantiles:List[int]=[],
                  loss_type: str='standard',
                  dropout_rate:float=0.1,
+                 optim:Union[str,None]=None,
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
         """Informer
@@ -64,15 +65,17 @@ class Informer(Base):
             quantiles (List[int], optional): NOT USED YET
             loss_type (str, optional): this model uses custom losses
             dropout_rate (float, optional):  dropout rate in Dropout layers. Defaults to 0.1.
+            optim (str, optional): if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
         """
    
         super(Informer, self).__init__()
         self.save_hyperparameters(logger=False)
-        
+
         self.future_steps = future_steps
         self.use_quantiles = False
+        self.optim = optim
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
         self.output_attention = output_attention
