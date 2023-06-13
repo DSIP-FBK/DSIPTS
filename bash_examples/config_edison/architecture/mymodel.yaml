@@ -12,17 +12,17 @@ ts:
 model_configs:
   cat_emb_dim: 512
   hidden_RNN: 512
-  num_layers_RNN: 8
+  num_layers_RNN: 2
   kernel_size: 5
   kind: 'gru'
   sum_emb: true
   persistence_weight: 0.5
   use_bn: true
   use_glu: false
-  glu_percentage: 0.2
+  glu_percentage: 1.2
   quantiles: [0.1,0.5,0.9]
   optim: torch.optim.SGD
-  activation: torch.nn.LeakyReLU
+  activation: torch.nn.PReLU
   loss_type: 'linear_penalization'
 
 train_config:
