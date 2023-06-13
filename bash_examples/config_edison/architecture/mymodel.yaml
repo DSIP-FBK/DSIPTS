@@ -20,7 +20,8 @@ model_configs:
   use_bn: true
   use_glu: false
   glu_percentage: 1.2
-  quantiles: [0.1,0.5,0.9]
+  quantiles: []
+  #[0.1,0.5,0.9]
   optim: torch.optim.SGD
   activation: torch.nn.PReLU
   loss_type: 'linear_penalization'
