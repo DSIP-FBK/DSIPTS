@@ -52,7 +52,7 @@ def train(conf: DictConfig) -> None:
     if version_modifier!='':
         version = version+'_'+version_modifier
     conf.ts.version = version
-    selection = HydraConfig.get()['runtime']['choices'][K]+'_'+version
+    selection = HydraConfig.get()['runtime']['choices'][K]+'_'+conf.ts.name+'_'+version
     logging.info(f"{''.join(['#']*100)}")
     logging.info(f"{selection:^100}")  
     logging.info(f"{''.join(['#']*100)}")
