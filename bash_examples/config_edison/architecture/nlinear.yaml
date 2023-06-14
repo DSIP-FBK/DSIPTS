@@ -16,7 +16,7 @@ model_configs:
   hidden_size: 512
   kind: 'nlinear'
   dropout_rate: 0.2
-  use_bn: true  
+  use_bn: false  
   optim: torch.optim.SGD
   activation: torch.nn.PReLU
   
