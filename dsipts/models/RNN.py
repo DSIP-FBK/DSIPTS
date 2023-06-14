@@ -9,6 +9,7 @@ import logging
 
 class MyBN(nn.Module):
     def __init__(self,channels):
+        super(MyBN, self).__init__()
         self.BN = nn.BatchNorm1d(channels)
     def forward(self,x):
         return self.BN(x.permute(0,2,1)).permute(0,2,1)
