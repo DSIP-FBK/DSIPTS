@@ -112,17 +112,17 @@ class RNN(Base):
     
         self.initial_linear_encoder =  nn.Sequential(nn.Linear(past_channels,4),
                                                      activation(),
-                                                    nn.BatchNorm1d(4) if use_bn else nn.Dropout(dropout_rate) ,
+                                                     nn.Dropout(dropout_rate) ,
                                                      nn.Linear(4,8),
                                                      activation(),
-                                                    nn.BatchNorm1d(8) if use_bn else nn.Dropout(dropout_rate) ,
+                                                     nn.Dropout(dropout_rate) ,
                                                      nn.Linear(8,hidden_RNN//8))
         self.initial_linear_decoder =  nn.Sequential(nn.Linear(future_channels,4),
                                                      activation(),
-                                                     nn.BatchNorm1d(4) if use_bn else nn.Dropout(dropout_rate) ,
+                                                     nn.Dropout(dropout_rate) ,
                                                      nn.Linear(4,8),
                                                      activation(),
-                                                     nn.BatchNorm1d(8) if use_bn else nn.Dropout(dropout_rate) ,
+                                                     nn.Dropout(dropout_rate) ,
                                                      nn.Linear(8,hidden_RNN//8))
         
         
