@@ -6,6 +6,13 @@ from .utils import QuantileLossMO,Permute, get_device,L1Loss,get_activation
 from typing import List,Union
 import logging
 
+
+class MyBN(nn.Module):
+    def __init__(self,channels):
+        self.BN = nn.BatchNorm1d(channels)
+    def forward(self,x):
+        return self.BN(x.permute(0,2,1)).permute(0,2,1)
+
 class RNN(Base):
 
     
@@ -109,20 +116,22 @@ class RNN(Base):
             logging.info('Using sum')
         else:
             logging.info('Using stacked')
-    
+
+
         self.initial_linear_encoder =  nn.Sequential(nn.Linear(past_channels,4),
                                                      activation(),
-                                                    nn.BatchNorm1d(4) if use_bn else nn.Dropout(dropout_rate) ,
+                                                     
+                                                    MyBN(4) if use_bn else nn.Dropout(dropout_rate) ,
                                                      nn.Linear(4,8),
                                                      activation(),
-                                                    nn.BatchNorm1d(8) if use_bn else nn.Dropout(dropout_rate) ,
+                                                    MyBN(8) if use_bn else nn.Dropout(dropout_rate) ,
                                                      nn.Linear(8,hidden_RNN//8))
         self.initial_linear_decoder =  nn.Sequential(nn.Linear(future_channels,4),
                                                      activation(),
-                                                     nn.BatchNorm1d(4) if use_bn else nn.Dropout(dropout_rate) ,
+                                                     MyBN(4) if use_bn else nn.Dropout(dropout_rate) ,
                                                      nn.Linear(4,8),
                                                      activation(),
-                                                     nn.BatchNorm1d(8) if use_bn else nn.Dropout(dropout_rate) ,
+                                                     MyBN(8) if use_bn else nn.Dropout(dropout_rate) ,
                                                      nn.Linear(8,hidden_RNN//8))
         
         
@@ -147,13 +156,13 @@ class RNN(Base):
         for _ in range(out_channels*self.mul):
             self.final_linear.append(nn.Sequential(nn.Linear(hidden_RNN,hidden_RNN//2), 
                                             activation(),
-                                            nn.BatchNorm1d(hidden_RNN//2) if use_bn else nn.Dropout(dropout_rate) ,
+                                            MyBN(hidden_RNN//2) if use_bn else nn.Dropout(dropout_rate) ,
                                             nn.Linear(hidden_RNN//2,hidden_RNN//4),
                                             activation(),
-                                            nn.BatchNorm1d(hidden_RNN//4) if use_bn else nn.Dropout(dropout_rate) ,
+                                            MyBN(hidden_RNN//4) if use_bn else nn.Dropout(dropout_rate) ,
                                             nn.Linear(hidden_RNN//4,hidden_RNN//8),
                                             activation(),
-                                            nn.BatchNorm1d(hidden_RNN//8) if use_bn else nn.Dropout(dropout_rate) ,
+                                            MyBN(hidden_RNN//8) if use_bn else nn.Dropout(dropout_rate) ,
                                             nn.Linear(hidden_RNN//8,1)))
 
   
