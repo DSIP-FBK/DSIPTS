@@ -187,8 +187,8 @@ class RNN(Base):
             x_future = batch['x_num_future'].to(self.device)
         else:
             x_future = None
-        import pdb
-        pdb.set_trace()
+        #import pdb
+        #pdb.set_trace()
         tmp = [self.initial_linear_encoder(x)]
         
         for i in range(len(self.embs)):
