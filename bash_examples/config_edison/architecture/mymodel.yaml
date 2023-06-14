@@ -4,7 +4,7 @@ model:
   type: 'mymodel'
   retrain: true
 ts:
-  name: 'mymodel'
+  name: 'mymodel_exp'
   version: 1
   enrich: []
   use_covariates: true
@@ -24,7 +24,7 @@ model_configs:
   #[0.1,0.5,0.9]
   optim: torch.optim.SGD
   activation: torch.nn.PReLU
-  loss_type: 'linear_penalization'
+  loss_type: 'exponential_penalization'
 
 train_config:
   batch_size: 64

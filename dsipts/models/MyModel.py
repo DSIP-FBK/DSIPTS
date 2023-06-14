@@ -295,9 +295,9 @@ class MyModel(Base):
             persistence_error = self.persistence_weight*(2.0-10.0*torch.clamp( torch.abs((y_persistence-y_hat[:,:,:,idx])/(0.001+torch.abs(y_persistence))),min=0.0,max=0.1))
             loss = torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y'])*persistence_error)
             #loss = self.persistence_weight*persistence_loss + (1-self.persistence_weight)*mse_loss
-        elif self.loss_type == 'inverse_penalization':
+        elif self.loss_type == 'exponential_penalization':
             idx = 1 if self.use_quantiles else 0
-            weights = self.persistence_weight/(torch.abs(y_hat[:,:,:,idx]-y_persistence) +0.1)
+            weights = (1+torch.exp(-torch.abs(y_persistence-y_hat[:,:,:,idx])))
 
             loss = torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y'])*weights)
         elif self.loss_type=='log':
