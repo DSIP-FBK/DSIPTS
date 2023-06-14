@@ -16,8 +16,9 @@ model_configs:
   hidden_size: 512
   kind: 'dlinear'
   dropout_rate: 0.2
-  use_bn: false  
-  activation: 'selu'
+  use_bn: true  
+  optim: torch.optim.SGD
+  activation: torch.nn.PReLU
 
 train_config:
   batch_size: 128
