@@ -55,7 +55,7 @@ class LinearTS(Base):
                  out_channels:int,
                  hidden_size:int,
                  dropout_rate:float=0.1,
-                 activation:str='RELU',
+                 activation:str='torch.nn.ReLU',
                  kind:str='linear',
                  use_bn:bool=False,
                  quantiles:List[int]=[],

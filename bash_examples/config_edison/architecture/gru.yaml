@@ -2,7 +2,7 @@
 
 model:
   type: 'rnn'
-  retrain: false
+  retrain: true
 ts:
   name: 'gru'
   version: 1

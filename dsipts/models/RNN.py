@@ -22,7 +22,7 @@ class RNN(Base):
                  kernel_size:int,
                  sum_emb:bool,
                  out_channels:int,
-                 activation:str='relu',
+                 activation:str='torch.nn.ReLU',
                  dropout_rate:float=0.1,
                  use_bn:bool=False,
                  quantiles:List[int]=[],
