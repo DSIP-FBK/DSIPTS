@@ -61,9 +61,13 @@ def compare(conf:DictConfig)-> None:
             tmp,predictions, losses = inference(conf_tmp)
             tmp['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
             predictions['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
-            losses['epoch'] = list(range(losses.shape[0]))
-            losses = losses.melt(id_vars='epoch')
-            losses['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
+            if losses is not None:
+                losses['epoch'] = list(range(losses.shape[0]))
+                losses = losses.melt(id_vars='epoch')
+                losses['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
+            else:
+                logging.info(f'#######can not load losses {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} {e} maybe the train procedure is not completed ######### ')
+
             losses.value = np.log(losses.value)
             res.append(tmp )
             tot_losses.append(losses)
