@@ -704,16 +704,24 @@ class TimeSeries():
             tmp_path = weight_path
         else:
             if self.dirpath is not None:
-                if load_last:
-                    tmp_path = os.path.join(self.dirpath,self.checkpoint_file_last.split('/')[-1])
-                else:
-                    tmp_path = os.path.join(self.dirpath,self.checkpoint_file_best.split('/')[-1])
+                directory = self.dirpath
             else:
-                if load_last:
-                    tmp_path = os.path.join(dirpath,self.checkpoint_file_last.split('/')[-1])
-                else:
-                    tmp_path = os.path.join(dirpath,self.checkpoint_file_best.split('/')[-1])
-            
+                directory = dirpath
+        
+        
+            if load_last:
+                
+                try:
+                    tmp_path = os.path.join(directory,self.checkpoint_file_last.split('/')[-1])
+                except:
+                    logging.info('checkpoint_file_last not defined try to load best')
+                    tmp_path = os.path.join(directory,self.checkpoint_file_best.split('/')[-1])
+            else:
+                try:
+                    tmp_path = os.path.join(directory,self.checkpoint_file_best.split('/')[-1])
+                except:
+                    logging.info('checkpoint_file_best not defined try to load best')
+                    tmp_path = os.path.join(directory,self.checkpoint_file_last.split('/')[-1])
         try:
             self.model = self.model.load_from_checkpoint(tmp_path)
         except Exception as e:

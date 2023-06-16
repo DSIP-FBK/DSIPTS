@@ -163,6 +163,7 @@ def train(conf: DictConfig) -> None:
     ##save now so we can use it during the trainin step (or use intermediate pth files)
     ts.dirpath = dirpath    
     ts.losses = None
+    ts.checkpoint_file_last = os.path.join(dirpath,'checkpoint.ckpt')
     ts.save(os.path.join(conf.train_config.dirpath,'model'))
 
     ##save the config for the comparison task before training so we can get predictions during the training procedure
