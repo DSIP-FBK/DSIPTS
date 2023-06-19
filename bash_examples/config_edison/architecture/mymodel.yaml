@@ -26,9 +26,9 @@ model_configs:
   activation: torch.nn.PReLU
   loss_type: 'exponential_penalization'
   dropout_rate: 0.0
-
+  
 train_config:
   batch_size: 64
-  max_epochs: 2
+  max_epochs: 250
   gradient_clip_val: null
   gradient_clip_algorithm: 'norm'
