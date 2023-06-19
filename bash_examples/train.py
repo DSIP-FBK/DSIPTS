@@ -176,6 +176,7 @@ def train(conf: DictConfig) -> None:
         
     valid_loss = ts.train_model(split_params=split_params,**conf.train_config)
     ts.save(os.path.join(conf.train_config.dirpath,'model'))
+    logging.info(f'##########FINISH TRAINING PROCEDURE###############')
     return valid_loss ##for optuna!    
         
 if __name__ == '__main__': 
