@@ -4,7 +4,7 @@ model:
   type: 'mymodel'
   retrain: true
 ts:
-  name: 'mymodel_exp'
+  name: 'mymodel_exp_noweight'
   version: 1
   enrich: []
   use_covariates: true
@@ -16,7 +16,7 @@ model_configs:
   kernel_size: 5
   kind: 'gru'
   sum_emb: true
-  persistence_weight: 1.0
+  persistence_weight: 0.0
   use_bn: true
   use_glu: false
   glu_percentage: 1.2
