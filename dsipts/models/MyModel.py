@@ -299,7 +299,7 @@ class MyModel(Base):
             idx = 1 if self.use_quantiles else 0
             weights = (1+torch.exp(-torch.abs(y_persistence-y_hat[:,:,:,idx])))
 
-            loss = torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y'])*weights)
+            loss =  torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y']))+ self.persistence_weight*torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y'])*weights)
         elif self.loss_type=='log':
             idx = 1 if self.use_quantiles else 0
             ##THIS DOES NOT WORK
