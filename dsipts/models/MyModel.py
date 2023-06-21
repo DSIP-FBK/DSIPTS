@@ -57,7 +57,7 @@ class Block(nn.Module):
         for i in range(self.steps):
             #dilation
             self.dilations.append(nn.Conv1d(input_channels, output_channels, kernel_size, stride=1,padding='same',dilation=2**i))
-            s = 2**(i+1)-1
+            s = max(2**i-1,1)
             k = 2**(i+1)+1
             p = int(((s-1)*input_size + k - 1)/2)
             self.dilations.append(nn.Conv1d(input_channels, output_channels, k, stride=s,padding=p))
@@ -210,65 +210,69 @@ class MyModel(Base):
                 self.future_glu.append(GLU(1))
     
         self.initial_linear_encoder =  nn.Sequential(Permute(),
-                                                    nn.Conv1d(past_channels, (past_channels+hidden_RNN//8)//2, kernel_size, stride=1,padding='same'),
+                                                    nn.Conv1d(past_channels, (past_channels+hidden_RNN//4)//2, kernel_size, stride=1,padding='same'),
                                                     activation(),
-                                                    nn.BatchNorm1d(  (past_channels+hidden_RNN//8)//2) if use_bn else nn.Dropout(dropout_rate) ,
-                                                    nn.Conv1d( (past_channels+hidden_RNN//8)//2, hidden_RNN//8, kernel_size, stride=1,padding='same'),
+                                                    nn.BatchNorm1d(  (past_channels+hidden_RNN//4)//2) if use_bn else nn.Dropout(dropout_rate) ,
+                                                    nn.Conv1d( (past_channels+hidden_RNN//4)//2, hidden_RNN//4, kernel_size, stride=1,padding='same'),
                                                     Permute())
 
         self.initial_linear_decoder =   nn.Sequential(Permute(),
-                                                    nn.Conv1d(future_channels, (future_channels+hidden_RNN//8)//2, kernel_size, stride=1,padding='same'),
+                                                    nn.Conv1d(future_channels, (future_channels+hidden_RNN//4)//2, kernel_size, stride=1,padding='same'),
                                                     activation(),
-                                                    nn.BatchNorm1d(  (future_channels+hidden_RNN//8)//2) if use_bn else nn.Dropout(dropout_rate) ,
-                                                    nn.Conv1d( (future_channels+hidden_RNN//8)//2, hidden_RNN//8, kernel_size, stride=1,padding='same'),
+                                                    nn.BatchNorm1d(  (future_channels+hidden_RNN//4)//2) if use_bn else nn.Dropout(dropout_rate) ,
+                                                    nn.Conv1d( (future_channels+hidden_RNN//4)//2, hidden_RNN//4, kernel_size, stride=1,padding='same'),
                                                     Permute())
-        self.conv_encoder = Block(emb_channels+hidden_RNN//8,kernel_size,hidden_RNN//4,self.past_steps,sum_emb)
+        self.conv_encoder = Block(emb_channels+hidden_RNN//4,kernel_size,hidden_RNN//2,self.past_steps,sum_emb)
         
         #nn.Sequential(Permute(), nn.Conv1d(emb_channels+hidden_RNN//8, hidden_RNN//8, kernel_size, stride=1,padding='same'),Permute(),nn.Dropout(0.3))
         #import pdb
         #pdb.set_trace()
         if future_channels+emb_channels==0:
             ## occhio che vuol dire che non ho passato , per ora ci metto una pezza e uso hidden dell'encoder
-            self.conv_decoder = Block(hidden_RNN//2,kernel_size,hidden_RNN//4,self.future_steps,sum_emb) 
+            self.conv_decoder = Block(hidden_RNN,kernel_size,hidden_RNN//2,self.future_steps,sum_emb) 
         else:
-            self.conv_decoder = Block(future_channels+emb_channels,kernel_size,hidden_RNN//4,self.future_steps,sum_emb) 
+            self.conv_decoder = Block(future_channels+emb_channels,kernel_size,hidden_RNN//2,self.future_steps,sum_emb) 
             #nn.Sequential(Permute(),nn.Linear(past_steps,past_steps*2),  nn.PReLU(),nn.Dropout(0.2),nn.Linear(past_steps*2, future_steps),nn.Dropout(0.3),nn.Conv1d(hidden_RNN, hidden_RNN//8, 3, stride=1,padding='same'),   Permute())
         if self.kind=='lstm':
             self.Encoder = nn.LSTM(input_size= self.conv_encoder.out_channels,#, hidden_RNN//4,
-                                   hidden_size=hidden_RNN//4,
+                                   hidden_size=hidden_RNN//2,
                                    num_layers = num_layers_RNN,
                                    batch_first=True,bidirectional=True)
             self.Decoder = nn.LSTM(input_size= self.conv_decoder.out_channels,#, hidden_RNN//4,
-                                   hidden_size=hidden_RNN//4,
+                                   hidden_size=hidden_RNN//2,
                                    num_layers = num_layers_RNN,
                                    batch_first=True,bidirectional=True)
         elif self.kind=='gru':
             self.Encoder = nn.GRU(input_size=self.conv_encoder.out_channels,#, hidden_RNN//4,
-                                  hidden_size=hidden_RNN//4,
+                                  hidden_size=hidden_RNN//2,
                                   num_layers = num_layers_RNN,
                                   batch_first=True,bidirectional=True)
             self.Decoder = nn.GRU(input_size= self.conv_decoder.out_channels,#, hidden_RNN//4,
-                                  hidden_size=hidden_RNN//4,
+                                  hidden_size=hidden_RNN//2,
                                   num_layers = num_layers_RNN,
                                   batch_first=True,bidirectional=True)
         else:
             print('Specify kind= lstm or gru please')
         self.final_linear = nn.ModuleList()
         for _ in range(out_channels*self.mul):
-            self.final_linear.append(nn.Sequential(nn.Linear(hidden_RNN//2+emb_channels+future_channels,hidden_RNN//4), 
+            self.final_linear.append(nn.Sequential(nn.Linear(hidden_RNN+emb_channels+future_channels,hidden_RNN*2), 
                                             activation(),
                                             Permute() if use_bn else nn.Identity() ,
-                                            nn.BatchNorm1d(hidden_RNN//4) if use_bn else nn.Dropout(dropout_rate) ,
+                                            nn.BatchNorm1d(hidden_RNN*2) if use_bn else nn.Dropout(dropout_rate) ,
                                             Permute() if use_bn else nn.Identity() ,
-                                            nn.Linear(hidden_RNN//4,hidden_RNN//8),
+                                            nn.Linear(hidden_RNN*2,hidden_RNN),
                                             activation(),
                                              Permute() if use_bn else nn.Identity() ,
-                                            nn.BatchNorm1d(hidden_RNN//8) if use_bn else nn.Dropout(dropout_rate) ,
+                                            nn.BatchNorm1d(hidden_RNN) if use_bn else nn.Dropout(dropout_rate) ,
                                             Permute() if use_bn else nn.Identity() ,
-                                            nn.Linear(hidden_RNN//8,hidden_RNN//16),
+                                            nn.Linear(hidden_RNN,hidden_RNN//2),
                                             activation(),
-                                            nn.Dropout(dropout_rate),
-                                            nn.Linear(hidden_RNN//16,1)))
+                                            Permute() if use_bn else nn.Identity() ,
+                                            nn.BatchNorm1d(hidden_RNN//2) if use_bn else nn.Dropout(dropout_rate) ,
+                                            Permute() if use_bn else nn.Identity() ,
+                                            nn.Linear(hidden_RNN//2,hidden_RNN//4),
+                                            activation(),
+                                            nn.Linear(hidden_RNN//4,1)))
         
         self.loss_type = loss_type
         
