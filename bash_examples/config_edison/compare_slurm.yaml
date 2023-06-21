@@ -1,6 +1,6 @@
 #models: ['config_used/attention.yaml','config_used/persistent.yaml','config_used/linear.yaml','config_used/dlinear.yaml','config_used/nlinear.yaml','config_used/lstm.yaml','config_used/gru.yaml']
 #models: 'config_edison'
-models:  ['config_edison/config_used/linear_1.yaml','config_edison/config_used/mymodel_mymodel_exp_1.yaml','config_edison/config_used/persistent_1.yaml','config_edison/config_used/nlinear_1.yaml','config_edison/config_used/dlinear_1.yaml','config_edison/config_used/gru_1.yaml','config_edison/config_used/lstm_1.yaml','mymodel_mymodel_exp_noweight_1.yaml']
+models:  ['config_edison/config_used/linear_1.yaml','config_edison/config_used/mymodel_mymodel_exp_1.yaml','config_edison/config_used/persistent_1.yaml','config_edison/config_used/nlinear_1.yaml','config_edison/config_used/dlinear_1.yaml','config_edison/config_used/gru_1.yaml','config_edison/config_used/lstm_1.yaml','config_edison/config_used/mymodel_exp_noweight_1.yaml']
 #,'config_edison/config_used/gru_1.yaml','config_edison/config_used/lstm_1.yaml']
 
 dirpath: "/home/agobbi/Projects/ExpTS/edison"
