@@ -28,7 +28,7 @@ model_configs:
   dropout_rate: 0.0
   
 train_config:
-  batch_size: 50
-  max_epochs: 250
+  batch_size: 32
+  max_epochs: 150
   gradient_clip_val: null
   gradient_clip_algorithm: 'norm'
