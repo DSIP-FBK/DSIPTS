@@ -16,11 +16,11 @@ def load_data(conf):
     data_ex.Value[data_ex.Value<0]=np.nan
     # data_ex.Value = np.log(data_ex.Value+1)
     data_ex = data_ex.groupby('time').mean().reset_index()
-    data_ex.index = data_ex.time
+    #data_ex.index = data_ex.time
     # data_ex = data_ex.resample('1h').mean().reset_index()
     import pdb
     pdb.set_trace()
-    empty = pd.DataFrame({'time':pd.date_range(data_ex.time.min(),data_ex.time.max(),freq='15m')})
+    empty = pd.DataFrame({'time':pd.date_range(data_ex.time.min(),data_ex.time.max(),freq='900s')})
     data_ex = empty.merge(data_ex,how='left')
     data_ex.Value = data_ex.Value.interpolate(limit=1)
     ts = TimeSeries(conf.ts.name)
