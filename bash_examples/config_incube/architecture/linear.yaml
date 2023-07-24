@@ -2,7 +2,7 @@
 
 model:
   type: 'linear'
-  retrain: false
+  retrain: true
 ts:
   name: 'l'
   version: 1
@@ -19,7 +19,7 @@ model_configs:
   use_bn: false  
   optim: torch.optim.Adam
   activation: torch.nn.PReLU
-  
+
 train_config:
   batch_size: 128
   max_epochs: 250

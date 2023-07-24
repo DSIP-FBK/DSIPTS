@@ -22,6 +22,6 @@ model_configs:
   dropout_rate: 0.2
 
 train_config:
-  batch_size: 256
+  batch_size: 128
   max_epochs: 250
             
