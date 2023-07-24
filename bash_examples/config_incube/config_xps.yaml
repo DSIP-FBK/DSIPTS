@@ -55,7 +55,7 @@ hydra:
   launcher:
     n_jobs:  2
     verbose: 1
-    pre_dispatch: 1
+    pre_dispatch: 4
     batch_size: 2
     _target_: hydra_plugins.hydra_joblib_launcher.joblib_launcher.JoblibLauncher
 

@@ -2,7 +2,7 @@
 
 model:
   type: 'persistent'
-  retrain: false
+  retrain: true
 ts:
   name: 'persistent'
   version: 1
