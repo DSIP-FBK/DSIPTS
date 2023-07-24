@@ -32,6 +32,7 @@ class Persistent(Base):
         self.save_hyperparameters(logger=False)
         self.past_steps = past_steps
         self.future_steps = future_steps
+        self.optim = None
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
         self.loss = L1Loss()

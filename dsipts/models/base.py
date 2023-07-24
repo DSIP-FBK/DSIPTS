@@ -57,7 +57,10 @@ class Base(pl.LightningModule):
         
         :meta private:
         """
-        import pdb;pdb.set_trace()
+        
+        if self.optim_config is None:
+            self.optim_config = {'lr': 5e-05}
+
         
         if self.optim is None:
             optimizer = optim.Adam(self.parameters(),  **self.optim_config)
