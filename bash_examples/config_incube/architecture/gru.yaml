@@ -1,0 +1,27 @@
+# @package _global_
+
+model:
+  type: 'rnn'
+  retrain: true
+ts:
+  name: 'gru'
+  version: 1
+  enrich: []
+  use_covariates: true
+
+model_configs:
+  cat_emb_dim: 32
+  hidden_RNN: 1024
+  num_layers_RNN: 5
+  kernel_size: 5
+  kind: 'gru'
+  sum_emb: true
+  use_bn: true  
+  optim: torch.optim.SGD
+  activation: torch.nn.PReLU
+  dropout_rate: 0.2
+
+train_config:
+  batch_size: 256
+  max_epochs: 250
+            

@@ -18,8 +18,8 @@ model_configs:
   dropout_rate: 0.2
   use_bn: false  
   optim: torch.optim.Adam
-  activation: torch.nn.SELU
-
+  activation: torch.nn.PReLU
+  
 train_config:
   batch_size: 128
   max_epochs: 250
