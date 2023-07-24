@@ -65,8 +65,11 @@ def train(conf: DictConfig) -> None:
         from load_data.load_data_incube import load_data
     else:
         from load_data.load_data_public import load_data
-        
-    ts = load_data(conf)
+    try:
+        ts = load_data(conf)
+    except Exception as e:
+        logging.info(f"LOADING ERROR {e}")
+
     ######################################################################################################
     
     
