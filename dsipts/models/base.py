@@ -57,7 +57,7 @@ class Base(pl.LightningModule):
         
         :meta private:
         """
-        #import pdb;pdb.set_trace()
+        import pdb;pdb.set_trace()
         
         if self.optim is None:
             optimizer = optim.Adam(self.parameters(),  **self.optim_config)

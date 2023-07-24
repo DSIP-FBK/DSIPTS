@@ -2,7 +2,7 @@
 
 model:
   type: 'linear'
-  retrain: true
+  retrain: false
 ts:
   name: 'l'
   version: 1
