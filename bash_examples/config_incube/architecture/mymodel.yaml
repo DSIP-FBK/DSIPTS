@@ -18,7 +18,8 @@ model_configs:
   sum_emb: true
   persistence_weight: 0.2
   use_bn: true
-  activation: 'relu'
+  optim: torch.optim.SGD
+  activation: torch.nn.PReLU
   loss_type: 'linear_penalization'
 
 train_config:

@@ -17,8 +17,9 @@ model_configs:
   kind: 'dlinear'
   dropout_rate: 0.2
   use_bn: false  
-  activation: 'selu'
-
+  optim: torch.optim.Adam
+  activation: torch.nn.SELU
+  
 train_config:
   batch_size: 128
   max_epochs: 250           
