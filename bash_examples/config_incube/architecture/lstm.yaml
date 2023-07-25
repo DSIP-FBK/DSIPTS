@@ -4,7 +4,7 @@ model:
   type: 'rnn'
   retrain: true
 ts:
-  name: 'gru'
+  name: 'lstm'
   version: 1
   enrich: []
   use_covariates: true
