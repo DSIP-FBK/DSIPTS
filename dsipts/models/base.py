@@ -130,9 +130,11 @@ class Base(pl.LightningModule):
         
         :meta private:
         """
-        import pdb
-        pdb.set_trace()
-        initial_loss = self.loss(y_hat, batch['y'])
+
+        if self.use_quantile:
+            initial_loss = self.loss(y_hat[:,:,:,0], batch['y'])
+        else:
+            initial_loss = self.loss(y_hat, batch['y'])
         x =  batch['x_num_past'].to(self.device)
         idx_target = batch['idx_target'][0]
         x_start = x[:,-1,idx_target].unsqueeze(1)
