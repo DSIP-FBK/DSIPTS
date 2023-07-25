@@ -20,7 +20,7 @@ model_configs:
   use_bn: true
   optim: torch.optim.SGD
   activation: torch.nn.PReLU
-  loss_type: 'linear_penalization'
+  loss_type: 'normal'
 
 train_config:
   batch_size: 128

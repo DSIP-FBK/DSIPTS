@@ -302,16 +302,11 @@ class MyModel(Base):
         elif self.loss_type == 'exponential_penalization':
             idx = 1 if self.use_quantiles else 0
             weights = (1+torch.exp(-torch.abs(y_persistence-y_hat[:,:,:,idx])))
-
             loss =  torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y']))+ self.persistence_weight*torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y'])*weights)
-        elif self.loss_type=='log':
-            idx = 1 if self.use_quantiles else 0
-            ##THIS DOES NOT WORK
-            loss = torch.exp(torch.mean(torch.log(torch.pow(y_hat[:,:,:,idx],2)+0.001)-torch.log(torch.pow(batch['y'],2)+0.001))*0.5)
+            
         else:
             loss = mse_loss
-        #import pdb
-        #pdb.set_trace()
+
         return loss#+torch.abs(score-self.glu_percentage)*loss/5.0 ##tipo persa il 20%
     def training_step(self, batch, batch_idx):
         """
