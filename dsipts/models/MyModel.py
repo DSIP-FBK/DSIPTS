@@ -2,7 +2,7 @@
 from torch import  nn
 import torch
 from .base import Base
-from .utils import QuantileLossMO,Permute, get_device,L1Loss,MSELoss, get_activation
+from .utils import QuantileLossMO,Permute, get_device, get_activation
 from typing import List, Union
 
 import numpy as np
@@ -178,9 +178,9 @@ class MyModel(Base):
                 self.use_quantiles = False
                 self.mul = 1
                 if self.loss_type == 'mse':
-                    self.loss = MSELoss()
+                    self.loss = nn.MSELoss()
                 else:
-                    self.loss = L1Loss()
+                    self.loss = nn.L1Loss()
         else:
             self.is_classification = True
             self.use_quantiles = False

@@ -45,10 +45,12 @@ This frist block maybe is common between several architectures:
 - **sum_emb** = boolean. If true the contribution of each categorical variable is summed
 - **quantiles**=[0.1,0.5,0.9]. Quantiles for quantile loss
 - **kind** =str. If there are some similar architectures with small differences maybe is better to use the same code specifying some properties (e.g. GRU vs LSTM)
-- **activation**='relu'. activation function between layers, it can be one between relu, selu or prelu (Notice that if selu is used the batch normalization will be disabled)
-- **dropout_rate**=0.1. dropout rate
-- **use_bn**=False. Use or not batch normalization
-
+- **activation**= str ('torch.nn.ReLU' default). activation function between layers (see  [pytorch activation functions](https://pytorch.org/docs/stable/nn.html#non-linear-activations-weighted-sum-nonlinearity))
+- **optim**= str ('torch.optim.Adam' default). optimization function (see [pytorch optimization functions](https://pytorch.org/docs/stable/optim.html)
+- **dropout_rate**=float (0.1 default). dropout rate
+- **use_bn**=boolean (False default). Use or not batch normalization
+- **persistence_weight**= float (0.2 default). Penalization weight for persistent predictions
+- **loss_type**= str (mse default)
 
 some are more specific for RNN-CONV architectures:
 
