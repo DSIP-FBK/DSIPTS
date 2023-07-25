@@ -38,6 +38,9 @@ class Persistent(Base):
         self.loss = L1Loss()
         self.fake = nn.Linear(1,1)
         self.use_quantiles = False
+        self.loss_type = 'l1'
+        self.loss = nn.L1Loss()
+        
     def forward(self, batch):
         """It is mandatory to implement this method
 
