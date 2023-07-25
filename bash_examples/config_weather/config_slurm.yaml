@@ -49,16 +49,21 @@ inference:
 defaults:
   - _self_
   - architecture: null 
-  - override hydra/launcher: joblib 
+  - override hydra/launcher: submitit_slurm #joblib 
 
 hydra:
   launcher:
-    n_jobs:  2
-    verbose: 1
-    pre_dispatch: 4
-    batch_size: 2
-    _target_: hydra_plugins.hydra_joblib_launcher.joblib_launcher.JoblibLauncher
-
+    submitit_folder: ${hydra.sweep.dir}/.submitit/%j
+    timeout_min: 6000
+    partition: gpu-V100 #A40 #gpu-V100
+    mem_gb: 6
+    nodes: 1
+    gres: gpu:1
+    array_parallelism: 10 ##altrimenti roldano si arrabbia
+    name: ${hydra.job.name}
+    _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
+    setup:
+      - conda activate tt  
  
 
   output_subdir: null 
