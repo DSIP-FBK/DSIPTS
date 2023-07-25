@@ -125,10 +125,12 @@ class D3VAE(Base):
         :meta private:
         """
         sample, y_noisy,recon,loss2,total_c = self(batch)
-        
+        ##self.compute_loss(batch,y_hat)
         mse_loss = self.loss(sample, y_noisy)
         loss1 = - torch.mean(torch.sum(recon, dim=[1, 2, 3]))
         loss = loss1*self.psi + loss2*self.lambda1 + mse_loss - self.gamma*total_c
+        
+        
         return loss
         
     def validation_step(self, batch, batch_idx):

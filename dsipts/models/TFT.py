@@ -26,6 +26,8 @@ class TFT(Base):
                  num_layers_RNN:int,
                  out_channels:int,
                  kind: str,
+                 persistence_weight:float=0.0,
+                 loss_type: str='l1',
                  quantiles:List[float]=[],
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
@@ -54,6 +56,8 @@ class TFT(Base):
             num_layers_RNN (int): _description_
             out_channels (int): _description_
             kind (str): gru or lstm layer
+            persistence_weight (float):  weight controlling the divergence from persistence model. Default 0
+            loss_type (str, optional): this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,
             quantiles (List[int], optional): _description_. Defaults to [].
             optim (str, optional): if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
             optim_config (dict, optional): _description_. Defaults to None.
@@ -76,6 +80,11 @@ class TFT(Base):
         self.d_model = d_model
         self.out_channels = out_channels
         self.head_size = head_size # it can vary according to strategies
+        
+        ##
+        self.persistence_weight = persistence_weight 
+        self.loss_type = loss_type
+        
         
         # NN of the model:
 
@@ -108,7 +117,10 @@ class TFT(Base):
             self.mul = 1
             self.use_quantiles = False
             self.outLinear = nn.Linear(d_model, out_channels)
-            self.loss = L1Loss()
+            if self.loss_type == 'mse':
+                self.loss = nn.MSELoss()
+            else:
+                self.loss = nn.L1Loss()
         else:
             self.mul = 3
             self.use_quantiles = True

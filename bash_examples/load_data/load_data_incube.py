@@ -15,6 +15,7 @@ def load_data(conf):
     data_ex.rename(columns={'Time':'time'},inplace=True)
     data_ex.Value[data_ex.Value<0]=np.nan
     # data_ex.Value = np.log(data_ex.Value+1)
+    data_ex.Value = np.log(100*data_ex.Value+1)## reduce variability
     data_ex = data_ex.groupby('time').mean().reset_index()
     #data_ex.index = data_ex.time
     # data_ex = data_ex.resample('1h').mean().reset_index()

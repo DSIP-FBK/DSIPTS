@@ -2,7 +2,7 @@
 from torch import  nn
 import torch
 from .base import Base
-from .utils import QuantileLossMO,Permute, get_device,L1Loss, get_activation
+from .utils import QuantileLossMO,Permute, get_device,L1Loss,MSELoss, get_activation
 from typing import List, Union
 
 import numpy as np
@@ -102,9 +102,9 @@ class MyModel(Base):
                  kernel_size:int,
                  sum_emb:bool,
                  out_channels:int,
-                 persistence_weight:float,
                  activation:str='torch.nn.ReLU',
-                 loss_type: str='inverse_penalization',
+                 persistence_weight:float=0.0,
+                 loss_type: str='l1',
                  quantiles:List[int]=[],
                  dropout_rate:float=0.1,
                  use_bn:bool=False,
@@ -128,9 +128,9 @@ class MyModel(Base):
             kernel_size (int): kernel size in the encoder convolutional block
             sum_emb (bool): if true the contribution of each embedding will be summed-up otherwise stacked
             out_channels (int):  number of output channels
-            persistence_weight (float):  weight controlling the divergence from persistence model
             activation (str, optional): activation fuction function pytorch. Default torch.nn.ReLU
-            loss_type (str, optional): this model uses custom losses
+            persistence_weight (float):  weight controlling the divergence from persistence model. Default 0
+            loss_type (str, optional): this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,
             quantiles (List[int], optional): we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
             dropout_rate (float, optional): dropout rate in Dropout layers
             use_bn (bool, optional): if true BN layers will be added and dropouts will be removed
@@ -156,6 +156,7 @@ class MyModel(Base):
         self.past_steps = past_steps
         self.future_steps = future_steps
         self.persistence_weight = persistence_weight 
+        self.loss_type = loss_type
         self.num_layers_RNN = num_layers_RNN
         self.hidden_RNN = hidden_RNN
         self.past_channels = past_channels 
@@ -166,6 +167,7 @@ class MyModel(Base):
         self.use_glu = use_glu
         self.glu_percentage = torch.tensor(glu_percentage).to(self.device)
         self.out_channels = out_channels
+        
         if n_classes==0:
             self.is_classification = False
             if len(quantiles)>0:
@@ -175,7 +177,10 @@ class MyModel(Base):
             else:
                 self.use_quantiles = False
                 self.mul = 1
-                self.loss = L1Loss()
+                if self.loss_type == 'mse':
+                    self.loss = MSELoss()
+                else:
+                    self.loss = L1Loss()
         else:
             self.is_classification = True
             self.use_quantiles = False
@@ -274,47 +279,18 @@ class MyModel(Base):
                                             activation(),
                                             nn.Linear(hidden_RNN//4,1)))
         
-        self.loss_type = loss_type
         
 
         
-    def compute_loss(self,batch):
-        """
-        custom loss calculation
-        
-        :meta private:
-        """
-        y_hat,score = self(batch)
-        
-        mse_loss = self.loss(y_hat, batch['y'])
-        x =  batch['x_num_past'].to(self.device)
-        idx_target = batch['idx_target'][0]
-        x_start = x[:,-1,idx_target].unsqueeze(1)
-        y_persistence = x_start.repeat(1,self.future_steps,1)
-        
-        #import pdb
-        #pdb.set_trace()
-        if self.loss_type == 'linear_penalization':
-            idx = 1 if self.use_quantiles else 0
-            persistence_error = self.persistence_weight*(2.0-10.0*torch.clamp( torch.abs((y_persistence-y_hat[:,:,:,idx])/(0.001+torch.abs(y_persistence))),min=0.0,max=0.1))
-            loss = torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y'])*persistence_error)
-            #loss = self.persistence_weight*persistence_loss + (1-self.persistence_weight)*mse_loss
-        elif self.loss_type == 'exponential_penalization':
-            idx = 1 if self.use_quantiles else 0
-            weights = (1+torch.exp(-torch.abs(y_persistence-y_hat[:,:,:,idx])))
-            loss =  torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y']))+ self.persistence_weight*torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y'])*weights)
-            
-        else:
-            loss = mse_loss
 
-        return loss#+torch.abs(score-self.glu_percentage)*loss/5.0 ##tipo persa il 20%
     def training_step(self, batch, batch_idx):
         """
         pythotrch lightening stuff
         
         :meta private:
         """
-        return self.compute_loss(batch)
+        y_hat,score = self(batch)
+        return self.compute_loss(batch,y_hat)#+torch.abs(score-self.glu_percentage)*loss/5.0 ##tipo persa il 20%
     
     def validation_step(self, batch, batch_idx):
         """
@@ -322,8 +298,9 @@ class MyModel(Base):
         
         :meta private:
         """
-        return  self.compute_loss(batch)  
-    
+        y_hat,score = self(batch)
+        return self.compute_loss(batch,y_hat)#+torch.abs(score-self.glu_percentage)*loss/5.0 ##tipo persa il 20%
+
     def forward(self, batch):
         """It is mandatory to implement this method
 

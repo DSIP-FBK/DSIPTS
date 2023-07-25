@@ -16,11 +16,11 @@ model_configs:
   kernel_size: 3
   kind: 'gru'
   sum_emb: true
-  persistence_weight: 0.2
   use_bn: true
   optim: torch.optim.SGD
   activation: torch.nn.PReLU
-  loss_type: 'normal'
+  persistence_weight: 0.2
+  loss_type: 'l1'
 
 train_config:
   batch_size: 128

@@ -35,8 +35,9 @@ class Informer(Base):
                  distil:bool=True,
                  factor:int=5,
                  num_heads:int=1,
+                 persistence_weight:float=0.0,
+                 loss_type: str='l1',
                  quantiles:List[int]=[],
-                 loss_type: str='standard',
                  dropout_rate:float=0.1,
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
@@ -57,13 +58,16 @@ class Informer(Base):
             out_channels (int):  number of output channels
             mix (bool, optional): se mix attention in generative decoder. Defaults to True.
             activation (str, optional): relu or gelu. Defaults to 'relu'.
+            persistence_weight (float):  weight controlling the divergence from persistence model. Default 0
+            loss_type (str, optional): this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,
             attn (str, optional): attention used in encoder, options:[prob, full]. Defaults to 'prob'.
             output_attention (bool, optional): visualize attention, keep it False please . Defaults to False. TODO: FIX THIS
             distil (bool, optional): whether to use distilling in encoder, using this argument means not using distilling. Defaults to True.
             factor (int, optional): probsparse attn factor. Defaults to 5.
             num_heads (int, optional):  heads equal in the encoder and encoder. Defaults to 1.
+            persistence_weight (float):  weight controlling the divergence from persistence model. Default 0
+            loss_type (str, optional): this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,
             quantiles (List[int], optional): NOT USED YET
-            loss_type (str, optional): this model uses custom losses
             dropout_rate (float, optional):  dropout rate in Dropout layers. Defaults to 0.1.
             optim (str, optional): if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
@@ -79,6 +83,13 @@ class Informer(Base):
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
         self.output_attention = output_attention
+        self.persistence_weight = persistence_weight 
+        self.loss_type = loss_type
+        
+        if self.loss_type == 'mse':
+            self.loss = nn.MSELoss()
+        else:
+            self.loss = nn.L1Loss()
         
         self.enc_embedding = DataEmbedding(past_channels, d_model, embs, dropout_rate)
         self.dec_embedding = DataEmbedding(future_channels, d_model, embs, dropout_rate)
@@ -124,10 +135,8 @@ class Informer(Base):
         self.projection = nn.Linear(d_model, out_channels, bias=True)
         
                 
-        self.loss_type = loss_type
         
-        
-        self.loss = L1Loss()
+  
         
     def forward(self,batch): 
         #x_enc, x_mark_enc, x_dec, x_mark_dec,enc_self_mask=None, dec_self_mask=None, dec_enc_mask=None):
@@ -164,53 +173,4 @@ class Informer(Base):
        
        
        
-       
-       
-       
-
-        
-    def compute_loss(self,batch):
-        """
-        custom loss calculation
-        
-        :meta private:
-        """
-        y_hat = self(batch)
-        
-        mse_loss = self.loss(y_hat, batch['y'])
-        x =  batch['x_num_past'].to(self.device)
-        idx_target = batch['idx_target'][0]
-        x_start = x[:,-1,idx_target].unsqueeze(1)
-        y_persistence = x_start.repeat(1,self.future_steps,1)
-        
-        #import pdb
-        #pdb.set_trace()
-        if self.loss_type == 'linear_penalization':
-            persistence_loss = -nn.L1Loss()(y_persistence,y_hat[:,:,:,0])
-            loss = self.persistence_weight*persistence_loss + (1-self.persistence_weight)*mse_loss
-        elif self.loss_type == 'inverse_penalization':
-            idx = 1 if self.use_quantiles else 0
-            weights = self.persistence_weight/(torch.abs(y_hat[:,:,:,0]-y_persistence) +0.1)
-
-            loss = torch.mean(torch.abs(y_hat[:,:,:,0]- batch['y'])*weights)
-        else:
-            loss = mse_loss
-        
-        return loss
-    def training_step(self, batch, batch_idx):
-        """
-        pythotrch lightening stuff
-        
-        :meta private:
-        """
-        return self.compute_loss(batch)
-    
-    def validation_step(self, batch, batch_idx):
-        """
-        pythotrch lightening stuff
-        
-        :meta private:
-        """
-        return  self.compute_loss(batch)  
-    
-    
+          

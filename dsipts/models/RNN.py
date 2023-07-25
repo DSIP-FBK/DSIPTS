@@ -33,9 +33,11 @@ class RNN(Base):
                  activation:str='torch.nn.ReLU',
                  dropout_rate:float=0.1,
                  use_bn:bool=False,
+                 persistence_weight:float=0.0,
+                 loss_type: str='l1',
                  quantiles:List[int]=[],
-                  n_classes:int=0,
-                  optim:Union[str,None]=None,
+                 n_classes:int=0,
+                 optim:Union[str,None]=None,
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
         """ Recurrent model with an encoder decoder structure
@@ -56,6 +58,8 @@ class RNN(Base):
             activation (str, optional): activation fuction function pytorch. Default torch.nn.ReLU
             dropout_rate (float, optional): dropout rate in Dropout layers
             use_bn (bool, optional): if true BN layers will be added and dropouts will be removed
+            persistence_weight (float):  weight controlling the divergence from persistence model. Default 0
+            loss_type (str, optional): this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,
             quantiles (List[int], optional): we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
             n_classes (int): number of classes (0 in regression)
             optim (str, optional): if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
@@ -76,7 +80,8 @@ class RNN(Base):
         #self.device = get_device()
         self.past_steps = past_steps
         self.future_steps = future_steps
-
+        self.persistence_weight = persistence_weight 
+        self.loss_type = loss_type
         self.num_layers_RNN = num_layers_RNN
         self.hidden_RNN = hidden_RNN
         self.past_channels = past_channels 
@@ -94,7 +99,10 @@ class RNN(Base):
             else:
                 self.use_quantiles = False
                 self.mul = 1
-                self.loss = L1Loss()
+                if self.loss_type == 'mse':
+                    self.loss = nn.MSELoss()
+                else:
+                    self.loss = nn.L1Loss()
         else:
             self.is_classification = True
             self.use_quantiles = False
@@ -188,7 +196,6 @@ class RNN(Base):
         else:
             x_future = None
         #import pdb
-        #pdb.set_trace()
         tmp = [self.initial_linear_encoder(x)]
         
         for i in range(len(self.embs)):

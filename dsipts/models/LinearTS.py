@@ -58,8 +58,10 @@ class LinearTS(Base):
                  activation:str='torch.nn.ReLU',
                  kind:str='linear',
                  use_bn:bool=False,
+                 persistence_weight:float=0.0,
+                 loss_type: str='l1',
                  quantiles:List[int]=[],
-                  n_classes:int=0,
+                 n_classes:int=0,
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
@@ -81,6 +83,8 @@ class LinearTS(Base):
             kind (str, optional): one among linear, dlinear (de-trending), nlinear (differential). Defaults to 'linear'.
             use_bn (bool, optional): if true BN layers will be added and dropouts will be removed. Default False
             quantiles (List[int], optional):  we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
+            persistence_weight (float):  weight controlling the divergence from persistence model. Default 0
+            loss_type (str, optional): this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,
             n_classes (int): number of classes (0 in regression)
             optim (str, optional): if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
@@ -106,7 +110,8 @@ class LinearTS(Base):
         self.future_channels = future_channels 
         self.embs = nn.ModuleList()
         self.sum_emb = sum_emb
-
+        self.persistence_weight = persistence_weight 
+        self.loss_type = loss_type
         if n_classes==0:
             self.is_classification = False
             if len(quantiles)>0:
@@ -116,7 +121,10 @@ class LinearTS(Base):
             else:
                 self.use_quantiles = False
                 self.mul = 1
-                self.loss = L1Loss()
+                if self.loss_type == 'mse':
+                    self.loss = nn.MSELoss()
+                else:
+                    self.loss = nn.L1Loss()
         else:
             self.is_classification = True
             self.use_quantiles = False

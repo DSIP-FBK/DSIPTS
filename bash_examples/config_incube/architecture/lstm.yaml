@@ -20,6 +20,8 @@ model_configs:
   optim: torch.optim.SGD
   activation: torch.nn.PReLU
   dropout_rate: 0.2
+  persistence_weight: 0.2
+  loss_type: 'l1'
 
 train_config:
   batch_size: 128

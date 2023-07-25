@@ -87,9 +87,7 @@ class Base(pl.LightningModule):
         :meta private:
         """
         y_hat = self(batch)
-        loss = self.loss(y_hat, batch['y'].to(self.device))
-        #self.log('train_loss', loss)
-        return loss
+        return self.compute_loss(batch,y_hat)
     
     def validation_step(self, batch, batch_idx):
         """
@@ -98,10 +96,8 @@ class Base(pl.LightningModule):
         :meta private:
         """
         y_hat = self(batch)
+        return self.compute_loss(batch,y_hat)
 
-        loss = self.loss(y_hat, batch['y'].to(self.device))
-        #self.log('val_loss', loss)
-        return loss
 
     def validation_epoch_end(self, outs):
         """
@@ -128,3 +124,30 @@ class Base(pl.LightningModule):
         self.count_epoch+=1
         logging.info(f'Epoch: {self.count_epoch}, train loss: {loss.item():.4f}')
 
+    def compute_loss(self,batch,y_hat):
+        """
+        custom loss calculation
+        
+        :meta private:
+        """
+        
+        initial_loss = self.loss(y_hat, batch['y'])
+        x =  batch['x_num_past'].to(self.device)
+        idx_target = batch['idx_target'][0]
+        x_start = x[:,-1,idx_target].unsqueeze(1)
+        y_persistence = x_start.repeat(1,self.future_steps,1)
+        
+        if self.loss_type == 'linear_penalization':
+            idx = 1 if self.use_quantiles else 0
+            persistence_error = self.persistence_weight*(2.0-10.0*torch.clamp( torch.abs((y_persistence-y_hat[:,:,:,idx])/(0.001+torch.abs(y_persistence))),min=0.0,max=0.1))
+            loss = torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y'])*persistence_error)
+            #loss = self.persistence_weight*persistence_loss + (1-self.persistence_weight)*mse_loss
+        elif self.loss_type == 'exponential_penalization':
+            idx = 1 if self.use_quantiles else 0
+            weights = (1+torch.exp(-torch.abs(y_persistence-y_hat[:,:,:,idx])))
+            loss =  torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y']))+ self.persistence_weight*torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y'])*weights)
+            
+        else:
+            loss = initial_loss
+
+        return loss
