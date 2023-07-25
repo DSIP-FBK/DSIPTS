@@ -2,25 +2,28 @@
 
 model:
   type: 'rnn'
-  
+  retrain: true
 ts:
-  name: 'weather_gru'
+  name: 'gru'
   version: 1
   enrich: ['hour']
   use_covariates: true
 
 model_configs:
   cat_emb_dim: 32
-  hidden_RNN: 1024
-  num_layers_RNN: 5
+  hidden_RNN: 128
+  num_layers_RNN: 2
   kernel_size: 5
   kind: 'gru'
   sum_emb: true
-  use_bn: false  
-  activation: 'relu'
+  use_bn: true  
+  optim: torch.optim.SGD
+  activation: torch.nn.PReLU
   dropout_rate: 0.2
-
+  persistence_weight: 0.2
+  loss_type: 'l1'
+  
 train_config:
-  batch_size: 256
+  batch_size: 128
   max_epochs: 250
             

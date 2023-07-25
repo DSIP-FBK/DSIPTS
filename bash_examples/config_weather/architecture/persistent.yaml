@@ -2,9 +2,9 @@
 
 model:
   type: 'persistent'
-  
+  retrain: true
 ts:
-  name: 'weather'
+  name: 'persistent'
   version: 1
   enrich: ['hour']
   use_covariates: false
