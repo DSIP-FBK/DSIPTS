@@ -14,6 +14,8 @@ class Persistent(Base):
     def __init__(self, 
                  future_steps:int,
                  past_steps:int,
+                 loss_type:str=None,#not used but needed
+                 persistence_weight:float=0.1,#not used but needed
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
         """Persistent model propagatinng  last observed values

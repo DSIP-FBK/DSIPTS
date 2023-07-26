@@ -18,7 +18,9 @@ model_configs:
   future_channels : null #dataset dependent
   embs: null #dataset dependent
   out_channels: null #dataset dependent
-
+  loss_type: null
+  persistence_weight: null
+  
 split_params:
   perc_train: 0.8
   perc_valid: 0.1
