@@ -51,8 +51,8 @@ class SinkhornDistance(nn.Module):
         nu = torch.empty(batch_size, y_points, dtype=torch.float,
                          requires_grad=False).fill_(1.0 / y_points).squeeze()
 
-        u = torch.zeros_like(mu)
-        v = torch.zeros_like(nu)
+        u = torch.zeros_like(mu).to(x.device)
+        v = torch.zeros_like(nu).to(x.device)
         # To check if algorithm terminates because of threshold
         # or max iterations reached
         actual_nits = 0
@@ -86,7 +86,7 @@ class SinkhornDistance(nn.Module):
     def M(self, C, u, v):
         "Modified cost for logarithmic updates"
         "$M_{ij} = (-c_{ij} + u_i + v_j) / \epsilon$"
-        return (-C + u.to(C.device).unsqueeze(-1) + v.to(C.device).unsqueeze(-2)) / self.eps
+        return (-C + u.unsqueeze(-1) + v.unsqueeze(-2)) / self.eps
 
     @staticmethod
     def _cost_matrix(x, y, p=2):
