@@ -19,7 +19,7 @@ model_configs:
   embs: null #dataset dependent
   out_channels: null #dataset dependent
   loss_type: null
-  persistence_weight: 1.0
+  persistence_weight: 0.25
 
 split_params:
   perc_train: 0.8
