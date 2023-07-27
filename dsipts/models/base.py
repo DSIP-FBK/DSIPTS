@@ -166,7 +166,8 @@ class Base(pl.LightningModule):
             else:
                 x = y_hat
             loss = sinkhorn.compute(x,batch['y'])
-                
+            import pdb
+            pdb.set_trace()
     
         else:
 
