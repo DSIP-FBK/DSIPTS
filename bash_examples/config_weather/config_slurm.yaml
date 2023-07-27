@@ -8,7 +8,7 @@ scheduler_config:
 
 optim_config:
   lr: 0.00005
-  weight_decay: 0.1
+  weight_decay: 0.0
 
 model_configs:
   past_steps: 16
@@ -20,7 +20,7 @@ model_configs:
   out_channels: null #dataset dependent
   loss_type: null
   persistence_weight: null
-  
+
 split_params:
   perc_train: 0.8
   perc_valid: 0.1
