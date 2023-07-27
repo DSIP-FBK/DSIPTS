@@ -72,7 +72,7 @@ class SinkhornDistance(nn.Module):
 
         U, V = u, v
         # Transport plan pi = diag(a)*K*diag(b)
-        pi = torch.exp(self.M(C.to(x.device), U.to(x.device), V.to(x.device)))
+        pi = torch.exp(self.M(C.to(x), U, V))
         # Sinkhorn distance
         cost = torch.sum(pi * C, dim=(-2, -1))
 
@@ -86,6 +86,8 @@ class SinkhornDistance(nn.Module):
     def M(self, C, u, v):
         "Modified cost for logarithmic updates"
         "$M_{ij} = (-c_{ij} + u_i + v_j) / \epsilon$"
+        import pdb
+        pdb.set_trace()
         return (-C + u.unsqueeze(-1) + v.unsqueeze(-2)) / self.eps
 
     @staticmethod
