@@ -6,7 +6,7 @@ import pytorch_lightning as pl
 from torch.optim.lr_scheduler import StepLR
 from abc import ABCMeta, abstractmethod
 import logging
-
+from .utils import SinkhornDistance
 
 
 class Base(pl.LightningModule):
@@ -149,8 +149,16 @@ class Base(pl.LightningModule):
             idx = 1 if self.use_quantiles else 0
             weights = (1+self.persistence_weight*torch.exp(-torch.abs(y_persistence-y_hat[:,:,:,idx])))
             loss =  torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y'])*weights)
-            
+        
+        elif self.loss_type=='sinkhorn':
+            sinkhorn = SinkhornDistance(eps=0.1, max_iter=100, reduction=None)
+            if self.use_quantiles==False:
+                x = y_hat[:,:,:,0]
+            else:
+                x = y_hat
+            loss = sinkhorn(x,batch['y'])
         else:
+
             loss = initial_loss
 
         return loss
