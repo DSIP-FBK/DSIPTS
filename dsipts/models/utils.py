@@ -11,7 +11,7 @@ def get_device():
 import torch
 import torch.nn as nn
 
-class SinkhornDistance(nn.Module):
+class SinkhornDistance():
     r"""
     Given two empirical measures each with :math:`P_1` locations
     :math:`x\in\mathbb{R}^{D_1}` and :math:`P_2` locations :math:`y\in\mathbb{R}^{D_2}`,
