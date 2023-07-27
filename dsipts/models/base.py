@@ -156,7 +156,7 @@ class Base(pl.LightningModule):
                 x = y_hat[:,:,:,0]
             else:
                 x = y_hat
-            loss = sinkhorn.compute(x,batch['y'])-   self.persistence_weight*sinkhorn(x,y_persistence)
+            loss = sinkhorn.compute(x,batch['y'])-   self.persistence_weight*sinkhorn.compute(x,y_persistence)
             
         elif self.loss_type=='sinkhorn':
 
