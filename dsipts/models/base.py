@@ -147,8 +147,8 @@ class Base(pl.LightningModule):
             #loss = self.persistence_weight*persistence_loss + (1-self.persistence_weight)*mse_loss
         elif self.loss_type == 'exponential_penalization':
             idx = 1 if self.use_quantiles else 0
-            weights = (1+torch.exp(-torch.abs(y_persistence-y_hat[:,:,:,idx])))
-            loss =  torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y']))+ self.persistence_weight*torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y'])*weights)
+            weights = (1+self.persistence_weight*torch.exp(-torch.abs(y_persistence-y_hat[:,:,:,idx])))
+            loss =  torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y'])*weights)
             
         else:
             loss = initial_loss
