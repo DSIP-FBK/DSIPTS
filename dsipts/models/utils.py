@@ -72,7 +72,7 @@ class SinkhornDistance(nn.Module):
 
         U, V = u, v
         # Transport plan pi = diag(a)*K*diag(b)
-        pi = torch.exp(self.M(C, U, V))
+        pi = torch.exp(self.M(C.to(x.device), U.to(x.device), V.to(x.device)))
         # Sinkhorn distance
         cost = torch.sum(pi * C, dim=(-2, -1))
 

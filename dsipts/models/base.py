@@ -159,6 +159,8 @@ class Base(pl.LightningModule):
             loss = sinkhorn(x,batch['y'])-   self.persistence_weight*sinkhorn(x,y_persistence)
             
         elif self.loss_type=='sinkhorn':
+            import pdb
+            pdb.set_trace()
             sinkhorn = SinkhornDistance(eps=0.1, max_iter=100, reduction=None)
             if self.use_quantiles==False:
                 x = y_hat[:,:,:,0]
