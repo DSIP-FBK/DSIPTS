@@ -150,6 +150,14 @@ class Base(pl.LightningModule):
             weights = (1+self.persistence_weight*torch.exp(-torch.abs(y_persistence-y_hat[:,:,:,idx])))
             loss =  torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y'])*weights)
         
+        elif self.loss_type=='sinkhorn_heavy':
+            sinkhorn = SinkhornDistance(eps=0.1, max_iter=100, reduction=None)
+            if self.use_quantiles==False:
+                x = y_hat[:,:,:,0]
+            else:
+                x = y_hat
+            loss = sinkhorn(x,batch['y'])-   self.persistence_weight*sinkhorn(x,y_persistence)
+            
         elif self.loss_type=='sinkhorn':
             sinkhorn = SinkhornDistance(eps=0.1, max_iter=100, reduction=None)
             if self.use_quantiles==False:
@@ -157,6 +165,8 @@ class Base(pl.LightningModule):
             else:
                 x = y_hat
             loss = sinkhorn(x,batch['y'])
+                
+    
         else:
 
             loss = initial_loss
