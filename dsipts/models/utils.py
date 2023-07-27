@@ -35,7 +35,7 @@ class SinkhornDistance():
         self.max_iter = max_iter
         self.reduction = reduction
 
-    def forward(self, x, y):
+    def compute(self, x, y):
         # The Sinkhorn algorithm takes as input three variables :
         C = self._cost_matrix(x, y).to(x.device)  # Wasserstein cost function
         x_points = x.shape[-2]

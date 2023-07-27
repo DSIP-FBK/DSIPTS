@@ -165,7 +165,7 @@ class Base(pl.LightningModule):
                 x = y_hat[:,:,:,0]
             else:
                 x = y_hat
-            loss = sinkhorn(x,batch['y'])
+            loss = sinkhorn.compute(x,batch['y'])
                 
     
         else:
