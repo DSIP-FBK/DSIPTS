@@ -4,7 +4,7 @@ dirpath: "/home/agobbi/Projects/ExpTS/weather"
 set: 'test'
 name: 'prova'
 rescaling: true
-batch_size: 128
+batch_size: 64
 
 defaults:
   - _self_
