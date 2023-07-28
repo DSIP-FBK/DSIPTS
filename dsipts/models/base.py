@@ -155,7 +155,7 @@ class Base(pl.LightningModule):
             if self.use_quantiles==False:
                 x = y_hat[:,:,:,0]
             else:
-                x = y_hat
+                x = y_hat[:,:,:,1]
             loss = sinkhorn.compute(x,batch['y'])-   self.persistence_weight*sinkhorn.compute(x,y_persistence)
             
         elif self.loss_type=='sinkhorn':
@@ -164,7 +164,7 @@ class Base(pl.LightningModule):
             if self.use_quantiles==False:
                 x = y_hat[:,:,:,0]
             else:
-                x = y_hat
+                x = y_hat[:,:,:,1]
             loss = sinkhorn.compute(x,batch['y'])
 
     
