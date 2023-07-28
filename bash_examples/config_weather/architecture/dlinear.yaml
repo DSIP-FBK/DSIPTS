@@ -19,7 +19,7 @@ model_configs:
   use_bn: false  
   optim: torch.optim.Adam
   activation: torch.nn.PReLU
-  persistence_weight: 0.2
+  persistence_weight: 1.0
   loss_type: 'l1'
   
 train_config:

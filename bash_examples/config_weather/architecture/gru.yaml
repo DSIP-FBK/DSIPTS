@@ -11,16 +11,16 @@ ts:
 
 model_configs:
   cat_emb_dim: 128
-  hidden_RNN: 256
-  num_layers_RNN: 8
-  kernel_size: 5
+  hidden_RNN: 128
+  num_layers_RNN: 2
+  kernel_size: 3
   kind: 'gru'
   sum_emb: true
   use_bn: true  
   optim: torch.optim.SGD
   activation: torch.nn.PReLU
   dropout_rate: 0.2
-  persistence_weight: 0.2
+  persistence_weight: 1.0
   loss_type: 'l1'
   
 train_config:
