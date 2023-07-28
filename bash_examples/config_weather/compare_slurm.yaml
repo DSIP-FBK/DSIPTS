@@ -4,7 +4,7 @@ dirpath: "/home/agobbi/Projects/ExpTS/weather"
 set: 'test'
 name: 'prova'
 rescaling: true
-batch_size: 64
+batch_size: 32
 
 defaults:
   - _self_
@@ -15,7 +15,7 @@ hydra:
     submitit_folder: ${hydra.sweep.dir}/.submitit/%j
     timeout_min: 6000
     partition: gpu-A40
-    mem_gb: 6
+    mem_gb: 8
     nodes: 1
     gres: gpu:1
     name: ${hydra.job.name}
