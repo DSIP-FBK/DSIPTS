@@ -11,16 +11,15 @@ ts:
 
 model_configs:
   d_model: 128
-  sum_emb: true
   hidden_size: 128
   n_layer_encoder: 2
   n_layer_decoder: 2
+  num_heads: 2
   optim: torch.optim.SGD
   activation: torch.nn.PReLU
   persistence_weight: 10.0
   loss_type: 'l1'
   remove_last: true
-
 train_config:
   batch_size: 128
   max_epochs: 250
