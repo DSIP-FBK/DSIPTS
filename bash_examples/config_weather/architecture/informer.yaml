@@ -1,7 +1,7 @@
 # @package _global_
 
 model:
-  type: 'mymodel'
+  type: 'informer'
   retrain: true
 ts:
   name: 'test'
@@ -11,12 +11,11 @@ ts:
 
 model_configs:
   cat_emb_dim: 128
-  hidden_RNN: 128
-  num_layers_RNN: 2
-  kernel_size: 3
-  kind: 'gru'
+  d_model: 128
   sum_emb: true
-  use_bn: true
+  hidden_size: 128
+  n_layer_encoder: 2
+  n_layer_decoder: 2
   optim: torch.optim.SGD
   activation: torch.nn.PReLU
   persistence_weight: 10.0
@@ -25,6 +24,5 @@ model_configs:
 
 train_config:
   batch_size: 128
-  max_epochs: 200
-  gradient_clip_val: null
-  gradient_clip_algorithm: 'norm'
+  max_epochs: 250
+            

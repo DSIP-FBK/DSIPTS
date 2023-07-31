@@ -29,7 +29,8 @@ class Informer(Base):
                  n_layer_decoder:int,
                  out_channels:int,
                  mix:bool=True,
-                 activation:str='relu',
+                 activation:str='torch.nn.ReLU',
+                 remove_last = False,
                  attn: str='prob',
                  output_attention:bool=False,
                  distil:bool=True,
@@ -85,6 +86,7 @@ class Informer(Base):
         self.output_attention = output_attention
         self.persistence_weight = persistence_weight 
         self.loss_type = loss_type
+        self.remove_last = remove_last
         
         if self.loss_type == 'mse':
             self.loss = nn.MSELoss()
@@ -154,6 +156,15 @@ class Informer(Base):
         x_mark_dec = batch['x_cat_future']
         dec_self_mask = None
         dec_enc_mask = None
+        if self.remove_last:
+            idx_target = batch['idx_target'][0]
+
+            x_start = x_enc[:,-1,idx_target].unsqueeze(1)
+            ##BxC
+            x_enc[:,:,idx_target]-=x_start   
+        
+        
+        
         enc_out = self.enc_embedding(x_enc, x_mark_enc)
         enc_out, attns = self.encoder(enc_out, attn_mask=enc_self_mask)
 
@@ -166,10 +177,14 @@ class Informer(Base):
         
         #import pdb
         #pdb.set_trace()
+        res = dec_out[:,-self.future_steps:,:].unsqueeze(3)
+        if self.remove_last:
+            res+=x_start.unsqueeze(1)
+        
         if self.output_attention:
-            return dec_out[:,-self.future_steps:,:], attns
+            return res, attns
         else:
-            return dec_out[:,-self.future_steps:,:].unsqueeze(3) # [B, L, C,1]
+            return  res
        
        
        
