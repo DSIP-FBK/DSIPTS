@@ -34,7 +34,8 @@ def compare(conf:DictConfig)-> None:
     res = []
     tot_losses = []
     tot_predictions = []
-    
+    import pdb
+    pdb.set_trace()
     if (type( conf.models)==list) or (type( conf.models)==ListConfig):
         files =  conf.models
     
