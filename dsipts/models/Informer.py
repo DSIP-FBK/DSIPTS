@@ -141,21 +141,19 @@ class Informer(Base):
   
         
     def forward(self,batch): 
-        import pdb
-        pdb.set_trace()
         #x_enc, x_mark_enc, x_dec, x_mark_dec,enc_self_mask=None, dec_self_mask=None, dec_enc_mask=None):
         
-        x_enc = batch['x_num_past']
-        x_mark_enc = batch['x_cat_past']
+        x_enc = batch['x_num_past'].to(self.device)
+        x_mark_enc = batch['x_cat_past'].to(self.device)
         enc_self_mask = None
         
-        x_dec = batch['x_num_future']
+        x_dec = batch['x_num_future'].to(self.device)
         #idx_target = batch['idx_target']
         ##BS x L x channels
         #import pdb
        # pdb.set_trace()
         x_dec[:,-self.future_steps:,:] = 0 #padding in teoria quelle future sono tutte 0, TODO:  add idx_target future
-        x_mark_dec = batch['x_cat_future']
+        x_mark_dec = batch['x_cat_future'].to(self.device)
         dec_self_mask = None
         dec_enc_mask = None
         if self.remove_last:
