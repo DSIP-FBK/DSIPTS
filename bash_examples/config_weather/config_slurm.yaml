@@ -3,7 +3,7 @@ dataset:
   path: '/home/agobbi/Projects/ExpTS/data'
 
 scheduler_config:
-  gamma: 0.025
+  gamma: 0.75
   step_size: 50
 
 optim_config:
