@@ -31,6 +31,7 @@ class RNN(Base):
                  sum_emb:bool,
                  out_channels:int,
                  activation:str='torch.nn.ReLU',
+                 remove_last = False,
                  dropout_rate:float=0.1,
                  use_bn:bool=False,
                  persistence_weight:float=0.0,
@@ -56,6 +57,7 @@ class RNN(Base):
             sum_emb (bool): if true the contribution of each embedding will be summed-up otherwise stacked
             out_channels (int):  number of output channels
             activation (str, optional): activation fuction function pytorch. Default torch.nn.ReLU
+            remove_last (bool, optional): if True the model learns the difference respect to the last seen point
             dropout_rate (float, optional): dropout rate in Dropout layers
             use_bn (bool, optional): if true BN layers will be added and dropouts will be removed
             persistence_weight (float):  weight controlling the divergence from persistence model. Default 0
@@ -89,7 +91,7 @@ class RNN(Base):
         self.embs = nn.ModuleList()
         self.sum_emb = sum_emb
         self.kind = kind
-        
+        self.remove_last = remove_last
         if n_classes==0:
             self.is_classification = False
             if len(quantiles)>0:
@@ -196,6 +198,14 @@ class RNN(Base):
         else:
             x_future = None
         #import pdb
+        
+        if self.remove_last:
+            idx_target = batch['idx_target'][0]
+
+            x_start = x[:,-1,idx_target].unsqueeze(1)
+            ##BxC
+            x[:,:,idx_target]-=x_start        
+        
         tmp = [self.initial_linear_encoder(x)]
         
         for i in range(len(self.embs)):
@@ -244,8 +254,11 @@ class RNN(Base):
         res = torch.cat(res,2)
         ##BxLxC
         B,L,_ = res.shape
+        res = res.reshape(B,L,-1,self.mul)
         
+        if self.remove_last:
+            res+=x_start.unsqueeze(1)
       
-        return res.reshape(B,L,-1,self.mul)
+        return res
 
     

@@ -151,7 +151,7 @@ class Base(pl.LightningModule):
             loss =  torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y'])*weights)
         
         elif self.loss_type=='sinkhorn_heavy':
-            sinkhorn = SinkhornDistance(eps=0.001, max_iter=500, reduction='mean')
+            sinkhorn = SinkhornDistance(eps=0.1, max_iter=500, reduction='mean')
             if self.use_quantiles==False:
                 x = y_hat[:,:,:,0]
             else:
@@ -160,7 +160,7 @@ class Base(pl.LightningModule):
             
         elif self.loss_type=='sinkhorn':
 
-            sinkhorn = SinkhornDistance(eps=0.001, max_iter=500, reduction='mean')
+            sinkhorn = SinkhornDistance(eps=0.1, max_iter=500, reduction='mean')
             if self.use_quantiles==False:
                 x = y_hat[:,:,:,0]
             else:

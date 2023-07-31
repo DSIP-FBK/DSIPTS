@@ -103,6 +103,7 @@ class MyModel(Base):
                  sum_emb:bool,
                  out_channels:int,
                  activation:str='torch.nn.ReLU',
+                 remove_last = False,
                  persistence_weight:float=0.0,
                  loss_type: str='l1',
                  quantiles:List[int]=[],
@@ -129,6 +130,7 @@ class MyModel(Base):
             sum_emb (bool): if true the contribution of each embedding will be summed-up otherwise stacked
             out_channels (int):  number of output channels
             activation (str, optional): activation fuction function pytorch. Default torch.nn.ReLU
+            remove_last (bool, optional): if True the model learns the difference respect to the last seen point
             persistence_weight (float):  weight controlling the divergence from persistence model. Default 0
             loss_type (str, optional): this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,
             quantiles (List[int], optional): we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
@@ -167,7 +169,7 @@ class MyModel(Base):
         self.use_glu = use_glu
         self.glu_percentage = torch.tensor(glu_percentage).to(self.device)
         self.out_channels = out_channels
-        
+        self.remove_last = remove_last
         if n_classes==0:
             self.is_classification = False
             if len(quantiles)>0:
@@ -321,6 +323,14 @@ class MyModel(Base):
         else:
             x_future = None     
             
+        if self.remove_last:
+            idx_target = batch['idx_target'][0]
+
+            x_start = x[:,-1,idx_target].unsqueeze(1)
+            ##BxC
+            x[:,:,idx_target]-=x_start        
+            
+    
         ## first GLU
         score = 0
         xp =  torch.clone(x)
@@ -394,9 +404,12 @@ class MyModel(Base):
         res = torch.cat(res,2)
         ##BxLxC
         B = res.shape[0]
+        res = res.reshape(B,self.future_steps,-1,self.mul)
+        if self.remove_last:
+            res+=x_start.unsqueeze(1)
         
       
-        return res.reshape(B,self.future_steps,-1,self.mul), score
+        return res, score
 
     def inference(self, batch:dict)->torch.tensor:
         
