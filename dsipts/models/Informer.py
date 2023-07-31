@@ -141,6 +141,8 @@ class Informer(Base):
   
         
     def forward(self,batch): 
+        import pdb
+        pdb.set_trace()
         #x_enc, x_mark_enc, x_dec, x_mark_dec,enc_self_mask=None, dec_self_mask=None, dec_enc_mask=None):
         
         x_enc = batch['x_num_past']
