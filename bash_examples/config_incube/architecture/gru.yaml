@@ -20,9 +20,9 @@ model_configs:
   optim: torch.optim.SGD
   activation: torch.nn.PReLU
   dropout_rate: 0.2
-  persistence_weight: 0.2
+  persistence_weight: 1.0
   loss_type: 'l1'
-  
+  remove_last: true
 train_config:
   batch_size: 128
   max_epochs: 250
