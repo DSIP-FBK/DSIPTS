@@ -6,7 +6,7 @@ model:
 ts:
   name: 'test'
   version: 1
-  enrich: ['hour']
+  enrich: ['dow','hour']
   use_covariates: true
 
 model_configs:
