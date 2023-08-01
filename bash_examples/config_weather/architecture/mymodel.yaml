@@ -19,12 +19,12 @@ model_configs:
   use_bn: true
   optim: torch.optim.SGD
   activation: torch.nn.PReLU
-  persistence_weight: 100.0
+  persistence_weight: 1.0
   loss_type: 'l1'
   remove_last: true
 
 train_config:
   batch_size: 128
-  max_epochs: 200
+  max_epochs: 500
   gradient_clip_val: null
   gradient_clip_algorithm: 'norm'

@@ -19,12 +19,12 @@ model_configs:
   use_bn: false  
   optim: torch.optim.Adam
   activation: torch.nn.PReLU
-  persistence_weight: 100.0
+  persistence_weight: 1.0
   loss_type: 'l1'
   
 train_config:
   batch_size: 128
-  max_epochs: 250
+  max_epochs: 500
   gradient_clip_val: null
   gradient_clip_algorithm: 'norm'
   
