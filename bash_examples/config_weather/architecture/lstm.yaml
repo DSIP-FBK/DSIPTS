@@ -6,7 +6,7 @@ model:
 ts:
   name: 'lstm'
   version: 1
-  enrich: ['dow','hour']
+  enrich: ['hour']
   use_covariates: true
 
 model_configs:
@@ -19,8 +19,8 @@ model_configs:
   use_bn: true  
   optim: torch.optim.SGD
   activation: torch.nn.PReLU
-  dropout_rate: 0.2
-  persistence_weight: 1.0
+  dropout_rate: 0.0
+  persistence_weight: 0.10
   loss_type: 'l1'
   remove_last: true
   

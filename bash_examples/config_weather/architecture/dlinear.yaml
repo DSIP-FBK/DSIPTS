@@ -6,7 +6,7 @@ model:
 ts:
   name: 'd'
   version: 1
-  enrich: ['dow','hour']
+  enrich: ['hour']
   use_covariates: true
 
 model_configs:
@@ -15,11 +15,11 @@ model_configs:
   sum_emb: true
   hidden_size: 512
   kind: 'dlinear'
-  dropout_rate: 0.2
+  dropout_rate: 0.0
   use_bn: false  
   optim: torch.optim.Adam
   activation: torch.nn.PReLU
-  persistence_weight: 1.0
+  persistence_weight: 0.10
   loss_type: 'l1'
   
 train_config:

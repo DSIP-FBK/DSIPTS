@@ -4,11 +4,11 @@ dataset:
 
 scheduler_config:
   gamma: 0.75
-  step_size: 50
+  step_size: 150
 
 optim_config:
   lr: 0.00005
-  weight_decay: 0.0 #001
+  weight_decay: 0.0001 #001
 
 model_configs:
   past_steps: 16

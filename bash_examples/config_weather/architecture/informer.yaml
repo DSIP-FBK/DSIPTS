@@ -6,7 +6,7 @@ model:
 ts:
   name: 'test'
   version: 1
-  enrich: ['dow','hour']
+  enrich: ['hour']
   use_covariates: true
 
 model_configs:
@@ -15,9 +15,10 @@ model_configs:
   n_layer_encoder: 2
   n_layer_decoder: 2
   num_heads: 2
+  dropout_rate: 0.0
   optim: torch.optim.SGD
   activation: torch.nn.PReLU
-  persistence_weight: 1.0
+  persistence_weight: 0.10
   loss_type: 'l1'
   remove_last: true
 
