@@ -19,7 +19,7 @@ model_configs:
   use_bn: true  
   optim: torch.optim.SGD
   activation: torch.nn.PReLU
-  dropout_rate: 0.0
+  dropout_rate: 0.5
   persistence_weight: 0.10
   loss_type: 'l1'
   remove_last: true

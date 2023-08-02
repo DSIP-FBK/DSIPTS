@@ -15,7 +15,7 @@ model_configs:
   sum_emb: true
   hidden_size: 512
   kind: 'linear'
-  dropout_rate: 0.0
+  dropout_rate: 0.5
   use_bn: false  
   optim: torch.optim.Adam
   activation: torch.nn.PReLU

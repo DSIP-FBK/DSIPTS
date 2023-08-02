@@ -16,8 +16,8 @@ model_configs:
   kernel_size: 3
   kind: 'gru'
   sum_emb: true
-  use_bn: true
-  dropout_rate: 0.0
+  use_bn: false
+  dropout_rate: 0.5
   optim: torch.optim.SGD
   activation: torch.nn.PReLU
   persistence_weight: 0.10
