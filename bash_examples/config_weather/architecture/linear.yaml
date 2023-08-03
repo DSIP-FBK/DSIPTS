@@ -6,8 +6,8 @@ model:
 ts:
   name: 'l'
   version: 1
-  enrich: ['hour']
-  use_covariates: true
+  enrich: []
+  use_covariates: false
 
 model_configs:
   cat_emb_dim: 128
