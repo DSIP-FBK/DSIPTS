@@ -90,10 +90,11 @@ def run(conf: DictConfig) -> None:
     model_config.vocab_size = max_voc_size
     model_config.block_size = x_train.shape[1] +  y_train.shape[1] -1
     trans = GPT(model_config)
-    optimizer = trans.configure_optimizers(train_config)
     train_config = Trainer.get_default_config()
     train_config.learning_rate = 1e-4 # the model we're using is so small that we can go a bit faster
     train_config.max_iters = 20000
+    #optimizer = trans.configure_optimizers(train_config)
+
     trainer = Trainer(train_config, trans, train_dataset)
 
     def batch_end_callback(trainer):
