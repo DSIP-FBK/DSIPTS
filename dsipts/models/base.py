@@ -170,7 +170,7 @@ class Base(pl.LightningModule):
             
         elif self.loss_type=='triplet':
 
-            triplet = torch.nn.TripletMarginLoss(margin=1.0, p=2)
+            triplet = torch.nn.TripletMarginLoss(margin=0.05, p=1)
             if self.use_quantiles==False:
                 x = y_hat[:,:,:,0]
             else:
