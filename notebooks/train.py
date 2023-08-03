@@ -51,7 +51,7 @@ class SortDataset(Dataset):
         return x, y
     
 @hydra.main(version_base=None,config_path=".")
-def run():
+def run(conf: DictConfig) -> None:
     data, columns = read_public_dataset(  dataset= 'weather', path= '/home/agobbi/Projects/ExpTS/data')
     ts = TimeSeries('prova')
     use_covariates = False
