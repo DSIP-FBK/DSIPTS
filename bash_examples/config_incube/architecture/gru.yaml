@@ -16,11 +16,11 @@ model_configs:
   kernel_size: 3
   kind: 'gru'
   sum_emb: true
-  use_bn: true  
+  use_bn: false  
   optim: torch.optim.SGD
   activation: torch.nn.PReLU
-  dropout_rate: 0.2
-  persistence_weight: 1.0
+  dropout_rate: 0.5
+  persistence_weight: 0.010
   loss_type: 'l1'
   remove_last: true
 train_config:

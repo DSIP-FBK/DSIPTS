@@ -4,16 +4,16 @@ dataset:
 
 scheduler_config:
   gamma: 0.05
-  step_size: 25
+  step_size: 75
 
 optim_config:
   lr: 0.00005
-  weight_decay: 0.1
+  weight_decay: 0.0001
 
 model_configs:
   past_steps: 168
   future_steps: 48
-  quantiles: [0.1,0.5,0.9]
+  quantiles: []
   past_channels : null #dataset dependent
   future_channels : null #dataset dependent
   embs: null #dataset dependent

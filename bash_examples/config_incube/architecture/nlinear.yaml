@@ -15,11 +15,11 @@ model_configs:
   sum_emb: true
   hidden_size: 512
   kind: 'nlinear'
-  dropout_rate: 0.2
+  dropout_rate: 0.5
   use_bn: false  
   optim: torch.optim.Adam
   activation: torch.nn.PReLU
-  persistence_weight: 1.0
+  persistence_weight: 0.01
   loss_type: 'l1'
   
 train_config:
