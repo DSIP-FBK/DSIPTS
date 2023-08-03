@@ -144,27 +144,33 @@ class Informer(Base):
         #x_enc, x_mark_enc, x_dec, x_mark_dec,enc_self_mask=None, dec_self_mask=None, dec_enc_mask=None):
         
         x_enc = batch['x_num_past'].to(self.device)
-        x_mark_enc = batch['x_cat_past'].to(self.device)
+        if 'x_cat_past' in batch.keys():
+            x_mark_enc = batch['x_cat_past'].to(self.device)
+        else:
+            x_mark_enc = None
         enc_self_mask = None
         
         x_dec = batch['x_num_future'].to(self.device)
-        #idx_target = batch['idx_target']
-        ##BS x L x channels
-        #import pdb
-       # pdb.set_trace()
-        x_dec[:,-self.future_steps:,:] = 0 #padding in teoria quelle future sono tutte 0, TODO:  add idx_target future
-        x_mark_dec = batch['x_cat_future'].to(self.device)
+
+        
+        ##FIX THIS, now all are 0!
+        x_dec[:,-self.future_steps:,:] = 0 
+        
+        
+        if 'x_cat_future' in batch.keys():
+            x_mark_dec = batch['x_cat_future'].to(self.device)
+        else:
+            x_mark_dec = None
         dec_self_mask = None
         dec_enc_mask = None
+        
+        
         if self.remove_last:
             idx_target = batch['idx_target'][0]
-
             x_start = x_enc[:,-1,idx_target].unsqueeze(1)
-            ##BxC
             x_enc[:,:,idx_target]-=x_start   
         
-        
-        
+    
         enc_out = self.enc_embedding(x_enc, x_mark_enc)
         enc_out, attns = self.encoder(enc_out, attn_mask=enc_self_mask)
 

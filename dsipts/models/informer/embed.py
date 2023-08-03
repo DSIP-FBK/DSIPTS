@@ -116,6 +116,8 @@ class DataEmbedding(nn.Module):
                 tot = self.emb_list[i](x_mark[:,:,i])
             else:
                 tot += self.emb_list[i](x_mark[:,:,i])
-                
-        x = self.value_embedding(x) + tot + self.position_embedding(x)
+        if tot is not None:
+            x = self.value_embedding(x) + tot + self.position_embedding(x)
+        else:
+            x = self.value_embedding(x) +  self.position_embedding(x)
         return self.dropout(x)
