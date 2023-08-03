@@ -8,7 +8,7 @@ hydra:
     submitit_folder: ${hydra.sweep.dir}/.submitit/%j
     timeout_min: 6000
     partition: gpu-A40 #A40 #gpu-V100
-    mem_gb: 6
+    mem_gb: 8
     nodes: 1
     gres: gpu:1
     array_parallelism: 10 ##altrimenti roldano si arrabbia
