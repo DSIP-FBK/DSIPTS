@@ -142,7 +142,7 @@ def run():
 
         
 if __name__ == '__main__': 
-     try:
+    try:
         run()
     except Exception as e:
         logging.info(e)
