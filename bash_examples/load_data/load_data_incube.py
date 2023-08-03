@@ -25,6 +25,8 @@ def load_data(conf):
     meteo.rename(columns={'Time':'time'},inplace=True)
     data_ex = pd.merge(data_ex,meteo,how='left')
     data_ex.Value = data_ex.Value.interpolate(limit=1)  
+    
+    data_ex.Value = np.log(1+500*data_ex.Value)-2
     data_ex.rain = data_ex.rain.interpolate(limit=1)   
     data_ex.temp = data_ex.temp.interpolate(limit=1)
 
