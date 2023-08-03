@@ -161,7 +161,7 @@ class LinearTS(Base):
             
         
         for _ in range(out_channels):
-            self.linear.append(nn.Sequential(nn.Linear(cat_emb_dim*(past_steps+future_steps)+past_steps*past_channels+future_channels*future_steps,hidden_size),
+            self.linear.append(nn.Sequential(nn.Linear(emb_channels*(past_steps+future_steps)+past_steps*past_channels+future_channels*future_steps,hidden_size),
                                                 activation(),
                                                 nn.BatchNorm1d(hidden_size) if use_bn else nn.Dropout(dropout_rate) ,    
                                                 nn.Linear(hidden_size,hidden_size//2), 

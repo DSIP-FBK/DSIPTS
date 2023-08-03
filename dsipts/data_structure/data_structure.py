@@ -410,7 +410,7 @@ class TimeSeries():
             skip_step (int, optional):  see `create_data_loader`. Defaults to 1.
 
         Returns:
-            List[DataLoader,DataLoader,DataLoader]: three dataloader used for training or inference
+            List[DataLoader,DataLoader,DataLoadtrainer]: three dataloader used for training or inference
         """
 
         
