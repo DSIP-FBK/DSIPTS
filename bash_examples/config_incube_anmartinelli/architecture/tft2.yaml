@@ -1,0 +1,25 @@
+# @package _global_
+
+model:
+  type: 'tft2'
+  retrain: true
+ts:
+  name: 'test'
+  version: 1
+  enrich: ['dow','hour']
+  use_covariates: false
+
+model_configs:
+  d_model: 128
+  num_layers_RNN: 8
+  n_cross_att: 4
+  n_fut_att: 4
+  optim: torch.optim.Adam
+  dropout_rate: 0.2
+  persistence_weight: 0.010
+  loss_type: 'l1'
+
+train_config:
+  batch_size: 128
+  max_epochs: 500
+            
