@@ -149,10 +149,11 @@ def run(conf: DictConfig) -> None:
     with torch.no_grad():
         train_score,_,_ = eval_split(trainer, 'train', max_batches=50)
         test_score,_,_  = eval_split(trainer, 'validation',  max_batches=50)
-        test_score,_,_  = eval_split(trainer, 'test',  max_batches=None)
+        test_score,real,predicted  = eval_split(trainer, 'test',  max_batches=None)
 
 
-
+    with open('res.pkl','wb') as f:
+        pickle.dump([real,predicted],f)
         
 if __name__ == '__main__': 
     try:
