@@ -11,9 +11,9 @@ ts:
 
 model_configs:
   d_model: 64
-  num_layers_RNN: 8
-  n_cross_att: 4
-  n_fut_att: 4
+  num_layers_RNN: 2
+  n_cross_att: 1
+  n_fut_att: 1
   optim: torch.optim.Adam
   dropout_rate: 0.2
   persistence_weight: 0.010
