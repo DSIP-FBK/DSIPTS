@@ -67,8 +67,7 @@ class embedding_cat_variables(nn.Module):
         return is_fut
     
     def get_cat_n_embd(self, cat_vars):
-        print(cat_vars.device)
-        cat_n_embd = torch.Tensor().to(self.device)
+        cat_n_embd = torch.Tensor().to(cat_vars.device)
         for index, layer in enumerate(self.cat_n_embd):
             emb = layer(cat_vars[:, :, index])
             cat_n_embd = torch.cat((cat_n_embd, emb.unsqueeze(2)),dim=2)
