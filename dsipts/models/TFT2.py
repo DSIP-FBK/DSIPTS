@@ -7,8 +7,7 @@ from typing import List, Union
 
 class TFT2(Base):
     def __init__(self, 
-                 input_dim :int, 
-                 hidden_dim: int,
+                 d_model: int,
                  out_channels:int,
                  past_steps:int,
                  future_steps: int, 
@@ -29,21 +28,21 @@ class TFT2(Base):
         self.save_hyperparameters(logger=False)
 
         self.future_steps = future_steps
-        self.hidden_dim = hidden_dim
+        self.d_model = d_model
         self.out_channels = out_channels
         self.n_cross_att = n_cross_att
-        self.cross_att_val_layers = nn.ModuleList([nn.Linear(hidden_dim, hidden_dim) for _ in range(n_cross_att)])
+        self.cross_att_val_layers = nn.ModuleList([nn.Linear(d_model, d_model) for _ in range(n_cross_att)])
         self.n_fut_att = n_fut_att
-        self.fut_att_val_layers = nn.ModuleList([nn.Linear(hidden_dim, hidden_dim) for _ in range(n_fut_att)])
+        self.fut_att_val_layers = nn.ModuleList([nn.Linear(d_model, d_model) for _ in range(n_fut_att)])
         self.register_buffer('tril',torch.tril(torch.ones(future_steps, future_steps))) # create the variable 'self.tril'
-        self.x_linear = nn.Linear(input_dim, hidden_dim)
+        self.x_linear = nn.Linear(past_channels, d_model)
         seq_len = past_steps+future_steps
-        self.emb_cat_var = sub_nn.embedding_cat_variables(seq_len, future_steps, hidden_dim, embs, self.device) # [12, 31, 24, 4]
-        self.rnn = sub_nn.LSTM_Model(hidden_dim, hidden_dim, future_steps, num_layers_RNN, dropout_rate)
-        self.grn_past = sub_nn.GRN(hidden_dim, dropout_rate)
-        self.grn_fut = sub_nn.GRN(hidden_dim, dropout_rate)
-        self.grn_output = sub_nn.GRN(hidden_dim, dropout_rate)
-        self.out_glu = sub_nn.GLU(hidden_dim)
+        self.emb_cat_var = sub_nn.embedding_cat_variables(seq_len, future_steps, d_model, embs, self.device) # [12, 31, 24, 4]
+        self.rnn = sub_nn.LSTM_Model(d_model, d_model, future_steps, num_layers_RNN, dropout_rate)
+        self.grn_past = sub_nn.GRN(d_model, dropout_rate)
+        self.grn_fut = sub_nn.GRN(d_model, dropout_rate)
+        self.grn_output = sub_nn.GRN(d_model, dropout_rate)
+        self.out_glu = sub_nn.GLU(d_model)
         self.cross_dropout = nn.Dropout(dropout_rate)
         self.fut_dropout = nn.Dropout(dropout_rate)
         self.out_dropout = nn.Dropout(dropout_rate)
@@ -54,7 +53,7 @@ class TFT2(Base):
         if len(quantiles)==0:
             self.mul = 1
             self.use_quantiles = False
-            self.outLinear = nn.Linear(hidden_dim, input_dim)
+            self.outLinear = nn.Linear(d_model, out_channels)
             if self.loss_type == 'mse':
                 self.loss = nn.MSELoss()
             else:
@@ -62,7 +61,7 @@ class TFT2(Base):
         else:
             self.mul = len(quantiles)
             self.use_quantiles = True
-            self.outLinear = nn.Linear(hidden_dim, out_channels*len(quantiles))
+            self.outLinear = nn.Linear(d_model, out_channels*len(quantiles))
             self.loss = QuantileLossMO(quantiles)
         self.optim = optim
         self.optim_config = optim_config
@@ -113,7 +112,7 @@ class TFT2(Base):
         # Cross head computation of past and future post grn
         out = x_emb_fut_approx
         for cross_layer in self.cross_att_val_layers:
-            cross_wei = fut_grn @ past_grn.transpose(-2,-1) * (self.hidden_dim**-0.5) # (B, future_steps, hidden_size) @ (B, hidden_size, past_steps) -> (B, future_steps, past_steps)
+            cross_wei = fut_grn @ past_grn.transpose(-2,-1) * (self.d_model**-0.5) # (B, future_steps, hidden_size) @ (B, hidden_size, past_steps) -> (B, future_steps, past_steps)
             cross_wei = nn.functional.softmax(cross_wei, dim=-1)
             cross_wei = self.cross_dropout(cross_wei)
             cross_val = cross_wei @ past_emb_cat # (B, future_steps, past_steps) @ (B, past_steps, hidden_size) -> (B, future_steps, hidden_size)
@@ -121,7 +120,7 @@ class TFT2(Base):
             out = out + cross_val # skip connection
         
         for fut_layer in self.fut_att_val_layers:
-            fut_wei = out @ fut_grn.transpose(-2,-1) * (self.hidden_dim**-0.5)
+            fut_wei = out @ fut_grn.transpose(-2,-1) * (self.d_model**-0.5)
             fut_wei = fut_wei.masked_fill(self.tril == 0, float('-inf'))
             fut_wei = nn.functional.softmax(fut_wei, dim=-1)
             fut_wei = self.fut_dropout(fut_wei)
