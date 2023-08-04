@@ -11,7 +11,8 @@ import argparse
 from omegaconf import DictConfig, OmegaConf
 from hydra.core.hydra_config import HydraConfig
 import hydra
-
+import pickle
+import numpy as np
 class SortDataset(Dataset):
     """ 
     Dataset for the Sort problem. E.g. for problem length 6:
@@ -65,6 +66,8 @@ def run(conf: DictConfig) -> None:
     tmp = tmp.reshape(-1,token_split)
     cl = BisectingKMeans(n_clusters=max_voc_size)
     clusters = cl.fit_predict(tmp)
+    with open('cluster_model.pkl','wb') as f:
+        pickle.dump(cl,f)
     x_train = clusters.reshape(-1,sentence_length)
     samples = train.data['y'].shape[0]
     y_train = cl.predict(train.data['y'].squeeze().reshape(samples,-1,token_split).reshape(-1,token_split)).reshape(-1,sentence_length)
@@ -78,7 +81,9 @@ def run(conf: DictConfig) -> None:
 
 
     train_dataset = SortDataset(x_train,y_train,sentence_length,max_voc_size)
-    test_dataset = SortDataset(x_validation,y_validation,sentence_length,max_voc_size)
+    test_dataset = SortDataset(x_test,y_test,sentence_length,max_voc_size)
+    validation_dataset = SortDataset(x_validation,y_validation,sentence_length,max_voc_size)
+
     x, y = test_dataset[0]
     for a, b in zip(x,y):
         logging.info(int(a),int(b))
@@ -86,7 +91,7 @@ def run(conf: DictConfig) -> None:
 
 
     model_config = GPT.get_default_config()
-    model_config.model_type = 'gopher-44m'#'gpt-mini'
+    model_config.model_type = 'gpt-mini'
     model_config.vocab_size = max_voc_size
     model_config.block_size = x_train.shape[1] +  y_train.shape[1] -1
     trans = GPT(model_config)
@@ -107,9 +112,11 @@ def run(conf: DictConfig) -> None:
     trans.eval();
 
     def eval_split(trainer, split, max_batches):
-        dataset = {'train':train_dataset, 'test':test_dataset}[split]
+        dataset = {'train':train_dataset, 'test':test_dataset,'validation':validation_dataset}[split]
         n = train_dataset.length # naugy direct access shrug
         results = []
+        real = []
+        predicted = []
         mistakes_printed_already = 0
         loader = DataLoader(dataset, batch_size=100, num_workers=0, drop_last=False)
         for b, (x, y) in enumerate(loader):
@@ -132,14 +139,19 @@ def run(conf: DictConfig) -> None:
                     logging.info("GPT claims that %s sorted is %s but gt is %s" % (inp[i].tolist(), sol_candidate[i].tolist(), sol[i].tolist()))
             if max_batches is not None and b+1 >= max_batches:
                 break
+            real.append(sol.cpu())
+            predicted.append(sol_candidate.cpu())
         rt = torch.tensor(results, dtype=torch.float)
         logging.info("%s final score: %d/%d = %.2f%% correct" % (split, rt.sum(), len(results), 100*rt.mean()))
-        return rt.sum()
+        return rt.sum(),np.vstack(real),np.vstack(predicted)
 
     # run a lot of examples from both train and test through the model and verify the output correctness
     with torch.no_grad():
-        train_score = eval_split(trainer, 'train', max_batches=50)
-        test_score  = eval_split(trainer, 'test',  max_batches=50)
+        train_score,_,_ = eval_split(trainer, 'train', max_batches=50)
+        test_score,_,_  = eval_split(trainer, 'validation',  max_batches=50)
+        test_score,_,_  = eval_split(trainer, 'test',  max_batches=None)
+
+
 
         
 if __name__ == '__main__': 
