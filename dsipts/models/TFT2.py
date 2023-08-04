@@ -83,7 +83,7 @@ class TFT2(Base):
         if len(tot)>0:
             cat_full = torch.cat(tot, dim = 1)
         else:
-            cat_full = torch.tensor(x_past.shape[0]) ##ACCROCCHIO PER FARE ANDARE LE COSE SE NON HO CATEGORICHE
+            cat_full = torch.tensor(x_past.shape[0]).to(self.device) ##ACCROCCHIO PER FARE ANDARE LE COSE SE NON HO CATEGORICHE
         emb_cat_full = self.emb_cat_var(cat_full)
         cat_emb_past = emb_cat_full[:,:-self.future_steps,:,:]
         cat_emb_fut = emb_cat_full[:,-self.future_steps:,:,:]
