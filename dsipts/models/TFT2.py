@@ -100,7 +100,7 @@ class TFT2(Base):
         # using embedded past values use lstm to generate an approximation of actual future values, then embed them to respect hidden_size of the model 
         x_fut_approx = self.rnn(x_emb_past) # actual future_steps predictions that now will be improved
         
-        ##check assert, rnn return 1 channel
+        ##check assert, rnn return 1 channel 
         x_emb_fut_approx = self.x_linear(x_fut_approx.unsqueeze(2))
 
         # EMBEDDING APPROXIMATED FUTUTRE VALUES

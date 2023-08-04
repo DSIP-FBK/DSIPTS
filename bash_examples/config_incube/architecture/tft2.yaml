@@ -12,10 +12,10 @@ ts:
 model_configs:
   d_model: 128
   num_layers_RNN: 8
-  n_cross_att: 1
-  n_fut_att: 2
+  n_cross_att: 4
+  n_fut_att: 4
   optim: torch.optim.SGD
-  dropout_rate: 0.5
+  dropout_rate: 0.2
   persistence_weight: 0.010
   loss_type: 'l1'
 
