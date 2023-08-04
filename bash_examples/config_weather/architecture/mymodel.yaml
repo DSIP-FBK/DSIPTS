@@ -18,7 +18,7 @@ model_configs:
   sum_emb: true
   use_bn: false
   dropout_rate: 0.5
-  optim: torch.optim.SGD
+  optim: torch.optim.Adam
   activation: torch.nn.PReLU
   persistence_weight: 0.010
   loss_type: 'l1'
@@ -26,6 +26,6 @@ model_configs:
 
 train_config:
   batch_size: 128
-  max_epochs: 500
+  max_epochs: 1000
   gradient_clip_val: null
   gradient_clip_algorithm: 'norm'

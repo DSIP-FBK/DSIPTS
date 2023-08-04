@@ -1,29 +1,24 @@
 # @package _global_
 
 model:
-  type: 'rnn'
+  type: 'tft2'
   retrain: true
 ts:
-  name: 'lstm'
+  name: 'test'
   version: 1
   enrich: []
   use_covariates: false
 
 model_configs:
-  cat_emb_dim: 128
-  hidden_RNN: 128
-  num_layers_RNN: 2
-  kernel_size: 3
-  kind: 'lstm'
-  sum_emb: true
-  use_bn: true  
+  d_model: 128
+  num_layers_RNN: 8
+  n_cross_att: 4
+  n_fut_att: 4
   optim: torch.optim.Adam
-  activation: torch.nn.PReLU
-  dropout_rate: 0.5
+  dropout_rate: 0.2
   persistence_weight: 0.010
   loss_type: 'l1'
-  remove_last: true
-  
+
 train_config:
   batch_size: 128
   max_epochs: 1000
