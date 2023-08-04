@@ -10,8 +10,7 @@ ts:
   use_covariates: false
 
 model_configs:
-  cat_emb_dim: 128
-  hidden_RNN: 256
+  hidden_RNN: 128
   num_layers_RNN: 8
   n_cross_att: 1
   n_fut_att: 2
