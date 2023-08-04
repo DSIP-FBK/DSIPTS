@@ -69,14 +69,21 @@ class TFT2(Base):
 
     def forward(self, batch):
         # to device
+        tot = []
         x_past = batch['x_num_past'].to(self.device)
-        
-        cat_past = batch['x_cat_past'].to(self.device)
-        cat_fut = batch['x_cat_future'].to(self.device)
+        if 'x_cat_past' in batch.keys():
+            cat_past = batch['x_cat_past'].to(self.device)
+            tot.append(cat_past)
+        if 'x_cat_future' in batch.keys():
+            cat_fut = batch['x_cat_future'].to(self.device)
+            tot.append(cat_fut)
 
         # EMBEDDING CATEGORICAL VARIABLES
         # embed all categorical variables and split in past and future ones
-        cat_full = torch.cat((cat_past,cat_fut), dim = 1)
+        if len(tot)>0:
+            cat_full = torch.cat(tot, dim = 1)
+        else:
+            cat_full = torch.tensor(x_past.shape[0]) ##ACCROCCHIO PER FARE ANDARE LE COSE SE NON HO CATEGORICHE
         emb_cat_full = self.emb_cat_var(cat_full)
         cat_emb_past = emb_cat_full[:,:-self.future_steps,:,:]
         cat_emb_fut = emb_cat_full[:,-self.future_steps:,:,:]
