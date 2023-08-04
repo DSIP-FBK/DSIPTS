@@ -1,0 +1,26 @@
+# @package _global_
+
+model:
+  type: 'tft2'
+  retrain: true
+ts:
+  name: 'test'
+  version: 1
+  enrich: []
+  use_covariates: false
+
+model_configs:
+  cat_emb_dim: 128
+  hidden_RNN: 256
+  num_layers_RNN: 8
+  n_cross_att: 1
+  n_fut_att: 2
+  optim: torch.optim.SGD
+  dropout_rate: 0.5
+  persistence_weight: 0.010
+  loss_type: 'l1'
+
+train_config:
+  batch_size: 128
+  max_epochs: 500
+            

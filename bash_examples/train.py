@@ -1,7 +1,7 @@
 
 
 import pandas as pd
-from dsipts import TimeSeries, RNN, Attention,read_public_dataset, LinearTS, Persistent, D3VAE, MyModel, TFT, Informer
+from dsipts import TimeSeries, RNN, Attention,read_public_dataset, LinearTS, Persistent, D3VAE, MyModel, TFT,TFT2, Informer
 from omegaconf import DictConfig, OmegaConf
 from hydra.core.hydra_config import HydraConfig
 import hydra
@@ -113,11 +113,16 @@ def train(conf: DictConfig) -> None:
     elif conf.model.type == 'd3vae':
 
         model =  D3VAE(**model_conf,   optim_config = conf.optim_config,
-                          scheduler_config =conf.scheduler_config )  
+                          scheduler_config =conf.scheduler_config ) 
+         
     elif conf.model.type == 'tft':
-
         model =  TFT(**model_conf,   optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )  
+        
+    elif conf.model.type == 'tft2':
+        model =  TFT2(**model_conf,   optim_config = conf.optim_config,
+                          scheduler_config =conf.scheduler_config )  
+        
     elif conf.model.type == 'informer':
         ##gli servono, poi mette a 0 quelle che serve
         ts.future_variables +=ts.target_variables

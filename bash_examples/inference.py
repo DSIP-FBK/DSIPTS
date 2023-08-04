@@ -1,7 +1,7 @@
 
 import argparse
 import pandas as pd
-from dsipts import TimeSeries, RNN, Attention,read_public_dataset,Informer, LinearTS, Persistent,D3VAE,MyModel, TFT
+from dsipts import TimeSeries, RNN, Attention,read_public_dataset,Informer, LinearTS, Persistent,D3VAE,MyModel, TFT,TFT2
 from omegaconf import DictConfig, OmegaConf
 import hydra
 import os
@@ -108,6 +108,8 @@ def inference(conf:DictConfig)->List[pd.DataFrame]:
         ts.load(TFT,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
     elif conf.model.type == 'informer':
         ts.load(Informer,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
+    elif conf.model.type == 'tft2':
+        ts.load(TFT2,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
   
     else:
         print('use a valid model')
