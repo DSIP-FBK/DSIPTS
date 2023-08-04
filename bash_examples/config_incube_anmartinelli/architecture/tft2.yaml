@@ -10,12 +10,12 @@ ts:
   use_covariates: false
 
 model_configs:
-  d_model: 64
-  num_layers_RNN: 2
-  n_cross_att: 1
-  n_fut_att: 1
+  d_model: 256
+  num_layers_RNN: 4
+  n_cross_att: 2
+  n_fut_att: 2
   optim: torch.optim.Adam
-  dropout_rate: 0.2
+  dropout_rate: 0.4
   persistence_weight: 0.010
   loss_type: 'l1'
 
