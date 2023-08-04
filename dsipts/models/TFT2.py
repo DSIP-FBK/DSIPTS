@@ -27,7 +27,7 @@ class TFT2(Base):
                  scheduler_config:dict=None)->None:
         super().__init__()
         self.save_hyperparameters(logger=False)
-        assert out_channels==1,            logging.info("ONLY ONE CHANNEL IMPLEMENTED")
+        assert out_channels==1, logging.info("ONLY ONE CHANNEL IMPLEMENTED")
         self.future_steps = future_steps
         self.d_model = d_model
         self.out_channels = out_channels
@@ -36,8 +36,8 @@ class TFT2(Base):
         self.n_fut_att = n_fut_att
         self.fut_att_val_layers = nn.ModuleList([nn.Linear(d_model, d_model) for _ in range(n_fut_att)])
         self.register_buffer('tril',torch.tril(torch.ones(future_steps, future_steps))) # create the variable 'self.tril'
-        self.x_linear = nn.Linear(past_channels, d_model)
-        self.x_linear_future = nn.Linear(out_channels, d_model) ##need this because past and future may have different channels
+        self.x_linear = nn.Linear(out_channels, d_model)
+        
 
         seq_len = past_steps+future_steps
         self.emb_cat_var = sub_nn.embedding_cat_variables(seq_len, future_steps, d_model, embs, self.device) # [12, 31, 24, 4]
@@ -93,14 +93,15 @@ class TFT2(Base):
 
         # EMBEDDING PAST VALUES
         # extract only past values (availables ones for forecasting) and embed them
-        x_emb_past = self.x_linear(x_past)
+        idx_target = batch['idx_target'][0]
+        x_emb_past = self.x_linear(x_past[:,:,idx_target])
         
         # COMPUTE APPROXIMATION OF FUTURE VALUES
         # using embedded past values use lstm to generate an approximation of actual future values, then embed them to respect hidden_size of the model 
         x_fut_approx = self.rnn(x_emb_past) # actual future_steps predictions that now will be improved
         
-
-        x_emb_fut_approx = self.x_linear_future(x_fut_approx.unsqueeze(2))
+        ##check assert, rnn return 1 channel
+        x_emb_fut_approx = self.x_linear(x_fut_approx.unsqueeze(2))
 
         # EMBEDDING APPROXIMATED FUTUTRE VALUES
         # tensor summaring past using categorical and past numerical vars
