@@ -97,7 +97,7 @@ def run(conf: DictConfig) -> None:
     trans = GPT(model_config)
     train_config = Trainer.get_default_config()
     train_config.learning_rate = 5e-4 # the model we're using is so small that we can go a bit faster
-    train_config.max_iters = 20000
+    train_config.max_iters = 200000
     #optimizer = trans.configure_optimizers(train_config)
 
     trainer = Trainer(train_config, trans, train_dataset)
