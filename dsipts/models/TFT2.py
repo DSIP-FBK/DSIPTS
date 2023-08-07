@@ -38,7 +38,6 @@ class TFT2(Base):
         self.register_buffer('tril',torch.tril(torch.ones(future_steps, future_steps))) # create the variable 'self.tril'
         self.x_linear = nn.Linear(out_channels, d_model)
         
-
         seq_len = past_steps+future_steps
         self.emb_cat_var = sub_nn.embedding_cat_variables(seq_len, future_steps, d_model, embs, self.device) # [12, 31, 24, 4]
         self.rnn = sub_nn.LSTM_Model(d_model, d_model, future_steps, num_layers_RNN, dropout_rate)
@@ -80,7 +79,8 @@ class TFT2(Base):
         if 'x_cat_future' in batch.keys():
             cat_fut = batch['x_cat_future'].to(self.device)
             tot.append(cat_fut)
-
+        import pdb
+        pdb.set_trace()
         # EMBEDDING CATEGORICAL VARIABLES
         # embed all categorical variables and split in past and future ones
         if len(tot)>0:
@@ -92,7 +92,7 @@ class TFT2(Base):
         cat_emb_fut = emb_cat_full[:,-self.future_steps:,:,:]
 
         # EMBEDDING PAST VALUES
-        # extract only past values (availables ones for forecasting) and embed them
+        # extract only target past values (availables ones for forecasting) and embed them
         idx_target = batch['idx_target'][0]
         x_emb_past = self.x_linear(x_past[:,:,idx_target])
         
