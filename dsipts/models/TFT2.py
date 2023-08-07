@@ -27,7 +27,7 @@ class TFT2(Base):
                  scheduler_config:dict=None)->None:
         super().__init__()
         self.save_hyperparameters(logger=False)
-        assert out_channels==1, logging.info("ONLY ONE CHANNEL IMPLEMENTED")
+        # assert out_channels==1, logging.info("ONLY ONE CHANNEL IMPLEMENTED")
         self.future_steps = future_steps
         self.d_model = d_model
         self.out_channels = out_channels
@@ -38,6 +38,12 @@ class TFT2(Base):
         self.register_buffer('tril',torch.tril(torch.ones(future_steps, future_steps))) # create the variable 'self.tril'
         self.x_linear = nn.Linear(out_channels, d_model)
         
+        self.past_channels = past_channels
+        self.linear_aux_past = nn.ModuleList([nn.Linear(1, d_model) for _ in range(past_channels)])
+        self.future_channels = future_channels
+        self.linear_aux_fut = nn.ModuleList([nn.Linear(1, d_model) for _ in range(future_channels)])
+
+
         seq_len = past_steps+future_steps
         self.emb_cat_var = sub_nn.embedding_cat_variables(seq_len, future_steps, d_model, embs, self.device) # [12, 31, 24, 4]
         self.rnn = sub_nn.LSTM_Model(d_model, d_model, future_steps, num_layers_RNN, dropout_rate)
@@ -70,50 +76,75 @@ class TFT2(Base):
         self.scheduler_config = scheduler_config
 
     def forward(self, batch):
-        # to device
-        tot = []
-        x_past = batch['x_num_past'].to(self.device)
-        if 'x_cat_past' in batch.keys():
-            cat_past = batch['x_cat_past'].to(self.device)
-            tot.append(cat_past)
-        if 'x_cat_future' in batch.keys():
-            cat_fut = batch['x_cat_future'].to(self.device)
-            tot.append(cat_fut)
+
         import pdb
         pdb.set_trace()
-        # EMBEDDING CATEGORICAL VARIABLES
-        # embed all categorical variables and split in past and future ones
-        if len(tot)>0:
-            cat_full = torch.cat(tot, dim = 1)
-        else:
-            cat_full = torch.tensor(x_past.shape[0]).to(self.device) ##ACCROCCHIO PER FARE ANDARE LE COSE SE NON HO CATEGORICHE
-        emb_cat_full = self.emb_cat_var(cat_full)
-        cat_emb_past = emb_cat_full[:,:-self.future_steps,:,:]
-        cat_emb_fut = emb_cat_full[:,-self.future_steps:,:,:]
 
-        # EMBEDDING PAST VALUES
-        # extract only target past values (availables ones for forecasting) and embed them
+        num_past = batch['x_num_past'].to(self.device)
+        # PAST TARGET NUMERICAL VARIABLE
+        # always available: autoregressive variable
+        # compute rnn prediction
         idx_target = batch['idx_target'][0]
-        x_emb_past = self.x_linear(x_past[:,:,idx_target])
-        
-        # COMPUTE APPROXIMATION OF FUTURE VALUES
-        # using embedded past values use lstm to generate an approximation of actual future values, then embed them to respect hidden_size of the model 
-        x_fut_approx = self.rnn(x_emb_past) # actual future_steps predictions that now will be improved
-        
-        ##check assert, rnn return 1 channel 
-        x_emb_fut_approx = self.x_linear(x_fut_approx.unsqueeze(2))
+        target_num_past = num_past[:,:,idx_target]
+        target_emb_num_past = self.x_linear(target_num_past)
+        target_num_fut_approx = self.rnn(target_emb_num_past)
+        # embed future redictions
+        target_emb_num_fut_approx = self.x_linear(target_num_fut_approx.unsqueeze(2))
 
-        # EMBEDDING APPROXIMATED FUTUTRE VALUES
-        # tensor summaring past using categorical and past numerical vars
-        past_emb = torch.cat((cat_emb_past, x_emb_past.unsqueeze(2)), dim=2)
-        past_emb = torch.mean(past_emb, dim=2)
-        past_emb_cat = torch.mean(cat_emb_past, dim=2)
+        # PAST NUMERICAL VARIABLES
+        if self.past_channels>1: # so we have more numerical variables about past
+            # AUX = AUXILIARY variables
+            aux_num_past = self.remove_var(num_past, idx_target.item(), 2) # remove the target index on the second dimension
+            assert self.past_channels == aux_num_past.shape(2), logging.info(f"{self.past_channels} LAYERS FOR PAST VARS AND {aux_num_past.shape(2)} VARS")
+            aux_emb_num_past = torch.Tensor()
+            for i, layer in enumerate(self.linear_aux_past):
+                aux_emb_past = layer(aux_num_past[:,:,i]).unsqueeze(2)
+                aux_emb_num_past = torch.cat((aux_emb_num_past, aux_emb_past), dim=2)
+        
+        # FUTURE NUMERICAL VARIABLES
+        if self.future_channels>0: # so we have more numerical variables about future
+            num_fut = batch['x_num_future'].to(self.device)
+            assert self.future_channels == num_fut.shape(2), logging.info(f"{self.future_channels} LAYERS FOR PAST VARS AND {num_fut.shape(2)} VARS")
+            aux_emb_num_fut = torch.Tensor()
+            for j, layer in enumerate(self.linear_aux_fut):
+                aux_emb_fut = layer(num_fut[:,:,j]).unsqueeze(2)
+                aux_emb_num_fut = torch.cat((aux_emb_num_fut, aux_emb_fut), dim=2)
 
-        # tensor summaring future using categorical and approximated future numerical vars
-        fut_emb = torch.cat((cat_emb_fut, x_emb_fut_approx.unsqueeze(2)), dim=2)
-        fut_emb = torch.mean(fut_emb, dim=2)
-        # fut_emb = fut_emb + x_emb_fut_approx # skip connection
-        fut_emb_cat = torch.mean(cat_emb_fut, dim=2)
+        # CATEGORICAL VARIABLES 
+        if 'x_cat_past' in batch.keys() and 'x_cat_fut' in batch.keys(): # if we have both
+            # HERE WE ASSUME SAME NUMBER AND KIND OF VARIABLES IN PAST AND FUTURE
+            cat_past = batch['x_cat_past'].to(self.device)
+            cat_fut = batch['x_cat_future'].to(self.device)
+            cat_full = torch.cat((cat_past, cat_fut), dim = 1)
+            # EMB CATEGORICAL VARIABLES AND THEN SPLIT IN PAST AND FUTURE
+            emb_cat_full = self.emb_cat_var(cat_full)
+            cat_emb_past = emb_cat_full[:,:-self.future_steps,:,:]
+            cat_emb_fut = emb_cat_full[:,-self.future_steps:,:,:]
+
+        # >>> PAST: 
+        # - CAT AND MEAN 
+        # - WITH AND WITHOUT TARGET
+        past_withTarget__emb = torch.cat((cat_emb_past, target_emb_num_past.unsqueeze(2), aux_emb_num_past), dim=2)
+        past_withTarget__emb = torch.mean(past_withTarget__emb, dim=2)
+        # where we have target, we use a skip connection
+        past_withTarget__emb = past_withTarget__emb + target_emb_num_past
+
+        # - WITHOUT TARGET
+        past_withoutTarget__emb = torch.cat((cat_emb_past, aux_emb_num_past), dim=2)
+        past_withoutTarget__emb = torch.mean(past_withoutTarget__emb, dim=2)
+
+        # >>> FUTURE
+        # - CAT AND MEAN 
+        # - WITH TARGET
+        fut_withTarget__emb = torch.cat((cat_emb_fut, target_emb_num_fut_approx.unsqueeze(2), aux_emb_num_fut), dim=2)
+        fut_withTarget__emb = torch.mean(fut_withTarget__emb, dim=2)
+        # where we have target, we use a skip connection
+        fut_withTarget__emb = fut_withTarget__emb + target_emb_num_fut_approx
+
+        # - WITHOUT TARGET
+        fut_withoutTarget__emb = torch.cat((cat_emb_fut, aux_emb_num_fut), dim=2)
+        fut_withoutTarget__emb = torch.mean(fut_withoutTarget__emb, dim=2)
+
 
         # GRN on both past and fut
         past_grn = self.grn_past(past_emb)
@@ -129,7 +160,7 @@ class TFT2(Base):
             cross_wei = nn.functional.softmax(cross_wei, dim=-1)
             cross_wei = self.cross_dropout(cross_wei)
             cross_val = cross_wei @ past_emb_cat # (B, future_steps, past_steps) @ (B, past_steps, hidden_size) -> (B, future_steps, hidden_size)
-            cross_val = cross_layer(cross_val)
+            cross_val = cross_layer(cross_val) # apply Linear
             out = out + cross_val # skip connection
         
         for fut_layer in self.fut_att_val_layers:
@@ -155,3 +186,24 @@ class TFT2(Base):
             out = out.squeeze()
 
         return out
+    
+    #function to extract from batch['x_num_past'] all variables except the one autoregressive
+    def remove_var(tensor: torch.Tensor, index_to_exclude: int, dimension: int)-> torch.Tensor:
+        """Function to remove variables from tensors in chosen dimension and position 
+
+        Args:
+            tensor (torch.Tensor): starting tensor
+            index_to_exclude (int): index of the chosen dimension we want t oexclude
+            dimension (int): dimension of the tensor on which we want to work
+
+        Returns:
+            torch.Tensor: new tensor without the chosen variables
+        """
+        
+        indices = torch.arange(tensor.size(dimension)) # all indexes on that dimension
+        indices = indices[indices != index_to_exclude] # remove the chosen one
+        
+        # Select the desired sub-tensor
+        extracted_subtensors = tensor.index_select(dimension, indices)
+        
+        return extracted_subtensors
