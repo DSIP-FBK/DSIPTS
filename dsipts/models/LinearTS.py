@@ -187,10 +187,13 @@ class LinearTS(Base):
         x =  batch['x_num_past'].to(self.device)
         if self.kind=='nlinear':
             idx_target = batch['idx_target'][0]
-
             x_start = x[:,-1,idx_target].unsqueeze(1)
             ##BxC
             x[:,:,idx_target]-=x_start
+        
+        if self.kind=='alinear':
+            idx_target = batch['idx_target'][0]
+            x[:,:,idx_target]=0
         
         if self.kind=='dlinear':
             idx_target = batch['idx_target'][0]

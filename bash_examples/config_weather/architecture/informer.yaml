@@ -7,7 +7,8 @@ ts:
   name: 'test'
   version: 1
   enrich: []
-  use_covariates: false
+  use_covariates: true
+
 
 model_configs:
   d_model: 128
