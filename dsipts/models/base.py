@@ -181,10 +181,14 @@ class Base(pl.LightningModule):
             negative = y_persistence
             loss = triplet(anchor, positive, negative)
 
-    
+        elif self.loss_type=='smape':
+            if self.use_quantiles==False:
+                x = y_hat[:,:,:,0]
+            else:
+                x = y_hat[:,:,:,1]
+            loss = torch.mean(2*torch.abs(x-batch['y']) / (torch.abs(x)+torch.abs(batch['y'])))
     
         else:
-
             loss = initial_loss
 
         return loss
