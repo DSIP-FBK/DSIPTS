@@ -18,6 +18,7 @@ from datetime import datetime
 from ..models.base import Base
 from ..models.utils import weight_init
 import logging 
+from .modifiers import *
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())      
       
@@ -483,7 +484,8 @@ class TimeSeries():
                     gradient_clip_val:Union[float,None]=None,
                     gradient_clip_algorithm:str="value",
                     devices:Union[str,List[int]]='auto',
-                    precision:Union[str,int]=32)-> float:
+                    precision:Union[str,int]=32,
+                    modifier:Union[None,str]=None)-> float:
         """Train the model
 
         Args:
@@ -523,6 +525,15 @@ class TimeSeries():
         else:
             persistent_workers = False
             
+            
+        if modifier is not None:
+            modifier = eval(modifier)
+            train, validation = modifier.fit_transform(train=train,val=validation)
+            self.modifier = modifier
+        
+        train_dl = DataLoader(train, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
+        valid_dl = DataLoader(validation, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
+   
         train_dl = DataLoader(train, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
         valid_dl = DataLoader(validation, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
         checkpoint_callback = ModelCheckpoint(dirpath=dirpath,
@@ -609,26 +620,42 @@ class TimeSeries():
             train,validation,test = self.split_for_train(**split_params)
 
         if set=='test':
+            if self.modifier is not None:
+                test = self.modifier.transform(test)
             dl = DataLoader(test, batch_size = batch_size , shuffle=False,drop_last=False,num_workers=num_workers)
         elif set=='validation':
+            if self.modifier is not None:
+                validation = self.modifier.transform(validation)
             dl = DataLoader(validation, batch_size = batch_size , shuffle=False,drop_last=False,num_workers=num_workers)
         elif set=='train':
+            if self.modifier is not None:
+                train = self.modifier.transform(train)
             dl = DataLoader(train, batch_size = batch_size , shuffle=False,drop_last=False,num_workers=num_workers)    
         else:
             logging.error('select one of train, test, or validation set')
         self.model.eval()
+        
         res = []
         real = []
         self.model.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
 
         logging.info(f'Device used: {self.model.device}')
+
         for batch in dl:
             res.append(self.model.inference(batch).cpu().detach().numpy())
             real.append(batch['y'].cpu().detach().numpy())
+       
         res = np.vstack(res)
+ 
         real = np.vstack(real)
         time = dl.dataset.t
+        import pdb
+        pdb.set_trace()
+        if self.modifier is not None:
 
+            res,real = self.modifier.inverse_transform(res,real)
+            import pdb
+            pdb.set_trace()
         ## BxLxCx3
         if rescaling:
             logging.info('Scaling back')
@@ -694,6 +721,7 @@ class TimeSeries():
             
         
         logging.info('################Loading#################################')
+        self.modifier = None
         with open(filename+'.pkl','rb') as f:
             params = pickle.load(f)
             for p in params:

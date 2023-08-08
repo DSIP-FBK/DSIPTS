@@ -224,3 +224,16 @@ def weight_init(m):
                 init.orthogonal_(param.data)
             else:
                 init.normal_(param.data)
+                
+    elif isinstance(m, nn.Embedding):
+        init.normal_(m.weight, mean=0.0, std=0.02)             
+        
+    elif isinstance(m, nn.LayerNorm):
+        init.zeros_(m.bias)
+        init.ones_(m.weight)    
+      
+          #  if isinstance(module, nn.Linear):
+          #      torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+          #      if module.bias is not None:
+          #          torch.nn.init.zeros_(module.bias)
+
