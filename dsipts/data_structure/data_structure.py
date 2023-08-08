@@ -649,13 +649,10 @@ class TimeSeries():
  
         real = np.vstack(real)
         time = dl.dataset.t
-        import pdb
-        pdb.set_trace()
-        if self.modifier is not None:
 
+        if self.modifier is not None:
             res,real = self.modifier.inverse_transform(res,real)
-            import pdb
-            pdb.set_trace()
+
         ## BxLxCx3
         if rescaling:
             logging.info('Scaling back')
