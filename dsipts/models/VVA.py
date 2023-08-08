@@ -148,6 +148,7 @@ class VVA(Base):
             {"params": [param_dict[pn] for pn in sorted(list(no_decay))], "weight_decay": 0.0},
         ]
         optimizer = torch.optim.AdamW(optim_groups, lr=self.optim_config.lr, betas=self.optim_config.betas)
+        logging.info(optimizer)
         return optimizer
 
     def compute_loss(self,batch,y_hat):
@@ -176,7 +177,7 @@ class VVA(Base):
         return logits
 
 
-    def generate(self, idx, max_new_tokens, temperature=1.0, do_sample=False, top_k=None):
+    def generate(self, idx, max_new_tokens, temperature=1.0, do_sample=False, top_k=None,num_samples=100):
         """
         Take a conditioning sequence of indices idx (LongTensor of shape (b,t)) and complete
         the sequence max_new_tokens times, feeding the predictions back into the model each time.
@@ -197,7 +198,7 @@ class VVA(Base):
             probs = F.softmax(logits, dim=-1)
             # either sample from the distribution or take the most likely element
             if do_sample:
-                idx_next = torch.multinomial(probs, num_samples=1)
+                idx_next = torch.multinomial(probs, num_samples=num_samples)
             else:
                 _, idx_next = torch.topk(probs, k=1, dim=-1)
             # append sampled index to the running sequence and continue
@@ -214,7 +215,8 @@ class VVA(Base):
         
         # let the model sample the rest of the sequence
         cat = self.generate(inp, self.sentence_length, do_sample=False) # using greedy argmax, not samplingv ##todo here add sampling
-
+        import pdb
+        pdb.set_trace()
         sol_candidate = cat[:, self.sentence_length:] 
 
        
