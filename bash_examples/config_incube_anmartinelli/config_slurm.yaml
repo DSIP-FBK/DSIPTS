@@ -68,4 +68,4 @@ hydra:
   output_subdir: null 
   sweeper:
     params:
-      architecture: glob@
+      architecture: tft2
