@@ -122,10 +122,23 @@ class ModifierVVA(Modifier):
     
     def inverse_transform(self,res,real):
         tot = []
+        ##occhio che qui abbiamo una cosa del tipo samples, values, DISTRIBUTION
+
         for sample in res:
-            tmp = []
+            tmp_sample = []
             for index in sample:
-                tmp.append(self.centroids[index])
-            tot.append(np.vstack(tmp))
-            
+                tmp = []
+                for i in index:
+                    tmp.append(self.centroids[i])
+                tmp = np.array(tmp)
+                if tmp.shape[0]==1:
+                    tmp2 = tmp[0,:,:]
+                else:
+                    tmp2 = tmp.mean(axis=0)
+                    tmp2[:,0] -= 1.96*tmp.std(axis=0)[:,0]
+                    tmp2[:,2] += 1.96*tmp.std(axis=0)[:,2]
+                tmp_sample.append(tmp2)
+            tot.append(np.vstack(tmp_sample))
+        import pdb
+        pdb.set_trace()
         return np.expand_dims(np.stack(tot),2),np.expand_dims(real,2)

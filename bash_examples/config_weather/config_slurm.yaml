@@ -56,7 +56,7 @@ defaults:
 hydra:
   launcher:
     submitit_folder: ${hydra.sweep.dir}/.submitit/%j
-    timeout_min: 6000
+    timeout_min: 8000
     partition: gpu-V100 #A40 #gpu-V100
     mem_gb: 6
     nodes: 1

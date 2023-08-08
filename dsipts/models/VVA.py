@@ -148,7 +148,6 @@ class VVA(Base):
             {"params": [param_dict[pn] for pn in sorted(list(no_decay))], "weight_decay": 0.0},
         ]
         optimizer = torch.optim.AdamW(optim_groups, lr=self.optim_config.lr, betas=self.optim_config.betas)
-        logging.info(optimizer)
         return optimizer
 
     def compute_loss(self,batch,y_hat):
@@ -183,28 +182,44 @@ class VVA(Base):
         the sequence max_new_tokens times, feeding the predictions back into the model each time.
         Most likely you'll want to make sure to be in model.eval() mode of operation for this.
         """
-        for _ in range(max_new_tokens):
-            # if the sequence context is growing too long we must crop it at block_size
-            idx_cond = idx if idx.size(1) <= self.block_size else idx[:, -self.block_size:]
-            # forward the model to get the logits for the index in the sequence
-            logits = self({'x_emb':idx_cond})
-            # pluck the logits at the final step and scale by desired temperature
-            logits = logits[:, -1, :] / temperature
-            # optionally crop the logits to only the top k options
-            if top_k is not None:
-                v, _ = torch.topk(logits, top_k)
-                logits[logits < v[:, [-1]]] = -float('Inf')
-            # apply softmax to convert logits to (normalized) probabilities
-            probs = F.softmax(logits, dim=-1)
-            # either sample from the distribution or take the most likely element
-            if do_sample:
-                idx_next = torch.multinomial(probs, num_samples=num_samples)
-            else:
+        if do_sample:
+            idx = idx.repeat(num_samples,1,1)
+            for _ in range(max_new_tokens):
+                tmp = []
+                for i in range(num_samples):
+                    idx_cond = idx[i,:,:] if idx.size(2) <= self.block_size else idx[i,:, -self.block_size:]
+                    logits = self({'x_emb':idx_cond})
+                    logits = logits[:, -1, :] / temperature
+                    if top_k is not None:
+                        v, _ = torch.topk(logits, top_k)
+                        logits[logits < v[:, [-1]]] = -float('Inf')
+                    probs = F.softmax(logits, dim=-1)
+                    idx_next = torch.multinomial(probs, num_samples=1, replacement=True)
+                    tmp.append(idx_next)
+                tmp = torch.cat(tmp,dim=1).T.unsqueeze(2)
+                idx = torch.cat((idx, tmp), dim=2)
+            return idx
+        else:
+            for _ in range(max_new_tokens):
+                
+                # if the sequence context is growing too long we must crop it at block_size
+                idx_cond = idx if idx.size(1) <= self.block_size else idx[:, -self.block_size:]
+                # forward the model to get the logits for the index in the sequence
+                logits = self({'x_emb':idx_cond})
+                # pluck the logits at the final step and scale by desired temperature
+                logits = logits[:, -1, :] / temperature
+                # optionally crop the logits to only the top k options
+                if top_k is not None:
+                    v, _ = torch.topk(logits, top_k)
+                    logits[logits < v[:, [-1]]] = -float('Inf')
+                # apply softmax to convert logits to (normalized) probabilities
+                probs = F.softmax(logits, dim=-1)
+                # either sample from the distribution or take the most likely element
                 _, idx_next = torch.topk(probs, k=1, dim=-1)
-            # append sampled index to the running sequence and continue
-            idx = torch.cat((idx, idx_next), dim=1)
+                # append sampled index to the running sequence and continue
+                idx = torch.cat((idx, idx_next), dim=1)
 
-        return idx
+            return idx.unsqueeze(0)
 
     def inference(self, batch:dict)->torch.tensor:
 
@@ -214,11 +229,9 @@ class VVA(Base):
         inp = x[:, :self.sentence_length]
         
         # let the model sample the rest of the sequence
-        cat = self.generate(inp, self.sentence_length, do_sample=False) # using greedy argmax, not samplingv ##todo here add sampling
-        import pdb
-        pdb.set_trace()
-        sol_candidate = cat[:, self.sentence_length:] 
+        cat = self.generate(inp, self.sentence_length, do_sample=True,num_samples=3) # using greedy argmax, not samplingv ##todo here add sampling
+        sol_candidate = cat[:,:, self.sentence_length:] 
 
        
-        return sol_candidate
+        return sol_candidate.permute(1,2,0)
     
