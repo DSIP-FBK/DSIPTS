@@ -485,7 +485,9 @@ class TimeSeries():
                     gradient_clip_algorithm:str="value",
                     devices:Union[str,List[int]]='auto',
                     precision:Union[str,int]=32,
-                    modifier:Union[None,str]=None)-> float:
+                    modifier:Union[None,str]=None,
+                    modifier_params:Union[None,dict]=None,
+                    )-> float:
         """Train the model
 
         Args:
@@ -528,6 +530,7 @@ class TimeSeries():
             
         if modifier is not None:
             modifier = eval(modifier)
+            modifier = modifier(**modifier_params)
             train, validation = modifier.fit_transform(train=train,val=validation)
             self.modifier = modifier
         

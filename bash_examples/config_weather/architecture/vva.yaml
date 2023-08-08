@@ -21,8 +21,8 @@ optim_config:
     
 model_configs:
   d_model: 192
-  max_voc_size: 256  ##care same as modifier!!!
-  token_split: 4     ##care same as modifier!!! 
+  max_voc_size: 256  
+  token_split: 4     
   num_layers: 6
   dropout_rate: 0.1
   n_heads: 6
@@ -32,7 +32,10 @@ model_configs:
   
 train_config:
   auto_lr_find: false
-  modifier: 'ModifierVVA(token_split=4,max_voc_size=256)'
+  modifier: 'ModifierVVA'
+  modifier_params:
+    token_split: model_configs@token_split
+    max_voc_size: model_configs@max_voc_size
   batch_size: 128
   max_epochs: 1000
   gradient_clip_val: null
