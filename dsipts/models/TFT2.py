@@ -91,8 +91,8 @@ class TFT2(Base):
 
         ### create variable summary_past and summary_fut
         # at the beggining it is composed only by past and future target variable
-        summary_past = target_emb_num_past
-        summary_fut = target_emb_num_fut_approx
+        summary_past = target_emb_num_past.unsqueeze(2)
+        summary_fut = target_emb_num_fut_approx.unsqueeze(2)
         # now we search for others categorical and numerical variables!
 
 
