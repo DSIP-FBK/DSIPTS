@@ -78,9 +78,6 @@ class TFT2(Base):
 
     def forward(self, batch):
 
-        import pdb
-        pdb.set_trace()
-
         num_past = batch['x_num_past'].to(self.device)
         # PAST TARGET NUMERICAL VARIABLE
         # always available: autoregressive variable
@@ -98,6 +95,7 @@ class TFT2(Base):
         summary_fut = target_emb_num_fut_approx
         # now we search for others categorical and numerical variables!
 
+
         ### PAST NUMERICAL VARIABLES
         if self.aux_past_channels>0: # so we have more numerical variables about past
             # AUX = AUXILIARY variables
@@ -105,6 +103,8 @@ class TFT2(Base):
             assert self.aux_past_channels == aux_num_past.size(2), logging.info(f"{self.aux_past_channels} LAYERS FOR PAST VARS AND {aux_num_past.shape(2)} VARS") # to check if we are using the expected number of variables about past
             aux_emb_num_past = torch.Tensor()
             for i, layer in enumerate(self.linear_aux_past):
+                import pdb
+                pdb.set_trace()
                 aux_emb_past = layer(aux_num_past[:,:,i]).unsqueeze(2)
                 aux_emb_num_past = torch.cat((aux_emb_num_past, aux_emb_past), dim=2)
             ## update summary about past
