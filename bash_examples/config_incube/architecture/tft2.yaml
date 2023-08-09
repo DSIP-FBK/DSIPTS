@@ -11,7 +11,7 @@ ts:
 
 model_configs:
   d_model: 128
-  num_layers_RNN: 4
+  num_layers_RNN: 8
   n_cross_att: 16
   n_fut_att: 16
   optim: torch.optim.Adam

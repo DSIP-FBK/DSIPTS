@@ -12,11 +12,11 @@ ts:
 
 model_configs:
   cat_emb_dim: 128
-  kernel_size: 5
+  kernel_size: 9
   sum_emb: true
   hidden_size: 512
   kind: 'alinear'
-  dropout_rate: 0.5
+  dropout_rate: 0.25
   use_bn: false  
   optim: torch.optim.Adam
   activation: torch.nn.PReLU
