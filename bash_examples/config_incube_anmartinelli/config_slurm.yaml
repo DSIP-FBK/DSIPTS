@@ -21,8 +21,8 @@ model_configs:
   loss_type: null
 
 split_params:
-  perc_train: 0.8
-  perc_valid: 0.1
+  perc_train: 0.9
+  perc_valid: 0.05
   range_train: null
   range_validation: null
   range_test: null
