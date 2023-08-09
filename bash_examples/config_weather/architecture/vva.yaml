@@ -34,8 +34,8 @@ train_config:
   auto_lr_find: false
   modifier: 'ModifierVVA'
   modifier_params:
-    token_split: model_configs@token_split
-    max_voc_size: model_configs@max_voc_size
+    token_split: ${...model_configs.token_split}
+    max_voc_size: ${...model_configs.max_voc_size}
   batch_size: 128
   max_epochs: 1000
   gradient_clip_val: null

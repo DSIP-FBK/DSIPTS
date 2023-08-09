@@ -139,6 +139,5 @@ class ModifierVVA(Modifier):
                     tmp2[:,2] += 1.96*tmp.std(axis=0)[:,2]
                 tmp_sample.append(tmp2)
             tot.append(np.vstack(tmp_sample))
-        import pdb
-        pdb.set_trace()
+
         return np.expand_dims(np.stack(tot),2),np.expand_dims(real,2)
