@@ -32,7 +32,7 @@ def load_data(conf):
 
     ts = TimeSeries(conf.ts.name)
     # ts.load_signal(data_ex,past_variables =['Value','rain','temp'],future_variables = ['rain','temp'],target_variables =['Value'],enrich_cat= conf.ts.enrich)
-    ts.load_signal(data_ex,past_variables =['Value','rain','temp'],future_variables = ['rain'],target_variables =['Value', 'temp'],enrich_cat= conf.ts.enrich)
+    ts.load_signal(data_ex,past_variables =['Value','rain','temp'],future_variables = ['rain', 'temp'],target_variables =['Value'],enrich_cat= conf.ts.enrich)
 
  
 
