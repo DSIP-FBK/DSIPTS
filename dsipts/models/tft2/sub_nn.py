@@ -128,18 +128,20 @@ class InterpretableMultiHead(nn.Module):
         super().__init__()
         self.d_head = d_head
         self.n_head = n_head
-        self.QK_layers = nn.ModuleList([[nn.Linear(d_model,d_head), nn.Linear(d_model,d_head), nn.Softmax(dim=-1)] for _ in range(n_head)])
-        self.value_layer = nn.Linear(d_model, d_head)
+        self.Q_layers = nn.ModuleList([nn.Linear(d_model,d_head) for _ in range(n_head)])
+        self.K_layers = nn.ModuleList([nn.Linear(d_model,d_head) for _ in range(n_head)])
+        self.Softmax_layers = nn.ModuleList([nn.Softmax(dim=-1) for _ in range(n_head)])
+        self.V_layer = nn.Linear(d_model, d_head)
         self.out_layer = nn.Linear(d_head, d_model)
 
     def forward(self, query:torch.Tensor, key:torch.Tensor, value:torch.Tensor) -> torch.Tensor:
         out = torch.Tensor()
-        for (q_layer, k_layer, softmax) in self.QK_layers:
+        for (q_layer, k_layer, softmax) in zip(self.Q_layers, self.K_layers, self.Softmax_layers):
             Q = q_layer(query)
             K = k_layer(key)
             wei = Q @ K.transpose(-2,-1) * (self.d_head**-0.5)
             wei = softmax(wei)
-            V = self.value_layer(value)
+            V = self.V_layer(value)
             out_h = wei @ V
             if out.shape[0]>0:
                 out = out + out_h # sum the result of the head attention
