@@ -101,7 +101,7 @@ class TFT2(Base):
             # AUX = AUXILIARY variables
             aux_num_past = self.remove_var(num_past, idx_target, 2) # remove the target index on the second dimension
             assert self.aux_past_channels == aux_num_past.size(2), logging.info(f"{self.aux_past_channels} LAYERS FOR PAST VARS AND {aux_num_past.shape(2)} VARS") # to check if we are using the expected number of variables about past
-            aux_emb_num_past = torch.Tensor()
+            aux_emb_num_past = torch.Tensor().to(aux_num_past.device)
             for i, layer in enumerate(self.linear_aux_past):
                 import pdb
                 pdb.set_trace()
@@ -114,7 +114,7 @@ class TFT2(Base):
         if self.aux_fut_channels>0: # so we have more numerical variables about future
             aux_num_fut = batch['x_num_future'].to(self.device)
             assert self.aux_fut_channels == aux_num_fut.size(2), logging.info(f"{self.aux_fut_channels} LAYERS FOR PAST VARS AND {aux_num_fut.size(2)} VARS")  # to check if we are using the expected number of variables about fut
-            aux_emb_num_fut = torch.Tensor()
+            aux_emb_num_fut = torch.Tensor().to(aux_num_fut.device)
             for j, layer in enumerate(self.linear_aux_fut):
                 aux_emb_fut = layer(aux_num_fut[:,:,[j]]).unsqueeze(2)
                 aux_emb_num_fut = torch.cat((aux_emb_num_fut, aux_emb_fut), dim=2)
