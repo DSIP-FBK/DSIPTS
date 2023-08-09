@@ -90,18 +90,18 @@ class TFT2(Base):
         target_emb_num_past = self.target_linear(target_num_past) # target_variables comunicating with each others
         target_num_fut_approx = self.rnn(target_emb_num_past)
         # embed future redictions
-        target_emb_num_fut_approx = self.target_linear(target_num_fut_approx.unsqueeze(2))
+        target_emb_num_fut_approx = self.target_linear(target_num_fut_approx)
 
         ### create variable summary_past and summary_fut
         # at the beggining it is composed only by past and future target variable
-        summary_past = target_emb_num_past.unsqueeze(2)
-        summary_fut = target_emb_num_fut_approx.unsqueeze(2)
+        summary_past = target_emb_num_past
+        summary_fut = target_emb_num_fut_approx
         # now we search for others categorical and numerical variables!
 
         ### PAST NUMERICAL VARIABLES
         if self.aux_past_channels>0: # so we have more numerical variables about past
             # AUX = AUXILIARY variables
-            aux_num_past = self.remove_var(num_past, idx_target.item(), 2) # remove the target index on the second dimension
+            aux_num_past = self.remove_var(num_past, idx_target, 2) # remove the target index on the second dimension
             assert self.aux_past_channels == aux_num_past.shape(2), logging.info(f"{self.aux_past_channels} LAYERS FOR PAST VARS AND {aux_num_past.shape(2)} VARS") # to check if we are using the expected number of variables about past
             aux_emb_num_past = torch.Tensor()
             for i, layer in enumerate(self.linear_aux_past):
@@ -170,22 +170,20 @@ class TFT2(Base):
         return out
     
     #function to extract from batch['x_num_past'] all variables except the one autoregressive
-    def remove_var(tensor: torch.Tensor, index_to_exclude: int, dimension: int)-> torch.Tensor:
+    def remove_var(tensor: torch.Tensor, indexes_to_exclude: int, dimension: int)-> torch.Tensor:
         """Function to remove variables from tensors in chosen dimension and position 
 
         Args:
             tensor (torch.Tensor): starting tensor
-            index_to_exclude (int): index of the chosen dimension we want t oexclude
+            indexes_to_exclude (int): index of the chosen dimension we want t oexclude
             dimension (int): dimension of the tensor on which we want to work
 
         Returns:
             torch.Tensor: new tensor without the chosen variables
         """
-        
-        indices = torch.arange(tensor.size(dimension)) # all indexes on that dimension
-        indices = indices[indices != index_to_exclude] # remove the chosen one
-        
+
+        remaining_idx = torch.tensor([i for i in range(tensor.size(dimension)) if i not in indexes_to_exclude]).to(tensor.device)
         # Select the desired sub-tensor
-        extracted_subtensors = tensor.index_select(dimension, indices)
+        extracted_subtensors = torch.index_select(tensor, dim=dimension, index=remaining_idx)
         
         return extracted_subtensors
