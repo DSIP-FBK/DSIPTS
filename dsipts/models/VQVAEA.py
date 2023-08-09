@@ -156,7 +156,7 @@ class VQVAEA(Base):
         recon_error = F.mse_loss(data_recon.squeeze(), data.squeeze()) 
         loss_vqvae = recon_error + vq_loss
        
-        if self.current_epoch > 1:
+        if self.current_epoch > 250:
             with torch.no_grad():
                 _, _, _,quantized_y,encodings_y = self.vqvae(batch['y'].permute(0,2,1))
             
