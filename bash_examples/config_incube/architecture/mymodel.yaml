@@ -13,11 +13,11 @@ model_configs:
   cat_emb_dim: 128
   hidden_RNN: 256
   num_layers_RNN: 8
-  kernel_size: 3
+  kernel_size: 9
   kind: 'gru'
   sum_emb: true
   use_bn: false
-  dropout_rate: 0.5
+  dropout_rate: 0.25
   optim: torch.optim.Adam
   activation: torch.nn.PReLU
   persistence_weight: 0.010
