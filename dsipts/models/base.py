@@ -131,9 +131,6 @@ class Base(pl.LightningModule):
         :meta private:
         """
 
-
-
-
         if self.use_quantiles==False:
             initial_loss = self.loss(y_hat[:,:,:,0], batch['y'])
         else:
