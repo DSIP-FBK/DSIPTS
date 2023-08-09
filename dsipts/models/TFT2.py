@@ -103,8 +103,6 @@ class TFT2(Base):
             assert self.aux_past_channels == aux_num_past.size(2), logging.info(f"{self.aux_past_channels} LAYERS FOR PAST VARS AND {aux_num_past.shape(2)} VARS") # to check if we are using the expected number of variables about past
             aux_emb_num_past = torch.Tensor().to(aux_num_past.device)
             for i, layer in enumerate(self.linear_aux_past):
-                import pdb
-                pdb.set_trace()
                 aux_emb_past = layer(aux_num_past[:,:,[i]]).unsqueeze(2)
                 aux_emb_num_past = torch.cat((aux_emb_num_past, aux_emb_past), dim=2)
             ## update summary about past
@@ -122,7 +120,7 @@ class TFT2(Base):
             summary_fut = torch.cat((summary_fut, aux_emb_num_fut), dim=2)
 
         ### CATEGORICAL VARIABLES 
-        if 'x_cat_past' in batch.keys() and 'x_cat_fut' in batch.keys(): # if we have both
+        if 'x_cat_past' in batch.keys() and 'x_cat_future' in batch.keys(): # if we have both
             # HERE WE ASSUME SAME NUMBER AND KIND OF VARIABLES IN PAST AND FUTURE
             cat_past = batch['x_cat_past'].to(self.device)
             cat_fut = batch['x_cat_future'].to(self.device)
