@@ -82,7 +82,7 @@ class TFT2(Base):
         # PAST TARGET NUMERICAL VARIABLE
         # always available: autoregressive variable
         # compute rnn prediction
-        idx_target = batch['idx_target'][0] #! t ohandle more target variables
+        idx_target = batch['idx_target'][0]
         target_num_past = num_past[:,:,idx_target]
         target_emb_num_past = self.target_linear(target_num_past) # target_variables comunicating with each others
         target_num_fut_approx = self.rnn(target_emb_num_past)
@@ -105,7 +105,7 @@ class TFT2(Base):
             for i, layer in enumerate(self.linear_aux_past):
                 import pdb
                 pdb.set_trace()
-                aux_emb_past = layer(aux_num_past[:,:,i]).unsqueeze(2)
+                aux_emb_past = layer(aux_num_past[:,:,[i]]).unsqueeze(2)
                 aux_emb_num_past = torch.cat((aux_emb_num_past, aux_emb_past), dim=2)
             ## update summary about past
             summary_past = torch.cat((summary_past, aux_emb_num_past), dim=2)
@@ -116,7 +116,7 @@ class TFT2(Base):
             assert self.aux_fut_channels == aux_num_fut.size(2), logging.info(f"{self.aux_fut_channels} LAYERS FOR PAST VARS AND {aux_num_fut.size(2)} VARS")  # to check if we are using the expected number of variables about fut
             aux_emb_num_fut = torch.Tensor()
             for j, layer in enumerate(self.linear_aux_fut):
-                aux_emb_fut = layer(aux_num_fut[:,:,j]).unsqueeze(2)
+                aux_emb_fut = layer(aux_num_fut[:,:,[j]]).unsqueeze(2)
                 aux_emb_num_fut = torch.cat((aux_emb_num_fut, aux_emb_fut), dim=2)
             ## update summary about future
             summary_fut = torch.cat((summary_fut, aux_emb_num_fut), dim=2)
