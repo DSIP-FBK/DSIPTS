@@ -170,7 +170,7 @@ class TFT2(Base):
         return out
     
     #function to extract from batch['x_num_past'] all variables except the one autoregressive
-    def remove_var(tensor: torch.Tensor, indexes_to_exclude: int, dimension: int)-> torch.Tensor:
+    def remove_var(self, tensor: torch.Tensor, indexes_to_exclude: int, dimension: int)-> torch.Tensor:
         """Function to remove variables from tensors in chosen dimension and position 
 
         Args:
