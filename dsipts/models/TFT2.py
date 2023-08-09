@@ -39,7 +39,11 @@ class TFT2(Base):
         self.linear_aux_fut = nn.ModuleList([nn.Linear(1, d_model) for _ in range(self.aux_fut_channels)])
         seq_len = past_steps+future_steps
         self.emb_cat_var = sub_nn.embedding_cat_variables(seq_len, future_steps, d_model, embs, self.device)
-        self.rnn = sub_nn.LSTM_Model(d_model, d_model, future_steps, num_layers_RNN, dropout_rate)
+        self.rnn = sub_nn.LSTM_Model(num_var=out_channels, 
+                                     d_model = d_model, 
+                                     pred_step = future_steps, 
+                                     num_layers = num_layers_RNN, 
+                                     dropout = dropout_rate)
 
         self.res_conn1_past = sub_nn.ResidualConnection(d_model, dropout_rate)
         self.res_conn1_fut = sub_nn.ResidualConnection(d_model, dropout_rate)
@@ -83,7 +87,7 @@ class TFT2(Base):
         # compute rnn prediction
         idx_target = batch['idx_target'][0] #! t ohandle more target variables
         target_num_past = num_past[:,:,idx_target]
-        target_emb_num_past = self.target_linear(target_num_past)
+        target_emb_num_past = self.target_linear(target_num_past) # target_variables comunicating with each others
         target_num_fut_approx = self.rnn(target_emb_num_past)
         # embed future redictions
         target_emb_num_fut_approx = self.target_linear(target_num_fut_approx.unsqueeze(2))

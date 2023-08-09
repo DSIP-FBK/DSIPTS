@@ -74,14 +74,22 @@ class embedding_cat_variables(nn.Module):
         return cat_n_embd
 
 class LSTM_Model(nn.Module):
-    def __init__(self, input_dim: int, d_model: int, output_dim: int, num_layers: int, dropout: float):
+    def __init__(self, num_var: int, d_model: int, pred_step: int, num_layers: int, dropout: float):
         super().__init__()
-        self.lstm = nn.LSTM(input_dim, d_model, num_layers=num_layers, batch_first=True, dropout=dropout)
-        self.linear = nn.Linear(d_model, output_dim)
+        self.num_var = num_var
+        self.d_model = d_model
+        self.num_layers = num_layers
+        self.pred_step = pred_step
+
+        self.lstm = nn.LSTM(d_model, d_model, num_layers=num_layers, batch_first=True, dropout=dropout)
+        self.linear = nn.Linear(d_model, pred_step*num_var)
 
     def forward(self, x):
-        lstm_out, _ = self.lstm(x)
-        out = self.linear(lstm_out[:, -1, :])  # Take the last output of the sequence
+        h0 = torch.zeros(self.num_layers, x.size(0), self.d_model).to(x.device)
+        c0 = torch.zeros(self.num_layers, x.size(0), self.d_model).to(x.device)
+        out, _ = self.lstm(x, (h0, c0))
+        out = self.linear(out[:, -1, :])  # Take the last output of the sequence
+        out = out.view(-1, self.pred_step, self.num_var)
         return out
     
 class GLU(nn.Module):
