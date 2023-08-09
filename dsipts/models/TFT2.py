@@ -27,13 +27,13 @@ class TFT2(Base):
                  scheduler_config:dict=None)->None:
         super().__init__()
         self.save_hyperparameters(logger=False)
-        assert out_channels==1, logging.info("ONLY ONE CHANNEL IMPLEMENTED")
+        # assert out_channels==1, logging.info("ONLY ONE CHANNEL IMPLEMENTED")
         self.future_steps = future_steps
         self.d_model = d_model
         self.out_channels = out_channels
 
         self.target_linear = nn.Linear(out_channels, d_model) # same for past and fut! (same variable)
-        self.aux_past_channels = past_channels-1 # -1 because one channel is occupied by the target variable
+        self.aux_past_channels = past_channels - out_channels # -1 because one channel is occupied by the target variable
         self.linear_aux_past = nn.ModuleList([nn.Linear(1, d_model) for _ in range(self.aux_past_channels)])
         self.aux_fut_channels = future_channels
         self.linear_aux_fut = nn.ModuleList([nn.Linear(1, d_model) for _ in range(self.aux_fut_channels)])
