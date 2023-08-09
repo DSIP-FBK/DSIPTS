@@ -222,7 +222,8 @@ class VVA(Base):
             return idx.unsqueeze(0)
 
     def inference(self, batch:dict)->torch.tensor:
-
+        import pdb
+        pdb.set_trace()
         x = batch['x_emb']
         
         # isolate the input pattern alone
