@@ -3,8 +3,8 @@ dataset:
   path: '/storage/DSIP/edison/TsExp/data/incube'
 
 scheduler_config:
-  gamma: 0.05
-  step_size: 75
+  gamma: 0.5
+  step_size: 150
 
 optim_config:
   lr: 0.00005
