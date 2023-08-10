@@ -36,7 +36,7 @@ model_configs:
 train_config:
   auto_lr_find: false
   batch_size: 128
-  max_epochs: 3
+  max_epochs: 1000
   gradient_clip_val: null
   gradient_clip_algorithm: 'norm'
   
