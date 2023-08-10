@@ -153,6 +153,8 @@ class VQVAEA(Base):
         data = batch['x_num_past'][:,:,idx_target]
         
         vq_loss, data_recon, perplexity,quantized_x,encodings_x = self.vqvae(data.permute(0,2,1))
+        import pdb;
+        pdb.set_trace()
         recon_error = F.mse_loss(data_recon.squeeze(), data.squeeze()) 
         loss_vqvae = recon_error + vq_loss
        
