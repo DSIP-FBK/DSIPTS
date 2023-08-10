@@ -77,6 +77,7 @@ class VQVAEA(Base):
         self.future_steps = future_steps
         ##PRIMA VQVAE
         assert out_channels==1, logging.info('Working only for one singal')
+        assert past_steps%2==0 and future_steps%2==0, logging.info('There are some issue with the deconder in case of odd length')
         self.vqvae = VQVAE(in_channels=1, hidden_channels=hidden_channels,out_channels=1,num_embeddings= max_voc_size,embedding_dim=d_model,commitment_cost=commitment_cost,decay=decay  )
         
         ##POI GPT
@@ -153,8 +154,7 @@ class VQVAEA(Base):
         data = batch['x_num_past'][:,:,idx_target]
         
         vq_loss, data_recon, perplexity,quantized_x,encodings_x = self.vqvae(data.permute(0,2,1))
-        import pdb;
-        pdb.set_trace()
+
         recon_error = F.mse_loss(data_recon.squeeze(), data.squeeze()) 
         loss_vqvae = recon_error + vq_loss
        

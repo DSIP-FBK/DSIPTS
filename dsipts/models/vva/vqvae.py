@@ -254,7 +254,7 @@ class ResidualStack(nn.Module):
         return F.relu(x)
     
 class Encoder(nn.Module):
-    def __init__(self, in_channels, hidden_channels,num_residual_layers=3,padding_middle=1):
+    def __init__(self, in_channels, hidden_channels,num_residual_layers=3):
         super(Encoder, self).__init__()
 
         self._conv_1 = nn.Conv1d(in_channels=in_channels,
@@ -268,7 +268,7 @@ class Encoder(nn.Module):
         self._conv_3 = nn.Conv1d(in_channels=hidden_channels,
                                  out_channels=hidden_channels,
                                  kernel_size=4,
-                                 stride=2, padding=padding_middle)
+                                 stride=2, padding=1)
         
         self._conv_4 = nn.Conv1d(in_channels=hidden_channels,
                                  out_channels=hidden_channels,
@@ -339,7 +339,6 @@ class Jitter(nn.Module):
 
         return quantized
     
-    
 class Decoder(nn.Module):
     def __init__(self, in_channels, hidden_channels,out_channels,num_residual_layers=3):
         super(Decoder, self).__init__()
@@ -352,7 +351,7 @@ class Decoder(nn.Module):
                                  kernel_size=3, 
                                  padding=1)
         
-        #self._upsample = nn.Upsample(scale_factor=2)
+        self._upsample = nn.Upsample(scale_factor=2)
         
         self._residual_stack = ResidualStack(
             in_channels=hidden_channels,
@@ -363,21 +362,22 @@ class Decoder(nn.Module):
         
         self._conv_trans_1 = nn.ConvTranspose1d(in_channels=hidden_channels, 
                                                 out_channels=hidden_channels,
-                                                kernel_size=3,  padding=0)
+                                                kernel_size=3,  padding=1)
         
         self._conv_trans_2 = nn.ConvTranspose1d(
                                                 in_channels=hidden_channels, 
                                                 out_channels=hidden_channels,
-                                                kernel_size=4,padding=0)
+                                                kernel_size=4,padding=2)
         
         self._conv_trans_3 = nn.ConvTranspose1d(in_channels=hidden_channels, 
                                                 out_channels=out_channels,
-                                                kernel_size=4,  padding=0)
+                                                kernel_size=4,  padding=1)
 
     def forward(self, x,is_training=True):
         if is_training:
              x = self._jitter(x)
         x = self._conv_1(x)
+        x = self._upsample(x)
         x = self._residual_stack(x)
         x = F.relu(self._conv_trans_1(x))
         x = F.relu(self._conv_trans_2(x))
