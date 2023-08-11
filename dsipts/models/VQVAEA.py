@@ -255,7 +255,7 @@ class VQVAEA(Base):
     def inference(self, batch:dict)->torch.tensor:
 
         idx_target = batch['idx_target'][0]
-        data = batch['x_num_past'][:,:,idx_target]
+        data = batch['x_num_past'][:,:,idx_target].to(self.device)
         vq_loss, data_recon, perplexity,quantized_x,encodings_x = self.vqvae(data.permute(0,2,1))
         x = encodings_x.argmax(dim=2)
         inp = x[:, :self.sentence_length]
