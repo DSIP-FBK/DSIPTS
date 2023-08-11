@@ -31,6 +31,7 @@ model_configs:
   n_heads: 4
   optim: null
   persistence_weight: 0.010
+  epoch_vqvae: 500
   loss_type: 'l1'
   
 train_config:
