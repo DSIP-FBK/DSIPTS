@@ -33,6 +33,7 @@ class VQVAEA(Base):
                  decay:float,
                  n_heads:int,
                  out_channels:int,
+                 epoch_vqvae: int,
                  persistence_weight:float=0.0,
                  loss_type: str='l1',
                  quantiles:List[int]=[],
@@ -75,6 +76,7 @@ class VQVAEA(Base):
         self.d_model = d_model
         self.max_voc_size = max_voc_size
         self.future_steps = future_steps
+        self.epoch_vqvae = epoch_vqvae
         ##PRIMA VQVAE
         assert out_channels==1, logging.info('Working only for one singal')
         assert past_steps%2==0 and future_steps%2==0, logging.info('There are some issue with the deconder in case of odd length')
@@ -152,13 +154,18 @@ class VQVAEA(Base):
 
            
         data = batch['x_num_past'][:,:,idx_target]
-        
-        vq_loss, data_recon, perplexity,quantized_x,encodings_x = self.vqvae(data.permute(0,2,1))
+        if self.current_epoch > self.epoch_vqvae:
+            with torch.no_grad():
+                vqloss, data_recon, perplexity,quantized_x,encodings_x = self.vqvae(data.permute(0,2,1))
+                loss_vqvae = 0
+        else:
+            vq_loss, data_recon, perplexity,quantized_x,encodings_x = self.vqvae(data.permute(0,2,1))
 
-        recon_error = F.mse_loss(data_recon.squeeze(), data.squeeze()) 
-        loss_vqvae = recon_error + vq_loss
-       
-        if self.current_epoch > 250:
+            recon_error = F.mse_loss(data_recon.squeeze(), data.squeeze()) 
+            loss_vqvae = recon_error + vq_loss
+        import pdb
+        pdb.set_trace()
+        if self.current_epoch > self.epoch_vqvae:
             with torch.no_grad():
                 _, _, _,quantized_y,encodings_y = self.vqvae(batch['y'].permute(0,2,1))
             
