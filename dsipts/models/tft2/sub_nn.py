@@ -3,7 +3,7 @@ import torch.nn as nn
 
 class embedding_cat_variables(nn.Module):
     # at the moment cat_past and cat_fut together
-    def __init__(self, seq_len: int, lag: int, hiden_size: int, emb_dims: list, device):
+    def __init__(self, seq_len: int, lag: int, d_model: int, emb_dims: list, device):
         """Class for embedding categorical variables, adding 3 positional variables during forward
 
         Args:
@@ -19,7 +19,7 @@ class embedding_cat_variables(nn.Module):
         self.device = device
         self.cat_embeds = emb_dims + [seq_len, lag+1, 2] # 
         self.cat_n_embd = nn.ModuleList([
-            nn.Embedding(emb_dim, hiden_size) for emb_dim in self.cat_embeds
+            nn.Embedding(emb_dim, d_model) for emb_dim in self.cat_embeds
         ])
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -74,21 +74,29 @@ class embedding_cat_variables(nn.Module):
         return cat_n_embd
 
 class LSTM_Model(nn.Module):
-    def __init__(self, input_dim: int, hidden_dim: int, output_dim: int, num_layers: int, dropout: float):
+    def __init__(self, num_var: int, d_model: int, pred_step: int, num_layers: int, dropout: float):
         super().__init__()
-        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers=num_layers, batch_first=True, dropout=dropout)
-        self.linear = nn.Linear(hidden_dim, output_dim)
+        self.num_var = num_var
+        self.d_model = d_model
+        self.num_layers = num_layers
+        self.pred_step = pred_step
+
+        self.lstm = nn.LSTM(d_model, d_model, num_layers=num_layers, batch_first=True, dropout=dropout)
+        self.linear = nn.Linear(d_model, pred_step*num_var)
 
     def forward(self, x):
-        lstm_out, _ = self.lstm(x)
-        out = self.linear(lstm_out[:, -1, :])  # Take the last output of the sequence
+        h0 = torch.zeros(self.num_layers, x.size(0), self.d_model).to(x.device)
+        c0 = torch.zeros(self.num_layers, x.size(0), self.d_model).to(x.device)
+        out, _ = self.lstm(x, (h0, c0))
+        out = self.linear(out[:, -1, :])  # Take the last output of the sequence
+        out = out.view(-1, self.pred_step, self.num_var)
         return out
     
 class GLU(nn.Module):
-    def __init__(self, hidden_dim: int):
+    def __init__(self, d_model: int):
         super().__init__()
-        self.linear1 = nn.Linear(hidden_dim, hidden_dim, bias = False)
-        self.linear2 = nn.Linear(hidden_dim, hidden_dim, bias = False)
+        self.linear1 = nn.Linear(d_model, d_model, bias = False)
+        self.linear2 = nn.Linear(d_model, d_model, bias = False)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -98,17 +106,55 @@ class GLU(nn.Module):
         return out
     
 class GRN(nn.Module):
-    def __init__(self, hidden_dim: int, dropout: float):
+    def __init__(self, d_model: int, dropout_rate: float):
         super().__init__()
-        self.linear1 = nn.Linear(hidden_dim, hidden_dim) 
+        self.linear1 = nn.Linear(d_model, d_model) 
         self.elu = nn.ELU()
-        self.linear2 = nn.Linear(hidden_dim, hidden_dim)
-        self.dropout = nn.Dropout(dropout)
-        self.glu = GLU(hidden_dim)
-        self.norm = nn.LayerNorm(hidden_dim)
+        self.linear2 = nn.Linear(d_model, d_model)
+        self.res_conn = ResidualConnection(d_model, dropout_rate)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         eta1 = self.elu(self.linear1(x))
-        eta2 = self.dropout(self.linear2(eta1))
-        out = self.norm(x + self.glu(eta2))
+        eta2 = self.linear2(eta1)
+        out = self.res_conn(eta2, x)
         return out
+    
+class ResidualConnection(nn.Module):
+    def __init__(self, d_model, dropout_rate) -> None:
+        super().__init__()
+        self.dropout = nn.Dropout(dropout_rate)
+        self.glu = GLU(d_model)
+        self.norm = nn.LayerNorm(d_model)
+    
+    def forward(self, x: torch.Tensor, res_conn: torch.Tensor) -> torch.Tensor:
+        x = self.glu(self.dropout(x))
+        out = self.norm(res_conn + x)
+        return out
+
+class InterpretableMultiHead(nn.Module):
+    def __init__(self, d_model, d_head, n_head) -> None:
+        super().__init__()
+        self.d_head = d_head
+        self.n_head = n_head
+        self.Q_layers = nn.ModuleList([nn.Linear(d_model,d_head) for _ in range(n_head)])
+        self.K_layers = nn.ModuleList([nn.Linear(d_model,d_head) for _ in range(n_head)])
+        self.Softmax_layers = nn.ModuleList([nn.Softmax(dim=-1) for _ in range(n_head)])
+        self.V_layer = nn.Linear(d_model, d_head)
+        self.out_layer = nn.Linear(d_head, d_model)
+
+    def forward(self, query:torch.Tensor, key:torch.Tensor, value:torch.Tensor) -> torch.Tensor:
+        out = torch.Tensor()
+        for (q_layer, k_layer, softmax) in zip(self.Q_layers, self.K_layers, self.Softmax_layers):
+            Q = q_layer(query)
+            K = k_layer(key)
+            wei = Q @ K.transpose(-2,-1) * (self.d_head**-0.5)
+            wei = softmax(wei)
+            V = self.V_layer(value)
+            out_h = wei @ V
+            if out.shape[0]>0:
+                out = out + out_h # sum the result of the head attention
+            else:
+                out = out_h # out is not modifies/initialized yet
+        out = out / self.n_head
+        out = self.out_layer(out) # comeback to d_model dimension
+        return out        
