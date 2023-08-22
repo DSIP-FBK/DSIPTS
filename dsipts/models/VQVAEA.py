@@ -114,7 +114,7 @@ class VQVAEA(Base):
         #                                   weight_decay=self.optim_config.weight_decay_vqvae)
 
 
-        return torch.optim.AdamW([
+        return torch.optim.Adam([
                 {'params':self.vqvae.parameters(),'lr':self.optim_config.lr_vqvae,'weight_decay':self.optim_config.weight_decay_vqvae},
                 {'params':self.transformer.parameters(),'lr':self.optim_config.lr_gpt,'weight_decay':self.optim_config.weight_decay_gpt},
             ])
