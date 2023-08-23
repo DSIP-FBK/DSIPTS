@@ -42,6 +42,7 @@ class VQVAEA(Base):
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
         """ Custom encoder-decoder 
+        
         Args:
             past_steps (int):  number of past datapoints used 
             future_steps (int): number of future lag to predict
