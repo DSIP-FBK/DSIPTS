@@ -74,7 +74,7 @@
 <span class="kn">import</span> <span class="nn">pytorch_lightning</span> <span class="k">as</span> <span class="nn">pl</span>
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span>  <span class="n">Base</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">QuantileLossMO</span><span class="p">,</span> <span class="n">get_device</span><span class="p">,</span> <span class="n">L1Loss</span><span class="p">,</span> <span class="n">get_activation</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 
 <div class="viewcode-block" id="moving_avg"><a class="viewcode-back" href="../../../dsipts.models.html#dsipts.models.LinearTS.moving_avg">[docs]</a><span class="k">class</span> <span class="nc">moving_avg</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
@@ -125,10 +125,14 @@
                  <span class="n">out_channels</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
                  <span class="n">hidden_size</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
                  <span class="n">dropout_rate</span><span class="p">:</span><span class="nb">float</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
-                 <span class="n">activation</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="s1">&#39;RELU&#39;</span><span class="p">,</span>
+                 <span class="n">activation</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="s1">&#39;torch.nn.ReLU&#39;</span><span class="p">,</span>
                  <span class="n">kind</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span>
                  <span class="n">use_bn</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">persistence_weight</span><span class="p">:</span><span class="nb">float</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                 <span class="n">loss_type</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;l1&#39;</span><span class="p">,</span>
                  <span class="n">quantiles</span><span class="p">:</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="p">[],</span>
+                 <span class="n">n_classes</span><span class="p">:</span><span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                 <span class="n">optim</span><span class="p">:</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="kc">None</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">optim_config</span><span class="p">:</span><span class="nb">dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">scheduler_config</span><span class="p">:</span><span class="nb">dict</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Linear model from https://github.com/cure-lab/LTSF-Linear/blob/main/run_longExp.py</span>
@@ -145,15 +149,19 @@
 <span class="sd">            out_channels (int): number of output channels</span>
 <span class="sd">            hidden_size (int): hidden size of the lienar block</span>
 <span class="sd">            dropout_rate (float, optional): dropout rate in Dropout layers. Default 0.1</span>
-<span class="sd">            activation (str, optional): activation fuction</span>
+<span class="sd">            activation (str, optional): activation fuction function pytorch. Default torch.nn.ReLU</span>
 <span class="sd">            kind (str, optional): one among linear, dlinear (de-trending), nlinear (differential). Defaults to &#39;linear&#39;.</span>
 <span class="sd">            use_bn (bool, optional): if true BN layers will be added and dropouts will be removed. Default False</span>
 <span class="sd">            quantiles (List[int], optional):  we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].</span>
+<span class="sd">            persistence_weight (float):  weight controlling the divergence from persistence model. Default 0</span>
+<span class="sd">            loss_type (str, optional): this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,</span>
+<span class="sd">            n_classes (int): number of classes (0 in regression)</span>
+<span class="sd">            optim (str, optional): if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.</span>
 <span class="sd">            optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.</span>
 <span class="sd">            scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
   
-        <span class="k">if</span> <span class="n">activation</span> <span class="o">==</span> <span class="s1">&#39;SELU&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">activation</span> <span class="o">==</span> <span class="s1">&#39;torch.nn.SELU&#39;</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;SELU do not require BN&#39;</span><span class="p">)</span>
             <span class="n">use_bn</span> <span class="o">=</span> <span class="kc">False</span>
             
@@ -172,13 +180,30 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">future_channels</span> <span class="o">=</span> <span class="n">future_channels</span> 
         <span class="bp">self</span><span class="o">.</span><span class="n">embs</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sum_emb</span> <span class="o">=</span> <span class="n">sum_emb</span>
-        <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span> <span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span><span class="o">==</span><span class="mi">3</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">use_quantiles</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">persistence_weight</span> <span class="o">=</span> <span class="n">persistence_weight</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">loss_type</span> <span class="o">=</span> <span class="n">loss_type</span>
+        <span class="k">if</span> <span class="n">n_classes</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_classification</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">use_quantiles</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mul</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">QuantileLossMO</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">use_quantiles</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mul</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_type</span> <span class="o">==</span> <span class="s1">&#39;mse&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">MSELoss</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">L1Loss</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_classification</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">use_quantiles</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mul</span> <span class="o">=</span> <span class="n">n_classes</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
+            <span class="c1">#assert out_channels==1, &quot;Classification require only one channel&quot;</span>
         
         <span class="n">emb_channels</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optim</span> <span class="o">=</span> <span class="n">optim</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">optim_config</span> <span class="o">=</span> <span class="n">optim_config</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scheduler_config</span> <span class="o">=</span> <span class="n">scheduler_config</span>
 
@@ -196,12 +221,7 @@
     
         <span class="c1">## ne faccio uno per ogni canale</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">linear</span> <span class="o">=</span>  <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">()</span>
-        <span class="k">if</span>  <span class="bp">self</span><span class="o">.</span><span class="n">use_quantiles</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">QuantileLossMO</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mul</span> <span class="o">=</span> <span class="mi">3</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">L1Loss</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mul</span> <span class="o">=</span> <span class="mi">1</span> 
+
             
         <span class="k">if</span> <span class="n">kind</span><span class="o">==</span><span class="s1">&#39;dlinear&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">decompsition</span> <span class="o">=</span> <span class="n">series_decomp</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">)</span>    
@@ -211,7 +231,7 @@
             
         
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">out_channels</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">cat_emb_dim</span><span class="o">*</span><span class="p">(</span><span class="n">past_steps</span><span class="o">+</span><span class="n">future_steps</span><span class="p">)</span><span class="o">+</span><span class="n">past_steps</span><span class="o">*</span><span class="n">past_channels</span><span class="o">+</span><span class="n">future_channels</span><span class="o">*</span><span class="n">future_steps</span><span class="p">,</span><span class="n">hidden_size</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">emb_channels</span><span class="o">*</span><span class="p">(</span><span class="n">past_steps</span><span class="o">+</span><span class="n">future_steps</span><span class="p">)</span><span class="o">+</span><span class="n">past_steps</span><span class="o">*</span><span class="n">past_channels</span><span class="o">+</span><span class="n">future_channels</span><span class="o">*</span><span class="n">future_steps</span><span class="p">,</span><span class="n">hidden_size</span><span class="p">),</span>
                                                 <span class="n">activation</span><span class="p">(),</span>
                                                 <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm1d</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">)</span> <span class="k">if</span> <span class="n">use_bn</span> <span class="k">else</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_rate</span><span class="p">)</span> <span class="p">,</span>    
                                                 <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span><span class="n">hidden_size</span><span class="o">//</span><span class="mi">2</span><span class="p">),</span> 
@@ -237,10 +257,13 @@
         <span class="n">x</span> <span class="o">=</span>  <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;x_num_past&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="o">==</span><span class="s1">&#39;nlinear&#39;</span><span class="p">:</span>
             <span class="n">idx_target</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;idx_target&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-
             <span class="n">x_start</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">idx_target</span><span class="p">]</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
             <span class="c1">##BxC</span>
             <span class="n">x</span><span class="p">[:,:,</span><span class="n">idx_target</span><span class="p">]</span><span class="o">-=</span><span class="n">x_start</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="o">==</span><span class="s1">&#39;alinear&#39;</span><span class="p">:</span>
+            <span class="n">idx_target</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;idx_target&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">x</span><span class="p">[:,:,</span><span class="n">idx_target</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span>
         
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="o">==</span><span class="s1">&#39;dlinear&#39;</span><span class="p">:</span>
             <span class="n">idx_target</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;idx_target&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
@@ -264,7 +287,7 @@
         <span class="k">if</span> <span class="s1">&#39;x_cat_past&#39;</span> <span class="ow">in</span> <span class="n">batch</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">cat_past</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;x_cat_past&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">&#39;x_num_future&#39;</span> <span class="ow">in</span> <span class="n">batch</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">x_future</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;x_num_past&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">x_future</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;x_num_future&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">x_future</span> <span class="o">=</span> <span class="kc">None</span>
             
@@ -300,6 +323,7 @@
         <span class="k">if</span> <span class="n">x_future</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">tmp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_future</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>           
+
             <span class="n">tot_future</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">tot</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">tot_past</span><span class="p">,</span><span class="n">tot_future</span><span class="p">],</span><span class="mi">1</span><span class="p">)</span>
             

@@ -77,21 +77,43 @@
 <span id="dsipts-models-tft-decoder-module"></span><h2>dsipts.models.tft.decoder module<a class="headerlink" href="#module-dsipts.models.tft.decoder" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="dsipts.models.tft.decoder.Decoder">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.decoder.</span></span><span class="sig-name descname"><span class="pre">Decoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_dec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_embd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_heads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fw_exp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/decoder.html#Decoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.decoder.Decoder" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.decoder.</span></span><span class="sig-name descname"><span class="pre">Decoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_dec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_embd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_heads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fw_exp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/decoder.html#Decoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.decoder.Decoder" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_dec</strong> (<em>int</em>) – number of decoder layers</p></li>
+<li><p><strong>n_embd</strong> (<em>int</em>) – model dimension</p></li>
+<li><p><strong>num_heads</strong> (<em>int</em>) – number of heads for each layer</p></li>
+<li><p><strong>head_size</strong> (<em>int</em>) – size of layers’ heads</p></li>
+<li><p><strong>fw_exp</strong> (<em>int</em>) – multiplicative factor for expansion in FFN</p></li>
+<li><p><strong>lag</strong> (<em>int</em>) – maximum number of future steps computable. Used in Head_selfDec</p></li>
+<li><p><strong>dropout</strong> (<em>float</em>) – </p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.decoder.Decoder.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/decoder.html#Decoder.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.decoder.Decoder.forward" title="Permalink to this definition"></a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/decoder.html#Decoder.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.decoder.Decoder.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Decoder:
+- Multi Head SelfAttention on Decoder
+- Multi Head CrossAttention among Decoder queries and Encoder keys and values
+- Feed Forward Network</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>torch.Tensor</em>) – queries</p></li>
+<li><p><strong>k</strong> (<em>torch.Tensor</em>) – keys</p></li>
+<li><p><strong>v</strong> (<em>torch.Tensor</em>) – values</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>decoded tensor</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -103,7 +125,7 @@ registered hooks while the latter silently ignores them.</p>
 <p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.decoder.DecoderLayer.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/decoder.html#DecoderLayer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.decoder.DecoderLayer.forward" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/decoder.html#DecoderLayer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.decoder.DecoderLayer.forward" title="Permalink to this definition"></a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -168,7 +190,7 @@ registered hooks while the latter silently ignores them.</p>
 <p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.decoder.Head_selfDec.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/decoder.html#Head_selfDec.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.decoder.Head_selfDec.forward" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/decoder.html#Head_selfDec.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.decoder.Head_selfDec.forward" title="Permalink to this definition"></a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -210,7 +232,7 @@ registered hooks while the latter silently ignores them.</p>
 <p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.decoder.MultiHead_selfDec.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/decoder.html#MultiHead_selfDec.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.decoder.MultiHead_selfDec.forward" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/decoder.html#MultiHead_selfDec.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.decoder.MultiHead_selfDec.forward" title="Permalink to this definition"></a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">
@@ -228,18 +250,17 @@ registered hooks while the latter silently ignores them.</p>
 <section id="module-dsipts.models.tft.embedding_nn">
 <span id="dsipts-models-tft-embedding-nn-module"></span><h2>dsipts.models.tft.embedding_nn module<a class="headerlink" href="#module-dsipts.models.tft.embedding_nn" title="Permalink to this heading"></a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.Decoder_LSTM">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.embedding_nn.</span></span><span class="sig-name descname"><span class="pre">Decoder_LSTM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_layers_LSTM</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#Decoder_LSTM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.Decoder_LSTM" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.Decoder_RNN">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.embedding_nn.</span></span><span class="sig-name descname"><span class="pre">Decoder_RNN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type_RNN</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layers_RNN</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#Decoder_RNN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.Decoder_RNN" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>LSTM Decoder with GLU, Add and Norm</p>
+<p>RNN Decoder with GLU, Add and Norm
+norm( x + GLU(dropout( LSTM(x) )) )</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>type_RNN</strong> (<em>str</em>) – lstm or gru</p></li>
 <li><p><strong>n_layers_LSTM</strong> (<em>int</em>) – number of layers involved by LSTM</p></li>
-<li><p><strong>d_model</strong> (<em>int</em>) – <ul>
-<li></li>
-</ul>
-</p></li>
+<li><p><strong>d_model</strong> (<em>int</em>) – model dimension</p></li>
 <li><p><strong>dropout</strong> (<em>float</em>) – <ul>
 <li></li>
 </ul>
@@ -248,9 +269,9 @@ registered hooks while the latter silently ignores them.</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.Decoder_LSTM.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#Decoder_LSTM.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.Decoder_LSTM.forward" title="Permalink to this definition"></a></dt>
-<dd><p>LSTM Decoder with GLU, Add and Norm</p>
+<dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.Decoder_RNN.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hn</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#Decoder_RNN.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.Decoder_RNN.forward" title="Permalink to this definition"></a></dt>
+<dd><p>RNN Decoder with GLU, Add and Norm</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -272,19 +293,18 @@ registered hooks while the latter silently ignores them.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.Decoder_Var_Selection">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.embedding_nn.</span></span><span class="sig-name descname"><span class="pre">Decoder_Var_Selection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_yprec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_fut_cat_var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_fut_tar_var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#Decoder_Var_Selection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.Decoder_Var_Selection" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.embedding_nn.</span></span><span class="sig-name descname"><span class="pre">Decoder_Var_Selection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_yprec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_fut_cat_var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_fut_num_var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#Decoder_Var_Selection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.Decoder_Var_Selection" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Variable Selection Network in Decoder(future)</p>
+<p>Variable Selection Network in Decoder(future)
+Apply GRN to each variable, compute selection weights
+Element-wise multiplication to have a Tensor [bs, seq_len, d_model] encoding the single variable.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>use_yprec</strong> (<em>bool</em>) – True if we want to use the last predicted values of target variable(s)</p></li>
 <li><p><strong>n_fut_cat_var</strong> (<em>int</em>) – number of categorical variables for future steps</p></li>
 <li><p><strong>n_fut_tar_var</strong> (<em>int</em>) – number of target variables for future steps. If use_yprec==False it is ignored</p></li>
-<li><p><strong>d_model</strong> (<em>int</em>) – <ul>
-<li></li>
-</ul>
-</p></li>
+<li><p><strong>d_model</strong> (<em>int</em>) – model dimension</p></li>
 <li><p><strong>dropout</strong> (<em>float</em>) – <ul>
 <li></li>
 </ul>
@@ -299,12 +319,12 @@ registered hooks while the latter silently ignores them.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>categorical</strong> (<em>torch.Tensor</em>) – [bs, past_steps, n_cat_var, d_model] fut_cat_variables to be selected</p></li>
-<li><p><strong>y</strong> (<em>torch.Tensor</em><em>, </em><em>optional</em>) – [bs, past_steps, d_model]. Defaults to None.</p></li>
+<li><p><strong>categorical</strong> (<em>torch.Tensor</em>) – [bs, fut_steps, n_cat_var, d_model] fut_cat_var to be selected</p></li>
+<li><p><strong>y</strong> (<em>torch.Tensor</em><em>, </em><em>optional</em>) – [bs, fut_steps, n_num_var, d_model] fut_num_var to be selected if the process is iterative. Defaults to None.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>[bs, past_steps, d_model]</p>
+<dd class="field-even"><p>[bs, fut_steps, d_model]</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>torch.Tensor</p>
@@ -314,34 +334,28 @@ registered hooks while the latter silently ignores them.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.Decoder_Var_Selection.get_cat_GRN">
-<span class="sig-name descname"><span class="pre">get_cat_GRN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#Decoder_Var_Selection.get_cat_GRN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.Decoder_Var_Selection.get_cat_GRN" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.Decoder_Var_Selection.get_flat_GRN">
-<span class="sig-name descname"><span class="pre">get_flat_GRN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">to_be_flat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#Decoder_Var_Selection.get_flat_GRN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.Decoder_Var_Selection.get_flat_GRN" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_cat_GRN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#Decoder_Var_Selection.get_cat_GRN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.Decoder_Var_Selection.get_cat_GRN" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.Decoder_Var_Selection.get_num_GRN">
-<span class="sig-name descname"><span class="pre">get_num_GRN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#Decoder_Var_Selection.get_num_GRN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.Decoder_Var_Selection.get_num_GRN" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_num_GRN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#Decoder_Var_Selection.get_num_GRN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.Decoder_Var_Selection.get_num_GRN" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.Encoder_LSTM">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.embedding_nn.</span></span><span class="sig-name descname"><span class="pre">Encoder_LSTM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_layers_LSTM</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#Encoder_LSTM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.Encoder_LSTM" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.Encoder_RNN">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.embedding_nn.</span></span><span class="sig-name descname"><span class="pre">Encoder_RNN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type_RNN</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layers_RNN</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#Encoder_RNN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.Encoder_RNN" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>LSTM Encoder with GLU, Add and Norm</p>
+<p>RNN Encoder with GLU, Add and Norm
+norm( x + RNN(dropout( LSTM(x) )) )</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>type_RNN</strong> (<em>str</em>) – gru or lstm</p></li>
 <li><p><strong>n_layers_EncLSTM</strong> (<em>int</em>) – number of layers involved by LSTM</p></li>
-<li><p><strong>d_model</strong> (<em>int</em>) – <ul>
-<li></li>
-</ul>
-</p></li>
+<li><p><strong>d_model</strong> (<em>int</em>) – model dimension</p></li>
 <li><p><strong>dropout</strong> (<em>float</em>) – <ul>
 <li></li>
 </ul>
@@ -350,8 +364,8 @@ registered hooks while the latter silently ignores them.</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.Encoder_LSTM.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#Encoder_LSTM.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.Encoder_LSTM.forward" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.Encoder_RNN.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#Encoder_RNN.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.Encoder_RNN.forward" title="Permalink to this definition"></a></dt>
 <dd><p>LSTM Encoder with GLU, Add and Norm</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -370,38 +384,35 @@ registered hooks while the latter silently ignores them.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.Encoder_Var_Selection">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.embedding_nn.</span></span><span class="sig-name descname"><span class="pre">Encoder_Var_Selection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_target_past</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_past_cat_var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_past_tar_var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#Encoder_Var_Selection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.Encoder_Var_Selection" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.embedding_nn.</span></span><span class="sig-name descname"><span class="pre">Encoder_Var_Selection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_target_past</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_past_cat_var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_past_num_var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#Encoder_Var_Selection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.Encoder_Var_Selection" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
 <p>Variable Selection Network in Encoder(past)
-:param use_target_past: True if we want to use the past target variable mixing it to past variables, False to use only past vars
-:type use_target_past: bool
-:param n_past_cat_var: number of categorical variables for past steps
-:type n_past_cat_var: int
-:param n_past_tar_var: number of target variables for past steps. If use_target_past==False it is ignored
-:type n_past_tar_var: int
-:param d_model:</p>
-<blockquote>
-<div><ul class="simple">
-<li></li>
-</ul>
-</div></blockquote>
+Apply GRN to each variable, compute selection weights
+Element-wise multiplication to have a Tensor [bs, seq_len, d_model] encoding the single variable.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>dropout</strong> (<em>float</em>) – <ul class="simple">
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>use_target_past</strong> (<em>bool</em>) – True if we want to use the past target variable mixing it to past variables, False to use only past vars</p></li>
+<li><p><strong>n_past_cat_var</strong> (<em>int</em>) – number of categorical variables for past steps</p></li>
+<li><p><strong>n_past_num_var</strong> (<em>int</em>) – number of target variables for past steps. If use_target_past==False it is ignored</p></li>
+<li><p><strong>d_model</strong> (<em>int</em>) – model dimension</p></li>
+<li><p><strong>dropout</strong> (<em>float</em>) – <ul>
 <li></li>
 </ul>
-</p>
+</p></li>
+</ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.Encoder_Var_Selection.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">categorical</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#Encoder_Var_Selection.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.Encoder_Var_Selection.forward" title="Permalink to this definition"></a></dt>
-<dd><p>NN for Selecting Importance of Past Variables passed to the Model</p>
+<dd><p>Variable Selection Network in Encoder(past)
+If y is not None, we want to apply selection also to numerical(y) variables</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>categorical</strong> (<em>torch.Tensor</em>) – [bs, past_steps, n_cat_var, d_model] past_cat_variables to be selected</p></li>
-<li><p><strong>y</strong> (<em>torch.Tensor</em><em>, </em><em>optional</em>) – [bs, past_steps, d_model]. Defaults to None.</p></li>
+<li><p><strong>y</strong> (<em>torch.Tensor</em><em>, </em><em>optional</em>) – [bs, past_steps, n_num_var, d_model]. Defaults to None. past_num_variables to be selected</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -419,11 +430,6 @@ registered hooks while the latter silently ignores them.</p>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.Encoder_Var_Selection.get_flat_GRN">
-<span class="sig-name descname"><span class="pre">get_flat_GRN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">to_be_flat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#Encoder_Var_Selection.get_flat_GRN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.Encoder_Var_Selection.get_flat_GRN" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.Encoder_Var_Selection.get_num_GRN">
 <span class="sig-name descname"><span class="pre">get_num_GRN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#Encoder_Var_Selection.get_num_GRN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.Encoder_Var_Selection.get_num_GRN" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
@@ -434,28 +440,26 @@ registered hooks while the latter silently ignores them.</p>
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.GLU">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.embedding_nn.</span></span><span class="sig-name descname"><span class="pre">GLU</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#GLU"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.GLU" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Gated Linear Unit, ‘Gate’ block in TFT paper</p>
+<p>Gated Linear Unit, ‘Gate’ block in TFT paper
+Sub net of GRN: linear(x) * sigmoid(linear(x))
+No dimension changes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>d_model</strong> (<em>int</em>) – <ul class="simple">
-<li></li>
-</ul>
-</p>
+<dd class="field-odd"><p><strong>d_model</strong> (<em>int</em>) – model dimension</p>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.GLU.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#GLU.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.GLU.forward" title="Permalink to this definition"></a></dt>
-<dd><p>Gated Linear Unit</p>
+<dd><p>Gated Linear Unit
+Sub net of GRN: linear(x) * sigmoid(linear(x))
+No dimension changes: [bs, seq_len, d_model]</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>) – [bs, seq_len, d_model]</p>
+<dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>) – </p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>[bs, seq_len, d_model]</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>torch.Tensor</p>
+<dd class="field-even"><p>torch.Tensor</p>
 </dd>
 </dl>
 </dd></dl>
@@ -466,34 +470,30 @@ registered hooks while the latter silently ignores them.</p>
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.GRN">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.embedding_nn.</span></span><span class="sig-name descname"><span class="pre">GRN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#GRN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.GRN" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Gated Residual Network</p>
+<p>Gated Residual Network
+Used alone or as subnet of VariableSelection
+Norm(x + GLU(dropout( linear(ELU(linear)) )) )</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>d_model</strong> (<em>int</em>) – <ul>
-<li></li>
-</ul>
-</p></li>
-<li><p><strong>dropout</strong> (<em>float</em>) – <ul>
-<li></li>
-</ul>
-</p></li>
+<li><p><strong>d_model</strong> (<em>int</em>) – model dimension</p></li>
+<li><p><strong>dropout</strong> (<em>float</em>) – </p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.GRN.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#GRN.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.GRN.forward" title="Permalink to this definition"></a></dt>
-<dd><p>Gated Residual Network</p>
+<dd><p>Gated Residual Network
+Used alone or as subnet of VariableSelection
+Norm(x + GLU(dropout( linear(ELU(linear)) )) )
+No dimension changes: [bs, seq_len, d_model]</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>) – [bs, seq_len, d_model]</p>
+<dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>) – </p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>[bs, seq_len, d_model]</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>torch.Tensor</p>
+<dd class="field-even"><p>torch.Tensor</p>
 </dd>
 </dl>
 </dd></dl>
@@ -502,14 +502,14 @@ registered hooks while the latter silently ignores them.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.embedding_cat_variables">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.embedding_nn.</span></span><span class="sig-name descname"><span class="pre">embedding_cat_variables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seq_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emb_dims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_cat_variables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_cat_variables" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.embedding_nn.</span></span><span class="sig-name descname"><span class="pre">embedding_cat_variables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seq_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emb_dims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_cat_variables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_cat_variables" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
 <p>Class for embedding categorical variables, adding 3 positional variables during forward.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>seq_len</strong> (<em>int</em>) – length of the sequence (sum of past and future steps)</p></li>
-<li><p><strong>lag</strong> (<em>int</em>) – number of future step to be predicted</p></li>
+<li><p><strong>future_steps</strong> (<em>int</em>) – number of future step to be predicted</p></li>
 <li><p><strong>d_model</strong> (<em>int</em>) – dimension of all variables after they are embedded</p></li>
 <li><p><strong>emb_dims</strong> (<em>list</em>) – size of the dictionary for embedding. One dimension for each categorical variable</p></li>
 </ul>
@@ -518,17 +518,17 @@ registered hooks while the latter silently ignores them.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.embedding_cat_variables.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_cat_variables.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_cat_variables.forward" title="Permalink to this definition"></a></dt>
-<dd><p>Must be applied to both past and future variables: a concatenation needed!
+<dd><p>Must be applied to both past and future variables: a concatenation is needed!
 To x’s components, 3 new variables are added; in the order:
 - pos_seq: assign at each step its time-position
 - pos_fut: assign at each step its future position. 0 if it is a past step, 1-self.seq_len for future.
-- is_fut: explicit for each step if it is a future(1) or past one(0)</p>
+- is_fut: explicit for each step if it is a future(1) or past(0)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>) – [bs, seq_len, num_vars]</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>[bs, seq_len num_vars+3, num_vars, n_embd]</p>
+<dd class="field-even"><p>[bs, seq_len, num_vars+3, d_model]</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>torch.Tensor</p>
@@ -538,22 +538,22 @@ To x’s components, 3 new variables are added; in the order:
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.embedding_cat_variables.get_cat_n_embd">
-<span class="sig-name descname"><span class="pre">get_cat_n_embd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat_vars</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_cat_variables.get_cat_n_embd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_cat_variables.get_cat_n_embd" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_cat_n_embd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat_vars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_cat_variables.get_cat_n_embd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_cat_variables.get_cat_n_embd" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.embedding_cat_variables.get_is_fut">
-<span class="sig-name descname"><span class="pre">get_is_fut</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_cat_variables.get_is_fut"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_cat_variables.get_is_fut" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_is_fut</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_cat_variables.get_is_fut"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_cat_variables.get_is_fut" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.embedding_cat_variables.get_pos_fut">
-<span class="sig-name descname"><span class="pre">get_pos_fut</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_cat_variables.get_pos_fut"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_cat_variables.get_pos_fut" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_pos_fut</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_cat_variables.get_pos_fut"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_cat_variables.get_pos_fut" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.embedding_cat_variables.get_pos_seq">
-<span class="sig-name descname"><span class="pre">get_pos_seq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_cat_variables.get_pos_seq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_cat_variables.get_pos_seq" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_pos_seq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_cat_variables.get_pos_seq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_cat_variables.get_pos_seq" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -562,13 +562,15 @@ To x’s components, 3 new variables are added; in the order:
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.embedding_num_future_variables">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.embedding_nn.</span></span><span class="sig-name descname"><span class="pre">embedding_num_future_variables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_num_future_variables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_num_future_variables" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Class for embedding target variable (Only one)</p>
+<p>Embedding the target varible. (Only one)
+‘channels’ now not used, but ready to extend the model to predict more variables</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>d_model</strong> (<em>int</em>) – <ul class="simple">
-<li></li>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>max_steps</strong> (<em>int</em>) – total number of future_steps</p></li>
+<li><p><strong>channels</strong> (<em>int</em>) – number of target variables we want to predict</p></li>
+<li><p><strong>d_model</strong> (<em>int</em>) – model dimension</p></li>
 </ul>
-</p>
 </dd>
 </dl>
 <dl class="py method">
@@ -577,10 +579,10 @@ To x’s components, 3 new variables are added; in the order:
 <dd><p>Embedding the target varible. (Only one)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>y</strong> (<em>torch.Tensor</em>) – [bs, seq_len, 1] past and future steps of scaled target variable</p>
+<dd class="field-odd"><p><strong>num_fut_tensor</strong> (<em>torch.Tensor</em>) – future steps of scaled target variable</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>[bs, seq_len, d_model]</p>
+<dd class="field-even"><p>embedded numerical future variables</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>torch.Tensor</p>
@@ -590,66 +592,63 @@ To x’s components, 3 new variables are added; in the order:
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.embedding_num_future_variables.get_num_fut_embedded">
-<span class="sig-name descname"><span class="pre">get_num_fut_embedded</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vars</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_num_future_variables.get_num_fut_embedded"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_num_future_variables.get_num_fut_embedded" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_num_fut_embedded</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_fut_vars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_num_future_variables.get_num_fut_embedded"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_num_future_variables.get_num_fut_embedded" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.embedding_num_future_variables.get_pos_seq">
-<span class="sig-name descname"><span class="pre">get_pos_seq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_num_future_variables.get_pos_seq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_num_future_variables.get_pos_seq" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_pos_seq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_num_future_variables.get_pos_seq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_num_future_variables.get_pos_seq" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.embedding_num_past_variables">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.embedding_nn.</span></span><span class="sig-name descname"><span class="pre">embedding_num_past_variables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_num_past_variables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_num_past_variables" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.embedding_nn.</span></span><span class="sig-name descname"><span class="pre">embedding_num_past_variables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_num_past_variables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_num_past_variables" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>NN to embed past numerical variables.
+<p>Class to embed past numerical variables.
 Only past, do not concat with future</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>steps</strong> (<em>int</em>) – number of time steps of the</p></li>
-<li><p><strong>channels</strong> (<em>int</em>) – _description_</p></li>
-<li><p><strong>d_model</strong> (<em>int</em>) – _description_</p></li>
+<li><p><strong>channels</strong> (<em>int</em>) – number of numerical past variables to take in consideration</p></li>
+<li><p><strong>d_model</strong> (<em>int</em>) – model dimension</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.embedding_num_past_variables.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_past_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_num_past_variables.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_num_past_variables.forward" title="Permalink to this definition"></a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_past_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_num_past_variables.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_num_past_variables.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Class to embed past numerical variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>num_past_tensor</strong> (<em>torch.Tensor</em>) – numerical past variables just fetchd from batch</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>embedded numerical past variables</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
 </dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.embedding_num_past_variables.get_num_past_embedded">
-<span class="sig-name descname"><span class="pre">get_num_past_embedded</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vars</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_num_past_variables.get_num_past_embedded"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_num_past_variables.get_num_past_embedded" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.embedding_num_past_variables.get_pos_seq">
-<span class="sig-name descname"><span class="pre">get_pos_seq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#embedding_num_past_variables.get_pos_seq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.embedding_num_past_variables.get_pos_seq" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.flatten_GRN">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.embedding_nn.</span></span><span class="sig-name descname"><span class="pre">flatten_GRN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">emb_dims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#flatten_GRN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.flatten_GRN" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.embedding_nn.</span></span><span class="sig-name descname"><span class="pre">flatten_GRN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#flatten_GRN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.flatten_GRN" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Modified GRN for flattened variables</p>
+<p>Modified GRN for flattened variables
+We start from the starting dimension (emb_dims[0]) and gradually switch to mid dimension (emb_dims[1]).
+Ending with end dimension (emb_dims[2]), which will be the total number of variables to be selected.
+The aim of those different dimensions is to avoid a bottleneck effect passing from ‘d_model’ to ‘tot_num_var’.
+The first one can be also 100 times larger than the latter one, so we introduce an intermidiate dimension (usually mean of the two).
+Norm(x + GLU(dropout( linear(ELU(linear)) )) )</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>emb_dims</strong> (<em>list</em>) – [start_emb: int, mid_emb: int, end_emb: int] list of int for dimensions</p></li>
+<li><p><strong>d_model</strong> (<em>int</em>) – model dimension</p></li>
 <li><p><strong>dropout</strong> (<em>float</em>) – <ul>
 <li></li>
 </ul>
@@ -660,7 +659,8 @@ registered hooks while the latter silently ignores them.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.flatten_GRN.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#flatten_GRN.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.flatten_GRN.forward" title="Permalink to this definition"></a></dt>
-<dd><p>Modified GRN for flattened variables</p>
+<dd><p>Modified GRN for flattened variables to get Variable Selection Weights
+Norm(x + GLU(dropout( linear(ELU(linear)) )) )</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>) – [bs, seq_len, emb_dims[0]]</p>
@@ -680,14 +680,12 @@ registered hooks while the latter silently ignores them.</p>
 <dt class="sig sig-object py" id="dsipts.models.tft.embedding_nn.postTransformer">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.embedding_nn.</span></span><span class="sig-name descname"><span class="pre">postTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/embedding_nn.html#postTransformer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.embedding_nn.postTransformer" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Last part of TFT after decoder and before last linear</p>
+<p>Last part of TFT after decoder and before last linear
+norm( res_conn_postLSTM + ( GLU(GRN( norm(res_conn_postGRN + GLU(dropout(x))) )) ) )</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>d_model</strong> (<em>int</em>) – <ul>
-<li></li>
-</ul>
-</p></li>
+<li><p><strong>d_model</strong> (<em>int</em>) – model dimension</p></li>
 <li><p><strong>dropout</strong> (<em>float</em>) – <ul>
 <li></li>
 </ul>
@@ -723,21 +721,41 @@ registered hooks while the latter silently ignores them.</p>
 <span id="dsipts-models-tft-encoder-module"></span><h2>dsipts.models.tft.encoder module<a class="headerlink" href="#module-dsipts.models.tft.encoder" title="Permalink to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="dsipts.models.tft.encoder.Encoder">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.encoder.</span></span><span class="sig-name descname"><span class="pre">Encoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_enc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_embd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_heads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fw_exp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/encoder.html#Encoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.encoder.Encoder" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.tft.encoder.</span></span><span class="sig-name descname"><span class="pre">Encoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_enc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_embd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_heads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fw_exp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/encoder.html#Encoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.encoder.Encoder" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_enc</strong> (<em>int</em>) – number of encoder layers</p></li>
+<li><p><strong>n_embd</strong> (<em>int</em>) – model dimension</p></li>
+<li><p><strong>num_heads</strong> (<em>int</em>) – number of heads for each layer</p></li>
+<li><p><strong>head_size</strong> (<em>int</em>) – size of layers heads</p></li>
+<li><p><strong>fw_exp</strong> (<em>int</em>) – multiplicative factor for expansion in FFN</p></li>
+<li><p><strong>dropout</strong> (<em>float</em>) – </p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.encoder.Encoder.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/encoder.html#Encoder.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.encoder.Encoder.forward" title="Permalink to this definition"></a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/tft/encoder.html#Encoder.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.encoder.Encoder.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Encoder:
+- Multi Head SelfAttention on Encoder
+- Feed Forward Network</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>torch.Tensor</em>) – queries</p></li>
+<li><p><strong>k</strong> (<em>torch.Tensor</em>) – keys</p></li>
+<li><p><strong>v</strong> (<em>torch.Tensor</em>) – values</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>encoded tensor</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -749,7 +767,7 @@ registered hooks while the latter silently ignores them.</p>
 <p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.tft.encoder.EncoderLayer.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/encoder.html#EncoderLayer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.encoder.EncoderLayer.forward" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/tft/encoder.html#EncoderLayer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.tft.encoder.EncoderLayer.forward" title="Permalink to this definition"></a></dt>
 <dd><p>Defines the computation performed at every call.</p>
 <p>Should be overridden by all subclasses.</p>
 <div class="admonition note">

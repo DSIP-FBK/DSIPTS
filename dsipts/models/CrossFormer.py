@@ -38,6 +38,7 @@ class CrossFormer(Base):
                  win_size:int,
                  out_channels:int,
                  factor:int=5,
+                 remove_last = False,
                  persistence_weight:float=0.0,
                  loss_type: str='l1',
                  quantiles:List[int]=[],
@@ -45,6 +46,32 @@ class CrossFormer(Base):
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
+        """CroosFormer (https://openreview.net/forum?id=vSVLM2j9eie)
+
+        Args:
+            past_steps (int): number of past datapoints used , not used here
+            future_steps (int): number of future lag to predict
+            past_channels (int): number of numeric past variables, must be >0
+            future_channels (int): number of future numeric variables 
+            d_model (int):  dimension of the attention model
+            embs (List): list of the initial dimension of the categorical variables
+            hidden_size (int): hidden size of the linear block
+            n_head (int): number of heads
+            seg_len (int): segment length (L_seg) see the paper for more details
+            n_layer_encoder (int):  layers to use in the encoder
+            win_size (int): window size for segment merg
+            factor (int): num of routers in Cross-Dimension Stage of TSA (c) see the paper
+            remove_last (boolean,optional): if true the model try to predic the difference respect the last observation.
+            out_channels (int):  number of output channels
+            persistence_weight (float):  weight controlling the divergence from persistence model. Default 0
+            loss_type (str, optional): this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,
+            loss_type (str, optional): this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,
+            quantiles (List[int], optional): NOT USED YET
+            dropout_rate (float, optional):  dropout rate in Dropout layers. Defaults to 0.1.
+            optim (str, optional): if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
+            optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
+            scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
+        """
       
    
         super(CrossFormer, self).__init__()
@@ -55,6 +82,8 @@ class CrossFormer(Base):
         self.scheduler_config = scheduler_config
         self.loss_type = loss_type
         self.persistence_weight = persistence_weight 
+        self.remove_last = remove_last
+
         if self.loss_type == 'mse':
             self.loss = nn.MSELoss()
         else:
@@ -86,7 +115,9 @@ class CrossFormer(Base):
         idx_target = batch['idx_target'][0]
         x_seq = batch['x_num_past']#[:,:,idx_target]
         
-      
+        if self.remove_last:
+            x_start = x_seq[:,-1,:].unsqueeze(1)
+            x_seq[:,:,:]-=x_start   
  
         batch_size = x_seq.shape[0]
         if (self.past_steps_add != 0):
@@ -100,6 +131,8 @@ class CrossFormer(Base):
 
         dec_in = repeat(self.dec_pos_embedding, 'b ts_d l d -> (repeat b) ts_d l d', repeat = batch_size)
         predict_y = self.decoder(dec_in, enc_out)
+        res = predict_y[:, :self.future_steps,:].unsqueeze(3)
+        if self.remove_last:
+            res+=x_start.unsqueeze(1)
 
-
-        return predict_y[:, :self.future_steps,idx_target].unsqueeze(3)
+        return res[:, :,idx_target,:]

@@ -35,7 +35,7 @@ class Informer(Base):
                  output_attention:bool=False,
                  distil:bool=True,
                  factor:int=5,
-                 num_heads:int=1,
+                 n_head:int=1,
                  persistence_weight:float=0.0,
                  loss_type: str='l1',
                  quantiles:List[int]=[],
@@ -48,7 +48,6 @@ class Informer(Base):
         Args:
             past_steps (int): number of past datapoints used , not used here
             future_steps (int): number of future lag to predict
-            d_model (int): _description_
             past_channels (int): number of numeric past variables, must be >0
             future_channels (int): number of future numeric variables 
             d_model (int):  dimension of the attention model
@@ -59,13 +58,12 @@ class Informer(Base):
             out_channels (int):  number of output channels
             mix (bool, optional): se mix attention in generative decoder. Defaults to True.
             activation (str, optional): relu or gelu. Defaults to 'relu'.
-            persistence_weight (float):  weight controlling the divergence from persistence model. Default 0
-            loss_type (str, optional): this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,
+            remove_last (boolean,optional): if true the model try to predic the difference respect the last observation.
             attn (str, optional): attention used in encoder, options:[prob, full]. Defaults to 'prob'.
             output_attention (bool, optional): visualize attention, keep it False please . Defaults to False. TODO: FIX THIS
             distil (bool, optional): whether to use distilling in encoder, using this argument means not using distilling. Defaults to True.
             factor (int, optional): probsparse attn factor. Defaults to 5.
-            num_heads (int, optional):  heads equal in the encoder and encoder. Defaults to 1.
+            n_head (int, optional):  heads equal in the encoder and encoder. Defaults to 1.
             persistence_weight (float):  weight controlling the divergence from persistence model. Default 0
             loss_type (str, optional): this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,
             quantiles (List[int], optional): NOT USED YET
@@ -102,7 +100,7 @@ class Informer(Base):
             [
                 EncoderLayer(
                     AttentionLayer(Attn(False, factor, attention_dropout=dropout_rate, output_attention=output_attention), 
-                                d_model, num_heads, mix=False),
+                                d_model, n_head, mix=False),
                     d_model,
                     hidden_size,
                     dropout=dropout_rate,
@@ -121,9 +119,9 @@ class Informer(Base):
             [
                 DecoderLayer(
                     AttentionLayer(Attn(True, factor, attention_dropout=dropout_rate, output_attention=False), 
-                                d_model, num_heads, mix=mix),
+                                d_model, n_head, mix=mix),
                     AttentionLayer(FullAttention(False, factor, attention_dropout=dropout_rate, output_attention=False), 
-                                d_model, num_heads, mix=False),
+                                d_model, n_head, mix=False),
                     d_model,
                     hidden_size,
                     dropout=dropout_rate,
