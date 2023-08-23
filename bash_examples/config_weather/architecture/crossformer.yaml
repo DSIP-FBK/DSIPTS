@@ -25,5 +25,5 @@ model_configs:
 
 train_config:
   batch_size: 128
-  max_epochs: 3
+  max_epochs: 1000
             
