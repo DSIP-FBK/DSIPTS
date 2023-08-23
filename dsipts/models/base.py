@@ -175,10 +175,9 @@ class Base(pl.LightningModule):
                 x = y_hat[:,:,:,0]
             else:
                 x = y_hat[:,:,:,1]
-            import pdb
-            pdb.set_trace()
-            std_real = torch.sqrt(torch.var(batch['y'], dim=2)+ 1e-8)
-            std_predict = torch.sqrt(torch.var(x, dim=2)+ 1e-8)
+
+            std_real = torch.sqrt(torch.var(batch['y'], dim=(0,1))+ 1e-8)
+            std_predict = torch.sqrt(torch.var(x, dim=(0,1))+ 1e-8)
             loss = initial_loss +  self.persistence_weight*torch.mean(std_real-std_predict)
         #elif self.loss_type=='triplet':
 
