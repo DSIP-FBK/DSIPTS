@@ -12,7 +12,7 @@ ts:
 
 model_configs:
   cat_emb_dim: 128
-  hidden_RNN: 128
+  hidden_RNN: 64
   num_layers_RNN: 2
   kernel_size: 3
   kind: 'gru'

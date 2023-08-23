@@ -21,7 +21,7 @@ model_configs:
   hidden_channels: 8
   commitment_cost: 0.5
   decay: 0.9
-  d_model: 32
+  d_model: 64
   max_voc_size: 128  
   num_layers: 6
   dropout_rate: 0.1
