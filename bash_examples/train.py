@@ -1,7 +1,7 @@
 
 
 import pandas as pd
-from dsipts import TimeSeries, RNN, Attention,read_public_dataset, LinearTS, Persistent, D3VAE, MyModel, TFT,TFT2, Informer,VVA,VQVAEA
+from dsipts import TimeSeries, RNN, Attention,read_public_dataset, LinearTS, Persistent, D3VAE, MyModel, TFT,TFT2, Informer,VVA,VQVAEA,CrossFormer
 from omegaconf import DictConfig, OmegaConf
 from hydra.core.hydra_config import HydraConfig
 import hydra
@@ -129,7 +129,9 @@ def train(conf: DictConfig) -> None:
     elif conf.model.type == 'vqvae':
         model =  VQVAEA(**model_conf,   optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )  
-        
+    elif conf.model.type == 'crossformer':
+        model =  CrossFormer(**model_conf,   optim_config = conf.optim_config,
+                          scheduler_config =conf.scheduler_config )   
     elif conf.model.type == 'informer':
         ##gli servono, poi mette a 0 quelle che serve
         ts.future_variables +=ts.target_variables

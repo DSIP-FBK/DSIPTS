@@ -13,6 +13,4 @@ from .models.Informer import Informer
 from .models.TFT2 import TFT2
 from .models.VVA import VVA
 from .models.VQVAEA import VQVAEA
-
-
-
+from .models.CrossFormer import CrossFormer

@@ -1,0 +1,29 @@
+# @package _global_
+
+model:
+  type: 'crossformer'
+  retrain: true
+ts:
+  name: 'test'
+  version: 1
+  enrich: []
+  use_covariates: true
+
+
+model_configs:
+  d_model: 128
+  hidden_size: 512
+  n_layer_encoder: 4
+  n_head: 4
+  dropout_rate: 0.5
+  win_size: 2
+  seg_len: 6
+  factor: 1
+  optim: torch.optim.Adam
+  persistence_weight: 0.010
+  loss_type: 'l1'
+
+train_config:
+  batch_size: 128
+  max_epochs: 3
+            
