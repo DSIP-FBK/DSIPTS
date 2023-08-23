@@ -18,7 +18,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="bash_examples package" href="bash_examples.html" />
+    <link rel="next" title="dsipts.models.crossformer package" href="dsipts.models.crossformer.html" />
     <link rel="prev" title="dsipts.data_structure package" href="dsipts.data_structure.html" /> 
 </head>
 
@@ -87,6 +87,564 @@
              
   <section id="dsipts-models-package">
 <h1>dsipts.models package<a class="headerlink" href="#dsipts-models-package" title="Permalink to this heading"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dsipts.models.crossformer.html">dsipts.models.crossformer package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.crossformer.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.crossformer.html#module-dsipts.models.crossformer.attn">dsipts.models.crossformer.attn module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.crossformer.html#dsipts.models.crossformer.attn.AttentionLayer"><code class="docutils literal notranslate"><span class="pre">AttentionLayer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.crossformer.html#dsipts.models.crossformer.attn.AttentionLayer.forward"><code class="docutils literal notranslate"><span class="pre">AttentionLayer.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.crossformer.html#dsipts.models.crossformer.attn.FullAttention"><code class="docutils literal notranslate"><span class="pre">FullAttention</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.crossformer.html#dsipts.models.crossformer.attn.FullAttention.forward"><code class="docutils literal notranslate"><span class="pre">FullAttention.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.crossformer.html#dsipts.models.crossformer.attn.TwoStageAttentionLayer"><code class="docutils literal notranslate"><span class="pre">TwoStageAttentionLayer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.crossformer.html#dsipts.models.crossformer.attn.TwoStageAttentionLayer.forward"><code class="docutils literal notranslate"><span class="pre">TwoStageAttentionLayer.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.crossformer.html#module-dsipts.models.crossformer.cross_decoder">dsipts.models.crossformer.cross_decoder module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.crossformer.html#dsipts.models.crossformer.cross_decoder.Decoder"><code class="docutils literal notranslate"><span class="pre">Decoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.crossformer.html#dsipts.models.crossformer.cross_decoder.Decoder.forward"><code class="docutils literal notranslate"><span class="pre">Decoder.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.crossformer.html#dsipts.models.crossformer.cross_decoder.DecoderLayer"><code class="docutils literal notranslate"><span class="pre">DecoderLayer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.crossformer.html#dsipts.models.crossformer.cross_decoder.DecoderLayer.forward"><code class="docutils literal notranslate"><span class="pre">DecoderLayer.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.crossformer.html#module-dsipts.models.crossformer.cross_embed">dsipts.models.crossformer.cross_embed module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.crossformer.html#dsipts.models.crossformer.cross_embed.DSW_embedding"><code class="docutils literal notranslate"><span class="pre">DSW_embedding</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.crossformer.html#dsipts.models.crossformer.cross_embed.DSW_embedding.forward"><code class="docutils literal notranslate"><span class="pre">DSW_embedding.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.crossformer.html#module-dsipts.models.crossformer.cross_encoder">dsipts.models.crossformer.cross_encoder module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.crossformer.html#dsipts.models.crossformer.cross_encoder.Encoder"><code class="docutils literal notranslate"><span class="pre">Encoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.crossformer.html#dsipts.models.crossformer.cross_encoder.Encoder.forward"><code class="docutils literal notranslate"><span class="pre">Encoder.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.crossformer.html#dsipts.models.crossformer.cross_encoder.SegMerging"><code class="docutils literal notranslate"><span class="pre">SegMerging</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.crossformer.html#dsipts.models.crossformer.cross_encoder.SegMerging.forward"><code class="docutils literal notranslate"><span class="pre">SegMerging.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.crossformer.html#dsipts.models.crossformer.cross_encoder.scale_block"><code class="docutils literal notranslate"><span class="pre">scale_block</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.crossformer.html#dsipts.models.crossformer.cross_encoder.scale_block.forward"><code class="docutils literal notranslate"><span class="pre">scale_block.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.crossformer.html#module-dsipts.models.crossformer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dsipts.models.d3vae.html">dsipts.models.d3vae package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.d3vae.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.d3vae.html#module-dsipts.models.d3vae.diffusion_process">dsipts.models.d3vae.diffusion_process module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.diffusion_process.GaussianDiffusion"><code class="docutils literal notranslate"><span class="pre">GaussianDiffusion</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.diffusion_process.GaussianDiffusion.log_prob"><code class="docutils literal notranslate"><span class="pre">GaussianDiffusion.log_prob()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.diffusion_process.GaussianDiffusion.p_losses"><code class="docutils literal notranslate"><span class="pre">GaussianDiffusion.p_losses()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.diffusion_process.GaussianDiffusion.q_sample"><code class="docutils literal notranslate"><span class="pre">GaussianDiffusion.q_sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.diffusion_process.GaussianDiffusion.q_sample_target"><code class="docutils literal notranslate"><span class="pre">GaussianDiffusion.q_sample_target()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.diffusion_process.default"><code class="docutils literal notranslate"><span class="pre">default()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.diffusion_process.extract"><code class="docutils literal notranslate"><span class="pre">extract()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.diffusion_process.get_beta_schedule"><code class="docutils literal notranslate"><span class="pre">get_beta_schedule()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.diffusion_process.noise_like"><code class="docutils literal notranslate"><span class="pre">noise_like()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.d3vae.html#module-dsipts.models.d3vae.embedding">dsipts.models.d3vae.embedding module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.embedding.DataEmbedding"><code class="docutils literal notranslate"><span class="pre">DataEmbedding</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.embedding.DataEmbedding.forward"><code class="docutils literal notranslate"><span class="pre">DataEmbedding.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.embedding.PositionalEmbedding"><code class="docutils literal notranslate"><span class="pre">PositionalEmbedding</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.embedding.PositionalEmbedding.forward"><code class="docutils literal notranslate"><span class="pre">PositionalEmbedding.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.embedding.TemporalEmbedding"><code class="docutils literal notranslate"><span class="pre">TemporalEmbedding</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.embedding.TemporalEmbedding.forward"><code class="docutils literal notranslate"><span class="pre">TemporalEmbedding.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.embedding.TokenEmbedding"><code class="docutils literal notranslate"><span class="pre">TokenEmbedding</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.embedding.TokenEmbedding.forward"><code class="docutils literal notranslate"><span class="pre">TokenEmbedding.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.d3vae.html#module-dsipts.models.d3vae.encoder">dsipts.models.d3vae.encoder module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Cell"><code class="docutils literal notranslate"><span class="pre">Cell</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Cell.forward"><code class="docutils literal notranslate"><span class="pre">Cell.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Encoder"><code class="docutils literal notranslate"><span class="pre">Encoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Encoder.decoder_output"><code class="docutils literal notranslate"><span class="pre">Encoder.decoder_output()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Encoder.forward"><code class="docutils literal notranslate"><span class="pre">Encoder.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Encoder.init_decoder_tower"><code class="docutils literal notranslate"><span class="pre">Encoder.init_decoder_tower()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Encoder.init_encoder_tower"><code class="docutils literal notranslate"><span class="pre">Encoder.init_encoder_tower()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Encoder.init_post_process"><code class="docutils literal notranslate"><span class="pre">Encoder.init_post_process()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Encoder.init_pre_process"><code class="docutils literal notranslate"><span class="pre">Encoder.init_pre_process()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Encoder.init_sampler"><code class="docutils literal notranslate"><span class="pre">Encoder.init_sampler()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Normal"><code class="docutils literal notranslate"><span class="pre">Normal</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Normal.kl"><code class="docutils literal notranslate"><span class="pre">Normal.kl()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Normal.log_p"><code class="docutils literal notranslate"><span class="pre">Normal.log_p()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Normal.sample"><code class="docutils literal notranslate"><span class="pre">Normal.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Normal.sample_given_eps"><code class="docutils literal notranslate"><span class="pre">Normal.sample_given_eps()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.NormalDecoder"><code class="docutils literal notranslate"><span class="pre">NormalDecoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.NormalDecoder.log_prob"><code class="docutils literal notranslate"><span class="pre">NormalDecoder.log_prob()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.NormalDecoder.sample"><code class="docutils literal notranslate"><span class="pre">NormalDecoder.sample()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.log_density_gaussian"><code class="docutils literal notranslate"><span class="pre">log_density_gaussian()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.sample_normal_jit"><code class="docutils literal notranslate"><span class="pre">sample_normal_jit()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.soft_clamp5"><code class="docutils literal notranslate"><span class="pre">soft_clamp5()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.d3vae.html#module-dsipts.models.d3vae.model">dsipts.models.d3vae.model module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.model.Discriminator"><code class="docutils literal notranslate"><span class="pre">Discriminator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.model.Discriminator.forward"><code class="docutils literal notranslate"><span class="pre">Discriminator.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.model.denoise_net"><code class="docutils literal notranslate"><span class="pre">denoise_net</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.model.denoise_net.extract"><code class="docutils literal notranslate"><span class="pre">denoise_net.extract()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.model.denoise_net.forward"><code class="docutils literal notranslate"><span class="pre">denoise_net.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.model.diffusion_generate"><code class="docutils literal notranslate"><span class="pre">diffusion_generate</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.model.diffusion_generate.forward"><code class="docutils literal notranslate"><span class="pre">diffusion_generate.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.model.pred_net"><code class="docutils literal notranslate"><span class="pre">pred_net</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.model.pred_net.forward"><code class="docutils literal notranslate"><span class="pre">pred_net.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.d3vae.html#module-dsipts.models.d3vae.neural_operations">dsipts.models.d3vae.neural_operations module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.BNELUConv"><code class="docutils literal notranslate"><span class="pre">BNELUConv</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.BNELUConv.forward"><code class="docutils literal notranslate"><span class="pre">BNELUConv.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.BNSwishConv"><code class="docutils literal notranslate"><span class="pre">BNSwishConv</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.BNSwishConv.forward"><code class="docutils literal notranslate"><span class="pre">BNSwishConv.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.Conv2D"><code class="docutils literal notranslate"><span class="pre">Conv2D</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.Conv2D.forward"><code class="docutils literal notranslate"><span class="pre">Conv2D.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.Conv2D.normalize_weight"><code class="docutils literal notranslate"><span class="pre">Conv2D.normalize_weight()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.ConvBNSwish"><code class="docutils literal notranslate"><span class="pre">ConvBNSwish</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.ConvBNSwish.forward"><code class="docutils literal notranslate"><span class="pre">ConvBNSwish.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.DecCombinerCell"><code class="docutils literal notranslate"><span class="pre">DecCombinerCell</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.DecCombinerCell.forward"><code class="docutils literal notranslate"><span class="pre">DecCombinerCell.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.ELUConv"><code class="docutils literal notranslate"><span class="pre">ELUConv</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.ELUConv.forward"><code class="docutils literal notranslate"><span class="pre">ELUConv.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.EncCombinerCell"><code class="docutils literal notranslate"><span class="pre">EncCombinerCell</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.EncCombinerCell.forward"><code class="docutils literal notranslate"><span class="pre">EncCombinerCell.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.FactorizedReduce"><code class="docutils literal notranslate"><span class="pre">FactorizedReduce</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.FactorizedReduce.forward"><code class="docutils literal notranslate"><span class="pre">FactorizedReduce.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.Identity"><code class="docutils literal notranslate"><span class="pre">Identity</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.Identity.forward"><code class="docutils literal notranslate"><span class="pre">Identity.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.InvertedResidual"><code class="docutils literal notranslate"><span class="pre">InvertedResidual</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.InvertedResidual.forward"><code class="docutils literal notranslate"><span class="pre">InvertedResidual.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.SE"><code class="docutils literal notranslate"><span class="pre">SE</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.SE.forward"><code class="docutils literal notranslate"><span class="pre">SE.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.Swish"><code class="docutils literal notranslate"><span class="pre">Swish</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.Swish.forward"><code class="docutils literal notranslate"><span class="pre">Swish.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.SwishFN"><code class="docutils literal notranslate"><span class="pre">SwishFN</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.SwishFN.backward"><code class="docutils literal notranslate"><span class="pre">SwishFN.backward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.SwishFN.forward"><code class="docutils literal notranslate"><span class="pre">SwishFN.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.SyncBatchNorm"><code class="docutils literal notranslate"><span class="pre">SyncBatchNorm</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.SyncBatchNorm.forward"><code class="docutils literal notranslate"><span class="pre">SyncBatchNorm.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.SyncBatchNormSwish"><code class="docutils literal notranslate"><span class="pre">SyncBatchNormSwish</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.SyncBatchNormSwish.forward"><code class="docutils literal notranslate"><span class="pre">SyncBatchNormSwish.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.UpSample"><code class="docutils literal notranslate"><span class="pre">UpSample</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.UpSample.forward"><code class="docutils literal notranslate"><span class="pre">UpSample.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.act"><code class="docutils literal notranslate"><span class="pre">act()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.get_batchnorm"><code class="docutils literal notranslate"><span class="pre">get_batchnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.get_skip_connection"><code class="docutils literal notranslate"><span class="pre">get_skip_connection()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.logit"><code class="docutils literal notranslate"><span class="pre">logit()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.norm"><code class="docutils literal notranslate"><span class="pre">norm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.normalize_weight_jit"><code class="docutils literal notranslate"><span class="pre">normalize_weight_jit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.d3vae.html#module-dsipts.models.d3vae.resnet">dsipts.models.d3vae.resnet module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.ConvMeanPool"><code class="docutils literal notranslate"><span class="pre">ConvMeanPool</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.ConvMeanPool.forward"><code class="docutils literal notranslate"><span class="pre">ConvMeanPool.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.MeanPoolConv"><code class="docutils literal notranslate"><span class="pre">MeanPoolConv</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.MeanPoolConv.forward"><code class="docutils literal notranslate"><span class="pre">MeanPoolConv.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.MyConvo2d"><code class="docutils literal notranslate"><span class="pre">MyConvo2d</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.MyConvo2d.forward"><code class="docutils literal notranslate"><span class="pre">MyConvo2d.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.Res12_Quadratic"><code class="docutils literal notranslate"><span class="pre">Res12_Quadratic</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.Res12_Quadratic.forward"><code class="docutils literal notranslate"><span class="pre">Res12_Quadratic.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.ResidualBlock"><code class="docutils literal notranslate"><span class="pre">ResidualBlock</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.ResidualBlock.forward"><code class="docutils literal notranslate"><span class="pre">ResidualBlock.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.Square"><code class="docutils literal notranslate"><span class="pre">Square</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.Square.forward"><code class="docutils literal notranslate"><span class="pre">Square.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.Swish"><code class="docutils literal notranslate"><span class="pre">Swish</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.Swish.forward"><code class="docutils literal notranslate"><span class="pre">Swish.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.weights_init"><code class="docutils literal notranslate"><span class="pre">weights_init()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.d3vae.html#module-dsipts.models.d3vae.utils">dsipts.models.d3vae.utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.utils.average_tensor"><code class="docutils literal notranslate"><span class="pre">average_tensor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.utils.get_arch_cells"><code class="docutils literal notranslate"><span class="pre">get_arch_cells()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.utils.get_input_size"><code class="docutils literal notranslate"><span class="pre">get_input_size()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.utils.get_stride_for_cell_type"><code class="docutils literal notranslate"><span class="pre">get_stride_for_cell_type()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.d3vae.html#dsipts.models.d3vae.utils.groups_per_scale"><code class="docutils literal notranslate"><span class="pre">groups_per_scale()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.d3vae.html#module-dsipts.models.d3vae">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dsipts.models.informer.html">dsipts.models.informer package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.informer.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.informer.html#module-dsipts.models.informer.attn">dsipts.models.informer.attn module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.attn.AttentionLayer"><code class="docutils literal notranslate"><span class="pre">AttentionLayer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.attn.AttentionLayer.forward"><code class="docutils literal notranslate"><span class="pre">AttentionLayer.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.attn.FullAttention"><code class="docutils literal notranslate"><span class="pre">FullAttention</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.attn.FullAttention.forward"><code class="docutils literal notranslate"><span class="pre">FullAttention.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.attn.ProbAttention"><code class="docutils literal notranslate"><span class="pre">ProbAttention</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.attn.ProbAttention.forward"><code class="docutils literal notranslate"><span class="pre">ProbAttention.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.attn.ProbMask"><code class="docutils literal notranslate"><span class="pre">ProbMask</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.attn.ProbMask.mask"><code class="docutils literal notranslate"><span class="pre">ProbMask.mask</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.attn.TriangularCausalMask"><code class="docutils literal notranslate"><span class="pre">TriangularCausalMask</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.attn.TriangularCausalMask.mask"><code class="docutils literal notranslate"><span class="pre">TriangularCausalMask.mask</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.informer.html#module-dsipts.models.informer.decoder">dsipts.models.informer.decoder module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.decoder.Decoder"><code class="docutils literal notranslate"><span class="pre">Decoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.decoder.Decoder.forward"><code class="docutils literal notranslate"><span class="pre">Decoder.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.decoder.DecoderLayer"><code class="docutils literal notranslate"><span class="pre">DecoderLayer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.decoder.DecoderLayer.forward"><code class="docutils literal notranslate"><span class="pre">DecoderLayer.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.informer.html#module-dsipts.models.informer.embed">dsipts.models.informer.embed module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.embed.DataEmbedding"><code class="docutils literal notranslate"><span class="pre">DataEmbedding</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.embed.DataEmbedding.forward"><code class="docutils literal notranslate"><span class="pre">DataEmbedding.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.embed.FixedEmbedding"><code class="docutils literal notranslate"><span class="pre">FixedEmbedding</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.embed.FixedEmbedding.forward"><code class="docutils literal notranslate"><span class="pre">FixedEmbedding.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.embed.PositionalEmbedding"><code class="docutils literal notranslate"><span class="pre">PositionalEmbedding</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.embed.PositionalEmbedding.forward"><code class="docutils literal notranslate"><span class="pre">PositionalEmbedding.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.embed.TemporalEmbedding"><code class="docutils literal notranslate"><span class="pre">TemporalEmbedding</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.embed.TemporalEmbedding.forward"><code class="docutils literal notranslate"><span class="pre">TemporalEmbedding.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.embed.TimeFeatureEmbedding"><code class="docutils literal notranslate"><span class="pre">TimeFeatureEmbedding</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.embed.TimeFeatureEmbedding.forward"><code class="docutils literal notranslate"><span class="pre">TimeFeatureEmbedding.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.embed.TokenEmbedding"><code class="docutils literal notranslate"><span class="pre">TokenEmbedding</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.embed.TokenEmbedding.forward"><code class="docutils literal notranslate"><span class="pre">TokenEmbedding.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.informer.html#module-dsipts.models.informer.encoder">dsipts.models.informer.encoder module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.encoder.ConvLayer"><code class="docutils literal notranslate"><span class="pre">ConvLayer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.encoder.ConvLayer.forward"><code class="docutils literal notranslate"><span class="pre">ConvLayer.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.encoder.Encoder"><code class="docutils literal notranslate"><span class="pre">Encoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.encoder.Encoder.forward"><code class="docutils literal notranslate"><span class="pre">Encoder.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.encoder.EncoderLayer"><code class="docutils literal notranslate"><span class="pre">EncoderLayer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.encoder.EncoderLayer.forward"><code class="docutils literal notranslate"><span class="pre">EncoderLayer.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.encoder.EncoderStack"><code class="docutils literal notranslate"><span class="pre">EncoderStack</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.informer.html#dsipts.models.informer.encoder.EncoderStack.forward"><code class="docutils literal notranslate"><span class="pre">EncoderStack.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.informer.html#module-dsipts.models.informer">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dsipts.models.tft.html">dsipts.models.tft package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.tft.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.tft.html#module-dsipts.models.tft.decoder">dsipts.models.tft.decoder module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.decoder.Decoder"><code class="docutils literal notranslate"><span class="pre">Decoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.decoder.Decoder.forward"><code class="docutils literal notranslate"><span class="pre">Decoder.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.decoder.DecoderLayer"><code class="docutils literal notranslate"><span class="pre">DecoderLayer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.decoder.DecoderLayer.forward"><code class="docutils literal notranslate"><span class="pre">DecoderLayer.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.decoder.FFN"><code class="docutils literal notranslate"><span class="pre">FFN</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.decoder.FFN.forward"><code class="docutils literal notranslate"><span class="pre">FFN.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.decoder.Head_crossDec"><code class="docutils literal notranslate"><span class="pre">Head_crossDec</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.decoder.Head_crossDec.forward"><code class="docutils literal notranslate"><span class="pre">Head_crossDec.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.decoder.Head_selfDec"><code class="docutils literal notranslate"><span class="pre">Head_selfDec</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.decoder.Head_selfDec.forward"><code class="docutils literal notranslate"><span class="pre">Head_selfDec.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.decoder.MultiHead_crossDec"><code class="docutils literal notranslate"><span class="pre">MultiHead_crossDec</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.decoder.MultiHead_crossDec.forward"><code class="docutils literal notranslate"><span class="pre">MultiHead_crossDec.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.decoder.MultiHead_selfDec"><code class="docutils literal notranslate"><span class="pre">MultiHead_selfDec</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.decoder.MultiHead_selfDec.forward"><code class="docutils literal notranslate"><span class="pre">MultiHead_selfDec.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.tft.html#module-dsipts.models.tft.embedding_nn">dsipts.models.tft.embedding_nn module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Decoder_RNN"><code class="docutils literal notranslate"><span class="pre">Decoder_RNN</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Decoder_RNN.forward"><code class="docutils literal notranslate"><span class="pre">Decoder_RNN.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Decoder_Var_Selection"><code class="docutils literal notranslate"><span class="pre">Decoder_Var_Selection</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Decoder_Var_Selection.forward"><code class="docutils literal notranslate"><span class="pre">Decoder_Var_Selection.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Decoder_Var_Selection.get_cat_GRN"><code class="docutils literal notranslate"><span class="pre">Decoder_Var_Selection.get_cat_GRN()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Decoder_Var_Selection.get_num_GRN"><code class="docutils literal notranslate"><span class="pre">Decoder_Var_Selection.get_num_GRN()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Encoder_RNN"><code class="docutils literal notranslate"><span class="pre">Encoder_RNN</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Encoder_RNN.forward"><code class="docutils literal notranslate"><span class="pre">Encoder_RNN.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Encoder_Var_Selection"><code class="docutils literal notranslate"><span class="pre">Encoder_Var_Selection</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Encoder_Var_Selection.forward"><code class="docutils literal notranslate"><span class="pre">Encoder_Var_Selection.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Encoder_Var_Selection.get_cat_GRN"><code class="docutils literal notranslate"><span class="pre">Encoder_Var_Selection.get_cat_GRN()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.Encoder_Var_Selection.get_num_GRN"><code class="docutils literal notranslate"><span class="pre">Encoder_Var_Selection.get_num_GRN()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.GLU"><code class="docutils literal notranslate"><span class="pre">GLU</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.GLU.forward"><code class="docutils literal notranslate"><span class="pre">GLU.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.GRN"><code class="docutils literal notranslate"><span class="pre">GRN</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.GRN.forward"><code class="docutils literal notranslate"><span class="pre">GRN.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_cat_variables"><code class="docutils literal notranslate"><span class="pre">embedding_cat_variables</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_cat_variables.forward"><code class="docutils literal notranslate"><span class="pre">embedding_cat_variables.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_cat_variables.get_cat_n_embd"><code class="docutils literal notranslate"><span class="pre">embedding_cat_variables.get_cat_n_embd()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_cat_variables.get_is_fut"><code class="docutils literal notranslate"><span class="pre">embedding_cat_variables.get_is_fut()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_cat_variables.get_pos_fut"><code class="docutils literal notranslate"><span class="pre">embedding_cat_variables.get_pos_fut()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_cat_variables.get_pos_seq"><code class="docutils literal notranslate"><span class="pre">embedding_cat_variables.get_pos_seq()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_future_variables"><code class="docutils literal notranslate"><span class="pre">embedding_num_future_variables</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_future_variables.forward"><code class="docutils literal notranslate"><span class="pre">embedding_num_future_variables.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_future_variables.get_num_fut_embedded"><code class="docutils literal notranslate"><span class="pre">embedding_num_future_variables.get_num_fut_embedded()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_future_variables.get_pos_seq"><code class="docutils literal notranslate"><span class="pre">embedding_num_future_variables.get_pos_seq()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_past_variables"><code class="docutils literal notranslate"><span class="pre">embedding_num_past_variables</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.embedding_num_past_variables.forward"><code class="docutils literal notranslate"><span class="pre">embedding_num_past_variables.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.flatten_GRN"><code class="docutils literal notranslate"><span class="pre">flatten_GRN</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.flatten_GRN.forward"><code class="docutils literal notranslate"><span class="pre">flatten_GRN.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.postTransformer"><code class="docutils literal notranslate"><span class="pre">postTransformer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.embedding_nn.postTransformer.forward"><code class="docutils literal notranslate"><span class="pre">postTransformer.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.tft.html#module-dsipts.models.tft.encoder">dsipts.models.tft.encoder module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.encoder.Encoder"><code class="docutils literal notranslate"><span class="pre">Encoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.encoder.Encoder.forward"><code class="docutils literal notranslate"><span class="pre">Encoder.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.encoder.EncoderLayer"><code class="docutils literal notranslate"><span class="pre">EncoderLayer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.encoder.EncoderLayer.forward"><code class="docutils literal notranslate"><span class="pre">EncoderLayer.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.encoder.FFN"><code class="docutils literal notranslate"><span class="pre">FFN</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.encoder.FFN.forward"><code class="docutils literal notranslate"><span class="pre">FFN.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.encoder.Head_selfEnc"><code class="docutils literal notranslate"><span class="pre">Head_selfEnc</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.encoder.Head_selfEnc.forward"><code class="docutils literal notranslate"><span class="pre">Head_selfEnc.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.encoder.MultiHeadEnc"><code class="docutils literal notranslate"><span class="pre">MultiHeadEnc</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft.html#dsipts.models.tft.encoder.MultiHeadEnc.forward"><code class="docutils literal notranslate"><span class="pre">MultiHeadEnc.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.tft.html#module-dsipts.models.tft">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dsipts.models.tft2.html">dsipts.models.tft2 package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.tft2.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.tft2.html#module-dsipts.models.tft2.sub_nn">dsipts.models.tft2.sub_nn module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft2.html#dsipts.models.tft2.sub_nn.GLU"><code class="docutils literal notranslate"><span class="pre">GLU</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft2.html#dsipts.models.tft2.sub_nn.GLU.forward"><code class="docutils literal notranslate"><span class="pre">GLU.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft2.html#dsipts.models.tft2.sub_nn.GRN"><code class="docutils literal notranslate"><span class="pre">GRN</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft2.html#dsipts.models.tft2.sub_nn.GRN.forward"><code class="docutils literal notranslate"><span class="pre">GRN.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft2.html#dsipts.models.tft2.sub_nn.InterpretableMultiHead"><code class="docutils literal notranslate"><span class="pre">InterpretableMultiHead</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft2.html#dsipts.models.tft2.sub_nn.InterpretableMultiHead.forward"><code class="docutils literal notranslate"><span class="pre">InterpretableMultiHead.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft2.html#dsipts.models.tft2.sub_nn.LSTM_Model"><code class="docutils literal notranslate"><span class="pre">LSTM_Model</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft2.html#dsipts.models.tft2.sub_nn.LSTM_Model.forward"><code class="docutils literal notranslate"><span class="pre">LSTM_Model.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft2.html#dsipts.models.tft2.sub_nn.ResidualConnection"><code class="docutils literal notranslate"><span class="pre">ResidualConnection</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft2.html#dsipts.models.tft2.sub_nn.ResidualConnection.forward"><code class="docutils literal notranslate"><span class="pre">ResidualConnection.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.tft2.html#dsipts.models.tft2.sub_nn.embedding_cat_variables"><code class="docutils literal notranslate"><span class="pre">embedding_cat_variables</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft2.html#dsipts.models.tft2.sub_nn.embedding_cat_variables.forward"><code class="docutils literal notranslate"><span class="pre">embedding_cat_variables.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft2.html#dsipts.models.tft2.sub_nn.embedding_cat_variables.get_cat_n_embd"><code class="docutils literal notranslate"><span class="pre">embedding_cat_variables.get_cat_n_embd()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft2.html#dsipts.models.tft2.sub_nn.embedding_cat_variables.get_is_fut"><code class="docutils literal notranslate"><span class="pre">embedding_cat_variables.get_is_fut()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft2.html#dsipts.models.tft2.sub_nn.embedding_cat_variables.get_pos_fut"><code class="docutils literal notranslate"><span class="pre">embedding_cat_variables.get_pos_fut()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.tft2.html#dsipts.models.tft2.sub_nn.embedding_cat_variables.get_pos_seq"><code class="docutils literal notranslate"><span class="pre">embedding_cat_variables.get_pos_seq()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.tft2.html#module-dsipts.models.tft2">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dsipts.models.vva.html">dsipts.models.vva package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.vva.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.vva.html#module-dsipts.models.vva.minigpt">dsipts.models.vva.minigpt module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.minigpt.Block"><code class="docutils literal notranslate"><span class="pre">Block</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.minigpt.Block.forward"><code class="docutils literal notranslate"><span class="pre">Block.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.minigpt.CausalSelfAttention"><code class="docutils literal notranslate"><span class="pre">CausalSelfAttention</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.minigpt.CausalSelfAttention.forward"><code class="docutils literal notranslate"><span class="pre">CausalSelfAttention.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.minigpt.NewGELU"><code class="docutils literal notranslate"><span class="pre">NewGELU</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.minigpt.NewGELU.forward"><code class="docutils literal notranslate"><span class="pre">NewGELU.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.vva.html#module-dsipts.models.vva.vqvae">dsipts.models.vva.vqvae module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.vqvae.Decoder"><code class="docutils literal notranslate"><span class="pre">Decoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.vqvae.Decoder.forward"><code class="docutils literal notranslate"><span class="pre">Decoder.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.vqvae.Encoder"><code class="docutils literal notranslate"><span class="pre">Encoder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.vqvae.Encoder.forward"><code class="docutils literal notranslate"><span class="pre">Encoder.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.vqvae.Jitter"><code class="docutils literal notranslate"><span class="pre">Jitter</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.vqvae.Jitter.forward"><code class="docutils literal notranslate"><span class="pre">Jitter.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.vqvae.Residual"><code class="docutils literal notranslate"><span class="pre">Residual</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.vqvae.Residual.forward"><code class="docutils literal notranslate"><span class="pre">Residual.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.vqvae.ResidualStack"><code class="docutils literal notranslate"><span class="pre">ResidualStack</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.vqvae.ResidualStack.forward"><code class="docutils literal notranslate"><span class="pre">ResidualStack.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.vqvae.VQVAE"><code class="docutils literal notranslate"><span class="pre">VQVAE</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.vqvae.VQVAE.forward"><code class="docutils literal notranslate"><span class="pre">VQVAE.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.vqvae.VectorQuantizer"><code class="docutils literal notranslate"><span class="pre">VectorQuantizer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.vqvae.VectorQuantizer.embedding"><code class="docutils literal notranslate"><span class="pre">VectorQuantizer.embedding</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.vqvae.VectorQuantizer.forward"><code class="docutils literal notranslate"><span class="pre">VectorQuantizer.forward()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.vqvae.VectorQuantizerEMA"><code class="docutils literal notranslate"><span class="pre">VectorQuantizerEMA</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.vva.html#dsipts.models.vva.vqvae.VectorQuantizerEMA.forward"><code class="docutils literal notranslate"><span class="pre">VectorQuantizerEMA.forward()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dsipts.models.vva.html#module-dsipts.models.vva">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
 </section>
@@ -188,6 +746,195 @@ registered hooks while the latter silently ignores them.</p>
 <dd></dd></dl>
 
 </section>
+<section id="module-dsipts.models.CrossFormer">
+<span id="dsipts-models-crossformer-module"></span><h2>dsipts.models.CrossFormer module<a class="headerlink" href="#module-dsipts.models.CrossFormer" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsipts.models.CrossFormer.CrossFormer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.CrossFormer.</span></span><span class="sig-name descname"><span class="pre">CrossFormer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">past_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_head</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seg_len</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layer_encoder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">win_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_last</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persistence_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'l1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/CrossFormer.html#CrossFormer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.CrossFormer.CrossFormer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dsipts.models.base.Base" title="dsipts.models.base.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></a></p>
+<p>CroosFormer (<a class="reference external" href="https://openreview.net/forum?id=vSVLM2j9eie">https://openreview.net/forum?id=vSVLM2j9eie</a>)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>past_steps</strong> (<em>int</em>) – number of past datapoints used , not used here</p></li>
+<li><p><strong>future_steps</strong> (<em>int</em>) – number of future lag to predict</p></li>
+<li><p><strong>past_channels</strong> (<em>int</em>) – number of numeric past variables, must be &gt;0</p></li>
+<li><p><strong>future_channels</strong> (<em>int</em>) – number of future numeric variables</p></li>
+<li><p><strong>d_model</strong> (<em>int</em>) – dimension of the attention model</p></li>
+<li><p><strong>embs</strong> (<em>List</em>) – list of the initial dimension of the categorical variables</p></li>
+<li><p><strong>hidden_size</strong> (<em>int</em>) – hidden size of the linear block</p></li>
+<li><p><strong>n_head</strong> (<em>int</em>) – number of heads</p></li>
+<li><p><strong>seg_len</strong> (<em>int</em>) – segment length (L_seg) see the paper for more details</p></li>
+<li><p><strong>n_layer_encoder</strong> (<em>int</em>) – layers to use in the encoder</p></li>
+<li><p><strong>win_size</strong> (<em>int</em>) – window size for segment merg</p></li>
+<li><p><strong>factor</strong> (<em>int</em>) – num of routers in Cross-Dimension Stage of TSA (c) see the paper</p></li>
+<li><p><strong>remove_last</strong> (<em>boolean</em><em>,</em><em>optional</em>) – if true the model try to predic the difference respect the last observation.</p></li>
+<li><p><strong>out_channels</strong> (<em>int</em>) – number of output channels</p></li>
+<li><p><strong>persistence_weight</strong> (<em>float</em>) – weight controlling the divergence from persistence model. Default 0</p></li>
+<li><p><strong>loss_type</strong> (<em>str</em><em>, </em><em>optional</em>) – this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,</p></li>
+<li><p><strong>loss_type</strong> – this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,</p></li>
+<li><p><strong>quantiles</strong> (<em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – NOT USED YET</p></li>
+<li><p><strong>dropout_rate</strong> (<em>float</em><em>, </em><em>optional</em>) – dropout rate in Dropout layers. Defaults to 0.1.</p></li>
+<li><p><strong>optim</strong> (<em>str</em><em>, </em><em>optional</em>) – if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.</p></li>
+<li><p><strong>optim_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – configuration for Adam optimizer. Defaults to None.</p></li>
+<li><p><strong>scheduler_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – configuration for stepLR scheduler. Defaults to None.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.CrossFormer.CrossFormer.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/CrossFormer.html#CrossFormer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.CrossFormer.CrossFormer.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Forlward method used during the training loop</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch</strong> (<em>dict</em>) – the batch structure. The keys are:
+y : the target variable(s). This is always present
+x_num_past: the numerical past variables. This is always present
+x_num_future: the numerical future variables
+x_cat_past: the categorical past variables
+x_cat_future: the categorical future variables
+idx_target: index of target features in the past array</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>output of the mode;</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-dsipts.models.D3VAE">
+<span id="dsipts-models-d3vae-module"></span><h2>dsipts.models.D3VAE module<a class="headerlink" href="#module-dsipts.models.D3VAE" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsipts.models.D3VAE.D3VAE">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.D3VAE.</span></span><span class="sig-name descname"><span class="pre">D3VAE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">past_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_steps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_steps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_dimension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_layers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diff_steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'kl'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_schedule</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_mult</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mult</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_preprocess_blocks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_preprocess_cells</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_channels_enc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arch_instance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'res_mbconv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_latent_per_group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_channels_dec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups_per_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_postprocess_blocks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_postprocess_cells</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'h'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim_config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler_config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/D3VAE.html#D3VAE"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.D3VAE.D3VAE" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dsipts.models.base.Base" title="dsipts.models.base.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></a></p>
+<p>This is the basic model, each model implemented must overwrite the init method and the forward method. The inference step is optional, by default it uses the forward method but for recurrent
+network you should implement your own method</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.D3VAE.D3VAE.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/D3VAE.html#D3VAE.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.D3VAE.D3VAE.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Forlward method used during the training loop</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch</strong> (<em>dict</em>) – the batch structure. The keys are:
+y : the target variable(s). This is always present
+x_num_past: the numerical past variables. This is always present
+x_num_future: the numerical future variables
+x_cat_past: the categorical past variables
+x_cat_future: the categorical future variables
+idx_target: index of target features in the past array</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>output of the mode;</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.D3VAE.D3VAE.inference">
+<span class="sig-name descname"><span class="pre">inference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/D3VAE.html#D3VAE.inference"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.D3VAE.D3VAE.inference" title="Permalink to this definition"></a></dt>
+<dd><p>Care here, we need to implement it because for predicting the N-step it will use the prediction at step N-1. TODO fix if because I did not implement the
+know continuous variable presence here</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch</strong> (<em>dict</em>) – batch of the dataloader</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>result</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dsipts.models.D3VAE.copy_parameters">
+<span class="sig-prename descclassname"><span class="pre">dsipts.models.D3VAE.</span></span><span class="sig-name descname"><span class="pre">copy_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net_source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">net_dest</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/dsipts/models/D3VAE.html#copy_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.D3VAE.copy_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Copies parameters from one network to another.
+:param net_source: Input network.
+:param net_dest: Output network.
+:param strict: whether to strictly enforce that the keys</p>
+<blockquote>
+<div><p>in <code class="xref py py-attr docutils literal notranslate"><span class="pre">state_dict</span></code> match the keys returned by this module’s
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">state_dict()</span></code> function. Default: <code class="docutils literal notranslate"><span class="pre">True</span></code></p>
+</div></blockquote>
+</dd></dl>
+
+</section>
+<section id="module-dsipts.models.Informer">
+<span id="dsipts-models-informer-module"></span><h2>dsipts.models.Informer module<a class="headerlink" href="#module-dsipts.models.Informer" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsipts.models.Informer.Informer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.Informer.</span></span><span class="sig-name descname"><span class="pre">Informer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">past_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layer_encoder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layer_decoder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'torch.nn.ReLU'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_last</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'prob'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_attention</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distil</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_head</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persistence_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'l1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/Informer.html#Informer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.Informer.Informer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dsipts.models.base.Base" title="dsipts.models.base.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>past_steps</strong> (<em>int</em>) – number of past datapoints used , not used here</p></li>
+<li><p><strong>future_steps</strong> (<em>int</em>) – number of future lag to predict</p></li>
+<li><p><strong>past_channels</strong> (<em>int</em>) – number of numeric past variables, must be &gt;0</p></li>
+<li><p><strong>future_channels</strong> (<em>int</em>) – number of future numeric variables</p></li>
+<li><p><strong>d_model</strong> (<em>int</em>) – dimension of the attention model</p></li>
+<li><p><strong>embs</strong> (<em>List</em>) – list of the initial dimension of the categorical variables</p></li>
+<li><p><strong>hidden_size</strong> (<em>int</em>) – hidden size of the linear block</p></li>
+<li><p><strong>n_layer_encoder</strong> (<em>int</em>) – layers to use in the encoder</p></li>
+<li><p><strong>n_layer_decoder</strong> (<em>int</em>) – layers to use in the decoder</p></li>
+<li><p><strong>out_channels</strong> (<em>int</em>) – number of output channels</p></li>
+<li><p><strong>mix</strong> (<em>bool</em><em>, </em><em>optional</em>) – se mix attention in generative decoder. Defaults to True.</p></li>
+<li><p><strong>activation</strong> (<em>str</em><em>, </em><em>optional</em>) – relu or gelu. Defaults to ‘relu’.</p></li>
+<li><p><strong>remove_last</strong> (<em>boolean</em><em>,</em><em>optional</em>) – if true the model try to predic the difference respect the last observation.</p></li>
+<li><p><strong>attn</strong> (<em>str</em><em>, </em><em>optional</em>) – attention used in encoder, options:[prob, full]. Defaults to ‘prob’.</p></li>
+<li><p><strong>output_attention</strong> (<em>bool</em><em>, </em><em>optional</em>) – visualize attention, keep it False please . Defaults to False. TODO: FIX THIS</p></li>
+<li><p><strong>distil</strong> (<em>bool</em><em>, </em><em>optional</em>) – whether to use distilling in encoder, using this argument means not using distilling. Defaults to True.</p></li>
+<li><p><strong>factor</strong> (<em>int</em><em>, </em><em>optional</em>) – probsparse attn factor. Defaults to 5.</p></li>
+<li><p><strong>n_head</strong> (<em>int</em><em>, </em><em>optional</em>) – heads equal in the encoder and encoder. Defaults to 1.</p></li>
+<li><p><strong>persistence_weight</strong> (<em>float</em>) – weight controlling the divergence from persistence model. Default 0</p></li>
+<li><p><strong>loss_type</strong> (<em>str</em><em>, </em><em>optional</em>) – this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,</p></li>
+<li><p><strong>quantiles</strong> (<em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – NOT USED YET</p></li>
+<li><p><strong>dropout_rate</strong> (<em>float</em><em>, </em><em>optional</em>) – dropout rate in Dropout layers. Defaults to 0.1.</p></li>
+<li><p><strong>optim</strong> (<em>str</em><em>, </em><em>optional</em>) – if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.</p></li>
+<li><p><strong>optim_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – configuration for Adam optimizer. Defaults to None.</p></li>
+<li><p><strong>scheduler_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – configuration for stepLR scheduler. Defaults to None.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.Informer.Informer.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/Informer.html#Informer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.Informer.Informer.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Forlward method used during the training loop</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch</strong> (<em>dict</em>) – the batch structure. The keys are:
+y : the target variable(s). This is always present
+x_num_past: the numerical past variables. This is always present
+x_num_future: the numerical future variables
+x_cat_past: the categorical past variables
+x_cat_future: the categorical future variables
+idx_target: index of target features in the past array</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>output of the mode;</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="module-dsipts.models.LinearTS">
 <span id="dsipts-models-linearts-module"></span><h2>dsipts.models.LinearTS module<a class="headerlink" href="#module-dsipts.models.LinearTS" title="Permalink to this heading"></a></h2>
 <dl class="py class">
@@ -286,6 +1033,188 @@ registered hooks while the latter silently ignores them.</p>
 </dd></dl>
 
 </section>
+<section id="module-dsipts.models.MyModel">
+<span id="dsipts-models-mymodel-module"></span><h2>dsipts.models.MyModel module<a class="headerlink" href="#module-dsipts.models.MyModel" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsipts.models.MyModel.Block">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.MyModel.</span></span><span class="sig-name descname"><span class="pre">Block</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_layers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/MyModel.html#Block"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.MyModel.Block" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.MyModel.Block.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/MyModel.html#Block.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.MyModel.Block.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="dsipts.models.MyModel.GLU">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.MyModel.</span></span><span class="sig-name descname"><span class="pre">GLU</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/MyModel.html#GLU"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.MyModel.GLU" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
+<p>Gated Linear Unit, ‘Gate’ block in TFT paper
+Sub net of GRN: linear(x) * sigmoid(linear(x))
+No dimension changes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>d_model</strong> (<em>int</em>) – model dimension</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.MyModel.GLU.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/MyModel.html#GLU.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.MyModel.GLU.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Gated Linear Unit
+Sub net of GRN: linear(x) * sigmoid(linear(x))
+No dimension changes: [bs, seq_len, d_model]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>) – </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="dsipts.models.MyModel.MyModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.MyModel.</span></span><span class="sig-name descname"><span class="pre">MyModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">past_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat_emb_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_RNN</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_layers_RNN</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_emb</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'torch.nn.ReLU'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_last</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persistence_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'l1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_bn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_glu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">glu_percentage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/MyModel.html#MyModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.MyModel.MyModel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dsipts.models.base.Base" title="dsipts.models.base.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></a></p>
+<p>Custom encoder-decoder
+:param past_steps: number of past datapoints used
+:type past_steps: int
+:param future_steps: number of future lag to predict
+:type future_steps: int
+:param past_channels: number of numeric past variables, must be &gt;0
+:type past_channels: int
+:param future_channels: number of future numeric variables
+:type future_channels: int
+:param embs: list of the initial dimension of the categorical variables
+:type embs: List
+:param cat_emb_dim: final dimension of each categorical variable
+:type cat_emb_dim: int
+:param hidden_RNN: hidden size of the RNN block
+:type hidden_RNN: int
+:param num_layers_RNN: number of RNN layers
+:type num_layers_RNN: int
+:param kind: one among GRU or LSTM
+:type kind: str
+:param kernel_size: kernel size in the encoder convolutional block
+:type kernel_size: int
+:param sum_emb: if true the contribution of each embedding will be summed-up otherwise stacked
+:type sum_emb: bool
+:param out_channels: number of output channels
+:type out_channels: int
+:param activation: activation fuction function pytorch. Default torch.nn.ReLU
+:type activation: str, optional
+:param remove_last: if True the model learns the difference respect to the last seen point
+:type remove_last: bool, optional
+:param persistence_weight: weight controlling the divergence from persistence model. Default 0
+:type persistence_weight: float
+:param loss_type: this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,
+:type loss_type: str, optional
+:param quantiles: we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
+:type quantiles: List[int], optional
+:param dropout_rate: dropout rate in Dropout layers
+:type dropout_rate: float, optional
+:param use_bn: if true BN layers will be added and dropouts will be removed
+:type use_bn: bool, optional
+:param use_glu: use GLU for feature selection. Defaults to True.
+:type use_glu: bool,optional
+:param glu_percentage: percentage of features to use. Defaults to 1.0.
+:type glu_percentage: float, optiona
+:param n_classes: number of classes (0 in regression)
+:type n_classes: int
+:param optim: if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
+:type optim: str, optional
+:param optim_config: configuration for Adam optimizer. Defaults to None.
+:type optim_config: dict, optional
+:param scheduler_config: configuration for stepLR scheduler. Defaults to None.
+:type scheduler_config: dict, optional</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.MyModel.MyModel.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/MyModel.html#MyModel.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.MyModel.MyModel.forward" title="Permalink to this definition"></a></dt>
+<dd><p>It is mandatory to implement this method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch</strong> (<em>dict</em>) – batch of the dataloader</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>result</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.MyModel.MyModel.inference">
+<span class="sig-name descname"><span class="pre">inference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/MyModel.html#MyModel.inference"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.MyModel.MyModel.inference" title="Permalink to this definition"></a></dt>
+<dd><p>Usually it is ok to return the output of the forward method but sometimes not (e.g. RNN)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch</strong> (<em>dict</em>) – batch</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>result</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-dsipts.models.Persistent">
+<span id="dsipts-models-persistent-module"></span><h2>dsipts.models.Persistent module<a class="headerlink" href="#module-dsipts.models.Persistent" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsipts.models.Persistent.Persistent">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.Persistent.</span></span><span class="sig-name descname"><span class="pre">Persistent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">future_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persistence_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/Persistent.html#Persistent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.Persistent.Persistent" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dsipts.models.base.Base" title="dsipts.models.base.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></a></p>
+<p>Persistent model propagatinng  last observed values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>future_steps</strong> (<em>int</em>) – number of future lag to predict</p></li>
+<li><p><strong>past_steps</strong> (<em>int</em>) – number of future lag to predict. Useless but needed for the other stuff</p></li>
+<li><p><strong>optim_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – configuration for Adam optimizer. Defaults to None. Usless for this model</p></li>
+<li><p><strong>scheduler_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – configuration for stepLR scheduler. Defaults to None. Usless for this model</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.Persistent.Persistent.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/Persistent.html#Persistent.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.Persistent.Persistent.forward" title="Permalink to this definition"></a></dt>
+<dd><p>It is mandatory to implement this method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch</strong> (<em>dict</em>) – batch of the dataloader</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>result</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="module-dsipts.models.RNN">
 <span id="dsipts-models-rnn-module"></span><h2>dsipts.models.RNN module<a class="headerlink" href="#module-dsipts.models.RNN" title="Permalink to this heading"></a></h2>
 <dl class="py class">
@@ -350,6 +1279,389 @@ registered hooks while the latter silently ignores them.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>batch</strong> (<em>dict</em>) – batch of the dataloader</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>result</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-dsipts.models.TFT">
+<span id="dsipts-models-tft-module"></span><h2>dsipts.models.TFT module<a class="headerlink" href="#module-dsipts.models.TFT" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsipts.models.TFT.TFT">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.TFT.</span></span><span class="sig-name descname"><span class="pre">TFT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_target_past</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_yprec_fut</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_heads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fw_exp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layer_encoder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layer_decoder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_layers_RNN</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persistence_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'l1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/TFT.html#TFT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.TFT.TFT" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dsipts.models.base.Base" title="dsipts.models.base.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></a></p>
+<p>TFT model ‘arXiv:1912.09363v3 [stat.ML] 27 Sep 2020’</p>
+<p>Strategies:
+- use_target_past: choose if you want to consider also the past numerical variables for the encoding part
+- use_y_prec_fut: choose if for prediction you want to use the previous values of the target variables. If True, the process becomes iterative (also slower)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>use_target_past</strong> (<em>bool</em>) – usage of past numerical variables</p></li>
+<li><p><strong>use_yprec_fut</strong> (<em>bool</em>) – usage of iterative procedure</p></li>
+<li><p><strong>past_steps</strong> (<em>int</em>) – past context steps</p></li>
+<li><p><strong>future_steps</strong> (<em>int</em>) – future steps to be predicted</p></li>
+<li><p><strong>past_channels</strong> (<em>int</em>) – number of variables used in past steps</p></li>
+<li><p><strong>future_channels</strong> (<em>int</em>) – [now not used] number of future numerical variables for predictions</p></li>
+<li><p><strong>embs</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>) – embedding dimensions for Embedding Layers of categorical variables</p></li>
+<li><p><strong>d_model</strong> (<em>int</em>) – dimension of the model</p></li>
+<li><p><strong>num_heads</strong> (<em>int</em>) – number of heads used in Encoder and Decoder multihead attentions</p></li>
+<li><p><strong>head_size</strong> (<em>int</em>) – size of tensors</p></li>
+<li><p><strong>fw_exp</strong> (<em>int</em>) – _description_</p></li>
+<li><p><strong>dropout</strong> (<em>float</em>) – _description_</p></li>
+<li><p><strong>n_layer_encoder</strong> (<em>int</em>) – _description_</p></li>
+<li><p><strong>n_layer_decoder</strong> (<em>int</em>) – _description_</p></li>
+<li><p><strong>num_layers_RNN</strong> (<em>int</em>) – _description_</p></li>
+<li><p><strong>out_channels</strong> (<em>int</em>) – _description_</p></li>
+<li><p><strong>kind</strong> (<em>str</em>) – gru or lstm layer</p></li>
+<li><p><strong>persistence_weight</strong> (<em>float</em>) – weight controlling the divergence from persistence model. Default 0</p></li>
+<li><p><strong>loss_type</strong> (<em>str</em><em>, </em><em>optional</em>) – this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,</p></li>
+<li><p><strong>quantiles</strong> (<em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – _description_. Defaults to [].</p></li>
+<li><p><strong>optim</strong> (<em>str</em><em>, </em><em>optional</em>) – if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.</p></li>
+<li><p><strong>optim_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – _description_. Defaults to None.</p></li>
+<li><p><strong>scheduler_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – _description_. Defaults to None.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.TFT.TFT.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/TFT.html#TFT.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.TFT.TFT.forward" title="Permalink to this definition"></a></dt>
+<dd><p>— TFT —
+This Model can perform iterative and direct predictions:</p>
+<p>ITERATIVE:</p>
+<p>yhat_i(q,t,tau) = f_q( tau, y_{i,t-k:t}, x_{i,t-k:t+tau} )</p>
+<p>DIRECT:</p>
+<p>yhat_i(q,t,tau) = f_q( tau, x_{i,t-k:t+tau} )</p>
+<ul class="simple">
+<li><p>q is the quantile taken in consideration,</p></li>
+<li><p>t the time when the prediction starts,</p></li>
+<li><p>tau the future step we are predicting</p></li>
+</ul>
+<p>Structure of the Model:
+- Gating Mechanisms: GRN and GLU give the model the flexibility
+to apply non-linear processing only where needed.
+- Variable Selection Network: it is intended as instance-wise variable selection
+removing any unnecessary noisy inputs and focunsing on the most saient ones
+- Interpretable Multi-head Attention: weights shared across all heads
+- Quantile output: the model can predict the single value of y or its quantiles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch</strong> (<em>dict</em>) – batch of the dataloader</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>[Bs, future_steps, -1, number of quantiles computed for each timestep]</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.TFT.TFT.inference">
+<span class="sig-name descname"><span class="pre">inference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/TFT.html#TFT.inference"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.TFT.TFT.inference" title="Permalink to this definition"></a></dt>
+<dd><p>Exactly equal to forward method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch</strong> (<em>dict</em>) – batch of the dataloader</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>result</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-dsipts.models.TFT2">
+<span id="dsipts-models-tft2-module"></span><h2>dsipts.models.TFT2 module<a class="headerlink" href="#module-dsipts.models.TFT2" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsipts.models.TFT2.TFT2">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.TFT2.</span></span><span class="sig-name descname"><span class="pre">TFT2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_layers_RNN</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_head</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_head</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persistence_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'l1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/TFT2.html#TFT2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.TFT2.TFT2" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dsipts.models.base.Base" title="dsipts.models.base.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></a></p>
+<p>This is the basic model, each model implemented must overwrite the init method and the forward method. The inference step is optional, by default it uses the forward method but for recurrent
+network you should implement your own method</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.TFT2.TFT2.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/TFT2.html#TFT2.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.TFT2.TFT2.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Forlward method used during the training loop</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch</strong> (<em>dict</em>) – the batch structure. The keys are:
+y : the target variable(s). This is always present
+x_num_past: the numerical past variables. This is always present
+x_num_future: the numerical future variables
+x_cat_past: the categorical past variables
+x_cat_future: the categorical future variables
+idx_target: index of target features in the past array</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>output of the mode;</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.TFT2.TFT2.remove_var">
+<span class="sig-name descname"><span class="pre">remove_var</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indexes_to_exclude</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimension</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/TFT2.html#TFT2.remove_var"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.TFT2.TFT2.remove_var" title="Permalink to this definition"></a></dt>
+<dd><p>Function to remove variables from tensors in chosen dimension and position</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tensor</strong> (<em>torch.Tensor</em>) – starting tensor</p></li>
+<li><p><strong>indexes_to_exclude</strong> (<em>int</em>) – index of the chosen dimension we want t oexclude</p></li>
+<li><p><strong>dimension</strong> (<em>int</em>) – dimension of the tensor on which we want to work</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>new tensor without the chosen variables</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-dsipts.models.VQVAEA">
+<span id="dsipts-models-vqvaea-module"></span><h2>dsipts.models.VQVAEA module<a class="headerlink" href="#module-dsipts.models.VQVAEA" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsipts.models.VQVAEA.VQVAEA">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.VQVAEA.</span></span><span class="sig-name descname"><span class="pre">VQVAEA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">past_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_voc_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_layers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commitment_cost</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decay</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_heads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epoch_vqvae</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persistence_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'l1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/VQVAEA.html#VQVAEA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.VQVAEA.VQVAEA" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dsipts.models.base.Base" title="dsipts.models.base.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></a></p>
+<p>Custom encoder-decoder
+:param past_steps: number of past datapoints used
+:type past_steps: int
+:param future_steps: number of future lag to predict
+:type future_steps: int
+:param past_channels: number of numeric past variables, must be &gt;0
+:type past_channels: int
+:param future_channels: number of future numeric variables
+:type future_channels: int
+:param embs: list of the initial dimension of the categorical variables
+:type embs: List
+:param cat_emb_dim: final dimension of each categorical variable
+:type cat_emb_dim: int
+:param hidden_RNN: hidden size of the RNN block
+:type hidden_RNN: int
+:param num_layers_RNN: number of RNN layers
+:type num_layers_RNN: int
+:param kind: one among GRU or LSTM
+:type kind: str
+:param kernel_size: kernel size in the encoder convolutional block
+:type kernel_size: int
+:param sum_emb: if true the contribution of each embedding will be summed-up otherwise stacked
+:type sum_emb: bool
+:param out_channels: number of output channels
+:type out_channels: int
+:param activation: activation fuction function pytorch. Default torch.nn.ReLU
+:type activation: str, optional
+:param remove_last: if True the model learns the difference respect to the last seen point
+:type remove_last: bool, optional
+:param persistence_weight: weight controlling the divergence from persistence model. Default 0
+:type persistence_weight: float
+:param loss_type: this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,
+:type loss_type: str, optional
+:param quantiles: we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
+:type quantiles: List[int], optional
+:param dropout_rate: dropout rate in Dropout layers
+:type dropout_rate: float, optional
+:param use_bn: if true BN layers will be added and dropouts will be removed
+:type use_bn: bool, optional
+:param use_glu: use GLU for feature selection. Defaults to True.
+:type use_glu: bool,optional
+:param glu_percentage: percentage of features to use. Defaults to 1.0.
+:type glu_percentage: float, optiona
+:param n_classes: number of classes (0 in regression)
+:type n_classes: int
+:param optim: if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
+:type optim: str, optional
+:param optim_config: configuration for Adam optimizer. Defaults to None.
+:type optim_config: dict, optional
+:param scheduler_config: configuration for stepLR scheduler. Defaults to None.
+:type scheduler_config: dict, optional</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.VQVAEA.VQVAEA.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/VQVAEA.html#VQVAEA.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.VQVAEA.VQVAEA.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Forlward method used during the training loop</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch</strong> (<em>dict</em>) – the batch structure. The keys are:
+y : the target variable(s). This is always present
+x_num_past: the numerical past variables. This is always present
+x_num_future: the numerical future variables
+x_cat_past: the categorical past variables
+x_cat_future: the categorical future variables
+idx_target: index of target features in the past array</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>output of the mode;</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.VQVAEA.VQVAEA.generate">
+<span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_new_tokens</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_sample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/VQVAEA.html#VQVAEA.generate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.VQVAEA.VQVAEA.generate" title="Permalink to this definition"></a></dt>
+<dd><p>Take a conditioning sequence of indices idx (LongTensor of shape (b,t)) and complete
+the sequence max_new_tokens times, feeding the predictions back into the model each time.
+Most likely you’ll want to make sure to be in model.eval() mode of operation for this.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.VQVAEA.VQVAEA.gpt">
+<span class="sig-name descname"><span class="pre">gpt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tokens</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/VQVAEA.html#VQVAEA.gpt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.VQVAEA.VQVAEA.gpt" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.VQVAEA.VQVAEA.inference">
+<span class="sig-name descname"><span class="pre">inference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/VQVAEA.html#VQVAEA.inference"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.VQVAEA.VQVAEA.inference" title="Permalink to this definition"></a></dt>
+<dd><p>Usually it is ok to return the output of the forward method but sometimes not (e.g. RNN)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch</strong> (<em>dict</em>) – batch</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>result</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="dsipts.models.VQVAEA.random">
+<span class="sig-prename descclassname"><span class="pre">dsipts.models.VQVAEA.</span></span><span class="sig-name descname"><span class="pre">random</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">x</span> <span class="pre">in</span> <span class="pre">the</span> <span class="pre">interval</span> <span class="pre">[0,</span> <span class="pre">1).</span></span></span><a class="headerlink" href="#dsipts.models.VQVAEA.random" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-dsipts.models.VVA">
+<span id="dsipts-models-vva-module"></span><h2>dsipts.models.VVA module<a class="headerlink" href="#module-dsipts.models.VVA" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsipts.models.VVA.VVA">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.VVA.</span></span><span class="sig-name descname"><span class="pre">VVA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">past_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_voc_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">token_split</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_layers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_heads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persistence_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'l1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/VVA.html#VVA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.VVA.VVA" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dsipts.models.base.Base" title="dsipts.models.base.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></a></p>
+<p>Custom encoder-decoder
+:param past_steps: number of past datapoints used
+:type past_steps: int
+:param future_steps: number of future lag to predict
+:type future_steps: int
+:param past_channels: number of numeric past variables, must be &gt;0
+:type past_channels: int
+:param future_channels: number of future numeric variables
+:type future_channels: int
+:param embs: list of the initial dimension of the categorical variables
+:type embs: List
+:param cat_emb_dim: final dimension of each categorical variable
+:type cat_emb_dim: int
+:param hidden_RNN: hidden size of the RNN block
+:type hidden_RNN: int
+:param num_layers_RNN: number of RNN layers
+:type num_layers_RNN: int
+:param kind: one among GRU or LSTM
+:type kind: str
+:param kernel_size: kernel size in the encoder convolutional block
+:type kernel_size: int
+:param sum_emb: if true the contribution of each embedding will be summed-up otherwise stacked
+:type sum_emb: bool
+:param out_channels: number of output channels
+:type out_channels: int
+:param activation: activation fuction function pytorch. Default torch.nn.ReLU
+:type activation: str, optional
+:param remove_last: if True the model learns the difference respect to the last seen point
+:type remove_last: bool, optional
+:param persistence_weight: weight controlling the divergence from persistence model. Default 0
+:type persistence_weight: float
+:param loss_type: this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,
+:type loss_type: str, optional
+:param quantiles: we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
+:type quantiles: List[int], optional
+:param dropout_rate: dropout rate in Dropout layers
+:type dropout_rate: float, optional
+:param use_bn: if true BN layers will be added and dropouts will be removed
+:type use_bn: bool, optional
+:param use_glu: use GLU for feature selection. Defaults to True.
+:type use_glu: bool,optional
+:param glu_percentage: percentage of features to use. Defaults to 1.0.
+:type glu_percentage: float, optiona
+:param n_classes: number of classes (0 in regression)
+:type n_classes: int
+:param optim: if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
+:type optim: str, optional
+:param optim_config: configuration for Adam optimizer. Defaults to None.
+:type optim_config: dict, optional
+:param scheduler_config: configuration for stepLR scheduler. Defaults to None.
+:type scheduler_config: dict, optional</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.VVA.VVA.configure_optimizers">
+<span class="sig-name descname"><span class="pre">configure_optimizers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/VVA.html#VVA.configure_optimizers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.VVA.VVA.configure_optimizers" title="Permalink to this definition"></a></dt>
+<dd><p>This long function is unfortunately doing something very simple and is being very defensive:
+We are separating out all parameters of the model into two buckets: those that will experience
+weight decay for regularization and those that won’t (biases, and layernorm/embedding weights).
+We are then returning the PyTorch optimizer object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.VVA.VVA.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/VVA.html#VVA.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.VVA.VVA.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Forlward method used during the training loop</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch</strong> (<em>dict</em>) – the batch structure. The keys are:
+y : the target variable(s). This is always present
+x_num_past: the numerical past variables. This is always present
+x_num_future: the numerical future variables
+x_cat_past: the categorical past variables
+x_cat_future: the categorical future variables
+idx_target: index of target features in the past array</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>output of the mode;</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.VVA.VVA.generate">
+<span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_new_tokens</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_sample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/VVA.html#VVA.generate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.VVA.VVA.generate" title="Permalink to this definition"></a></dt>
+<dd><p>Take a conditioning sequence of indices idx (LongTensor of shape (b,t)) and complete
+the sequence max_new_tokens times, feeding the predictions back into the model each time.
+Most likely you’ll want to make sure to be in model.eval() mode of operation for this.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.VVA.VVA.inference">
+<span class="sig-name descname"><span class="pre">inference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/VVA.html#VVA.inference"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.VVA.VVA.inference" title="Permalink to this definition"></a></dt>
+<dd><p>Usually it is ok to return the output of the forward method but sometimes not (e.g. RNN)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch</strong> (<em>dict</em>) – batch</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>result</p>
@@ -557,7 +1869,7 @@ model.apply(weight_init)</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="dsipts.data_structure.html" class="btn btn-neutral float-left" title="dsipts.data_structure package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="bash_examples.html" class="btn btn-neutral float-right" title="bash_examples package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="dsipts.models.crossformer.html" class="btn btn-neutral float-right" title="dsipts.models.crossformer package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

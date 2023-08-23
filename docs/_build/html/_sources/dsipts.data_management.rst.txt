@@ -4,10 +4,10 @@ dsipts.data\_management package
 Submodules
 ----------
 
-dsipts.data\_management.monarch module
---------------------------------------
+dsipts.data\_management.monash module
+-------------------------------------
 
-.. automodule:: dsipts.data_management.monarch
+.. automodule:: dsipts.data_management.monash
    :members:
    :undoc-members:
    :show-inheritance:

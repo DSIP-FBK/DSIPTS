@@ -136,6 +136,7 @@ class VectorQuantizer(nn.Module):
 
 
 class VectorQuantizerEMA(nn.Module):
+    
     def __init__(self, num_embeddings, embedding_dim, commitment_cost, decay, epsilon=1e-5):
         super(VectorQuantizerEMA, self).__init__()
         

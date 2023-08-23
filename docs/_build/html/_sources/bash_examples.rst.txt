@@ -1,6 +1,14 @@
 bash\_examples package
 ======================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   bash_examples.load_data
+
 Submodules
 ----------
 

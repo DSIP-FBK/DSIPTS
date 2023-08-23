@@ -16,7 +16,9 @@
         <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="bash_examples package" href="bash_examples.html" />
+    <link rel="prev" title="dsipts.models.tft2 package" href="dsipts.models.tft2.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -39,8 +41,20 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">dsipts</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">dsipts</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="dsipts.html">dsipts package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="dsipts.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="dsipts.data_management.html">dsipts.data_management package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.data_structure.html">dsipts.data_structure package</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="dsipts.models.html">dsipts.models package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.html#module-dsipts">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="bash_examples.html">bash_examples package</a></li>
 </ul>
 
@@ -58,6 +72,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">dsipts</a></li>
+          <li class="breadcrumb-item"><a href="dsipts.html">dsipts package</a></li>
+          <li class="breadcrumb-item"><a href="dsipts.models.html">dsipts.models package</a></li>
       <li class="breadcrumb-item active">dsipts.models.vva package</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/dsipts.models.vva.rst.txt" rel="nofollow"> View page source</a>
@@ -346,7 +363,18 @@ encodings: Tensor containing the discrete encodings, ie which element</p>
 <dt class="sig sig-object py" id="dsipts.models.vva.vqvae.VectorQuantizerEMA">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.vva.vqvae.</span></span><span class="sig-name descname"><span class="pre">VectorQuantizerEMA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_embeddings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commitment_cost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decay</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epsilon</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/vva/vqvae.html#VectorQuantizerEMA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.vva.vqvae.VectorQuantizerEMA" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
+<p>_summary_</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_embeddings</strong> (<em>_type_</em>) – _description_</p></li>
+<li><p><strong>embedding_dim</strong> (<em>_type_</em>) – _description_</p></li>
+<li><p><strong>commitment_cost</strong> (<em>_type_</em>) – _description_</p></li>
+<li><p><strong>decay</strong> (<em>_type_</em>) – _description_</p></li>
+<li><p><strong>epsilon</strong> (<em>_type_</em><em>, </em><em>optional</em>) – _description_. Defaults to 1e-5.</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.vva.vqvae.VectorQuantizerEMA.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/vva/vqvae.html#VectorQuantizerEMA.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.vva.vqvae.VectorQuantizerEMA.forward" title="Permalink to this definition"></a></dt>
@@ -372,7 +400,10 @@ registered hooks while the latter silently ignores them.</p>
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="dsipts.models.tft2.html" class="btn btn-neutral float-left" title="dsipts.models.tft2 package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="bash_examples.html" class="btn btn-neutral float-right" title="bash_examples package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 

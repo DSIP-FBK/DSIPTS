@@ -12,6 +12,14 @@ dsipts.data\_structure.data\_structure module
    :undoc-members:
    :show-inheritance:
 
+dsipts.data\_structure.modifiers module
+---------------------------------------
+
+.. automodule:: dsipts.data_structure.modifiers
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 dsipts.data\_structure.utils module
 -----------------------------------
 

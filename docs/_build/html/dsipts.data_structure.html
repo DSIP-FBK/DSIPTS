@@ -379,6 +379,67 @@ The TS structure will be populated</p>
 </dd></dl>
 
 </section>
+<section id="module-dsipts.data_structure.modifiers">
+<span id="dsipts-data-structure-modifiers-module"></span><h2>dsipts.data_structure.modifiers module<a class="headerlink" href="#module-dsipts.data_structure.modifiers" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="dsipts.data_structure.modifiers.Modifier">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.data_structure.modifiers.</span></span><span class="sig-name descname"><span class="pre">Modifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/data_structure/modifiers.html#Modifier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.data_structure.modifiers.Modifier" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.data_structure.modifiers.Modifier.fit_transform">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/data_structure/modifiers.html#Modifier.fit_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.data_structure.modifiers.Modifier.fit_transform" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.data_structure.modifiers.Modifier.inverse_transform">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">inverse_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">res</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/data_structure/modifiers.html#Modifier.inverse_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.data_structure.modifiers.Modifier.inverse_transform" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.data_structure.modifiers.Modifier.transform">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/data_structure/modifiers.html#Modifier.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.data_structure.modifiers.Modifier.transform" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="dsipts.data_structure.modifiers.ModifierVVA">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.data_structure.modifiers.</span></span><span class="sig-name descname"><span class="pre">ModifierVVA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/data_structure/modifiers.html#ModifierVVA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.data_structure.modifiers.ModifierVVA" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#dsipts.data_structure.modifiers.Modifier" title="dsipts.data_structure.modifiers.Modifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">Modifier</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.data_structure.modifiers.ModifierVVA.fit_transform">
+<span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/data_structure/modifiers.html#ModifierVVA.fit_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.data_structure.modifiers.ModifierVVA.fit_transform" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.data_structure.modifiers.ModifierVVA.inverse_transform">
+<span class="sig-name descname"><span class="pre">inverse_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">real</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/data_structure/modifiers.html#ModifierVVA.inverse_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.data_structure.modifiers.ModifierVVA.inverse_transform" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.data_structure.modifiers.ModifierVVA.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/data_structure/modifiers.html#ModifierVVA.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.data_structure.modifiers.ModifierVVA.transform" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="dsipts.data_structure.modifiers.VVADataset">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.data_structure.modifiers.</span></span><span class="sig-name descname"><span class="pre">VVADataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_orig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_digits</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/data_structure/modifiers.html#VVADataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.data_structure.modifiers.VVADataset" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.data_structure.modifiers.VVADataset.get_block_size">
+<span class="sig-name descname"><span class="pre">get_block_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/data_structure/modifiers.html#VVADataset.get_block_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.data_structure.modifiers.VVADataset.get_block_size" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.data_structure.modifiers.VVADataset.get_vocab_size">
+<span class="sig-name descname"><span class="pre">get_vocab_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/data_structure/modifiers.html#VVADataset.get_vocab_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.data_structure.modifiers.VVADataset.get_vocab_size" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="module-dsipts.data_structure.utils">
 <span id="dsipts-data-structure-utils-module"></span><h2>dsipts.data_structure.utils module<a class="headerlink" href="#module-dsipts.data_structure.utils" title="Permalink to this heading"></a></h2>
 <dl class="py class">
