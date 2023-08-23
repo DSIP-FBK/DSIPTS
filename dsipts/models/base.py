@@ -168,7 +168,17 @@ class Base(pl.LightningModule):
                 x = y_hat[:,:,:,1]
             loss = sinkhorn.compute(x,batch['y'])
             
-            
+        elif self.loss_type=='high_order':
+
+
+            if self.use_quantiles==False:
+                x = y_hat[:,:,:,0]
+            else:
+                x = y_hat[:,:,:,1]
+                
+            std_real = torch.sqrt(torch.var(batch['y'], dim=2))
+            std_predict = torch.sqrt(torch.var(x, dim=2))
+            loss = initial_loss +  self.persistence_weight*torch.mean(std_real-std_predict)
         #elif self.loss_type=='triplet':
 
         #    triplet = torch.nn.TripletMarginLoss(margin=0.05, p=1)
