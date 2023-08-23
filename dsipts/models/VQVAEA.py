@@ -10,6 +10,7 @@ import numpy as np
 import logging
 import math
 from torch.nn import functional as F
+from random import random
 
 torch.autograd.set_detect_anomaly(True)
 
@@ -114,7 +115,7 @@ class VQVAEA(Base):
         #                                   weight_decay=self.optim_config.weight_decay_vqvae)
 
 
-        return torch.optim.Adam([
+        return torch.optim.AdamW([
                 {'params':self.vqvae.parameters(),'lr':self.optim_config.lr_vqvae,'weight_decay':self.optim_config.weight_decay_vqvae},
                 {'params':self.transformer.parameters(),'lr':self.optim_config.lr_gpt,'weight_decay':self.optim_config.weight_decay_gpt},
             ])
@@ -160,7 +161,8 @@ class VQVAEA(Base):
                 loss_vqvae = 0
         else:
             vq_loss, data_recon, perplexity,quantized_x,encodings_x = self.vqvae(data.permute(0,2,1))
-
+            if random()<0.001:
+                logging.info(perplexity)
             recon_error = F.mse_loss(data_recon.squeeze(), data.squeeze()) 
             loss_vqvae = recon_error + vq_loss
 

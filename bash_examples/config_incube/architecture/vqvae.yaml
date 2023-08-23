@@ -16,7 +16,7 @@ ts:
 
 optim_config:
   lr_vqvae: 0.001
-  lr_gpt: 0.001
+  lr_gpt: 0.0005
   weight_decay_vqvae: 0.0 #001
   weight_decay_gpt: 0.0 #001
     

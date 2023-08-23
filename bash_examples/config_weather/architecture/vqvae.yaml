@@ -12,10 +12,10 @@ ts:
 
 
 optim_config:
-  lr_vqvae: 0.0001
-  lr_gpt: 0.0005
+  lr_vqvae: 0.00001
+  lr_gpt: 0.00005
   weight_decay_vqvae: 0.0 #001
-  weight_decay_gpt: 0.01 #001
+  weight_decay_gpt: 0.0 #001
     
 model_configs:
   hidden_channels: 8
