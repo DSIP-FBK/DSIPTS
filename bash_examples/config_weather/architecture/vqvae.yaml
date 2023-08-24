@@ -1,0 +1,40 @@
+# @package _global_
+
+model:
+  type: 'vqvae'
+  retrain: true
+ts:
+  name: 'test'
+  version: 1
+  enrich: []
+  use_covariates: true
+
+
+
+optim_config:
+  lr_vqvae: 0.00001
+  lr_gpt: 0.00001
+  weight_decay_vqvae: 0.0 #001
+  weight_decay_gpt: 0.0 #001
+    
+model_configs:
+  hidden_channels: 8
+  commitment_cost: 0.5
+  decay: 0.9
+  d_model: 64
+  max_voc_size: 128  
+  num_layers: 6
+  dropout_rate: 0.1
+  n_heads: 4
+  optim: null
+  persistence_weight: 0.010
+  epoch_vqvae: 700
+  loss_type: 'l1'
+  
+train_config:
+  auto_lr_find: false
+  batch_size: 64
+  max_epochs: 1000
+  gradient_clip_val: null
+  gradient_clip_algorithm: 'norm'
+  

@@ -7,7 +7,7 @@ ts:
   name: 'd'
   version: 1
   enrich: []
-  use_covariates: false
+  use_covariates: true
 
 model_configs:
   cat_emb_dim: 128
@@ -24,6 +24,6 @@ model_configs:
   
 train_config:
   batch_size: 128
-  max_epochs: 500           
+  max_epochs: 1000          
   gradient_clip_val: null
   gradient_clip_algorithm: 'norm'

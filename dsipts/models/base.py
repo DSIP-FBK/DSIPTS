@@ -145,18 +145,19 @@ class Base(pl.LightningModule):
             persistence_error = self.persistence_weight*(2.0-10.0*torch.clamp( torch.abs((y_persistence-y_hat[:,:,:,idx])/(0.001+torch.abs(y_persistence))),min=0.0,max=0.1))
             loss = torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y'])*persistence_error)
             #loss = self.persistence_weight*persistence_loss + (1-self.persistence_weight)*mse_loss
+            
         elif self.loss_type == 'exponential_penalization':
             idx = 1 if self.use_quantiles else 0
             weights = (1+self.persistence_weight*torch.exp(-torch.abs(y_persistence-y_hat[:,:,:,idx])))
             loss =  torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y'])*weights)
         
-        elif self.loss_type=='sinkhorn_heavy':
-            sinkhorn = SinkhornDistance(eps=0.1, max_iter=100, reduction='mean')
-            if self.use_quantiles==False:
-                x = y_hat[:,:,:,0]
-            else:
-                x = y_hat[:,:,:,1]
-            loss = sinkhorn.compute(x,batch['y']) +   self.persistence_weight*sinkhorn.compute(x,batch['y'])/(sinkhorn.compute(x,y_persistence)+0.0001)
+        #elif self.loss_type=='sinkhorn_heavy':
+        #    sinkhorn = SinkhornDistance(eps=0.1, max_iter=100, reduction='mean')
+        #    if self.use_quantiles==False:
+        #        x = y_hat[:,:,:,0]
+        #    else:
+        #        x = y_hat[:,:,:,1]
+        #    loss = sinkhorn.compute(x,batch['y']) +   self.persistence_weight*sinkhorn.compute(x,batch['y'])/(sinkhorn.compute(x,y_persistence)+0.0001)
             
         elif self.loss_type=='sinkhorn':
 
@@ -167,24 +168,38 @@ class Base(pl.LightningModule):
                 x = y_hat[:,:,:,1]
             loss = sinkhorn.compute(x,batch['y'])
             
-            
-        elif self.loss_type=='triplet':
+        elif self.loss_type=='high_order':
 
-            triplet = torch.nn.TripletMarginLoss(margin=0.05, p=1)
+
             if self.use_quantiles==False:
                 x = y_hat[:,:,:,0]
             else:
                 x = y_hat[:,:,:,1]
 
-            anchor = x
-            positive =  batch['y']
-            negative = y_persistence
-            loss = triplet(anchor, positive, negative)
+            std_real = torch.sqrt(torch.var(batch['y'], dim=(0,1))+ 1e-8)
+            std_predict = torch.sqrt(torch.var(x, dim=(0,1))+ 1e-8)
+            loss = initial_loss +  self.persistence_weight*torch.mean(torch.abs(std_real-std_predict))
+        #elif self.loss_type=='triplet':
 
-    
+        #    triplet = torch.nn.TripletMarginLoss(margin=0.05, p=1)
+        #    if self.use_quantiles==False:
+        #        x = y_hat[:,:,:,0]
+        #    else:
+        #        x = y_hat[:,:,:,1]
+        #
+        #    anchor = x
+        #    positive =  batch['y']
+        #    negative = y_persistence
+        #    loss = triplet(anchor, positive, negative)
+
+        elif self.loss_type=='smape':
+            if self.use_quantiles==False:
+                x = y_hat[:,:,:,0]
+            else:
+                x = y_hat[:,:,:,1]
+            loss = torch.mean(2*torch.abs(x-batch['y']) / (torch.abs(x)+torch.abs(batch['y'])))
     
         else:
-
             loss = initial_loss
 
         return loss

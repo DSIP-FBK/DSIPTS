@@ -76,7 +76,7 @@
 <span class="kn">from</span> <span class="nn">torch.optim.lr_scheduler</span> <span class="kn">import</span> <span class="n">StepLR</span>
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">SinkhornDistance</span>
 
 
 <div class="viewcode-block" id="Base"><a class="viewcode-back" href="../../../dsipts.models.html#dsipts.models.base.Base">[docs]</a><span class="k">class</span> <span class="nc">Base</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">):</span>
@@ -90,6 +90,7 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">Base</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">save_hyperparameters</span><span class="p">(</span><span class="n">logger</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">count_epoch</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initialize</span> <span class="o">=</span> <span class="kc">False</span>
 <div class="viewcode-block" id="Base.forward"><a class="viewcode-back" href="../../../dsipts.models.html#dsipts.models.base.Base.forward">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span><span class="nb">dict</span><span class="p">)</span><span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Forlward method used during the training loop</span>
@@ -126,7 +127,21 @@
 <span class="sd">        </span>
 <span class="sd">        :meta private:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>  <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">optim_config</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">optim_config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;lr&#39;</span><span class="p">:</span> <span class="mf">5e-05</span><span class="p">}</span>
+
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>  <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">optim_config</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">initialize</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1">##this is strange, pytorch lighening call twice this if autotune is true</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialize</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">optim</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optim</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">optim</span><span class="p">)</span>
+            <span class="n">optimizer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>  <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">optim_config</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">initialize</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optim_config</span><span class="p">[</span><span class="s1">&#39;lr&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheduler_config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">scheduler</span> <span class="o">=</span> <span class="n">StepLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">scheduler_config</span><span class="p">)</span>
@@ -142,9 +157,7 @@
 <span class="sd">        :meta private:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">y_hat</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
-        <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">))</span>
-        <span class="c1">#self.log(&#39;train_loss&#39;, loss)</span>
-        <span class="k">return</span> <span class="n">loss</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_loss</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span><span class="n">y_hat</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">validation_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -153,10 +166,8 @@
 <span class="sd">        :meta private:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">y_hat</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_loss</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span><span class="n">y_hat</span><span class="p">)</span>
 
-        <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">))</span>
-        <span class="c1">#self.log(&#39;val_loss&#39;, loss)</span>
-        <span class="k">return</span> <span class="n">loss</span>
 
     <span class="k">def</span> <span class="nf">validation_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -181,8 +192,87 @@
         <span class="n">loss</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">outs</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">outs</span> <span class="ow">in</span> <span class="n">outs</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;train_loss&quot;</span><span class="p">,</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span><span class="n">sync_dist</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">count_epoch</span><span class="o">+=</span><span class="mi">1</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Epoch: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">count_epoch</span><span class="si">}</span><span class="s1">, train loss: </span><span class="si">{</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Epoch: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">count_epoch</span><span class="si">}</span><span class="s1">, train loss: </span><span class="si">{</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">compute_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">batch</span><span class="p">,</span><span class="n">y_hat</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        custom loss calculation</span>
+<span class="sd">        </span>
+<span class="sd">        :meta private:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_quantiles</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+            <span class="n">initial_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">y_hat</span><span class="p">[:,:,:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">initial_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])</span>
+        <span class="n">x</span> <span class="o">=</span>  <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;x_num_past&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">idx_target</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;idx_target&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">x_start</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">idx_target</span><span class="p">]</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">y_persistence</span> <span class="o">=</span> <span class="n">x_start</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">future_steps</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_type</span> <span class="o">==</span> <span class="s1">&#39;linear_penalization&#39;</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_quantiles</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="n">persistence_error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">persistence_weight</span><span class="o">*</span><span class="p">(</span><span class="mf">2.0</span><span class="o">-</span><span class="mf">10.0</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span> <span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">((</span><span class="n">y_persistence</span><span class="o">-</span><span class="n">y_hat</span><span class="p">[:,:,:,</span><span class="n">idx</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="mf">0.001</span><span class="o">+</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y_persistence</span><span class="p">))),</span><span class="nb">min</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span><span class="nb">max</span><span class="o">=</span><span class="mf">0.1</span><span class="p">))</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y_hat</span><span class="p">[:,:,:,</span><span class="n">idx</span><span class="p">]</span><span class="o">-</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])</span><span class="o">*</span><span class="n">persistence_error</span><span class="p">)</span>
+            <span class="c1">#loss = self.persistence_weight*persistence_loss + (1-self.persistence_weight)*mse_loss</span>
+            
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_type</span> <span class="o">==</span> <span class="s1">&#39;exponential_penalization&#39;</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_quantiles</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">persistence_weight</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y_persistence</span><span class="o">-</span><span class="n">y_hat</span><span class="p">[:,:,:,</span><span class="n">idx</span><span class="p">])))</span>
+            <span class="n">loss</span> <span class="o">=</span>  <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y_hat</span><span class="p">[:,:,:,</span><span class="n">idx</span><span class="p">]</span><span class="o">-</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])</span><span class="o">*</span><span class="n">weights</span><span class="p">)</span>
+        
+        <span class="c1">#elif self.loss_type==&#39;sinkhorn_heavy&#39;:</span>
+        <span class="c1">#    sinkhorn = SinkhornDistance(eps=0.1, max_iter=100, reduction=&#39;mean&#39;)</span>
+        <span class="c1">#    if self.use_quantiles==False:</span>
+        <span class="c1">#        x = y_hat[:,:,:,0]</span>
+        <span class="c1">#    else:</span>
+        <span class="c1">#        x = y_hat[:,:,:,1]</span>
+        <span class="c1">#    loss = sinkhorn.compute(x,batch[&#39;y&#39;]) +   self.persistence_weight*sinkhorn.compute(x,batch[&#39;y&#39;])/(sinkhorn.compute(x,y_persistence)+0.0001)</span>
+            
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_type</span><span class="o">==</span><span class="s1">&#39;sinkhorn&#39;</span><span class="p">:</span>
+
+            <span class="n">sinkhorn</span> <span class="o">=</span> <span class="n">SinkhornDistance</span><span class="p">(</span><span class="n">eps</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_quantiles</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">y_hat</span><span class="p">[:,:,:,</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">y_hat</span><span class="p">[:,:,:,</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">sinkhorn</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">batch</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])</span>
+            
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_type</span><span class="o">==</span><span class="s1">&#39;high_order&#39;</span><span class="p">:</span>
+
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_quantiles</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">y_hat</span><span class="p">[:,:,:,</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">y_hat</span><span class="p">[:,:,:,</span><span class="mi">1</span><span class="p">]</span>
+                
+            <span class="n">std_real</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+            <span class="n">std_predict</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">initial_loss</span> <span class="o">+</span>  <span class="bp">self</span><span class="o">.</span><span class="n">persistence_weight</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">std_real</span><span class="o">-</span><span class="n">std_predict</span><span class="p">)</span>
+        <span class="c1">#elif self.loss_type==&#39;triplet&#39;:</span>
+
+        <span class="c1">#    triplet = torch.nn.TripletMarginLoss(margin=0.05, p=1)</span>
+        <span class="c1">#    if self.use_quantiles==False:</span>
+        <span class="c1">#        x = y_hat[:,:,:,0]</span>
+        <span class="c1">#    else:</span>
+        <span class="c1">#        x = y_hat[:,:,:,1]</span>
+        <span class="c1">#</span>
+        <span class="c1">#    anchor = x</span>
+        <span class="c1">#    positive =  batch[&#39;y&#39;]</span>
+        <span class="c1">#    negative = y_persistence</span>
+        <span class="c1">#    loss = triplet(anchor, positive, negative)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_type</span><span class="o">==</span><span class="s1">&#39;smape&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_quantiles</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">y_hat</span><span class="p">[:,:,:,</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">y_hat</span><span class="p">[:,:,:,</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">batch</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">+</span><span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">])))</span>
+    
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">initial_loss</span>
+
+        <span class="k">return</span> <span class="n">loss</span></div>
 </pre></div>
 
            </div>

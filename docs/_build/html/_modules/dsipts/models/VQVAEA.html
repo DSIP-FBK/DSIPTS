@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>dsipts.models.VQVAEA &mdash; DISIPTS 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            DISIPTS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">dsipts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../bash_examples.html">bash_examples package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">DISIPTS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">dsipts.models.VQVAEA</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for dsipts.models.VQVAEA</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span>  <span class="n">nn</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">Base</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">QuantileLossMO</span><span class="p">,</span><span class="n">Permute</span><span class="p">,</span> <span class="n">get_device</span><span class="p">,</span> <span class="n">get_activation</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">.vva.minigpt</span> <span class="kn">import</span> <span class="n">Block</span>
+<span class="kn">from</span> <span class="nn">.vva.vqvae</span> <span class="kn">import</span> <span class="n">VQVAE</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">torch.nn</span> <span class="kn">import</span> <span class="n">functional</span> <span class="k">as</span> <span class="n">F</span>
+<span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">random</span>
+
+<span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">set_detect_anomaly</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+        
+
+<div class="viewcode-block" id="VQVAEA"><a class="viewcode-back" href="../../../dsipts.models.html#dsipts.models.VQVAEA.VQVAEA">[docs]</a><span class="k">class</span> <span class="nc">VQVAEA</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">past_steps</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">future_steps</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">past_channels</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">future_channels</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">hidden_channels</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">embs</span><span class="p">:</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+                 <span class="n">d_model</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">max_voc_size</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">num_layers</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">dropout_rate</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span>
+                 <span class="n">commitment_cost</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span>
+                 <span class="n">decay</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span>
+                 <span class="n">n_heads</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">out_channels</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">epoch_vqvae</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">persistence_weight</span><span class="p">:</span><span class="nb">float</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                 <span class="n">loss_type</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;l1&#39;</span><span class="p">,</span>
+                 <span class="n">quantiles</span><span class="p">:</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span><span class="o">=</span><span class="p">[],</span>
+                 <span class="n">optim</span><span class="p">:</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="kc">None</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">optim_config</span><span class="p">:</span><span class="nb">dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">scheduler_config</span><span class="p">:</span><span class="nb">dict</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Custom encoder-decoder </span>
+<span class="sd">        Args:</span>
+<span class="sd">            past_steps (int):  number of past datapoints used </span>
+<span class="sd">            future_steps (int): number of future lag to predict</span>
+<span class="sd">            past_channels (int): number of numeric past variables, must be &gt;0</span>
+<span class="sd">            future_channels (int): number of future numeric variables </span>
+<span class="sd">            embs (List): list of the initial dimension of the categorical variables</span>
+<span class="sd">            cat_emb_dim (int): final dimension of each categorical variable</span>
+<span class="sd">            hidden_RNN (int): hidden size of the RNN block</span>
+<span class="sd">            num_layers_RNN (int): number of RNN layers</span>
+<span class="sd">            kind (str): one among GRU or LSTM</span>
+<span class="sd">            kernel_size (int): kernel size in the encoder convolutional block</span>
+<span class="sd">            sum_emb (bool): if true the contribution of each embedding will be summed-up otherwise stacked</span>
+<span class="sd">            out_channels (int):  number of output channels</span>
+<span class="sd">            activation (str, optional): activation fuction function pytorch. Default torch.nn.ReLU</span>
+<span class="sd">            remove_last (bool, optional): if True the model learns the difference respect to the last seen point</span>
+<span class="sd">            persistence_weight (float):  weight controlling the divergence from persistence model. Default 0</span>
+<span class="sd">            loss_type (str, optional): this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,</span>
+<span class="sd">            quantiles (List[int], optional): we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].</span>
+<span class="sd">            dropout_rate (float, optional): dropout rate in Dropout layers</span>
+<span class="sd">            use_bn (bool, optional): if true BN layers will be added and dropouts will be removed</span>
+<span class="sd">            use_glu (bool,optional): use GLU for feature selection. Defaults to True.</span>
+<span class="sd">            glu_percentage (float, optiona): percentage of features to use. Defaults to 1.0.</span>
+<span class="sd">            n_classes (int): number of classes (0 in regression)</span>
+<span class="sd">            optim (str, optional): if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.</span>
+<span class="sd">            optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.</span>
+<span class="sd">            scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        
+        <span class="nb">super</span><span class="p">(</span><span class="n">VQVAEA</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_hyperparameters</span><span class="p">(</span><span class="n">logger</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span> <span class="o">=</span> <span class="n">d_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_voc_size</span> <span class="o">=</span> <span class="n">max_voc_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">future_steps</span> <span class="o">=</span> <span class="n">future_steps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epoch_vqvae</span> <span class="o">=</span> <span class="n">epoch_vqvae</span>
+        <span class="c1">##PRIMA VQVAE</span>
+        <span class="k">assert</span> <span class="n">out_channels</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Working only for one singal&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">past_steps</span><span class="o">%</span><span class="mi">2</span><span class="o">==</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">future_steps</span><span class="o">%</span><span class="mi">2</span><span class="o">==</span><span class="mi">0</span><span class="p">,</span> <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;There are some issue with the deconder in case of odd length&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vqvae</span> <span class="o">=</span> <span class="n">VQVAE</span><span class="p">(</span><span class="n">in_channels</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">hidden_channels</span><span class="o">=</span><span class="n">hidden_channels</span><span class="p">,</span><span class="n">out_channels</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">num_embeddings</span><span class="o">=</span> <span class="n">max_voc_size</span><span class="p">,</span><span class="n">embedding_dim</span><span class="o">=</span><span class="n">d_model</span><span class="p">,</span><span class="n">commitment_cost</span><span class="o">=</span><span class="n">commitment_cost</span><span class="p">,</span><span class="n">decay</span><span class="o">=</span><span class="n">decay</span>  <span class="p">)</span>
+        
+        <span class="c1">##POI GPT</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">block_size</span> <span class="o">=</span> <span class="n">past_steps</span><span class="o">//</span><span class="mi">2</span> <span class="o">+</span> <span class="n">future_steps</span><span class="o">//</span><span class="mi">2</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sentence_length</span> <span class="o">=</span> <span class="n">future_steps</span><span class="o">//</span><span class="mi">2</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">wte</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="p">(</span><span class="n">max_voc_size</span><span class="p">,</span> <span class="n">d_model</span><span class="p">),</span>
+            <span class="n">wpe</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">block_size</span><span class="p">,</span> <span class="n">d_model</span><span class="p">),</span>
+            <span class="n">drop</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_rate</span><span class="p">),</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span><span class="n">Block</span><span class="p">(</span> <span class="n">d_model</span><span class="p">,</span><span class="n">dropout_rate</span><span class="p">,</span><span class="n">n_heads</span><span class="p">,</span><span class="n">dropout_rate</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">block_size</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_layers</span><span class="p">)]),</span> <span class="c1">##care can be different dropouts</span>
+            <span class="n">ln_f</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span><span class="n">d_model</span><span class="p">),</span>
+            <span class="n">lm_head</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">max_voc_size</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="p">))</span>
+        <span class="c1"># report number of parameters (note we don&#39;t count the decoder parameters in lm_head)</span>
+        <span class="n">n_params</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;number of parameters: </span><span class="si">%.2f</span><span class="s2">M&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n_params</span><span class="o">/</span><span class="mf">1e6</span><span class="p">,))</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_quantiles</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_classification</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optim_config</span> <span class="o">=</span> <span class="n">optim_config</span>
+       
+        
+
+        
+    <span class="k">def</span> <span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        
+    
+        <span class="c1">#return torch.optim.Adam(self.vqvae.parameters(), lr=self.optim_config.lr_vqvae,</span>
+        <span class="c1">#                                   weight_decay=self.optim_config.weight_decay_vqvae)</span>
+
+
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">AdamW</span><span class="p">([</span>
+                <span class="p">{</span><span class="s1">&#39;params&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">vqvae</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span><span class="s1">&#39;lr&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">optim_config</span><span class="o">.</span><span class="n">lr_vqvae</span><span class="p">,</span><span class="s1">&#39;weight_decay&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">optim_config</span><span class="o">.</span><span class="n">weight_decay_vqvae</span><span class="p">},</span>
+                <span class="p">{</span><span class="s1">&#39;params&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span><span class="s1">&#39;lr&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">optim_config</span><span class="o">.</span><span class="n">lr_gpt</span><span class="p">,</span><span class="s1">&#39;weight_decay&#39;</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">optim_config</span><span class="o">.</span><span class="n">weight_decay_gpt</span><span class="p">},</span>
+            <span class="p">])</span>
+       
+
+        
+<div class="viewcode-block" id="VQVAEA.gpt"><a class="viewcode-back" href="../../../dsipts.models.html#dsipts.models.VQVAEA.VQVAEA.gpt">[docs]</a>    <span class="k">def</span> <span class="nf">gpt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">tokens</span><span class="p">):</span>
+    
+    
+        <span class="n">b</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="n">tokens</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">t</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">block_size</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Cannot forward sequence of length </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2">, block size is only </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">block_size</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># shape (1, t)</span>
+
+        <span class="c1"># forward the GPT model itself</span>
+        <span class="n">tok_emb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">wte</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="c1"># token embeddings of shape (b, t, n_embd)</span>
+        <span class="n">pos_emb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">wpe</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span> <span class="c1"># position embeddings of shape (1, t, n_embd)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">tok_emb</span> <span class="o">+</span> <span class="n">pos_emb</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">h</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">block</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">ln_f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformer</span><span class="o">.</span><span class="n">lm_head</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">logits</span></div>
+
+<div class="viewcode-block" id="VQVAEA.forward"><a class="viewcode-back" href="../../../dsipts.models.html#dsipts.models.VQVAEA.VQVAEA.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">):</span>
+        
+        <span class="c1">##VQVAE</span>
+        <span class="c1">#current_epoch = self.current_epoch </span>
+        <span class="c1">#if current_epoch &lt; 1000:</span>
+        <span class="c1">#    self.vqvae.train()</span>
+        <span class="c1">#    loss_gpt = 100</span>
+        <span class="c1">#else:</span>
+        <span class="c1">#    self.vqvae.eval()</span>
+        <span class="n">idx_target</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;idx_target&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1">#(tensor([194, 163, 174, 176, 160, 168, 175]),</span>
+        <span class="c1"># tensor([ -1,  -1,  -1, 160, 168, 175, 160]))</span>
+
+           
+        <span class="n">data</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;x_num_past&#39;</span><span class="p">][:,:,</span><span class="n">idx_target</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_epoch</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">epoch_vqvae</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+                <span class="n">vqloss</span><span class="p">,</span> <span class="n">data_recon</span><span class="p">,</span> <span class="n">perplexity</span><span class="p">,</span><span class="n">quantized_x</span><span class="p">,</span><span class="n">encodings_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vqvae</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+                <span class="n">loss_vqvae</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vq_loss</span><span class="p">,</span> <span class="n">data_recon</span><span class="p">,</span> <span class="n">perplexity</span><span class="p">,</span><span class="n">quantized_x</span><span class="p">,</span><span class="n">encodings_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vqvae</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">random</span><span class="p">()</span><span class="o">&lt;</span><span class="mf">0.001</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">perplexity</span><span class="p">)</span>
+            <span class="n">recon_error</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">mse_loss</span><span class="p">(</span><span class="n">data_recon</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">data</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span> 
+            <span class="n">loss_vqvae</span> <span class="o">=</span> <span class="n">recon_error</span> <span class="o">+</span> <span class="n">vq_loss</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_epoch</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">epoch_vqvae</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span><span class="n">quantized_y</span><span class="p">,</span><span class="n">encodings_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vqvae</span><span class="p">(</span><span class="n">batch</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+            
+            <span class="c1">##GPT</span>
+            <span class="n">tokens</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">encodings_x</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span><span class="n">encodings_y</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)[:,</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">tokens_y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">encodings_x</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)[:,</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">encodings_y</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)],</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">tokens_y</span><span class="p">[:,</span><span class="mi">0</span><span class="p">:</span><span class="n">encodings_x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpt</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+            <span class="n">loss_gpt</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">logits</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">logits</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)),</span><span class="n">tokens_y</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">ignore_index</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+            
+            <span class="c1">##adesso devo ricostruire la y perche&#39; e quello che voglio come output</span>
+            <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+                <span class="n">encoding_indices</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">logits</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">max_voc_size</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c1">##</span>
+                <span class="n">encodings</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">encoding_indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">vqvae</span><span class="o">.</span><span class="n">_vq_vae</span><span class="o">.</span><span class="n">_num_embeddings</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+                <span class="n">encodings</span><span class="o">.</span><span class="n">scatter_</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">encoding_indices</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">quantized</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">encodings</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vqvae</span><span class="o">.</span><span class="n">_vq_vae</span><span class="o">.</span><span class="n">_embedding</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">)</span> <span class="c1">##B x L x hidden</span>
+                <span class="n">quantized</span> <span class="o">=</span> <span class="n">quantized</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span>
+                <span class="n">y_hat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vqvae</span><span class="o">.</span><span class="n">_decoder</span><span class="p">(</span><span class="n">quantized</span><span class="p">,</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()[:,</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">future_steps</span><span class="p">:]</span>
+            
+            <span class="n">l1_loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">L1Loss</span><span class="p">()(</span><span class="n">y_hat</span><span class="p">,</span><span class="n">batch</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
+
+            <span class="k">return</span> <span class="n">y_hat</span><span class="p">,</span> <span class="n">loss_vqvae</span><span class="o">+</span><span class="n">loss_gpt</span><span class="o">+</span><span class="n">l1_loss</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">loss_vqvae</span></div>
+
+
+    <span class="k">def</span> <span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        pythotrch lightening stuff</span>
+<span class="sd">        </span>
+<span class="sd">        :meta private:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">loss</span>
+    
+    <span class="k">def</span> <span class="nf">validation_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        pythotrch lightening stuff</span>
+<span class="sd">        </span>
+<span class="sd">        :meta private:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">loss</span>
+
+
+<div class="viewcode-block" id="VQVAEA.generate"><a class="viewcode-back" href="../../../dsipts.models.html#dsipts.models.VQVAEA.VQVAEA.generate">[docs]</a>    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">max_new_tokens</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">do_sample</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">num_samples</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Take a conditioning sequence of indices idx (LongTensor of shape (b,t)) and complete</span>
+<span class="sd">        the sequence max_new_tokens times, feeding the predictions back into the model each time.</span>
+<span class="sd">        Most likely you&#39;ll want to make sure to be in model.eval() mode of operation for this.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">do_sample</span><span class="o">==</span><span class="kc">False</span><span class="p">,</span><span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;NOT IMPLEMENTED YET&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">do_sample</span><span class="p">:</span>
+            
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">num_samples</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_new_tokens</span><span class="p">):</span>
+                <span class="n">tmp</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_samples</span><span class="p">):</span>
+                    <span class="n">idx_cond</span> <span class="o">=</span> <span class="n">idx</span><span class="p">[</span><span class="n">i</span><span class="p">,:,:]</span> <span class="k">if</span> <span class="n">idx</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">block_size</span> <span class="k">else</span> <span class="n">idx</span><span class="p">[</span><span class="n">i</span><span class="p">,:,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">block_size</span><span class="p">:]</span>
+                    <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpt</span><span class="p">(</span><span class="n">idx_cond</span><span class="p">)</span>
+                    <span class="n">logits</span> <span class="o">=</span> <span class="n">logits</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">/</span> <span class="n">temperature</span>
+                    <span class="k">if</span> <span class="n">top_k</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">v</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">top_k</span><span class="p">)</span>
+                        <span class="n">logits</span><span class="p">[</span><span class="n">logits</span> <span class="o">&lt;</span> <span class="n">v</span><span class="p">[:,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]]</span> <span class="o">=</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;Inf&#39;</span><span class="p">)</span>
+                    <span class="n">probs</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">idx_next</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">multinomial</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">replacement</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">tmp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx_next</span><span class="p">)</span>
+                <span class="n">tmp</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">idx</span><span class="p">,</span> <span class="n">tmp</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">idx</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_new_tokens</span><span class="p">):</span>
+                
+                <span class="c1"># if the sequence context is growing too long we must crop it at block_size</span>
+                <span class="n">idx_cond</span> <span class="o">=</span> <span class="n">idx</span> <span class="k">if</span> <span class="n">idx</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">block_size</span> <span class="k">else</span> <span class="n">idx</span><span class="p">[:,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">block_size</span><span class="p">:]</span>
+                <span class="c1"># forward the model to get the logits for the index in the sequence</span>
+                <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpt</span><span class="p">(</span><span class="n">idx_cond</span><span class="p">)</span>
+                <span class="c1"># pluck the logits at the final step and scale by desired temperature</span>
+                <span class="n">logits</span> <span class="o">=</span> <span class="n">logits</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">/</span> <span class="n">temperature</span>
+                <span class="c1"># optionally crop the logits to only the top k options</span>
+                <span class="k">if</span> <span class="n">top_k</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">v</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">top_k</span><span class="p">)</span>
+                    <span class="n">logits</span><span class="p">[</span><span class="n">logits</span> <span class="o">&lt;</span> <span class="n">v</span><span class="p">[:,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]]</span> <span class="o">=</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;Inf&#39;</span><span class="p">)</span>
+                <span class="c1"># apply softmax to convert logits to (normalized) probabilities</span>
+                <span class="n">probs</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="c1"># either sample from the distribution or take the most likely element</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">idx_next</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="c1"># append sampled index to the running sequence and continue</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">idx</span><span class="p">,</span> <span class="n">idx_next</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">idx</span></div>
+
+<div class="viewcode-block" id="VQVAEA.inference"><a class="viewcode-back" href="../../../dsipts.models.html#dsipts.models.VQVAEA.VQVAEA.inference">[docs]</a>    <span class="k">def</span> <span class="nf">inference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span><span class="nb">dict</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">:</span>
+
+        <span class="n">idx_target</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;idx_target&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;x_num_past&#39;</span><span class="p">][:,:,</span><span class="n">idx_target</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">vq_loss</span><span class="p">,</span> <span class="n">data_recon</span><span class="p">,</span> <span class="n">perplexity</span><span class="p">,</span><span class="n">quantized_x</span><span class="p">,</span><span class="n">encodings_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vqvae</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">encodings_x</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">sentence_length</span><span class="p">]</span>
+        <span class="c1"># let the model sample the rest of the sequence</span>
+        <span class="n">cat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sentence_length</span><span class="p">,</span> <span class="n">do_sample</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># non riesco a gestirla qui :-)</span>
+        <span class="n">encoding_indices</span> <span class="o">=</span> <span class="n">cat</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c1">##</span>
+        <span class="n">encodings</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">encoding_indices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">vqvae</span><span class="o">.</span><span class="n">_vq_vae</span><span class="o">.</span><span class="n">_num_embeddings</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">encodings</span><span class="o">.</span><span class="n">scatter_</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">encoding_indices</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">quantized</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">encodings</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vqvae</span><span class="o">.</span><span class="n">_vq_vae</span><span class="o">.</span><span class="n">_embedding</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">)</span> <span class="c1">##B x L x hidden</span>
+        <span class="n">quantized</span> <span class="o">=</span> <span class="n">quantized</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span>
+        <span class="n">y_hat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vqvae</span><span class="o">.</span><span class="n">_decoder</span><span class="p">(</span><span class="n">quantized</span><span class="p">,</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()[:,</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">future_steps</span><span class="p">:]</span>
+
+        <span class="c1">## BxLxCx3</span>
+        <span class="k">return</span> <span class="n">y_hat</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span></div></div>
+    
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andrea Gobbi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

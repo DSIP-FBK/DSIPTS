@@ -17,7 +17,7 @@ model_configs:
   kind: 'gru'
   sum_emb: true
   use_bn: false  
-  optim: torch.optim.SGD
+  optim: torch.optim.Adam
   activation: torch.nn.PReLU
   dropout_rate: 0.5
   persistence_weight: 0.010

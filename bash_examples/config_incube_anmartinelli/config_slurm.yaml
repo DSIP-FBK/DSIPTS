@@ -3,8 +3,8 @@ dataset:
   path: '/storage/DSIP/edison/TsExp/data/incube'
 
 scheduler_config:
-  gamma: 0.5
-  step_size: 150
+  gamma: 0.05
+  step_size: 75
 
 optim_config:
   lr: 0.00005
@@ -21,8 +21,8 @@ model_configs:
   loss_type: null
 
 split_params:
-  perc_train: 0.7
-  perc_valid: 0.15
+  perc_train: 0.8
+  perc_valid: 0.1
   range_train: null
   range_validation: null
   range_test: null
@@ -48,14 +48,14 @@ inference:
 
 defaults:
   - _self_
-  - architecture: null
+  - architecture: null 
   - override hydra/launcher: submitit_slurm #joblib 
 
 hydra:
   launcher:
     submitit_folder: ${hydra.sweep.dir}/.submitit/%j
     timeout_min: 6000
-    partition: gpu-A40 #A40 #gpu-V100
+    partition: gpu-V100 #A40 #gpu-V100
     mem_gb: 6
     nodes: 1
     gres: gpu:1
@@ -68,4 +68,4 @@ hydra:
   output_subdir: null 
   sweeper:
     params:
-      architecture: tft2
+      architecture: glob(*) 

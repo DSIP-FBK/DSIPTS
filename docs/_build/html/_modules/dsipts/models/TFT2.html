@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>dsipts.models.TFT2 &mdash; DISIPTS 0.0.1 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            DISIPTS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">dsipts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../bash_examples.html">bash_examples package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">DISIPTS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">dsipts.models.TFT2</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for dsipts.models.TFT2</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn</span> <span class="k">as</span> <span class="nn">nn</span>
+<span class="kn">from</span> <span class="nn">.tft2</span> <span class="kn">import</span> <span class="n">sub_nn</span>
+<span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span>  <span class="n">Base</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">get_device</span><span class="p">,</span> <span class="n">QuantileLossMO</span><span class="p">,</span> <span class="n">L1Loss</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<div class="viewcode-block" id="TFT2"><a class="viewcode-back" href="../../../dsipts.models.html#dsipts.models.TFT2.TFT2">[docs]</a><span class="k">class</span> <span class="nc">TFT2</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                 <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">out_channels</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">past_steps</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">future_steps</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> 
+                 <span class="n">past_channels</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">future_channels</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span>
+                 <span class="n">num_layers_RNN</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">embs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+                 <span class="n">d_head</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">n_head</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">dropout_rate</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                 <span class="n">persistence_weight</span><span class="p">:</span><span class="nb">float</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                 <span class="n">loss_type</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;l1&#39;</span><span class="p">,</span>
+                 <span class="n">quantiles</span><span class="p">:</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span><span class="o">=</span><span class="p">[],</span>
+                 <span class="n">optim</span><span class="p">:</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="kc">None</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">optim_config</span><span class="p">:</span><span class="nb">dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">scheduler_config</span><span class="p">:</span><span class="nb">dict</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">-&gt;</span><span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_hyperparameters</span><span class="p">(</span><span class="n">logger</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># assert out_channels==1, logging.info(&quot;ONLY ONE CHANNEL IMPLEMENTED&quot;)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">future_steps</span> <span class="o">=</span> <span class="n">future_steps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span> <span class="o">=</span> <span class="n">d_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">out_channels</span> <span class="o">=</span> <span class="n">out_channels</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_linear</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">out_channels</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span> <span class="c1"># same for past and fut! (same variable)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aux_past_channels</span> <span class="o">=</span> <span class="n">past_channels</span> <span class="o">-</span> <span class="n">out_channels</span> <span class="c1"># -1 because one channel is occupied by the target variable</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linear_aux_past</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aux_past_channels</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aux_fut_channels</span> <span class="o">=</span> <span class="n">future_channels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linear_aux_fut</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">d_model</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aux_fut_channels</span><span class="p">)])</span>
+        <span class="n">seq_len</span> <span class="o">=</span> <span class="n">past_steps</span><span class="o">+</span><span class="n">future_steps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">emb_cat_var</span> <span class="o">=</span> <span class="n">sub_nn</span><span class="o">.</span><span class="n">embedding_cat_variables</span><span class="p">(</span><span class="n">seq_len</span><span class="p">,</span> <span class="n">future_steps</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">embs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rnn</span> <span class="o">=</span> <span class="n">sub_nn</span><span class="o">.</span><span class="n">LSTM_Model</span><span class="p">(</span><span class="n">num_var</span><span class="o">=</span><span class="n">out_channels</span><span class="p">,</span> 
+                                     <span class="n">d_model</span> <span class="o">=</span> <span class="n">d_model</span><span class="p">,</span> 
+                                     <span class="n">pred_step</span> <span class="o">=</span> <span class="n">future_steps</span><span class="p">,</span> 
+                                     <span class="n">num_layers</span> <span class="o">=</span> <span class="n">num_layers_RNN</span><span class="p">,</span> 
+                                     <span class="n">dropout</span> <span class="o">=</span> <span class="n">dropout_rate</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">res_conn1_past</span> <span class="o">=</span> <span class="n">sub_nn</span><span class="o">.</span><span class="n">ResidualConnection</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">dropout_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">res_conn1_fut</span> <span class="o">=</span> <span class="n">sub_nn</span><span class="o">.</span><span class="n">ResidualConnection</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">dropout_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grn1_past</span> <span class="o">=</span> <span class="n">sub_nn</span><span class="o">.</span><span class="n">GRN</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">dropout_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grn1_fut</span> <span class="o">=</span> <span class="n">sub_nn</span><span class="o">.</span><span class="n">GRN</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">dropout_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">InterpretableMultiHead</span> <span class="o">=</span> <span class="n">sub_nn</span><span class="o">.</span><span class="n">InterpretableMultiHead</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">d_head</span><span class="p">,</span> <span class="n">n_head</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">res_conn2_att</span> <span class="o">=</span> <span class="n">sub_nn</span><span class="o">.</span><span class="n">ResidualConnection</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">dropout_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grn2_att</span> <span class="o">=</span> <span class="n">sub_nn</span><span class="o">.</span><span class="n">GRN</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">dropout_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">res_conn3_out</span> <span class="o">=</span> <span class="n">sub_nn</span><span class="o">.</span><span class="n">ResidualConnection</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">dropout_rate</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">persistence_weight</span> <span class="o">=</span> <span class="n">persistence_weight</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">loss_type</span> <span class="o">=</span> <span class="n">loss_type</span>
+
+        <span class="c1"># output, handling quantiles or not</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span> <span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span><span class="o">==</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mul</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">use_quantiles</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outLinear</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_type</span> <span class="o">==</span> <span class="s1">&#39;mse&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">MSELoss</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">L1Loss</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mul</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">use_quantiles</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outLinear</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">d_model</span><span class="p">,</span> <span class="n">out_channels</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">quantiles</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">QuantileLossMO</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optim</span> <span class="o">=</span> <span class="n">optim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optim_config</span> <span class="o">=</span> <span class="n">optim_config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scheduler_config</span> <span class="o">=</span> <span class="n">scheduler_config</span>
+
+<div class="viewcode-block" id="TFT2.forward"><a class="viewcode-back" href="../../../dsipts.models.html#dsipts.models.TFT2.TFT2.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">):</span>
+
+        <span class="n">num_past</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;x_num_past&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="c1"># PAST TARGET NUMERICAL VARIABLE</span>
+        <span class="c1"># always available: autoregressive variable</span>
+        <span class="c1"># compute rnn prediction</span>
+        <span class="n">idx_target</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;idx_target&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">target_num_past</span> <span class="o">=</span> <span class="n">num_past</span><span class="p">[:,:,</span><span class="n">idx_target</span><span class="p">]</span>
+        <span class="n">target_emb_num_past</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_linear</span><span class="p">(</span><span class="n">target_num_past</span><span class="p">)</span> <span class="c1"># target_variables comunicating with each others</span>
+        <span class="n">target_num_fut_approx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnn</span><span class="p">(</span><span class="n">target_emb_num_past</span><span class="p">)</span>
+        <span class="c1"># embed future redictions</span>
+        <span class="n">target_emb_num_fut_approx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_linear</span><span class="p">(</span><span class="n">target_num_fut_approx</span><span class="p">)</span>
+
+        <span class="c1">### create variable summary_past and summary_fut</span>
+        <span class="c1"># at the beggining it is composed only by past and future target variable</span>
+        <span class="n">summary_past</span> <span class="o">=</span> <span class="n">target_emb_num_past</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">summary_fut</span> <span class="o">=</span> <span class="n">target_emb_num_fut_approx</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="c1"># now we search for others categorical and numerical variables!</span>
+
+
+        <span class="c1">### PAST NUMERICAL VARIABLES</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">aux_past_channels</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span> <span class="c1"># so we have more numerical variables about past</span>
+            <span class="c1"># AUX = AUXILIARY variables</span>
+            <span class="n">aux_num_past</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_var</span><span class="p">(</span><span class="n">num_past</span><span class="p">,</span> <span class="n">idx_target</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="c1"># remove the target index on the second dimension</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">aux_past_channels</span> <span class="o">==</span> <span class="n">aux_num_past</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">aux_past_channels</span><span class="si">}</span><span class="s2"> LAYERS FOR PAST VARS AND </span><span class="si">{</span><span class="n">aux_num_past</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2"> VARS&quot;</span><span class="p">)</span> <span class="c1"># to check if we are using the expected number of variables about past</span>
+            <span class="n">aux_emb_num_past</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">aux_num_past</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">linear_aux_past</span><span class="p">):</span>
+                <span class="n">aux_emb_past</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">aux_num_past</span><span class="p">[:,:,[</span><span class="n">i</span><span class="p">]])</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">aux_emb_num_past</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">aux_emb_num_past</span><span class="p">,</span> <span class="n">aux_emb_past</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="c1">## update summary about past</span>
+            <span class="n">summary_past</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">summary_past</span><span class="p">,</span> <span class="n">aux_emb_num_past</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        
+        <span class="c1">### FUTURE NUMERICAL VARIABLES</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">aux_fut_channels</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span> <span class="c1"># so we have more numerical variables about future</span>
+            <span class="n">aux_num_fut</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;x_num_future&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">aux_fut_channels</span> <span class="o">==</span> <span class="n">aux_num_fut</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">aux_fut_channels</span><span class="si">}</span><span class="s2"> LAYERS FOR PAST VARS AND </span><span class="si">{</span><span class="n">aux_num_fut</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2"> VARS&quot;</span><span class="p">)</span>  <span class="c1"># to check if we are using the expected number of variables about fut</span>
+            <span class="n">aux_emb_num_fut</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">()</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">aux_num_fut</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">linear_aux_fut</span><span class="p">):</span>
+                <span class="n">aux_emb_fut</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">aux_num_fut</span><span class="p">[:,:,[</span><span class="n">j</span><span class="p">]])</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">aux_emb_num_fut</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">aux_emb_num_fut</span><span class="p">,</span> <span class="n">aux_emb_fut</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="c1">## update summary about future</span>
+            <span class="n">summary_fut</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">summary_fut</span><span class="p">,</span> <span class="n">aux_emb_num_fut</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1">### CATEGORICAL VARIABLES </span>
+        <span class="k">if</span> <span class="s1">&#39;x_cat_past&#39;</span> <span class="ow">in</span> <span class="n">batch</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span> <span class="s1">&#39;x_cat_future&#39;</span> <span class="ow">in</span> <span class="n">batch</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span> <span class="c1"># if we have both</span>
+            <span class="c1"># HERE WE ASSUME SAME NUMBER AND KIND OF VARIABLES IN PAST AND FUTURE</span>
+            <span class="n">cat_past</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;x_cat_past&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">cat_fut</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;x_cat_future&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">cat_full</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">cat_past</span><span class="p">,</span> <span class="n">cat_fut</span><span class="p">),</span> <span class="n">dim</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="c1"># EMB CATEGORICAL VARIABLES AND THEN SPLIT IN PAST AND FUTURE</span>
+            <span class="n">emb_cat_full</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">emb_cat_var</span><span class="p">(</span><span class="n">cat_full</span><span class="p">)</span>
+            <span class="n">cat_emb_past</span> <span class="o">=</span> <span class="n">emb_cat_full</span><span class="p">[:,:</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">future_steps</span><span class="p">,:,:]</span>
+            <span class="n">cat_emb_fut</span> <span class="o">=</span> <span class="n">emb_cat_full</span><span class="p">[:,</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">future_steps</span><span class="p">:,:,:]</span>
+            <span class="c1">## update summary</span>
+            <span class="c1"># past</span>
+            <span class="n">summary_past</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">summary_past</span><span class="p">,</span> <span class="n">cat_emb_past</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="c1"># future</span>
+            <span class="n">summary_fut</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">summary_fut</span><span class="p">,</span> <span class="n">cat_emb_fut</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># &gt;&gt;&gt; PAST:</span>
+        <span class="n">summary_past</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">summary_past</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="c1"># &gt;&gt;&gt; FUTURE:</span>
+        <span class="n">summary_fut</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">summary_fut</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1">### Residual Connection from LSTM</span>
+        <span class="n">summary_past</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">res_conn1_past</span><span class="p">(</span><span class="n">summary_past</span><span class="p">,</span> <span class="n">target_emb_num_past</span><span class="p">)</span>
+        <span class="n">summary_fut</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">res_conn1_fut</span><span class="p">(</span><span class="n">summary_fut</span><span class="p">,</span> <span class="n">target_emb_num_fut_approx</span><span class="p">)</span>
+
+        <span class="c1">### GRN1</span>
+        <span class="n">summary_past</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grn1_past</span><span class="p">(</span><span class="n">summary_past</span><span class="p">)</span>
+        <span class="n">summary_fut</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grn1_fut</span><span class="p">(</span><span class="n">summary_fut</span><span class="p">)</span>
+
+        <span class="c1">### INTERPRETABLE MULTI HEAD ATTENTION</span>
+        <span class="n">attention</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">InterpretableMultiHead</span><span class="p">(</span><span class="n">summary_fut</span><span class="p">,</span> <span class="n">summary_past</span><span class="p">,</span> <span class="n">target_emb_num_past</span><span class="p">)</span>
+
+        <span class="c1">### Residual Connection from ATT</span>
+        <span class="n">attention</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">res_conn2_att</span><span class="p">(</span><span class="n">attention</span><span class="p">,</span> <span class="n">attention</span><span class="p">)</span>
+
+        <span class="c1">### GRN</span>
+        <span class="n">attention</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">grn2_att</span><span class="p">(</span><span class="n">attention</span><span class="p">)</span>
+
+        <span class="c1">### Resuidual Connection from GRN1</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">res_conn3_out</span><span class="p">(</span><span class="n">attention</span><span class="p">,</span> <span class="n">summary_fut</span><span class="p">)</span>
+
+        <span class="c1">### OUT</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outLinear</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mul</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">future_steps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_channels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mul</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+    
+    <span class="c1">#function to extract from batch[&#39;x_num_past&#39;] all variables except the one autoregressive</span>
+<div class="viewcode-block" id="TFT2.remove_var"><a class="viewcode-back" href="../../../dsipts.models.html#dsipts.models.TFT2.TFT2.remove_var">[docs]</a>    <span class="k">def</span> <span class="nf">remove_var</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">indexes_to_exclude</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dimension</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span><span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Function to remove variables from tensors in chosen dimension and position </span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tensor (torch.Tensor): starting tensor</span>
+<span class="sd">            indexes_to_exclude (int): index of the chosen dimension we want t oexclude</span>
+<span class="sd">            dimension (int): dimension of the tensor on which we want to work</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.Tensor: new tensor without the chosen variables</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">remaining_idx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tensor</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">dimension</span><span class="p">))</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">indexes_to_exclude</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">tensor</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="c1"># Select the desired sub-tensor</span>
+        <span class="n">extracted_subtensors</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">index_select</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="n">dimension</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">remaining_idx</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">extracted_subtensors</span></div></div>
+    
+    <span class="c1">#python train.py  --config-dir=config_incube_anmartinelli --config-name=config_slurm architecture=tft2</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Andrea Gobbi.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

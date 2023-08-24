@@ -1,5 +1,5 @@
 #models: ['config_used/attention.yaml','config_used/persistent.yaml','config_used/linear.yaml','config_used/dlinear.yaml','config_used/nlinear.yaml','config_used/lstm.yaml','config_used/gru.yaml']
-models: 'config_incube_anmartinelli'
+models: 'config_incube'
 dirpath: "/storage/DSIP/edison/TsExp/data/incube"
 set: 'test'
 name: 'prova'
@@ -14,7 +14,7 @@ hydra:
   launcher:
     submitit_folder: ${hydra.sweep.dir}/.submitit/%j
     timeout_min: 6000
-    partition: gpu-A40
+    partition: gpu-V100
     mem_gb: 6
     nodes: 1
     gres: gpu:1

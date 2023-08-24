@@ -7,7 +7,8 @@ ts:
   name: 'gru'
   version: 1
   enrich: []
-  use_covariates: false
+  use_covariates: true
+
 
 model_configs:
   cat_emb_dim: 128
@@ -20,11 +21,11 @@ model_configs:
   optim: torch.optim.SGD
   activation: torch.nn.PReLU
   dropout_rate: 0.5
-  persistence_weight: 0.010
+  persistence_weight: 10.010
   loss_type: 'l1'
   remove_last: true
 
 train_config:
   batch_size: 128
-  max_epochs: 500
+  max_epochs: 1000
             
