@@ -24,7 +24,7 @@ model_configs:
   max_voc_size: 128  
   token_split: 4     
   num_layers: 4
-  dropout_rate: 0.25
+  dropout_rate: 0.5
   n_heads: 4
   optim: torch.optim.Adam
   persistence_weight: 0.010

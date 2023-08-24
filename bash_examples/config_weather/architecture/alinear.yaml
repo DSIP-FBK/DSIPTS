@@ -11,10 +11,10 @@ ts:
 
 
 model_configs:
-  cat_emb_dim: 128
+  cat_emb_dim: 64
   kernel_size: 5
   sum_emb: true
-  hidden_size: 512
+  hidden_size: 128
   kind: 'alinear'
   dropout_rate: 0.5
   use_bn: false  

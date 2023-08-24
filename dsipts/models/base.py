@@ -178,7 +178,7 @@ class Base(pl.LightningModule):
 
             std_real = torch.sqrt(torch.var(batch['y'], dim=(0,1))+ 1e-8)
             std_predict = torch.sqrt(torch.var(x, dim=(0,1))+ 1e-8)
-            loss = initial_loss +  self.persistence_weight*torch.mean(std_real-std_predict)
+            loss = initial_loss +  self.persistence_weight*torch.mean(torch.abs(std_real-std_predict))
         #elif self.loss_type=='triplet':
 
         #    triplet = torch.nn.TripletMarginLoss(margin=0.05, p=1)
