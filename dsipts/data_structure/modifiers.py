@@ -72,6 +72,7 @@ class ModifierVVA(Modifier):
         samples,length,_ = train.data['y'].shape
         tmp = train.data['x_num_past'][:,:,idx_target[0]].reshape(samples,-1,self.token_split)
         _,sentence_length, _ = tmp.shape
+        sentence_length_out = length//self.token_split
         tmp = tmp.reshape(-1,self.token_split)
         cl = BisectingKMeans(n_clusters=self.max_voc_size)
         clusters = cl.fit_predict(tmp)
@@ -95,11 +96,10 @@ class ModifierVVA(Modifier):
 
         x_train = clusters.reshape(-1,sentence_length)
         samples = train.data['y'].shape[0]
-        y_train = cl.predict(train.data['y'].squeeze().reshape(samples,-1,self.token_split).reshape(-1,self.token_split)).reshape(-1,sentence_length)
+        y_train = cl.predict(train.data['y'].squeeze().reshape(samples,-1,self.token_split).reshape(-1,self.token_split)).reshape(-1,sentence_length_out)
         samples = val.data['y'].shape[0]
-        y_validation = cl.predict(val.data['y'].squeeze().reshape(samples,-1,self.token_split).reshape(-1,self.token_split)).reshape(-1,sentence_length)
-        x_validation = cl.predict(val.data['x_num_past'][:,:,idx_target[0]].reshape(samples,-1,self.token_split).reshape(-1,self.token_split)).reshape(-1,sentence_length)
-        import pdb;pdb.set_trace()
+        y_validation = cl.predict(val.data['y'].squeeze().reshape(samples,-1,self.token_split).reshape(-1,self.token_split)).reshape(-1,sentence_length_out)
+        x_validation = cl.predict(val.data['x_num_past'][:,:,idx_target[0]].reshape(samples,-1,self.token_split).reshape(-1,self.token_split)).reshape(-1,se
         train_dataset = VVADataset(x_train,y_train,train.data['y'].squeeze(),train.t,sentence_length,self.max_voc_size)
         validation_dataset = VVADataset(x_validation,y_validation,val.data['y'].squeeze(),val.t,sentence_length,self.max_voc_size)
         return train_dataset,validation_dataset
