@@ -113,7 +113,7 @@ class CrossFormer(Base):
         
     def forward(self, batch):
         idx_target = batch['idx_target'][0]
-        x_seq = batch['x_num_past']#[:,:,idx_target]
+        x_seq = batch['x_num_past'].to(self.device)#[:,:,idx_target]
         
         if self.remove_last:
             x_start = x_seq[:,-1,:].unsqueeze(1)

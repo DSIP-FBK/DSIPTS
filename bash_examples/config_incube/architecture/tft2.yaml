@@ -11,13 +11,14 @@ ts:
 
 model_configs:
   d_model: 128
-  num_layers_RNN: 8
-  n_cross_att: 16
-  n_fut_att: 16
+  d_head: 32
+  n_head: 6
+  num_layers_RNN: 12
   optim: torch.optim.Adam
-  dropout_rate: 0.2
+  dropout_rate: 0.5
   persistence_weight: 0.010
   loss_type: 'l1'
+
 
 train_config:
   batch_size: 128

@@ -3,6 +3,82 @@ import os
 import numpy as np
 from typing import List, Tuple
 import logging
+import requests
+from bs4 import BeautifulSoup as bs
+
+def build_venice(path:str,url='https://www.comune.venezia.it/it/content/archivio-storico-livello-marea-venezia-1',rebuild=False):
+    
+      
+    with requests.Session() as s:
+        r = s.get(url)
+    soup = bs(r.content)
+
+    print('CARE THE STRUCTURE OF THE SITE CAN BE CHANGED')
+
+    def cast_string(x):
+        if np.isfinite(x)==False:
+            return x
+        if x<10:
+            return f'0{int(x)}:00'
+        else:
+            return f'{int(x)}:00'
+        
+    def cast_month(x):
+        try:
+            return x.replace('gen','01').replace('feb','02').replace('mar','03').replace('apr','04').replace('mag','05').replace('giu','06').replace('lug','07').replace('ago','08').replace('set','09').replace('ott','10').replace('nov','11').replace('dic','12')
+        except:
+            return x
+        
+    def remove_float(table,column):
+        if table[column].dtype in [int,float]:
+            table[column] = table[column].apply(lambda x:cast_string(x))
+        else:
+            pass
+        
+    def remove_str(table,column):
+        table[column] = table[column].apply(lambda x:cast_month(x))
+        
+    def normalize(table):
+        columns = table.columns
+        if 'Data_ora(solare)' in columns:
+            table['time'] = table['Data_ora(solare)'] 
+        
+        elif 'GIORNO' in columns and 'ORA solare' in columns:
+            remove_float(table,'ORA solare')
+            table['time'] = table['GIORNO'] +' '+ table['ORA solare'] 
+        
+        elif 'data' in columns and 'ora solare' in columns:
+            remove_float(table,'ora solare')
+            table['time'] =table['data'] +' '+ table['ora solare'] 
+        
+        elif 'Data' in columns and 'Ora solare' in columns:
+            remove_str(table,'Data')
+            remove_float(table,'Ora solare')
+            table['time'] = table['Data'] +' '+ table['Ora solare'] 
+        else:
+            import pdb
+            pdb.set_trace()
+       
+        for c in columns:
+            if 'Salute' in c:
+                table['y'] = table[c].values
+                if 'cm' in c:
+                    table['y']/=100
+        res = table[['time','y']].dropna()
+        res['time'] = pd.to_datetime(res['time'])
+        return res
+    tot= []
+    for row in soup.find_all("table")[1].find('tbody').find_all('tr'):
+        for i,column in enumerate(row.find_all('td')):
+            tmp_links = column.find_all('a')
+            if len(tmp_links)>0:
+                for x in tmp_links:
+                    if 'orari' in x['href']:
+                        tmp =  pd.read_csv('https://www.comune.venezia.it/'+x['href'],sep=';', parse_dates=True)
+                        tot.append(normalize(tmp))
+    
+    res = pd.concat(tot)
+
 
 
 def read_public_dataset(path:str,dataset:str)->Tuple[pd.DataFrame,List[str]]:
