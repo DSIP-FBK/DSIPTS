@@ -23,14 +23,15 @@ optim_config:
 model_configs:
   hidden_channels: 8
   commitment_cost: 0.5
-  decay: 0.5
-  d_model: 32
+  decay: 0.9
+  d_model: 64
   max_voc_size: 128  
   num_layers: 6
   dropout_rate: 0.1
   n_heads: 4
   optim: null
   persistence_weight: 0.010
+  epoch_vqvae: 700
   loss_type: 'l1'
   
 train_config:

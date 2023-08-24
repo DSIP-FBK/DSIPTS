@@ -6,7 +6,7 @@ import logging
 import requests
 from bs4 import BeautifulSoup as bs
 
-def build_venice(path:str,url='https://www.comune.venezia.it/it/content/archivio-storico-livello-marea-venezia-1',rebuild=False):
+def build_venice(path:str,url='https://www.comune.venezia.it/it/content/archivio-storico-livello-marea-venezia-1')->None:
     
       
     with requests.Session() as s:
@@ -78,7 +78,8 @@ def build_venice(path:str,url='https://www.comune.venezia.it/it/content/archivio
                         tot.append(normalize(tmp))
     
     res = pd.concat(tot)
-
+    res.sort_values(by='time',inplace=True)
+    res.to_csv(f'{path}/venice.csv',index=False)
 
 
 def read_public_dataset(path:str,dataset:str)->Tuple[pd.DataFrame,List[str]]:
@@ -131,6 +132,13 @@ def read_public_dataset(path:str,dataset:str)->Tuple[pd.DataFrame,List[str]]:
         dataset = pd.read_csv(os.path.join(path,'all_six_datasets/traffic/traffic.csv'),sep=',',na_values=-9999) 
     elif dataset=='weather':
         dataset = pd.read_csv(os.path.join(path,'all_six_datasets/weather/weather.csv'),sep=',',na_values=-9999) 
+    elif dataset=='venice':
+        if os.path.isfile(os.path.join(path,'venice.csv')):
+            dataset = pd.read_csv(os.path.join(path,'venice.csv')) 
+        else:
+            logging.info('I WILL TRY TO DOWNLOAD IT, if there are errors please have a look to `build_venice` function')
+            build_venice(path,url='https://www.comune.venezia.it/it/content/archivio-storico-livello-marea-venezia-1')
+            dataset = pd.read_csv(os.path.join(path,'venice.csv')) 
     else:
         logging.error(f'Dataset {dataset} not found')
         return None, None
