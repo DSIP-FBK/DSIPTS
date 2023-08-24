@@ -99,7 +99,7 @@ class ModifierVVA(Modifier):
         y_train = cl.predict(train.data['y'].squeeze().reshape(samples,-1,self.token_split).reshape(-1,self.token_split)).reshape(-1,sentence_length_out)
         samples = val.data['y'].shape[0]
         y_validation = cl.predict(val.data['y'].squeeze().reshape(samples,-1,self.token_split).reshape(-1,self.token_split)).reshape(-1,sentence_length_out)
-        x_validation = cl.predict(val.data['x_num_past'][:,:,idx_target[0]].reshape(samples,-1,self.token_split).reshape(-1,self.token_split)).reshape(-1,se
+        x_validation = cl.predict(val.data['x_num_past'][:,:,idx_target[0]].reshape(samples,-1,self.token_split).reshape(-1,self.token_split)).reshape(-1,sentence_length)
         train_dataset = VVADataset(x_train,y_train,train.data['y'].squeeze(),train.t,sentence_length,self.max_voc_size)
         validation_dataset = VVADataset(x_validation,y_validation,val.data['y'].squeeze(),val.t,sentence_length,self.max_voc_size)
         return train_dataset,validation_dataset
