@@ -1,7 +1,7 @@
 
 
 import pandas as pd
-from dsipts import TimeSeries, RNN, Attention,read_public_dataset, LinearTS, Persistent, D3VAE, MyModel, TFT,TFT2, Informer,VVA,VQVAEA,CrossFormer
+from dsipts import TimeSeries, RNN, read_public_dataset, LinearTS, Persistent, D3VAE, MyModel, TFT,TFT2, Informer,VVA,VQVAEA,CrossFormer
 from omegaconf import DictConfig, OmegaConf
 from hydra.core.hydra_config import HydraConfig
 import hydra
@@ -82,14 +82,8 @@ def train(conf: DictConfig) -> None:
     model_conf['embs'] = [ts.dataset[c].nunique() for c in ts.cat_var]
     model_conf['out_channels'] = len(ts.target_variables)
 
-    if conf.model.type=='attention':
-        if conf.split_params.shift>0:
-            ts.future_variables +=ts.target_variables
-            model_conf['future_channels']= len(ts.future_variables)
-        model =  Attention(**model_conf,
-                           optim_config = conf.optim_config,
-                           scheduler_config =conf.scheduler_config )
-    elif conf.model.type == 'linear':
+
+    if conf.model.type == 'linear':
         model =  LinearTS(**model_conf,
                           optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )
