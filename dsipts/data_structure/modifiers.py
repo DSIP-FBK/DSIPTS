@@ -13,8 +13,9 @@ import logging
 class VVADataset(Dataset):
 
 
-    def __init__(self,x,y,y_orig,t,length, num_digits):
-        self.length = length
+    def __init__(self,x,y,y_orig,t,length_in,length_out, num_digits):
+        self.length_in = length_in
+        self.length_out = length_out
         self.num_digits = num_digits
         self.x_emb = torch.tensor(x).long()
         self.y_emb = torch.tensor(y).long()
@@ -41,7 +42,7 @@ class VVADataset(Dataset):
         x = cat[:-1].clone()
         y = cat[1:].clone()
         # we only want to predict at output locations, mask out the loss at the input locations
-        y[:self.length-1] = -1
+        y[:self.length_out-1] = -1
         return {'x_emb':x, 'y_emb':y, 'y':self.y[idx]}
 
 
@@ -71,8 +72,8 @@ class ModifierVVA(Modifier):
         
         samples,length,_ = train.data['y'].shape
         tmp = train.data['x_num_past'][:,:,idx_target[0]].reshape(samples,-1,self.token_split)
-        _,sentence_length, _ = tmp.shape
-        sentence_length_out = length//self.token_split
+        _,length_in, _ = tmp.shape
+        length_out = length//self.token_split
         tmp = tmp.reshape(-1,self.token_split)
         cl = BisectingKMeans(n_clusters=self.max_voc_size)
         clusters = cl.fit_predict(tmp)
@@ -94,14 +95,14 @@ class ModifierVVA(Modifier):
         
         self.centroids = np.array(self.centroids) ##clusters x length x 3 
 
-        x_train = clusters.reshape(-1,sentence_length)
+        x_train = clusters.reshape(-1,length_in)
         samples = train.data['y'].shape[0]
-        y_train = cl.predict(train.data['y'].squeeze().reshape(samples,-1,self.token_split).reshape(-1,self.token_split)).reshape(-1,sentence_length_out)
+        y_train = cl.predict(train.data['y'].squeeze().reshape(samples,-1,self.token_split).reshape(-1,self.token_split)).reshape(-1,length_out)
         samples = val.data['y'].shape[0]
-        y_validation = cl.predict(val.data['y'].squeeze().reshape(samples,-1,self.token_split).reshape(-1,self.token_split)).reshape(-1,sentence_length_out)
-        x_validation = cl.predict(val.data['x_num_past'][:,:,idx_target[0]].reshape(samples,-1,self.token_split).reshape(-1,self.token_split)).reshape(-1,sentence_length)
-        train_dataset = VVADataset(x_train,y_train,train.data['y'].squeeze(),train.t,sentence_length,self.max_voc_size)
-        validation_dataset = VVADataset(x_validation,y_validation,val.data['y'].squeeze(),val.t,sentence_length,self.max_voc_size)
+        y_validation = cl.predict(val.data['y'].squeeze().reshape(samples,-1,self.token_split).reshape(-1,self.token_split)).reshape(-1,length_out)
+        x_validation = cl.predict(val.data['x_num_past'][:,:,idx_target[0]].reshape(samples,-1,self.token_split).reshape(-1,self.token_split)).reshape(-1,length_in)
+        train_dataset = VVADataset(x_train,y_train,train.data['y'].squeeze(),train.t,length_in,length_out,self.max_voc_size)
+        validation_dataset = VVADataset(x_validation,y_validation,val.data['y'].squeeze(),val.t,length_in,length_out,self.max_voc_size)
         return train_dataset,validation_dataset
     
     
@@ -111,15 +112,18 @@ class ModifierVVA(Modifier):
         
 
         idx_target =  test.idx_target
+
         samples,length,_ = test.data['y'].shape
         tmp = test.data['x_num_past'][:,:,idx_target[0]].reshape(samples,-1,self.token_split)
-        _,sentence_length, _ = tmp.shape
+        _,length_in, _ = tmp.shape
+        length_out = length//self.token_split
+        
         tmp = tmp.reshape(-1,self.token_split)
         clusters = self.cl.predict(tmp)
-        x = clusters.reshape(-1,sentence_length)
-        y = self.cl.predict(test.data['y'].squeeze().reshape(samples,-1,self.token_split).reshape(-1,self.token_split)).reshape(-1,sentence_length)
+        x = clusters.reshape(-1,length_in)
+        y = self.cl.predict(test.data['y'].squeeze().reshape(samples,-1,self.token_split).reshape(-1,self.token_split)).reshape(-1,length_out)
       
-        return VVADataset(x,y,test.data['y'].squeeze(),test.t,sentence_length,self.max_voc_size)
+        return VVADataset(x,y,test.data['y'].squeeze(),test.t,length_in,length_out,self.max_voc_size)
     
     def inverse_transform(self,res,real):
         tot = []

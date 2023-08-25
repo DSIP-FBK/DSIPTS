@@ -65,8 +65,8 @@ linear:
 or attention based models:
 
 - **d_model** = int .d_model of a typical attention layer
-- **num_heads** = int .Heads
-- **dropout** = float. dropout
+- **n_heads** = int .Heads
+- **dropout_rate** = float. dropout
 - **n_layer_encoder** = int. encoder layers
 - **n_layer_decoder** = int. decoder layers
 
@@ -204,7 +204,11 @@ During the training phase a log stream will be generated. If a single process is
 
 
 # Models
-A description of each model can be found in the class documentation [here](https://dsip.pages.fbk.eu/dsip_dlresearch/timeseries/)
+A description of each model can be found in the class documentation [here](https://dsip.pages.fbk.eu/dsip_dlresearch/timeseries/). 
+It is possible to use one of the following architectures:
+
+
+
 
 # Usage 
 In the folder `bash_examples` you can find an example in wich the library is used for training a model from command line using OmegaConf and Hydra with more updated models and examples. 

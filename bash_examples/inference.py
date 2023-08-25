@@ -2,7 +2,7 @@
 import argparse
 import pandas as pd
 from omegaconf import DictConfig, OmegaConf
-from dsipts import TimeSeries, RNN, Attention,read_public_dataset,Informer, LinearTS, Persistent,D3VAE,MyModel, TFT,TFT2,VVA,VQVAEA,CrossFormer
+from dsipts import TimeSeries, RNN, read_public_dataset,Informer, LinearTS, Persistent,D3VAE,MyModel, TFT,TFT2,VVA,VQVAEA,CrossFormer
 import hydra
 import os
 import shutil
@@ -92,9 +92,8 @@ def inference(conf:DictConfig)->List[pd.DataFrame]:
     print(f'Model and weights will be placed and read from {conf.train_config.dirpath}')
     
 
-    if conf.model.type=='attention':
-        ts.load(Attention,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
-    elif conf.model.type == 'linear':
+
+    if conf.model.type == 'linear':
         ts.load(LinearTS,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
     elif conf.model.type == 'rnn':
         ts.load(RNN,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
