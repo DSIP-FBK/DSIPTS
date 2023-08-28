@@ -177,6 +177,17 @@ class Base(pl.LightningModule):
             std = torch.sqrt(torch.var(batch['y'], dim=(1))+ 1e-8)
             loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1) * (1.0+torch.exp(-self.persistence_weight*std)))
             
+        elif self.loss == 'std_penalization':
+            if self.use_quantiles==False:
+                x = y_hat[:,:,:,0]
+            else:
+                x = y_hat[:,:,:,1]
+
+
+            std = torch.sqrt(torch.var(batch['y'], dim=(1))+ 1e-8)
+            x_std = torch.sqrt(torch.var(x, dim=(1))+ 1e-8)
+            loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1) + self.persistence_weight*torch.abs(x_std-std).mean(axis=1))
+                
         elif self.loss_type=='high_order':
 
 
