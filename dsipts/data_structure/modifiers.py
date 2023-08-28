@@ -24,16 +24,27 @@ class VVADataset(Dataset):
         self.t = t
 
     def __len__(self):
+        """
+        :meta private:
+        """
         return len(self.x_emb) # ...
     
     def get_vocab_size(self):
+        """
+        :meta private:
+        """
         return self.num_digits
     
     def get_block_size(self):
+        """
+        :meta private:
+        """
         return self.length * 2 - 1
 
     def __getitem__(self, idx):
-
+        """
+        :meta private:
+        """
 
         inp = self.x_emb[idx]
         sol = self.y_emb[idx]
