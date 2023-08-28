@@ -17,7 +17,7 @@ ts:
 optim_config:
   lr_vqvae: 0.001
   lr_gpt: 0.0005
-  weight_decay_vqvae: 0.0 #001
+  weight_decay_vqvae: 0.001 #001
   weight_decay_gpt: 0.0 #001
     
 model_configs:
@@ -36,7 +36,7 @@ model_configs:
   
 train_config:
   auto_lr_find: false
-  batch_size: 128
+  batch_size: 64
   max_epochs: 1000
   gradient_clip_val: null
   gradient_clip_algorithm: 'norm'

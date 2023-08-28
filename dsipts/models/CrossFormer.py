@@ -112,6 +112,8 @@ class CrossFormer(Base):
                                     out_seg_num = (self.pad_future_steps // seg_len), factor = factor)
         
     def forward(self, batch):
+        import pdb
+        pdb.set_trace()
         idx_target = batch['idx_target'][0]
         x_seq = batch['x_num_past'].to(self.device)#[:,:,idx_target]
         
