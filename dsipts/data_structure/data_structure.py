@@ -130,7 +130,7 @@ class TimeSeries():
             >>> ts.generate_signal(length = 5000,categorical_variables = [settimana,mese,spot],noise_mean=1,type=0) ##we can add also noise\n
             >>> ts.plot()\n
         """
-        
+        self.is_trained = False
         self.name = name
 
     def __str__(self) -> str:
@@ -517,7 +517,6 @@ class TimeSeries():
         logging.info('###############################################################################')
         self.split_params = split_params
         self.check_custom = False
-        self.is_trained = False
         train,validation,test = self.split_for_train(**self.split_params)
         accelerator = 'gpu' if torch.cuda.is_available() else "cpu"
         strategy = "auto"
