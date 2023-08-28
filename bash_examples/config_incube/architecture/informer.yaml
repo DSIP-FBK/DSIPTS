@@ -14,7 +14,7 @@ model_configs:
   hidden_size: 128
   n_layer_encoder: 4
   n_layer_decoder: 4
-  num_heads: 4
+  n_head: 1
   dropout_rate: 0.5
   optim: torch.optim.SGD
   activation: torch.nn.PReLU

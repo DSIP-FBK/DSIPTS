@@ -194,7 +194,18 @@ class TimeSeries():
         self.num_var = list(set(self.past_variables).union(set(self.future_variables)).union(set(self.target_variables)))
         
         
-        
+    def enrich(self,dataset,columns):
+        if columns =='hour':
+            dataset[columns] = dataset.time.dt.hour
+        elif columns=='dow':
+            dataset[columns] = dataset.time.dt.weekday
+        elif columns=='month':
+            dataset[columns] = dataset.time.dt.month
+        elif columns=='minute':
+            dataset[columns] = dataset.time.dt.minute
+        else:
+            logging.info('I can not automatically add column {c} plase update this function accordlyng')
+
     def load_signal(self,data:pd.DataFrame,enrich_cat:List[str] = [],past_variables:List[str]=[],future_variables:List[str]=[],target_variables:List[str]=[],cat_var:List[str]=[],check_past:bool=True)->None:
         """ This is a crucial point in the data structure. We expect here to have a dataset with time as timestamp.
             There are some checks:
@@ -241,16 +252,7 @@ class TimeSeries():
             if c in dataset.columns:
                 logging.info('#########Categorical {c} already present, it will be added to categorical variable but not recomputed#########') 
             else:
-                if c =='hour':
-                    dataset[c] = dataset.time.dt.hour
-                elif c=='dow':
-                    dataset[c] = dataset.time.dt.weekday
-                elif c=='month':
-                    dataset[c] = dataset.time.dt.month
-                elif c=='minute':
-                    dataset[c] = dataset.time.dt.minute
-                else:
-                    logging.info('I can not automatically add column {c} plase update this function accordlyng')
+                self.enrich(dataset,c)
         self.dataset = dataset
         self.past_variables =past_variables
         self.future_variables = future_variables
@@ -303,6 +305,10 @@ class TimeSeries():
         y_samples = []
         t_samples = []
         
+        ##overwrite categorical columns
+        for c in self.cat_var:
+            self.enrich(data,c)
+
         for c in self.cat_var:
             data[c] = self.scaler_cat[c].transform(data[c].values.ravel()).flatten()
         for c in self.num_var: 
@@ -436,20 +442,23 @@ class TimeSeries():
             validation =  self.dataset[self.dataset.time.between(range_validation[0],range_validation[1])]
             test =  self.dataset[self.dataset.time.between(range_test[0],range_test[1])]
                                       
-        self.scaler_cat = {}
-        self.scaler_num = {}
+
         logging.info('######################################################################################################')
         logging.info('######Scaling numerical (standard scaler) and categorical (label encorer) on the training data! ######')
         logging.info('######################################################################################################')
-
-        for c in self.num_var:
-            self.scaler_num[c] =  StandardScaler()
-            self.scaler_num[c].fit(train[c].values.reshape(-1,1))
-        for c in self.cat_var:                               
-            self.scaler_cat [c] =  LabelEncoder()
-            self.scaler_cat[c].fit(train[c].values.reshape(-1,1))  
-                                      
-    
+        if self.is_trained:
+            pass
+        else:
+            self.scaler_cat = {}
+            self.scaler_num = {}
+            for c in self.num_var:
+                self.scaler_num[c] =  StandardScaler()
+                self.scaler_num[c].fit(train[c].values.reshape(-1,1))
+            for c in self.cat_var:                               
+                self.scaler_cat[c] =  LabelEncoder()
+                self.scaler_cat[c].fit(train[c].values.reshape(-1,1))  
+                                        
+        
         dl_train = self.create_data_loader(train,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)
         dl_validation = self.create_data_loader(validation,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)
         dl_test = self.create_data_loader(test,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)
@@ -507,6 +516,8 @@ class TimeSeries():
         logging.info('############################TRAINING###########################################')
         logging.info('###############################################################################')
         self.split_params = split_params
+        self.check_custom = False
+        self.is_trained = False
         train,validation,test = self.split_for_train(**self.split_params)
         accelerator = 'gpu' if torch.cuda.is_available() else "cpu"
         strategy = "auto"
@@ -600,10 +611,11 @@ class TimeSeries():
         except:
             logging.info(f'Can not extract the validation loss, maybe it is a persistent model')
             val_loss = 100
+        self.is_trained = True
         return val_loss 
     
-    def inference_on_set(self,batch_size:int=100,num_workers:int=4,split_params:Union[None,dict]=None,set:str='test',rescaling:bool=True)->pd.DataFrame:
-        """This function allows to get the prediction on a particular set (train, test or validation). TODO add inference on a custom dataset
+    def inference_on_set(self,batch_size:int=100,num_workers:int=4,split_params:Union[None,dict]=None,set:str='test',rescaling:bool=True,data:Union[None,torch.utils.data.Dataset]=None)->pd.DataFrame:
+        """This function allows to get the prediction on a particular set (train, test or validation). 
 
         Args:
             batch_size (int, optional): barch sise. Defaults to 100.
@@ -611,17 +623,17 @@ class TimeSeries():
             split_params (Union[None,dict], optional): if not None  the spliting procedure will use the given data otherwise it will use the same configuration used in train. Defaults to None.
             set (str, optional): trai, validation or test. Defaults to 'test'.
             rescaling (bool, optional):  If rescaling is true the output will be rescaled to the initial values. . Defaults to True.
-
+            data (None or pd.DataFrame, optional). If not None the inference is performed on the given data. In the case of custom data please call inference because it will normalize the data for you!
         Returns:
             pd.DataFrame: the predicted values in a pandas format
         """
      
-        
-        if split_params is None:
-            logging.info(f'splitting using train parameters {self.split_params}')
-            train,validation,test = self.split_for_train(**self.split_params)
-        else:
-            train,validation,test = self.split_for_train(**split_params)
+        if data is None:
+            if split_params is None:
+                logging.info(f'splitting using train parameters {self.split_params}')
+                train,validation,test = self.split_for_train(**self.split_params)
+            else:
+                train,validation,test = self.split_for_train(**split_params)
 
         if set=='test':
             if self.modifier is not None:
@@ -635,6 +647,15 @@ class TimeSeries():
             if self.modifier is not None:
                 train = self.modifier.transform(train)
             dl = DataLoader(train, batch_size = batch_size , shuffle=False,drop_last=False,num_workers=num_workers)    
+        elif set=='custom':
+            if self.check_custom:
+                pass
+            else:
+                logging.info('RUN IT AT YOUR OWN RISK, I RECCOMEND TO CALL .inference INSTEAD')
+            if self.modifier is not None:
+                data = self.modifier.transform(data)
+            dl = DataLoader(data, batch_size = batch_size , shuffle=False,drop_last=False,num_workers=num_workers)    
+  
         else:
             logging.error('select one of train, test, or validation set')
         self.model.eval()
@@ -689,9 +710,37 @@ class TimeSeries():
 
             
         return res
-    def inference():
-        ##TODO implement!
-        pass
+    def inference(self,batch_size:int=100,num_workers:int=4,split_params:Union[None,dict]=None,rescaling:bool=True,data:pd.DataFrame=None,steps_in_future:int=0)->pd.DataFrame:
+        """same as inference_on_set
+        only change is split_params that must contain this keys but using the default can be sufficient:
+        'past_steps','future_steps','shift','keep_entire_seq_while_shifting','starting_point','skip_step'
+        
+        skip_step is set to 1 for convenience in case you want to use previous split parameters otherwise care to be coohernt
+        """
+        self.check_custom = True
+        import pdb
+        pdb.set_trace()
+        ## enlarge the dataset in order to have all the rows needed
+        freq = pd.to_timedelta(np.diff(data.time).min())
+        logging.info(f'#############Detected minumum frequency: {freq}#############')
+        empty = pd.DataFrame({'time':pd.date_range(data.min(),data.max()+freq*(steps_in_future+self.split_params['past_steps']+self.split_params['future_steps']),freq=freq)})
+        dataset = empty.merge(data,how='left')
+            
+        
+        
+        if split_params is None:
+            split_params = {}
+            for c in self.split_params.keys():
+                if c in ['past_steps','future_steps','shift','keep_entire_seq_while_shifting','starting_point']:
+                    split_params[c] = self.split_params[c]
+            split_params['skip_step']=1
+            data = self.create_data_loader(dataset,**split_params)
+        else:
+            data = self.create_data_loader(data,**split_params)
+
+        res = self.inference_on_set(self,batch_size=batch_size,num_workers=num_workers,split_params=None,set='custom',rescaling=rescaling,data=data)
+        self.check_custom = False
+        return res
         
     def save(self, filename:str)->None:
         """save the timeseries object
@@ -723,6 +772,8 @@ class TimeSeries():
         
         logging.info('################Loading#################################')
         self.modifier = None
+        self.check_custom = False
+        self.is_trained = True
         with open(filename+'.pkl','rb') as f:
             params = pickle.load(f)
             for p in params:

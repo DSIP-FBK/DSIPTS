@@ -1,6 +1,7 @@
 
 # Usage of DSIPTS 
-This repo collect some examples related to the use of [dsipts] (https://gitlab.fbk.eu/dsip/dsip_dlresearch/timeseries). Using this repo you can train some DL models for timeseries forecasting using public datasets like [Monarch](https://forecastingdata.org/) or (six_dataset)[https://drive.google.com/drive/folders/1ZOYpTUa82_jCcxIdTmyr0LXQfvaM9vIy] used for benchmarking timeseries models. 
+This repo collect some examples related to the use of [dsipts](https://gitlab.fbk.eu/dsip/dsip_dlresearch/timeseries). Using this repo you can train some DL models for timeseries forecasting using public datasets like [Monash](https://forecastingdata.org/) or [six_dataset](https://drive.google.com/drive/folders/1ZOYpTUa82_jCcxIdTmyr0LXQfvaM9vIy) used for benchmarking timeseries models. 
+It is possible to use also the Venice dataset described [here](https://arxiv.org/abs/2304.04553). 
 
 Here we report a complete approach using [Hydra](https://hydra.cc/) that allows to better manage multiple experiments.
 
@@ -27,7 +28,8 @@ pip install --force dsipts --index-url https://dsipts:glpat-98SR11neR7hzxy__SueG
 - copy the folder `all_six_datasets` inside a data folder (in what follows `/home/agobbi/Projects/ExpTS/data`).
 - place yoursel in `bash_examples`
 - train the models
-- create the folders `csv` and `plots` in the `pathdir` in this case `/home/agobbi/Projects/ExpTS`
+- create the folders `csv` and `plots` in the `pathdir` in my case `/home/agobbi/Projects/ExpTS`
+
 
 
 # Hydra
@@ -43,9 +45,18 @@ pip install hydra-optuna-sweeper       ## if you need optuna
 
 
 The script used are:
-- **train.py** for trainint
+- **train.py** for training models
 - **inference.py** for inference 
 - **compare.py** for comparing different models
+
+This structure is a convient way to deal with multiple experiments, feel free to adjust it as you prefere. There are some trick for extracting runtime the hydra choices (and use informative names for the models). This can be ugly to see but it easy to compare the same model with different parameters. If you want to use you own data with this schema you need to add your data processing pipeline in `lodad_data` and define your own timeseries object. For example in the follwing snippet we have 3 continuous variables: `Value, rain temp` that are assumed to be known also in the future while predicting `Value`. The month column will be created as categorical feature.
+
+```
+    ts.load_signal(data_ex,past_variables =['Value','rain','temp'],future_variables = ['rain','temp'],target_variables =['Value'],enrich_cat= ['month'])
+
+```
+
+Remember also to modify also `train` and `inference` accordingly to your implemented function.
 
 Hydra is used for composing configuration files. In our case most of the parameter can be reused among the different models and are collected under the general configuration file `config/config.yaml`\. In what follows the `weather` dataset is used, and notice that this dataset has a frequency of **10 minutes**. The parameters here are the same described in the `dsitps` documentation but clearly some of them can not be modified since they depend on the selected time series.
 The configuration files related to this experiment can be found in `config_weather`; a generic config folder contains:
@@ -66,24 +77,24 @@ dataset:
   path: '/home/agobbi/Projects/ExpTS/data' ##path to data. In the folder data must be present the folder six_dataset
 
 scheduler_config:
-  gamma: 0.1
-  step_size: 100
+  gamma: 0.75
+  step_size: 250
 
 optim_config:
   lr: 0.0005
-  weight_decay: 0.01
+  weight_decay: 0.001
 
 model_configs:
   past_steps: 16
   future_steps: 16
-  quantiles: [0.1,0.5,0.9] ##if you want to use quantile loss, otherwise set it to []
-  past_channels : null #dataset dependent  hydra expect you to set it anyway also if it depends on data
-  future_channels : null #dataset dependent
-  embs: null #dataset dependent
-  out_channels: null #dataset dependent
+  quantiles: [0.1,0.5,0.9]  #if you want to use quantile loss, otherwise set it to []
+  past_channels : null      #dataset dependent  hydra expect you to set it anyway also if it depends on data
+  future_channels : null    #dataset dependent
+  embs: null                #dataset dependent
+  out_channels: null        #dataset dependent
 
 split_params:
-  perc_train: 0.7
+  perc_train: 0.8
   perc_valid: 0.1
   range_train: null
   range_validation: null 
@@ -91,13 +102,13 @@ split_params:
   shift: 0
   starting_point: null
   skip_step: 1
-  past_steps: model_configs@past_steps  ##this is a convinient what to reuse previous information!
+  past_steps: model_configs@past_steps          #this is a convinient what to reuse previous information, thx omegaconf
   future_steps: model_configs@future_steps
 
 train_config:
   dirpath: "/home/agobbi/Projects/ExpTS"
   num_workers: 0
-  auto_lr_find: true
+  auto_lr_find: true   ##this allows to pytorch lightening to find a suitable lr
   devices: [0]                   
 
 inference:
@@ -106,10 +117,16 @@ inference:
   batch_size: 200 
   num_workers: 4
   set: "validation"
-  rescaling: false (sometimes you want to get the errors on normalized datasets)
+  rescaling: false  #(sometimes you want to get the errors on normalized datasets)
+```
+## Train 
 
-#since now standard things, these two sessions are the most crucial and useful
+After declaring some stuff about the dataset and the enviroment we can train the model(s). 
+Depending on the architecture (slurm or gpu/cpu) you need to add the following blocks to the main config:
 
+For gpu/cpu:
+
+```
 defaults: 
   - _self_                           # take all this configuration 
   - architecture: null               # and let the use specify the architecture to use (be aware that the filed here is the same as the folder containing the other yaml files)
@@ -119,14 +136,17 @@ defaults:
 hydra:
   launcher:
     n_jobs: 2                  # parameters indicate the number of parallel jobs in case of multirun
-    batch_size:1               #one worker per job
+    batch_size:2               #2 parralel train session
+    pre_dispatch: 4
+    _target_: hydra_plugins.hydra_joblib_launcher.joblib_launcher.JoblibLauncher
+
   output_subdir: null          # do not save any file
   sweeper:
     params:
       architecture: glob(*)    # this is a way to train all the models in the architecure folder
 ```
 
-If you are using a SLURM cluster:
+For a SLURM cluster:
 
 ```
 defaults:
@@ -137,15 +157,22 @@ defaults:
 hydra:
   launcher:
     submitit_folder: ${hydra.sweep.dir}/.submitit/%j
-    timeout_min: 600
-    partition: gpu-V100  ##partition to use REQURED
-    mem_gb: 6            ##gb requires      REQURED
+    timeout_min: 6000
+    partition: gpu-V100      ##partition to use REQURED
+    mem_gb: 6                ##gb requires      REQURED
     nodes: 1
-    gres: gpu:1          ##number of GPU    REQURED
+    gres: gpu:1              ##number of GPU    REQURED
+    array_parallelism: 10    ##parallel process
+
     name: ${hydra.job.name}
     _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
     setup:
       - conda activate tt  ##activate the conda environment first!
+
+    output_subdir: null 
+    sweeper:
+    params:
+      architecture: glob(*) 
 ```
 
 
@@ -158,6 +185,8 @@ In the `config_weather/architecture` folder there are the selected models that h
 #the specified parameters below overwrite the default configuration having a more compact representation
 model:
   type: 'linear'
+  retrain: true  ## overwrite the model with the same parameters
+
   
 ts:
   name: 'weather'
@@ -168,14 +197,17 @@ ts:
 
 ## for more information about models please look at the documentation [here] (https://dsip.pages.fbk.eu/dsip_dlresearch/timeseries/)
 model_configs:
-  cat_emb_dim: 32         # dimension of categorical variables
-  kernel_size: 5  # kernel size 
-  sum_emb: true           # if true each embdedding will be summed otherwise stacked
-  hidden_size: 256        # hidden size of the fully connected block
-  kind: 'linear'          # model type
-  dropout_rate: 0.2       # dropout
-  use_bn: false           # use or not bn layers in the first layers 
-  activation: 'selu'      # activation function
+  cat_emb_dim: 32             # dimension of categorical variables
+  kernel_size: 5              # kernel size 
+  sum_emb: true               # if true each embdedding will be summed otherwise stacked
+  hidden_size: 256            # hidden size of the fully connected block
+  kind: 'linear'              # model type
+  dropout_rate: 0.2           # dropout
+  use_bn: false               # use or not bn layers in the first layers 
+  optim: torch.optim.Adam     # optimizer
+  activation: torch.nn.PReLU  # activation between linear
+  persistence_weight: 0.010   # in case of loss different from l1 or mse it is used to weight a penality score 
+  loss_type: 'l1'             # loss
 
 
 
@@ -187,7 +219,7 @@ train_config:
 
 
 ```
-
+#########FINO A QUIEEEEEEEEEEEEEE
 Hydra allows us to train a specific model using if you are in a gpu environment
 
 ```
@@ -199,8 +231,9 @@ or, if you are in a slurm gpu cluster
 python train.py  architecture=linear --config-dir=config_weather --config-name=config_slurm -m
 ```
 
+The `-m` option is important because generally we would't lauch the script in the frontend. This shortcut allows hydra to use the multirun scheduler and lauch the process(es) in the required nodes. In the case of a single gpu machine it will lauch parallel process (careful to the used VRAM).
 
-or a list of models in paralle:
+For example we can train two models on the same data using:
 
 ```
 python train.py  -m architecture=linear, dlinear --config-dir=config_weather --config-name=config_slurm
@@ -211,6 +244,15 @@ or all the implemented models:
 ```
 python train.py  -m  --config-dir=config_weather --config-name=config_slurm
 ```
+this because there is the option 
+```
+    params:
+      architecture: glob(*) 
+```
+
+that compile the config files using all the models declared in the architecture folder.
+
+
 In case of parallel experiment you should see at display something like:
 
 ![plot](figures/slurm.jpeg)
@@ -219,7 +261,12 @@ Hydra will create a folder called `multirun` with all the experiments lauched ne
 
 
 
-If the row `override hydra/launcher: joblib` is commented the train will be consecutive, otherwise in parallel. In the latter case the output in the terminal will be a mess, please check all is woking fine. In the future the logging will be more efficient.
+If the row `override hydra/launcher: joblib` is commented the train will be consecutive, otherwise in parallel. In the latter case the output in the terminal will be a mess but in the multirun folder you can find all the log files in the folder `0,1,...` based on the number of models you are training.
+
+Last but not least: you can lauch as many process as you want but only few will be active at the same time: if slur is used the keyword is `array_parallelism: 10` otherwise the combination of `batch_size:2` and `n_jobs: 2` for the single gpu pipeline.
+
+
+## Inference 
 
 Once the models are trained, the relative full configurations are saved in `config_used` and can be used for inference or comparison:
 
@@ -237,7 +284,7 @@ rescaling: false                       ## sometimes want to get the MSE on the s
 batch_size: 32                         ## batch size for the dataloader
 ```
 
-or:
+or if you are in a slurm cluster remembrer to add the `-m` parameters also for the comparison step (otherwise the inference will be execute in the frontend)
 ```
  python compare.py --config-dir=config_weather --config-name=compare_slurm -m
 ```
@@ -286,8 +333,7 @@ It is possible also to perform a fine tuning procedure on a specific model, in t
 ```
 python train.py --config-dir=config_weather --config-name=config_slurm -m architecture=mymodel model_configs.hidden_RNN=32,64,128
 ```
-will spawn 3 paralle process trainin the same model with three different values of `hidden_RNN`. In case of multiple parameters to test hydra will generate all the couples of possibilities. This approach can explode very quickly, for this reason it is possible to use `optuna`
-for exploring the space of the configurations:
+will spawn 3 paralle process trainin the same model with three different values of `hidden_RNN`. In case of multiple parameters to test hydra will generate all the couples of possibilities. This approach can explode very quickly, for this reason it is possible to use `optuna` for exploring the space of the configurations (THIS FEATURE IS NOT MATURE):
 
 ```
 python train.py --config-dir=config_weather --config-name=config_slurm_optuna -m
@@ -344,5 +390,13 @@ hydra:  ##SLURM STUFFS
 
 ```
 
+
+## Results
+[Here](notebooks/4- results .ipynb) you can find some plots comparing different models.
+
+## Tips
+- The folder `weights` can become very big. Try to remove all useless experiments.
+- The folder `multirun` can become very crowded, not so big but it can be deleted sometimes
+- The folder `config_used` contains all the trained models. The comparison step can be very time consuming (the models are evaluated sequentially). Please use only the models you need
 
 
