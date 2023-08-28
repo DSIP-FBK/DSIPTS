@@ -110,7 +110,7 @@ def read_public_dataset(path:str,dataset:str)->Tuple[pd.DataFrame,List[str]]:
         return None,None
     
     
-    if dataset not in ['electricity','etth1','etth2','ettm1','ettm2','exchange_rate','illness','traffic','weather']:
+    if dataset not in ['electricity','etth1','etth2','ettm1','ettm2','exchange_rate','illness','traffic','weather','venice']:
         logging.error(f'Dataset {dataset} not available')
         return None,None
 
