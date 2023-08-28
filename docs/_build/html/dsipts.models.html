@@ -648,103 +648,8 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
 </section>
-<section id="module-dsipts.models.Attention">
-<span id="dsipts-models-attention-module"></span><h2>dsipts.models.Attention module<a class="headerlink" href="#module-dsipts.models.Attention" title="Permalink to this heading"></a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="dsipts.models.Attention.Attention">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.Attention.</span></span><span class="sig-name descname"><span class="pre">Attention</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">past_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_heads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layer_encoder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layer_decoder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat_emb_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/Attention.html#Attention"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.Attention.Attention" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#dsipts.models.base.Base" title="dsipts.models.base.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></a></p>
-<dl class="simple">
-<dt>Attention model. Using an encoder (past) decoder (future) with cross attention and masks.</dt><dd><p>helping classes (Categorical for instance).</p>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>past_channels</strong> (<em>int</em>) – number of numeric past variables, must be &gt;0</p></li>
-<li><p><strong>future_channels</strong> (<em>int</em>) – number of future numeric variables</p></li>
-<li><p><strong>d_model</strong> (<em>int</em>) – dimension of the attention model</p></li>
-<li><p><strong>num_heads</strong> (<em>int</em>) – heads equal in the encoder and encoder</p></li>
-<li><p><strong>past_steps</strong> (<em>int</em>) – number of past datapoints used</p></li>
-<li><p><strong>future_steps</strong> (<em>int</em>) – number of future lag to predict</p></li>
-<li><p><strong>dropout</strong> (<em>float</em>) – dropout used in the attention layers and positional encoder</p></li>
-<li><p><strong>n_layer_encoder</strong> (<em>int</em>) – layers to use in the encoder</p></li>
-<li><p><strong>n_layer_decoder</strong> (<em>int</em>) – layers to use in the decoder</p></li>
-<li><p><strong>embs</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>) – list of the initial dimension of the categorical variables</p></li>
-<li><p><strong>cat_emb_dim</strong> (<em>int</em>) – final dimension of each categorical variable</p></li>
-<li><p><strong>out_channels</strong> (<em>int</em>) – number of output channels</p></li>
-<li><p><strong>quantiles</strong> (<em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].</p></li>
-<li><p><strong>n_classes</strong> (<em>int</em>) – number of classes (0 in regression)</p></li>
-<li><p><strong>optim</strong> (<em>str</em><em>, </em><em>optional</em>) – if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.</p></li>
-<li><p><strong>optim_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – configuration for Adam optimizer. Defaults to None.</p></li>
-<li><p><strong>scheduler_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – configuration for stepLR scheduler. Defaults to None.</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="dsipts.models.Attention.Attention.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/Attention.html#Attention.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.Attention.Attention.forward" title="Permalink to this definition"></a></dt>
-<dd><p>It is mandatory to implement this method</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>batch</strong> (<em>dict</em>) – batch of the dataloader</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>result</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>torch.tensor</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="dsipts.models.Attention.Attention.inference">
-<span class="sig-name descname"><span class="pre">inference</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tensor</span></span></span><a class="reference internal" href="_modules/dsipts/models/Attention.html#Attention.inference"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.Attention.Attention.inference" title="Permalink to this definition"></a></dt>
-<dd><p>Care here, we need to implement it because for predicting the N-step it will use the prediction at step N-1. TODO fix if because I did not implement the
-know continuous variable presence here</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>batch</strong> (<em>dict</em>) – batch of the dataloader</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>result</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>torch.tensor</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="dsipts.models.Attention.PositionalEncoding">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.Attention.</span></span><span class="sig-name descname"><span class="pre">PositionalEncoding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_len</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/Attention.html#PositionalEncoding"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.Attention.PositionalEncoding" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Copied from git</p>
-<p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="dsipts.models.Attention.PositionalEncoding.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/Attention.html#PositionalEncoding.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.Attention.PositionalEncoding.forward" title="Permalink to this definition"></a></dt>
-<dd><p>Defines the computation performed at every call.</p>
-<p>Should be overridden by all subclasses.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Although the recipe for forward pass needs to be defined within
-this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
-instead of this since the former takes care of running the
-registered hooks while the latter silently ignores them.</p>
-</div>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="dsipts.models.Attention.generate_square_subsequent_mask">
-<span class="sig-prename descclassname"><span class="pre">dsipts.models.Attention.</span></span><span class="sig-name descname"><span class="pre">generate_square_subsequent_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/Attention.html#generate_square_subsequent_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.Attention.generate_square_subsequent_mask" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
+<section id="dsipts-models-attention-module">
+<h2>dsipts.models.Attention module<a class="headerlink" href="#dsipts-models-attention-module" title="Permalink to this heading"></a></h2>
 </section>
 <section id="module-dsipts.models.CrossFormer">
 <span id="dsipts-models-crossformer-module"></span><h2>dsipts.models.CrossFormer module<a class="headerlink" href="#module-dsipts.models.CrossFormer" title="Permalink to this heading"></a></h2>
@@ -1391,8 +1296,30 @@ removing any unnecessary noisy inputs and focunsing on the most saient ones
 <dt class="sig sig-object py" id="dsipts.models.TFT2.TFT2">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.TFT2.</span></span><span class="sig-name descname"><span class="pre">TFT2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_layers_RNN</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_head</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_head</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persistence_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'l1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/TFT2.html#TFT2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.TFT2.TFT2" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#dsipts.models.base.Base" title="dsipts.models.base.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></a></p>
-<p>This is the basic model, each model implemented must overwrite the init method and the forward method. The inference step is optional, by default it uses the forward method but for recurrent
-network you should implement your own method</p>
+<p>_summary_</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>d_model</strong> (<em>int</em>) – _description_</p></li>
+<li><p><strong>out_channels</strong> (<em>int</em>) – _description_</p></li>
+<li><p><strong>past_steps</strong> (<em>int</em>) – _description_</p></li>
+<li><p><strong>future_steps</strong> (<em>int</em>) – _description_</p></li>
+<li><p><strong>past_channels</strong> (<em>int</em>) – _description_</p></li>
+<li><p><strong>future_channels</strong> (<em>int</em>) – _description_</p></li>
+<li><p><strong>num_layers_RNN</strong> (<em>int</em>) – _description_</p></li>
+<li><p><strong>embs</strong> (<em>list</em><em>[</em><em>int</em><em>]</em>) – _description_</p></li>
+<li><p><strong>d_head</strong> (<em>int</em>) – _description_</p></li>
+<li><p><strong>n_head</strong> (<em>int</em>) – _description_</p></li>
+<li><p><strong>dropout_rate</strong> (<em>float</em>) – _description_</p></li>
+<li><p><strong>persistence_weight</strong> (<em>float</em><em>, </em><em>optional</em>) – _description_. Defaults to 0.0.</p></li>
+<li><p><strong>loss_type</strong> (<em>str</em><em>, </em><em>optional</em>) – _description_. Defaults to ‘l1’.</p></li>
+<li><p><strong>quantiles</strong> (<em>List</em><em>[</em><em>float</em><em>]</em><em>, </em><em>optional</em>) – _description_. Defaults to [].</p></li>
+<li><p><strong>optim</strong> (<em>Union</em><em>[</em><em>str</em><em>,</em><em>None</em><em>]</em><em>, </em><em>optional</em>) – _description_. Defaults to None.</p></li>
+<li><p><strong>optim_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – _description_. Defaults to None.</p></li>
+<li><p><strong>scheduler_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – _description_. Defaults to None.</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.TFT2.TFT2.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/TFT2.html#TFT2.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.TFT2.TFT2.forward" title="Permalink to this definition"></a></dt>
@@ -1446,57 +1373,38 @@ idx_target: index of target features in the past array</p>
 <dt class="sig sig-object py" id="dsipts.models.VQVAEA.VQVAEA">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.VQVAEA.</span></span><span class="sig-name descname"><span class="pre">VQVAEA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">past_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_voc_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_layers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commitment_cost</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decay</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_heads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epoch_vqvae</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persistence_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'l1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/VQVAEA.html#VQVAEA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.VQVAEA.VQVAEA" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#dsipts.models.base.Base" title="dsipts.models.base.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></a></p>
-<p>Custom encoder-decoder
-:param past_steps: number of past datapoints used
-:type past_steps: int
-:param future_steps: number of future lag to predict
-:type future_steps: int
-:param past_channels: number of numeric past variables, must be &gt;0
-:type past_channels: int
-:param future_channels: number of future numeric variables
-:type future_channels: int
-:param embs: list of the initial dimension of the categorical variables
-:type embs: List
-:param cat_emb_dim: final dimension of each categorical variable
-:type cat_emb_dim: int
-:param hidden_RNN: hidden size of the RNN block
-:type hidden_RNN: int
-:param num_layers_RNN: number of RNN layers
-:type num_layers_RNN: int
-:param kind: one among GRU or LSTM
-:type kind: str
-:param kernel_size: kernel size in the encoder convolutional block
-:type kernel_size: int
-:param sum_emb: if true the contribution of each embedding will be summed-up otherwise stacked
-:type sum_emb: bool
-:param out_channels: number of output channels
-:type out_channels: int
-:param activation: activation fuction function pytorch. Default torch.nn.ReLU
-:type activation: str, optional
-:param remove_last: if True the model learns the difference respect to the last seen point
-:type remove_last: bool, optional
-:param persistence_weight: weight controlling the divergence from persistence model. Default 0
-:type persistence_weight: float
-:param loss_type: this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,
-:type loss_type: str, optional
-:param quantiles: we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
-:type quantiles: List[int], optional
-:param dropout_rate: dropout rate in Dropout layers
-:type dropout_rate: float, optional
-:param use_bn: if true BN layers will be added and dropouts will be removed
-:type use_bn: bool, optional
-:param use_glu: use GLU for feature selection. Defaults to True.
-:type use_glu: bool,optional
-:param glu_percentage: percentage of features to use. Defaults to 1.0.
-:type glu_percentage: float, optiona
-:param n_classes: number of classes (0 in regression)
-:type n_classes: int
-:param optim: if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
-:type optim: str, optional
-:param optim_config: configuration for Adam optimizer. Defaults to None.
-:type optim_config: dict, optional
-:param scheduler_config: configuration for stepLR scheduler. Defaults to None.
-:type scheduler_config: dict, optional</p>
+<p>Custom encoder-decoder</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>past_steps</strong> (<em>int</em>) – number of past datapoints used</p></li>
+<li><p><strong>future_steps</strong> (<em>int</em>) – number of future lag to predict</p></li>
+<li><p><strong>past_channels</strong> (<em>int</em>) – number of numeric past variables, must be &gt;0</p></li>
+<li><p><strong>future_channels</strong> (<em>int</em>) – number of future numeric variables</p></li>
+<li><p><strong>embs</strong> (<em>List</em>) – list of the initial dimension of the categorical variables</p></li>
+<li><p><strong>cat_emb_dim</strong> (<em>int</em>) – final dimension of each categorical variable</p></li>
+<li><p><strong>hidden_RNN</strong> (<em>int</em>) – hidden size of the RNN block</p></li>
+<li><p><strong>num_layers_RNN</strong> (<em>int</em>) – number of RNN layers</p></li>
+<li><p><strong>kind</strong> (<em>str</em>) – one among GRU or LSTM</p></li>
+<li><p><strong>kernel_size</strong> (<em>int</em>) – kernel size in the encoder convolutional block</p></li>
+<li><p><strong>sum_emb</strong> (<em>bool</em>) – if true the contribution of each embedding will be summed-up otherwise stacked</p></li>
+<li><p><strong>out_channels</strong> (<em>int</em>) – number of output channels</p></li>
+<li><p><strong>activation</strong> (<em>str</em><em>, </em><em>optional</em>) – activation fuction function pytorch. Default torch.nn.ReLU</p></li>
+<li><p><strong>remove_last</strong> (<em>bool</em><em>, </em><em>optional</em>) – if True the model learns the difference respect to the last seen point</p></li>
+<li><p><strong>persistence_weight</strong> (<em>float</em>) – weight controlling the divergence from persistence model. Default 0</p></li>
+<li><p><strong>loss_type</strong> (<em>str</em><em>, </em><em>optional</em>) – this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,</p></li>
+<li><p><strong>quantiles</strong> (<em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].</p></li>
+<li><p><strong>dropout_rate</strong> (<em>float</em><em>, </em><em>optional</em>) – dropout rate in Dropout layers</p></li>
+<li><p><strong>use_bn</strong> (<em>bool</em><em>, </em><em>optional</em>) – if true BN layers will be added and dropouts will be removed</p></li>
+<li><p><strong>use_glu</strong> (<em>bool</em><em>,</em><em>optional</em>) – use GLU for feature selection. Defaults to True.</p></li>
+<li><p><strong>glu_percentage</strong> (<em>float</em><em>, </em><em>optiona</em>) – percentage of features to use. Defaults to 1.0.</p></li>
+<li><p><strong>n_classes</strong> (<em>int</em>) – number of classes (0 in regression)</p></li>
+<li><p><strong>optim</strong> (<em>str</em><em>, </em><em>optional</em>) – if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.</p></li>
+<li><p><strong>optim_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – configuration for Adam optimizer. Defaults to None.</p></li>
+<li><p><strong>scheduler_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – configuration for stepLR scheduler. Defaults to None.</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.VQVAEA.VQVAEA.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/VQVAEA.html#VQVAEA.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.VQVAEA.VQVAEA.forward" title="Permalink to this definition"></a></dt>
@@ -1564,57 +1472,38 @@ Most likely you’ll want to make sure to be in model.eval() mode of operation f
 <dt class="sig sig-object py" id="dsipts.models.VVA.VVA">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.VVA.</span></span><span class="sig-name descname"><span class="pre">VVA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">past_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_voc_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">token_split</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_layers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_heads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persistence_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'l1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/VVA.html#VVA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.VVA.VVA" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#dsipts.models.base.Base" title="dsipts.models.base.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></a></p>
-<p>Custom encoder-decoder
-:param past_steps: number of past datapoints used
-:type past_steps: int
-:param future_steps: number of future lag to predict
-:type future_steps: int
-:param past_channels: number of numeric past variables, must be &gt;0
-:type past_channels: int
-:param future_channels: number of future numeric variables
-:type future_channels: int
-:param embs: list of the initial dimension of the categorical variables
-:type embs: List
-:param cat_emb_dim: final dimension of each categorical variable
-:type cat_emb_dim: int
-:param hidden_RNN: hidden size of the RNN block
-:type hidden_RNN: int
-:param num_layers_RNN: number of RNN layers
-:type num_layers_RNN: int
-:param kind: one among GRU or LSTM
-:type kind: str
-:param kernel_size: kernel size in the encoder convolutional block
-:type kernel_size: int
-:param sum_emb: if true the contribution of each embedding will be summed-up otherwise stacked
-:type sum_emb: bool
-:param out_channels: number of output channels
-:type out_channels: int
-:param activation: activation fuction function pytorch. Default torch.nn.ReLU
-:type activation: str, optional
-:param remove_last: if True the model learns the difference respect to the last seen point
-:type remove_last: bool, optional
-:param persistence_weight: weight controlling the divergence from persistence model. Default 0
-:type persistence_weight: float
-:param loss_type: this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,
-:type loss_type: str, optional
-:param quantiles: we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
-:type quantiles: List[int], optional
-:param dropout_rate: dropout rate in Dropout layers
-:type dropout_rate: float, optional
-:param use_bn: if true BN layers will be added and dropouts will be removed
-:type use_bn: bool, optional
-:param use_glu: use GLU for feature selection. Defaults to True.
-:type use_glu: bool,optional
-:param glu_percentage: percentage of features to use. Defaults to 1.0.
-:type glu_percentage: float, optiona
-:param n_classes: number of classes (0 in regression)
-:type n_classes: int
-:param optim: if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
-:type optim: str, optional
-:param optim_config: configuration for Adam optimizer. Defaults to None.
-:type optim_config: dict, optional
-:param scheduler_config: configuration for stepLR scheduler. Defaults to None.
-:type scheduler_config: dict, optional</p>
+<p>Custom encoder-decoder</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>past_steps</strong> (<em>int</em>) – number of past datapoints used</p></li>
+<li><p><strong>future_steps</strong> (<em>int</em>) – number of future lag to predict</p></li>
+<li><p><strong>past_channels</strong> (<em>int</em>) – number of numeric past variables, must be &gt;0</p></li>
+<li><p><strong>future_channels</strong> (<em>int</em>) – number of future numeric variables</p></li>
+<li><p><strong>embs</strong> (<em>List</em>) – list of the initial dimension of the categorical variables</p></li>
+<li><p><strong>cat_emb_dim</strong> (<em>int</em>) – final dimension of each categorical variable</p></li>
+<li><p><strong>hidden_RNN</strong> (<em>int</em>) – hidden size of the RNN block</p></li>
+<li><p><strong>num_layers_RNN</strong> (<em>int</em>) – number of RNN layers</p></li>
+<li><p><strong>kind</strong> (<em>str</em>) – one among GRU or LSTM</p></li>
+<li><p><strong>kernel_size</strong> (<em>int</em>) – kernel size in the encoder convolutional block</p></li>
+<li><p><strong>sum_emb</strong> (<em>bool</em>) – if true the contribution of each embedding will be summed-up otherwise stacked</p></li>
+<li><p><strong>out_channels</strong> (<em>int</em>) – number of output channels</p></li>
+<li><p><strong>activation</strong> (<em>str</em><em>, </em><em>optional</em>) – activation fuction function pytorch. Default torch.nn.ReLU</p></li>
+<li><p><strong>remove_last</strong> (<em>bool</em><em>, </em><em>optional</em>) – if True the model learns the difference respect to the last seen point</p></li>
+<li><p><strong>persistence_weight</strong> (<em>float</em>) – weight controlling the divergence from persistence model. Default 0</p></li>
+<li><p><strong>loss_type</strong> (<em>str</em><em>, </em><em>optional</em>) – this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,</p></li>
+<li><p><strong>quantiles</strong> (<em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].</p></li>
+<li><p><strong>dropout_rate</strong> (<em>float</em><em>, </em><em>optional</em>) – dropout rate in Dropout layers</p></li>
+<li><p><strong>use_bn</strong> (<em>bool</em><em>, </em><em>optional</em>) – if true BN layers will be added and dropouts will be removed</p></li>
+<li><p><strong>use_glu</strong> (<em>bool</em><em>,</em><em>optional</em>) – use GLU for feature selection. Defaults to True.</p></li>
+<li><p><strong>glu_percentage</strong> (<em>float</em><em>, </em><em>optiona</em>) – percentage of features to use. Defaults to 1.0.</p></li>
+<li><p><strong>n_classes</strong> (<em>int</em>) – number of classes (0 in regression)</p></li>
+<li><p><strong>optim</strong> (<em>str</em><em>, </em><em>optional</em>) – if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.</p></li>
+<li><p><strong>optim_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – configuration for Adam optimizer. Defaults to None.</p></li>
+<li><p><strong>scheduler_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – configuration for stepLR scheduler. Defaults to None.</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.VVA.VVA.configure_optimizers">
 <span class="sig-name descname"><span class="pre">configure_optimizers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/VVA.html#VVA.configure_optimizers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.VVA.VVA.configure_optimizers" title="Permalink to this definition"></a></dt>

@@ -25,6 +25,28 @@ class TFT2(Base):
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
+        """_summary_
+
+        Args:
+            d_model (int): _description_
+            out_channels (int): _description_
+            past_steps (int): _description_
+            future_steps (int): _description_
+            past_channels (int): _description_
+            future_channels (int): _description_
+            num_layers_RNN (int): _description_
+            embs (list[int]): _description_
+            d_head (int): _description_
+            n_head (int): _description_
+            dropout_rate (float): _description_
+            persistence_weight (float, optional): _description_. Defaults to 0.0.
+            loss_type (str, optional): _description_. Defaults to 'l1'.
+            quantiles (List[float], optional): _description_. Defaults to [].
+            optim (Union[str,None], optional): _description_. Defaults to None.
+            optim_config (dict, optional): _description_. Defaults to None.
+            scheduler_config (dict, optional): _description_. Defaults to None.
+        """
+
         super().__init__()
         self.save_hyperparameters(logger=False)
         # assert out_channels==1, logging.info("ONLY ONE CHANNEL IMPLEMENTED")

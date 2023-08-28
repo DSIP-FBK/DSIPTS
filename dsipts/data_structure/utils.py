@@ -1,4 +1,5 @@
 from enum import Enum
+import pandas,numpy
 import pandas as pd
 from torch.utils.data import Dataset
 import numpy as np
@@ -7,7 +8,7 @@ from typing import Union
 import torch
 import os
 
-def extend_df(x:Union[pd.Series, np.array],freq:str)-> pd.DataFrame:
+def extend_df(x:Union[pandas.Series, numpy.array],freq:str)-> pandas.DataFrame:
     """Utility for generating a full dataset and then merge the real data
 
     Args:

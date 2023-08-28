@@ -208,15 +208,6 @@
 <div class="viewcode-block" id="VectorQuantizerEMA"><a class="viewcode-back" href="../../../../dsipts.models.vva.html#dsipts.models.vva.vqvae.VectorQuantizerEMA">[docs]</a><span class="k">class</span> <span class="nc">VectorQuantizerEMA</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_embeddings</span><span class="p">,</span> <span class="n">embedding_dim</span><span class="p">,</span> <span class="n">commitment_cost</span><span class="p">,</span> <span class="n">decay</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;_summary_</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            num_embeddings (_type_): _description_</span>
-<span class="sd">            embedding_dim (_type_): _description_</span>
-<span class="sd">            commitment_cost (_type_): _description_</span>
-<span class="sd">            decay (_type_): _description_</span>
-<span class="sd">            epsilon (_type_, optional): _description_. Defaults to 1e-5.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">VectorQuantizerEMA</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         
         <span class="bp">self</span><span class="o">.</span><span class="n">_embedding_dim</span> <span class="o">=</span> <span class="n">embedding_dim</span>

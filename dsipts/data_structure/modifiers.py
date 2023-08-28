@@ -7,6 +7,7 @@ from torch.utils.data.dataloader import DataLoader
 import torch
 import numpy as np
 import logging
+from .utils import MyDataset
 
     
     
@@ -48,25 +49,65 @@ class VVADataset(Dataset):
 
 class Modifier(ABC):
     def __init__(self,**kwargs):
+        """In the constructor you can store some parameters of the modifier. It will be saved when the timeseries is saved.
+        """
         super(Modifier, self).__init__()
         self.__dict__.update(kwargs)
+        
     @abstractmethod
-    def fit_transform(self,train,val):
+    def fit_transform(self,train:MyDataset,val:MyDataset)->[Dataset,Dataset]:
+        """This funtion is called before the training procedure and it should tasnform the standard Dataset into the new Dataset
+
+        Args:
+            train (MyDataset): initial train `Dataset`
+            val (MyDataset): initial validation `Dataset`
+
+        Returns:
+            Dataset, Dataset: transformed train and validation `Datasets`
+        """
         return train,val
     
     @abstractmethod
-    def transform(self,val):
-        return val
+    def transform(self,test:MyDataset)->Dataset:
+        """Similar to `fit_transform` but only transformation task will be performed, it is used in the inference function before calling the inference method
+        Args:
+            test (MyDataset): initial test `Dataset`
+
+        Returns:
+            Dataset: transformed test `Dataset`
+        """
+        return test
     
     @abstractmethod
-    def inverse_transform(self,res):
+    def inverse_transform(self,res:np.array,real:np.array)->[np.array,np.array]:
+        """The results must be reverted respect to the prediction task
+
+        Args:
+            res (np.array): raw prediction
+            real (np.array): raw real data
+
+        Returns:
+            [np.array, np.array] : inverse transfrmation of the predictions and the real data
+        """
         return res
 
 
 class ModifierVVA(Modifier):
+    """This modifiers is used for the custom model VVA. The initial data are divided in smaller segments and then tokenized using a clustering procedure (fit_trasform).
+    The centroids of the clusters are stored. A GPT model is then trained on the tokens an the predictions are reverted using the centroid information.
+    """
    
 
-    def fit_transform(self, train, val):
+    def fit_transform(self,train:MyDataset,val:MyDataset)->[Dataset,Dataset]:
+        """BisectingKMeans is used on segments of length `token_split`
+
+        Args:
+            train (MyDataset): initial train `Dataset`
+            val (MyDataset): initial validation `Dataset`
+
+        Returns:
+            Dataset, Dataset: transformed train and validation `Datasets`
+        """
         idx_target =  train.idx_target
         assert len(idx_target)==1, print('This works only with single channel prediction')
         
@@ -107,10 +148,15 @@ class ModifierVVA(Modifier):
     
     
     
-    def transform(self, test):
+    def transform(self,test:MyDataset)->Dataset:
+        """Similar to `fit_transform` but only transformation task will be performed
+        Args:
+            test (MyDataset): test val `Dataset`
 
-        
-
+        Returns:
+            Dataset: transformed test `Dataset`
+        """
+    
         idx_target =  test.idx_target
 
         samples,length,_ = test.data['y'].shape
@@ -125,10 +171,16 @@ class ModifierVVA(Modifier):
       
         return VVADataset(x,y,test.data['y'].squeeze(),test.t,length_in,length_out,self.max_voc_size)
     
-    def inverse_transform(self,res,real):
-        tot = []
-        ##occhio che qui abbiamo una cosa del tipo samples, values, DISTRIBUTION
+    def inverse_transform(self,res:np.array,real:np.array)->[np.array,np.array]:
+        """The results must be reverted respect to the prediction task
 
+        Args:
+            res (np.array): raw prediction
+
+        Returns:
+            np.array: inverse transofrmation of the predictions
+        """
+        tot = []
         for sample in res:
             tmp_sample = []
             for index in sample:
@@ -140,7 +192,7 @@ class ModifierVVA(Modifier):
                     tmp2 = tmp[0,:,:]
                 else:
                     tmp2 = tmp.mean(axis=0)
-                    tmp2[:,0] -= 1.96*tmp.std(axis=0)[:,0]
+                    tmp2[:,0] -= 1.96*tmp.std(axis=0)[:,0]  #using confidence interval
                     tmp2[:,2] += 1.96*tmp.std(axis=0)[:,2]
                 tmp_sample.append(tmp2)
             tot.append(np.vstack(tmp_sample))

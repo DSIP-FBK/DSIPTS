@@ -718,12 +718,10 @@ class TimeSeries():
         skip_step is set to 1 for convenience in case you want to use previous split parameters otherwise care to be coohernt
         """
         self.check_custom = True
-        import pdb
-        pdb.set_trace()
         ## enlarge the dataset in order to have all the rows needed
         freq = pd.to_timedelta(np.diff(data.time).min())
         logging.info(f'#############Detected minumum frequency: {freq}#############')
-        empty = pd.DataFrame({'time':pd.date_range(data.min(),data.max()+freq*(steps_in_future+self.split_params['past_steps']+self.split_params['future_steps']),freq=freq)})
+        empty = pd.DataFrame({'time':pd.date_range(data.time.min(),data.time.max()+freq*(steps_in_future+self.split_params['past_steps']+self.split_params['future_steps']),freq=freq)})
         dataset = empty.merge(data,how='left')
             
         
@@ -738,7 +736,7 @@ class TimeSeries():
         else:
             data = self.create_data_loader(data,**split_params)
 
-        res = self.inference_on_set(self,batch_size=batch_size,num_workers=num_workers,split_params=None,set='custom',rescaling=rescaling,data=data)
+        res = self.inference_on_set(batch_size=batch_size,num_workers=num_workers,split_params=None,set='custom',rescaling=rescaling,data=data)
         self.check_custom = False
         return res
         
