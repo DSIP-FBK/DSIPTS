@@ -168,6 +168,15 @@ class Base(pl.LightningModule):
                 x = y_hat[:,:,:,1]
             loss = sinkhorn.compute(x,batch['y'])
             
+        elif self.loss == 'std_norm':
+            if self.use_quantiles==False:
+                x = y_hat[:,:,:,0]
+            else:
+                x = y_hat[:,:,:,1]
+
+            std = torch.sqrt(torch.var(batch['y'], dim=(1))+ 1e-8)
+            loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1) * (1.0+torch.exp(-self.persistence_weight*std)))
+            
         elif self.loss_type=='high_order':
 
 
