@@ -1,5 +1,5 @@
-sphinx-apidoc -o docs dsipts/
-sphinx-apidoc -o docs bash_examples/
+sphinx-apidoc -of docs dsipts/
+sphinx-apidoc -of docs bash_examples/
 
 cd docs
 make clean html
