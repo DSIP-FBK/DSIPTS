@@ -420,8 +420,8 @@ class Decoder(nn.Module):
                                                 kernel_size=4,  padding=1)
 
     def forward(self, x,is_training=True):
-        if is_training:
-             x = self._jitter(x)
+        #if is_training:
+        #     x = self._jitter(x)
         x = self._conv_1(x)
         x = self._upsample(x)
         x = self._residual_stack(x)
