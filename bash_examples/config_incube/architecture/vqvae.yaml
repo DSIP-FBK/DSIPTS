@@ -16,7 +16,7 @@ ts:
 
 optim_config:
   lr_vqvae: 0.001
-  lr_gpt: 0.0001
+  lr_gpt: 0.00001
   weight_decay_vqvae: 0.001 #001
   weight_decay_gpt: 0.001 #001
     
@@ -26,8 +26,8 @@ model_configs:
   decay: 0.0
   d_model: 64
   max_voc_size: 128  
-  num_layers: 6
-  dropout_rate: 0.1
+  num_layers: 4
+  dropout_rate: 0.5
   n_heads: 4
   optim: null
   persistence_weight: 0.010
