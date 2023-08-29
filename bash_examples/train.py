@@ -187,17 +187,18 @@ def train(conf: DictConfig) -> None:
         
     valid_loss = ts.train_model(split_params=split_params,**conf.train_config)
     ts.save(os.path.join(conf.train_config.dirpath,'model'))
-    logging.info(f'##########FINISH TRAINING PROCEDURE###############')
+    logging.info(f'##########FINISH TRAINING PROCEDURE with loss = {valid_loss}###############')
     return valid_loss ##for optuna!    
         
 if __name__ == '__main__': 
     
     #if not os.path.exists('config_used'):
     #    os.mkdir('config_used')
-    val_loss = train()
+    train()
+
     #if os.path.exists('multirun'):
     #    shutil.rmtree('multirun')
     
     if os.path.exists('outputs'):
         shutil.rmtree('outputs', ignore_errors=True)
-    val_loss
+

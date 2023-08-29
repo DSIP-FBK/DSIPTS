@@ -389,6 +389,24 @@ hydra:  ##SLURM STUFFS
 
 
 ```
+The best configuaration can be found in `multirun/<DATE/<TIME>/optimization_results.yaml` and it show something like:
+
+```
+name: optuna
+best_params:
+  model_configs.cat_emb_dim: 2
+  model_configs.dropout_rate: 0.7
+best_value: 16.59403419494629      
+```
+where `best_value` is the mean loss in the validation step and `best_parameters` contains the best configuration. 
+Pay attention and use the same loss for all the experiments. Some losses have a different scale and can not compare! 
+
+```
+##si puo fare di meglio!!!
+df = pd.read_sql_query("SELECT param_name, param_value,value FROM trial_params as t join trial_values as v on t.trial_id=v.trial_id ", cnx)
+
+```
+
 
 
 ## Results
@@ -398,5 +416,5 @@ hydra:  ##SLURM STUFFS
 - The folder `weights` can become very big. Try to remove all useless experiments.
 - The folder `multirun` can become very crowded, not so big but it can be deleted sometimes
 - The folder `config_used` contains all the trained models. The comparison step can be very time consuming (the models are evaluated sequentially). Please use only the models you need
-
+- Do not mix loss function using the optuna sweeper
 

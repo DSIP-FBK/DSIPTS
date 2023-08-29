@@ -12,20 +12,20 @@ ts:
 
 
 optim_config:
-  lr_vqvae: 0.005
+  lr_vqvae: 0.0001
   lr_gpt: 0.0001
   weight_decay_vqvae: 0.001 #001
   weight_decay_gpt: 0.001 #001
     
 model_configs:
   hidden_channels: 32
-  commitment_cost: 0.5
+  commitment_cost: 0.1
   decay: 0.0
-  d_model: 64
-  max_voc_size: 128  
-  num_layers: 6
-  dropout_rate: 0.1
-  n_heads: 4
+  d_model: 32
+  max_voc_size: 64  
+  num_layers: 8
+  dropout_rate: 0.5
+  n_heads: 8
   optim: null
   persistence_weight: 0.010
   epoch_vqvae: 700
@@ -33,7 +33,7 @@ model_configs:
   
 train_config:
   auto_lr_find: false
-  batch_size: 64
+  batch_size: 32
   max_epochs: 1000
   gradient_clip_val: null
   gradient_clip_algorithm: 'norm'
