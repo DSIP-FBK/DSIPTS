@@ -161,22 +161,22 @@ def train_stack(conf: DictConfig) -> None:
     model_conf['out_channels'] = len(targets)
 
     if conf.model.type == 'linear':
-        required = inspect.getfullargspec(LinearTS.__init__)
-        model_conf = {k:model_conf[k] for k in required.args if k in model_conf.keys() }
+        #required = inspect.getfullargspec(LinearTS.__init__)
+        #model_conf = {k:model_conf[k] for k in required.args if k in model_conf.keys() }
         model =  LinearTS(**model_conf,
                           optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )
         
     elif conf.model.type == 'rnn':
-        required = inspect.getfullargspec(RNN.__init__)
-        model_conf = {k:model_conf[k] for k in required.args if k!='self'}
+        #required = inspect.getfullargspec(RNN.__init__)
+        #model_conf = {k:model_conf[k] for k in required.args if k!='self'}
 
         model =  RNN(**model_conf,
                           optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config ) 
 
-
     else:
+        logging.info('Tested only RNN and LINEAR, TODO: add more models')
         logging.info(f"{''.join(['#']*300)}")
         logging.info(f"{''.join([' ']*300)}")
         logging.info(f'######use valid model { conf.model.type}-{conf.ts.name}-{conf.ts.version}########')
