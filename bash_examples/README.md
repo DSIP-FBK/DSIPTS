@@ -457,15 +457,28 @@ You can use the routine `train_stack.py` similarly to `train.py` but with some d
 - the config file for the stacked model is in the folder `stack`
 - you need to set `ts.type=stacked`
 - you need to add a section called `stack` similar to the snipped below
-
+- if you want to a special launcher (joblib or slurm) you need a little workaround
 ```
 stack:
   #models: config_test  ## if you want to use all the models
-  models: ['config_incube/config_used/tft2_test_1_loss_type=std_normpersistence_weight=1.yaml','config_incube/config_used/crossformer_test_1_loss_type=std_penpersistence_weight=10.yaml','config_incube/config_used/mymodel_test_1.yaml','config_incube/config_used/gru_gru_1.yaml']
+  models: ['config_incube/config_used/tft2_test_1_loss_type=std_normpersistence_weight=1.yaml','config_incube/config_used/crossformer_test_1_loss_type=std_penpersistence_weight=10.yaml','config_incube/config_used/mymodel_test_1.yaml','config_incube/config_used/gru_gru_1.yaml']  #if you want to use only some models
   dirpath: "/home/agobbi/Projects/ExpTS/incube"
-  set: 'test'
+  set: 'validation' ## the dataset of the trained model to use as a training set
   name: 'prova'
   rescaling: true
   batch_size: 64
+```
+the splitting section of the stacked model is referred to the subset defined in the `stack` section. If you use the `validation` set from the original model and set a training percentage of 0.8 the stacked model is trained on the 80% of the validation set. 
+
+Finally you can train your model using:
+```
+python train_stack.py  --config-dir=config_test --config-name=config stack=linear architecture=stack hydra.launcher.n_jobs=1 -m
+```
+here you can see the workaround `architecture=stack` (you need to create an empty file in the `architecture` folder) and set `hydra.launcher.n_jobs=1` otherwise the multiprocess function raises some errors.
+If you can run the code without sweeper you can simple run:
 
 ```
+python train_stack.py  --config-dir=config_test --config-name=config stack=linear
+```
+
+When you lauch `compare.py` magically it will run also the stacked model and add it to the pool (very cool right?).
