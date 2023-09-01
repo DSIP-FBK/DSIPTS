@@ -75,7 +75,8 @@ def train_stack(conf: DictConfig) -> None:
         import pdb
         pdb.set_trace()
         try:
-            files = files.sep(',')
+            
+            files = conf.stack.models.replace('["','').replace(']','').split(',')
         except:
             logging.info('FAILED TO LOAD MODELS')
             
