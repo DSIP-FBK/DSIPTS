@@ -63,7 +63,9 @@ def mape(x:np.array,y:np.array)->float:
 def inference_stacked(conf:DictConfig,ts:TimeSeries)->List[pd.DataFrame]:
     predictions = None
     for i,f in enumerate(ts.models_used):
-        
+        f['inferece']['set'] = conf.inference.set
+        f['inferece']['rescaling'] = conf.inference.rescaling
+        f['inferece']['batch_size'] = conf.inference.batch_size
         _,prediction, _ = inference(f)
         
         ##this can be more informative but the names are too long
