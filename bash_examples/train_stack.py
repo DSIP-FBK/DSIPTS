@@ -71,9 +71,12 @@ def train_stack(conf: DictConfig) -> None:
         ff = os.path.join(conf.stack.models,'config_used')
         files = [os.path.join(ff,f) for f in os.listdir(ff)]
     else:
-        import pdb
-        pdb.set_trace()
-        
+        ## if we are here probably is becasue it falis to load the models from a list. There is a bug because hyrdra parse the string in an obscure way so we need to pass a string and parse it
+        try:
+            files = files.sep(',')
+        except:
+            logging.info('FAILED TO LOAD MODELS')
+            
     predictions = None
     N_models = 0
     models_used = []
