@@ -450,3 +450,22 @@ df.groupby('trial_id').apply(unroll).reset_index()
 - The folder `config_used` contains all the trained models. The comparison step can be very time consuming (the models are evaluated sequentially). Please use only the models you need
 - Do not mix loss function using the optuna sweeper
 
+## Stack generalization
+
+Once you have trained a bunch of good models you may try to train a stack generalization model: a (usually simpler) model that combines the output of the trained model and estimate the target. 
+You can use the routine `train_stack.py` similarly to `train.py` but with some differences:
+- the config file for the stacked model is in the folder `stack`
+- you need to set `ts.type=stacked`
+- you need to add a section called `stack` similar to the snipped below
+
+```
+stack:
+  #models: config_test  ## if you want to use all the models
+  models: ['config_incube/config_used/tft2_test_1_loss_type=std_normpersistence_weight=1.yaml','config_incube/config_used/crossformer_test_1_loss_type=std_penpersistence_weight=10.yaml','config_incube/config_used/mymodel_test_1.yaml','config_incube/config_used/gru_gru_1.yaml']
+  dirpath: "/home/agobbi/Projects/ExpTS/incube"
+  set: 'test'
+  name: 'prova'
+  rescaling: true
+  batch_size: 64
+
+```

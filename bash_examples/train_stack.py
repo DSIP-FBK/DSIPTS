@@ -90,6 +90,7 @@ def train_stack(conf: DictConfig) -> None:
 
         conf_tmp.inference.rescaling = conf.stack.rescaling
         conf_tmp.inference.batch_size = conf.stack.get('batch_size',conf_tmp.inference.batch_size)
+        #conf_tmp.inference.num_workers = 1
 
         logging.info(f"{''.join(['#']*200)}")
         logging.info(f"{''.join([' ']*200)}")
@@ -99,6 +100,7 @@ def train_stack(conf: DictConfig) -> None:
 
 
         try:
+            
             _,prediction, _ = inference(conf_tmp)
             
             ##this can be more informative but the names are too long
@@ -129,6 +131,8 @@ def train_stack(conf: DictConfig) -> None:
             models_used.append(conf_tmp)
             i+=1
         except Exception as e:
+            import traceback
+            print(traceback.format_exc())
             logging.info(f'#######can not load model {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} {e} ######### ')
     
     
