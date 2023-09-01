@@ -134,9 +134,9 @@ class TimeSeries():
         self.name = name
 
     def __str__(self) -> str:
-        return f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables}"
+        return f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables} \n With {'no group' if self.group is None else self.group+' as group' }"
     def __repr__(self) -> str:
-        return f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables}"
+        return f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables}\n With {'no group' if self.group is None else self.group+' as group' }"
     
     def _generate_base(self,length:int,type:int=0)-> None:
         """Generate a basic timeseries 
@@ -508,7 +508,7 @@ class TimeSeries():
                 validation =[]
                 test = []
                 ls = self.dataset.groupby(self.group).time.count().reset_index()
-                for group in self.dataset[self.group].uniuqe():
+                for group in self.dataset[self.group].unique():
                     tmp = self.dataset[self.dataset[self.group]==group]
                     l = ls[ls[self.group]==group].time.values[0]
                     train.append(tmp[0:int(perc_train*l)])

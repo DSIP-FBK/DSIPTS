@@ -45,7 +45,7 @@ inference:
   load_last: true
   batch_size: 200 
   num_workers: 4
-  set: "validation"
+  set: "test"
   rescaling: true
 
 defaults:
