@@ -547,7 +547,7 @@ class TimeSeries():
                     self.scaler_cat[c].fit(train[c].values.reshape(-1,1))  
             else:
                 self.normalize_per_group = True
-                for group in train[self.group].uniuqe():
+                for group in train[self.group].unique():
                     tmp = train[train[self.group]==group]
 
                     for c in self.num_var:
