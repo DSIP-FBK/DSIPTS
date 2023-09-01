@@ -65,6 +65,6 @@ hydra:
  
 
   output_subdir: null 
-  #sweeper:
-  #  params:
-  #    architecture: glob(*) 
+  sweeper:
+    params:
+      architecture: glob(*) 
