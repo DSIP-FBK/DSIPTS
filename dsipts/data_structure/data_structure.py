@@ -539,7 +539,6 @@ class TimeSeries():
         
             if self.group is None or normalize_per_group==False:
                 self.normalize_per_group = False
-            
                 for c in self.num_var:
                     self.scaler_num[c] =  StandardScaler()
                     self.scaler_num[c].fit(train[c].values.reshape(-1,1))
@@ -550,6 +549,7 @@ class TimeSeries():
                 self.normalize_per_group = True
                 for group in train[self.group].uniuqe():
                     tmp = train[train[self.group]==group]
+
                     for c in self.num_var:
                         self.scaler_num[f'{c}_{group}'] =  StandardScaler()
                         self.scaler_num[f'{c}_{group}'].fit(tmp[c].values.reshape(-1,1))
