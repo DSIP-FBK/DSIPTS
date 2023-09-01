@@ -178,7 +178,13 @@ def train_stack(conf: DictConfig) -> None:
         model =  RNN(**model_conf,
                           optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config ) 
+    elif conf.model.type == 'tft2':
+        #required = inspect.getfullargspec(RNN.__init__)
+        #model_conf = {k:model_conf[k] for k in required.args if k!='self'}
 
+        model =  TFT2(**model_conf,
+                          optim_config = conf.optim_config,
+                          scheduler_config =conf.scheduler_config ) 
     else:
         logging.info('Tested only RNN and LINEAR, TODO: add more models')
         logging.info(f"{''.join(['#']*300)}")

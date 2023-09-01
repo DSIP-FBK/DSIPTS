@@ -204,7 +204,7 @@ class TimeSeries():
         elif columns=='minute':
             dataset[columns] = dataset.time.dt.minute
         else:
-            logging.info('I can not automatically add column {c} plase update this function accordlyng')
+            logging.info(f'I can not automatically add column {columns} plase update this function accordlyng')
 
     def load_signal(self,data:pd.DataFrame,
                     enrich_cat:List[str] = [],
@@ -349,11 +349,11 @@ class TimeSeries():
             self.enrich(data,c)
 
         if self.normalize_per_group:
-            for group in data[self.group].uniuqe():
+            for group in data[self.group].unique():
                 tmp = data[data[self.group]==group]
-                
+      
                 for c in self.num_var:
-                    self.scaler_num[f'{c}_{group}'].transform(tmp[c].values.ravel()).flatten()
+                    self.scaler_num[f'{c}_{group}'].transform(tmp[c].values.reshape(-1,1)).flatten()
                 for c in self.cat_var:                               
                     self.scaler_cat[f'{c}_{group}'].transform(tmp[c].values.ravel()).flatten()
         
