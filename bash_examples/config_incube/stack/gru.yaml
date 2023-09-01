@@ -7,7 +7,7 @@ ts:
   use_covariates: false ##does not matter but it is mandatory
   
 model:
-  type: linear
+  type: rnn
   retrain: true
 
 ##where are the initial model
