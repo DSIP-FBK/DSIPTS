@@ -46,7 +46,10 @@ def compare(conf:DictConfig)-> None:
         pdb.set_trace()
         
     for conf_tmp in files:
+        
+        logging.info(f'###############Processing file: {conf_tmp}###################')
         conf_tmp =  OmegaConf.load(conf_tmp) 
+        
         conf_tmp.inference.set = conf.set
         conf_tmp.inference.rescaling = conf.rescaling
         conf_tmp.inference.batch_size = conf.get('batch_size',conf_tmp.inference.batch_size)

@@ -82,7 +82,8 @@ def train(conf: DictConfig) -> None:
     model_conf['embs'] = [ts.dataset[c].nunique() for c in ts.cat_var]
     model_conf['out_channels'] = len(ts.target_variables)
 
-
+    ##TODO fix this ughly thing
+    
     if conf.model.type == 'linear':
         model =  LinearTS(**model_conf,
                           optim_config = conf.optim_config,

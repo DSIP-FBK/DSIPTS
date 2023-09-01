@@ -13,7 +13,7 @@ import os
 import torch
 pd.options.mode.chained_assignment = None 
 import pickle
-from .utils import extend_df,MetricsCallback, MyDataset, ActionEnum
+from .utils import extend_time_df,MetricsCallback, MyDataset, ActionEnum
 from datetime import datetime
 from ..models.base import Base
 from ..models.utils import weight_init
@@ -206,7 +206,15 @@ class TimeSeries():
         else:
             logging.info('I can not automatically add column {c} plase update this function accordlyng')
 
-    def load_signal(self,data:pd.DataFrame,enrich_cat:List[str] = [],past_variables:List[str]=[],future_variables:List[str]=[],target_variables:List[str]=[],cat_var:List[str]=[],check_past:bool=True)->None:
+    def load_signal(self,data:pd.DataFrame,
+                    enrich_cat:List[str] = [],
+                    past_variables:List[str]=[],
+                    future_variables:List[str]=[],
+                    target_variables:List[str]=[],
+                    cat_var:List[str]=[],
+                    check_past:bool=True,
+                    group:Union[None,str]=None,
+                    check_holes_and_duplicates:bool=True)->None:
         """ This is a crucial point in the data structure. We expect here to have a dataset with time as timestamp.
             There are some checks:
                 1- the duplicates will tbe removed taking the first instance
@@ -221,19 +229,30 @@ class TimeSeries():
             target_variables (List[str], optional): list of the target variables. They will added to past_variables by default unless `check_past` is false. Defaults to [].
             cat_var (List[str], optional): list of the categortial variables (same for past and future). Defaults to [].
             check_past (bool, optional): see `target_variables`. Defaults to True.
+            group (str or None, optional): if not None the time serie dataset is considered composed by omogeneus timeseries coming from different realization (for example point of sales, cities, locations)
+            and the relative series are not splitted during the sample generation. Defaults to None
+            check_holes_and_duplicates (bool): if False duplicates or holes will not checked, the dataloader can not correctly work, disable at your own risk. Defaults True
         """
         
         
         
         dataset = data.copy()
-        logging.info('################I will drop duplicates, I dont like them###################')
-        dataset.drop_duplicates(subset=['time'],  keep='first', inplace=True, ignore_index=True)
-
-        if dataset.time.diff()[1:].nunique()>1:
-            logging.info("#########There are holes in the dataset i will try to extend the dataframe inserting NAN#############3")
-            freq = pd.to_timedelta(np.diff(dataset.time).min())
-            logging.info(f'#############Detected minumum frequency: {freq}#############')
-            dataset = extend_df(dataset.time,freq).merge(dataset,how='left')
+        dataset.sort_values(by='time',inplace=True)
+        
+        if check_holes_and_duplicates:
+            logging.info('################I will drop duplicates, I dont like them###################')
+            dataset.drop_duplicates(subset=['time'] if group is None else [group,'time'],  keep='first', inplace=True, ignore_index=True)
+            
+            if group is None:
+                differences = dataset.time.diff()[1:]
+            else:
+                differences = dataset[dataset[group]==dataset[group].unique()[0]].time.diff()[1:]
+                
+            if differences.nunique()>1:
+                logging.info("#########There are holes in the dataset i will try to extend the dataframe inserting NAN#############")
+                freq = pd.to_timedelta(differences.min())
+                logging.info(f'#############Detected minumum frequency: {freq}#############')
+                dataset = extend_time_df(dataset,freq,group).merge(dataset,how='left')
             
 
             
@@ -245,6 +264,14 @@ class TimeSeries():
                 past_variables = list(set(past_variables).union(set(target_variables)))
         
         self.cat_var = cat_var
+        self.group = group ## can be useful
+        if group is not None:
+            if group not in cat_var:
+                logging.info(f'##########I will add {group} to the categorical variables#############')
+                self.cat_var.append(group)
+                
+                
+                
         self.enrich_cat = enrich_cat
         for c in enrich_cat:
             self.cat_var = list(set(self.cat_var+[c]))
@@ -268,13 +295,26 @@ class TimeSeries():
         """
       
         logging.info('plotting only target variables')
-        tmp = self.dataset[['time']+self.target_variables].melt(id_vars=['time'])
-        fig = px.line(tmp,x='time',y='value',color='variable',title=self.name)
-        fig.show()
+        if self.group is None:
+            tmp = self.dataset[['time']+self.target_variables].melt(id_vars=['time'])
+            fig = px.line(tmp,x='time',y='value',color='variable',title=self.name)
+            fig.show()
+        else:
+            tmp = self.dataset[['time',self.group]+self.target_variables].melt(id_vars=['time',self.group])
+            fig = px.line(tmp,x='time',y='value',color='variable',title=self.name,facet_row=self.group)
+            fig.show()
         return fig
     
         
-    def create_data_loader(self,data:pd.DataFrame,past_steps:int,future_steps:int,shift:int=0,keep_entire_seq_while_shifting:bool=False,starting_point:Union[None,dict]=None,skip_step:int=1)->MyDataset:
+    def create_data_loader(self,data:pd.DataFrame,
+                           past_steps:int,
+                           future_steps:int,
+                           shift:int=0,
+                           keep_entire_seq_while_shifting:bool=False,
+                           starting_point:Union[None,dict]=None,
+                           skip_step:int=1
+                         
+                           )->MyDataset:
         """ Create the dataset for the training/inference step
 
         Args:
@@ -285,7 +325,6 @@ class TimeSeries():
             keep_entire_seq_while_shifting (bool, optional): if the dataset is shifted, you may want the future data be of length future_step+shift (like informer), default false
             starting_point (Union[None,dict], optional): a dictionary indicating if a sample must be considered. It is checked for the first lag in the future (useful in the case your model has to predict only starting from hour 12). Defaults to None.
             skip_step (int, optional): list of the categortial variables (same for past and future). Usual there is a skip of one between two saples but for debugging  or training time purposes you can skip some samples. Defaults to 1.
-
         Returns:
             MyDataset: class thath extends torch.utils.data.Dataset (see utils)
                 keys of a batch:
@@ -304,16 +343,26 @@ class TimeSeries():
         x_cat_future_samples = []
         y_samples = []
         t_samples = []
-        
+        g_samples = []
         ##overwrite categorical columns
         for c in self.cat_var:
             self.enrich(data,c)
 
-        for c in self.cat_var:
-            data[c] = self.scaler_cat[c].transform(data[c].values.ravel()).flatten()
-        for c in self.num_var: 
-            data[c] = self.scaler_num[c].transform(data[c].values.reshape(-1,1)).flatten()
+        if self.normalize_per_group:
+            for group in data[self.group].uniuqe():
+                tmp = data[data[self.group]==group]
+                
+                for c in self.num_var:
+                    self.scaler_num[f'{c}_{group}'].transform(tmp[c].values.ravel()).flatten()
+                for c in self.cat_var:                               
+                    self.scaler_cat[f'{c}_{group}'].transform(tmp[c].values.ravel()).flatten()
         
+        else:
+            for c in self.cat_var:
+                data[c] = self.scaler_cat[c].transform(data[c].values.ravel()).flatten()
+            for c in self.num_var: 
+                data[c] = self.scaler_num[c].transform(data[c].values.reshape(-1,1)).flatten()
+            
         idx_target = []
         for c in self.target_variables:
             idx_target.append(self.past_variables.index(c))
@@ -333,32 +382,43 @@ class TimeSeries():
         else:
             check = [True]*len(y_target)
         
-        for i in range(past_steps,data.shape[0]-future_steps,skip_step):
-            if check[i]:
+        if self.group is None:
+            data['_GROUP_'] = '1'
+        else:
+            data['_GROUP_'] = data[self.group]
+            
+        groups = data['_GROUP_'].values   
 
-                if len(self.future_variables)>0:
-                    if keep_entire_seq_while_shifting:
-                        xx = x_num_future[i-shift:i+future_steps].mean()
-                    else:
-                        xx = x_num_future[i-shift:i+future_steps-shift].mean()
-                else:
-                    xx = 0.0
-                if np.isfinite(x_num_past[i-past_steps:i].min() + y_target[i:i+future_steps].min() + xx):
-                    
-                    x_num_past_samples.append(x_num_past[i-past_steps:i])
+        for group in data['_GROUP_'].unique():
+            tmp = data[data['_GROUP_']==group]
+            
+            for i in range(past_steps,tmp.shape[0]-future_steps,skip_step):
+                if check[i]:
+
                     if len(self.future_variables)>0:
                         if keep_entire_seq_while_shifting:
-                            x_num_future_samples.append(x_num_future[i-shift:i+future_steps])
+                            xx = x_num_future[i-shift:i+future_steps].mean()
                         else:
-                            x_num_future_samples.append(x_num_future[i-shift:i+future_steps-shift])
-                    if len(self.cat_var)>0:
-                        x_cat_past_samples.append(x_cat[i-past_steps:i])
-                        if keep_entire_seq_while_shifting:
-                            x_cat_future_samples.append(x_cat[i-shift:i+future_steps])
-                        else:
-                            x_cat_future_samples.append(x_cat[i-shift:i+future_steps-shift])
-                    y_samples.append(y_target[i:i+future_steps])
-                    t_samples.append(t[i:i+future_steps])
+                            xx = x_num_future[i-shift:i+future_steps-shift].mean()
+                    else:
+                        xx = 0.0
+                    if np.isfinite(x_num_past[i-past_steps:i].min() + y_target[i:i+future_steps].min() + xx):
+                        
+                        x_num_past_samples.append(x_num_past[i-past_steps:i])
+                        if len(self.future_variables)>0:
+                            if keep_entire_seq_while_shifting:
+                                x_num_future_samples.append(x_num_future[i-shift:i+future_steps])
+                            else:
+                                x_num_future_samples.append(x_num_future[i-shift:i+future_steps-shift])
+                        if len(self.cat_var)>0:
+                            x_cat_past_samples.append(x_cat[i-past_steps:i])
+                            if keep_entire_seq_while_shifting:
+                                x_cat_future_samples.append(x_cat[i-shift:i+future_steps])
+                            else:
+                                x_cat_future_samples.append(x_cat[i-shift:i+future_steps-shift])
+                        y_samples.append(y_target[i:i+future_steps])
+                        t_samples.append(t[i:i+future_steps])
+                        g_samples.append(groups[i])
 
 
         if len(self.future_variables)>0:
@@ -368,7 +428,9 @@ class TimeSeries():
                 logging.error(f'WARNING!!!!!!!!!!!!x_num_future_samples is empty and it should not')
         y_samples = np.stack(y_samples)
 
-        t_samples = np.stack(t_samples)
+        t_samples = np.stack(t_samples)   
+        g_samples = np.stack(g_samples)
+
         if len(self.cat_var)>0:
             x_cat_past_samples = np.stack(x_cat_past_samples)
             x_cat_future_samples = np.stack(x_cat_future_samples)
@@ -383,7 +445,7 @@ class TimeSeries():
         if len(self.future_variables)>0:
             dd['x_num_future'] = x_num_future_samples.astype(np.float32)
         
-        return MyDataset(dd,t_samples,idx_target)
+        return MyDataset(dd,t_samples,g_samples,idx_target)
     
           
     
@@ -398,7 +460,8 @@ class TimeSeries():
                         shift:int = 0,
                         keep_entire_seq_while_shifting:bool=False,
                         starting_point:Union[None, dict]=None,
-                        skip_step:int=1
+                        skip_step:int=1,
+                        normalize_per_group: bool=False
                         )->List[DataLoader]:
         """Split the data and create the datasets.
 
@@ -415,7 +478,7 @@ class TimeSeries():
 
             starting_point (Union[None, dict], optional):  see `create_data_loader`. Defaults to None.
             skip_step (int, optional):  see `create_data_loader`. Defaults to 1.
-
+            normalize_per_group (boolean, optional): if true and self.group is not None, the variables are scaled respect to the groups
         Returns:
             List[DataLoader,DataLoader,DataLoadtrainer]: three dataloader used for training or inference
         """
@@ -429,19 +492,41 @@ class TimeSeries():
             return None, None, None
         
 
-        if range_train is None:
-            logging.info(f'Split temporally using perc_train: {perc_train} and perc_valid:{perc_valid}')
-        
-            train = self.dataset.iloc[0:int(perc_train*l)]
-            validation = self.dataset.iloc[int(perc_train*l):int(perc_train*l+perc_valid*l)]
-            test = self.dataset.iloc[int(perc_train*l+perc_valid*l):]
-        else:
-            logging.info('Split temporally using the time intervals provided')
 
+        
+        if range_train is None:
+            
+
+            if self.group is None:
+                logging.info(f'Split temporally using perc_train: {perc_train} and perc_valid:{perc_valid}')
+                train = self.dataset.iloc[0:int(perc_train*l)]
+                validation = self.dataset.iloc[int(perc_train*l):int(perc_train*l+perc_valid*l)]
+                test = self.dataset.iloc[int(perc_train*l+perc_valid*l):]
+            else:
+                logging.info(f'Split temporally using perc_train: {perc_train} and perc_valid:{perc_valid} for each group!')
+                train = []
+                validation =[]
+                test = []
+                ls = self.dataset.groupby(self.group).time.count().reset_index()
+                for group in self.dataset[self.group].uniuqe():
+                    tmp = self.dataset[self.dataset[self.group]==group]
+                    l = ls[ls[self.group]==group].time.values[0]
+                    train.append(tmp[0:int(perc_train*l)])
+                    validation.append(tmp[0:int(perc_train*l)])
+                    test.append(tmp[0:int(perc_train*l)])
+                    
+                train = pd.concat(train,ignore_index=True)
+                validation = pd.concat(validation,ignore_index=True)
+                test = pd.concat(test,ignore_index=True)
+
+
+        else:
+
+            logging.info('Split temporally using the time intervals provided')
             train = self.dataset[self.dataset.time.between(range_train[0],range_train[1])]
             validation =  self.dataset[self.dataset.time.between(range_validation[0],range_validation[1])]
             test =  self.dataset[self.dataset.time.between(range_test[0],range_test[1])]
-                                      
+
 
         logging.info('######################################################################################################')
         logging.info('######Scaling numerical (standard scaler) and categorical (label encorer) on the training data! ######')
@@ -451,18 +536,33 @@ class TimeSeries():
         else:
             self.scaler_cat = {}
             self.scaler_num = {}
-            for c in self.num_var:
-                self.scaler_num[c] =  StandardScaler()
-                self.scaler_num[c].fit(train[c].values.reshape(-1,1))
-            for c in self.cat_var:                               
-                self.scaler_cat[c] =  LabelEncoder()
-                self.scaler_cat[c].fit(train[c].values.reshape(-1,1))  
-                                        
+        
+            if self.group is None or normalize_per_group==False:
+                self.normalize_per_group = False
+            
+                for c in self.num_var:
+                    self.scaler_num[c] =  StandardScaler()
+                    self.scaler_num[c].fit(train[c].values.reshape(-1,1))
+                for c in self.cat_var:                               
+                    self.scaler_cat[c] =  LabelEncoder()
+                    self.scaler_cat[c].fit(train[c].values.reshape(-1,1))  
+            else:
+                self.normalize_per_group = True
+                for group in train[self.group].uniuqe():
+                    tmp = train[train[self.group]==group]
+                    for c in self.num_var:
+                        self.scaler_num[f'{c}_{group}'] =  StandardScaler()
+                        self.scaler_num[f'{c}_{group}'].fit(tmp[c].values.reshape(-1,1))
+                    for c in self.cat_var:                               
+                        self.scaler_cat[f'{c}_{group}'] =  LabelEncoder()
+                        self.scaler_cat[f'{c}_{group}'].fit(tmp[c].values.reshape(-1,1))  
         
         dl_train = self.create_data_loader(train,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)
         dl_validation = self.create_data_loader(validation,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)
-        dl_test = self.create_data_loader(test,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)
-
+        if test.shape[0]>0:
+            dl_test = self.create_data_loader(test,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)
+        else:
+            dl_test = None
         return dl_train,dl_validation,dl_test
             
     def set_model(self,model:Base,config:dict=None):
@@ -531,7 +631,7 @@ class TimeSeries():
             devices = 'auto'
             if precision=='auto':
                 precision  = 32
-        logging.info(f'train:{len(train)}, validation:{len(validation)}, test:{len(test)}')
+        logging.info(f'train:{len(train)}, validation:{len(validation)}, test:{len(test) if test is not None else 0}')
         if (accelerator=='gpu') and (num_workers>0):
             persistent_workers = True
         else:
@@ -613,7 +713,11 @@ class TimeSeries():
         self.is_trained = True
         return val_loss 
     
-    def inference_on_set(self,batch_size:int=100,num_workers:int=4,split_params:Union[None,dict]=None,set:str='test',rescaling:bool=True,data:Union[None,torch.utils.data.Dataset]=None)->pd.DataFrame:
+    def inference_on_set(self,batch_size:int=100,
+                         num_workers:int=4,
+                         split_params:Union[None,dict]=None,set:str='test',
+                         rescaling:bool=True,
+                         data:Union[None,torch.utils.data.Dataset]=None)->pd.DataFrame:
         """This function allows to get the prediction on a particular set (train, test or validation). 
 
         Args:
@@ -673,6 +777,7 @@ class TimeSeries():
  
         real = np.vstack(real)
         time = dl.dataset.t
+        groups = dl.dataset.groups
 
         if self.modifier is not None:
             res,real = self.modifier.inverse_transform(res,real)
@@ -680,10 +785,18 @@ class TimeSeries():
         ## BxLxCx3
         if rescaling:
             logging.info('Scaling back')
-            for i, c in enumerate(self.target_variables):
-                real[:,:,i] = self.scaler_num[c].inverse_transform(real[:,:,i].reshape(-1,1)).reshape(-1,real.shape[1])
-                for j in range(res.shape[3]):
-                    res[:,:,i,j] = self.scaler_num[c].inverse_transform(res[:,:,i,j].reshape(-1,1)).reshape(-1,res.shape[1])
+            if self.normalize_per_group==False:
+                for i, c in enumerate(self.target_variables):
+                    real[:,:,i] = self.scaler_num[c].inverse_transform(real[:,:,i].reshape(-1,1)).reshape(-1,real.shape[1])
+                    for j in range(res.shape[3]):
+                        res[:,:,i,j] = self.scaler_num[c].inverse_transform(res[:,:,i,j].reshape(-1,1)).reshape(-1,res.shape[1])
+            else:
+                for group in np.uniuqe(groups):
+                    idx = np.where(groups==group)[0]
+                    for i, c in enumerate(self.target_variables):
+                        real[idx,:,i] = self.scaler_num[f'{c}_{group}'].inverse_transform(real[idx,:,i].reshape(-1,1)).reshape(-1,real.shape[1])
+                        for j in range(res.shape[3]):
+                            res[idx,:,i,j] = self.scaler_num[f'{c}_{group}'].inverse_transform(res[idx,:,i,j].reshape(-1,1)).reshape(-1,res.shape[1])
 
         if self.model.use_quantiles:
             ##i+1 
@@ -709,20 +822,58 @@ class TimeSeries():
 
             
         return res
-    def inference(self,batch_size:int=100,num_workers:int=4,split_params:Union[None,dict]=None,rescaling:bool=True,data:pd.DataFrame=None,steps_in_future:int=0)->pd.DataFrame:
-        """same as inference_on_set
-        only change is split_params that must contain this keys but using the default can be sufficient:
-        'past_steps','future_steps','shift','keep_entire_seq_while_shifting','starting_point','skip_step'
+    def inference(self,batch_size:int=100,
+                  num_workers:int=4,
+                  split_params:Union[None,dict]=None,
+                  rescaling:bool=True,
+                  data:pd.DataFrame=None,
+                  steps_in_future:int=0,
+                  check_holes_and_duplicates:bool=True)->pd.DataFrame:
         
-        skip_step is set to 1 for convenience in case you want to use previous split parameters otherwise care to be coohernt
+        """similar to `inference_on_set`
+        only change is split_params that must contain this keys but using the default can be sufficient:
+        'past_steps','future_steps','shift','keep_entire_seq_while_shifting','starting_point'
+        
+        skip_step is set to 1 for convenience (generally you want all the predictions)
+        You can set split_params to None and use the standard parameters (at your own risck)
+   
+
+        Args:
+            batch_size (int, optional): see inference_on_set. Defaults to 100.
+            num_workers (int, optional): inference_on_set. Defaults to 4.
+            split_params (Union[None,dict], optional): inference_on_set. Defaults to None.
+            rescaling (bool, optional): inference_on_set. Defaults to True.
+            data (pd.DataFrame, optional): startin dataset. Defaults to None.
+            steps_in_future (int, optional): if>0 the dataset is extendend in order to make predictions in the future. Defaults to 0.
+            check_holes_and_duplicates (bool, optional): if False the routine does not check for holes or for duplicates, set to False for stacked model. Defaults to True.
+
+        Returns:
+            pd.DataFrame: predicted values
         """
-        self.check_custom = True
+        
+        self.check_custom = True ##this is a check for the dataset loading
         ## enlarge the dataset in order to have all the rows needed
-        freq = pd.to_timedelta(np.diff(data.time).min())
-        logging.info(f'#############Detected minumum frequency: {freq}#############')
-        empty = pd.DataFrame({'time':pd.date_range(data.time.min(),data.time.max()+freq*(steps_in_future+self.split_params['past_steps']+self.split_params['future_steps']),freq=freq)})
-        dataset = empty.merge(data,how='left')
-            
+        if check_holes_and_duplicates:
+            if self.group is None:
+                freq = pd.to_timedelta(np.diff(data.time).min())
+                logging.info(f'#############Detected minumum frequency: {freq}#############')
+                empty = pd.DataFrame({'time':pd.date_range(data.time.min(),data.time.max()+freq*(steps_in_future+self.split_params['past_steps']+self.split_params['future_steps']),freq=freq)})
+
+            else:
+                freq = pd.to_timedelta(np.diff(data[data[self.group==data[self.group].unique()[0]]].time).min())
+                logging.info(f'#############Detected minumum frequency: {freq} supposing constant frequence inside the groups #############')
+                _min = data.groupby(self.group).time.min()
+                _max = data.groupby(self.group).time.max()
+                empty = []
+                for c in data[self.group].unique():
+                    empty.append(pd.DataFrame({self.group:c,'time':pd.date_range(_min.time[_min[self.group]==c].values[0],_max.time[_max[self.group]==c].values[0]+freq*(steps_in_future+self.split_params['past_steps']+self.split_params['future_steps']),freq=freq)}))
+                            
+                empty = pd.concat(empty,ignore_index=True)
+
+        
+            dataset = empty.merge(data,how='left')
+        else:
+            dataset = data.copy()
         
         
         if split_params is None:
@@ -776,6 +927,14 @@ class TimeSeries():
             for p in params:
                 setattr(self,p, params[p])    
         self.model = model(**self.config['model_configs'],optim_config = self.config['optim_config'],scheduler_config =self.config['scheduler_config'] )
+        
+        if 'group' not in params:
+            logging.info('#########For compatibility with previous version we set group to None ############') ##TODO remove in future
+            self.group = None
+        if 'normalize_per_group' not in params:
+            logging.info('#########For compatibility with previous version we set normalize_per_group to False ############') ##TODO remove in future
+            self.normalize_per_group = False
+        
         
         if weight_path is not None:
             tmp_path = weight_path

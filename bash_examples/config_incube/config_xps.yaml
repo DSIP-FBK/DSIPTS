@@ -51,6 +51,7 @@ inference:
 defaults:
   - _self_
   - architecture: null 
+  - stack: null
   - override hydra/launcher: joblib 
 
 hydra:

@@ -13,30 +13,30 @@ split_params:
   shift: 0 ##this will use the shifted data and it is more like the original one
 
 model_configs:
-  embedding_dimension: 14
+  embedding_dimension: 2
   scale: 0.1
-  hidden_size: 64
-  num_layers: 2
+  hidden_size: 2
+  num_layers: 1 
   dropout_rate: 0.1
-  diff_steps: 80
+  diff_steps: 1
   loss_type: 'kl'
   beta_end: 0.01
   beta_schedule: 'linear'
-  channel_mult :  2
+  channel_mult :  1
   mult: 1
   num_preprocess_blocks: 1
-  num_preprocess_cells: 3
-  num_channels_enc: 32
+  num_preprocess_cells: 1
+  num_channels_enc: 1
   arch_instance :  'res_mbconv'
-  num_latent_per_group: 8
-  num_channels_dec: 32
-  groups_per_scale: 2
+  num_latent_per_group: 1
+  num_channels_dec: 1
+  groups_per_scale: 1
   num_postprocess_blocks: 1
-  num_postprocess_cells: 2
+  num_postprocess_cells: 1
   beta_start: 0
   optim: torch.optim.SGD
 
 train_config:
   batch_size: 256
-  max_epochs: 2
+  max_epochs: 1
                              

@@ -32,13 +32,13 @@ split_params:
   future_steps: model_configs@future_steps
 
 train_config:
-  dirpath: "/home/agobbi/Projexts/ExpTS/test"
+  dirpath: "/home/agobbi/Projects/ExpTS/test"
   num_workers: 0
   auto_lr_find: false
   devices: [0]                   
 
 inference:
-  output_path: "/home/agobbi/Projexts/ExpTS/test"
+  output_path: "/home/agobbi/Projects/ExpTS/test"
   load_last: true
   batch_size: 200 
   num_workers: 4
@@ -48,6 +48,7 @@ inference:
 defaults:
   - _self_
   - architecture: null #architecture
+  - stack: null        #stack generalization
   - override hydra/launcher: joblib
 
 hydra:

@@ -4,22 +4,37 @@ import pandas as pd
 from torch.utils.data import Dataset
 import numpy as np
 from pytorch_lightning import Callback
-from typing import Union
+from typing import Union, List
 import torch
 import os
 
-def extend_df(x:Union[pandas.Series, numpy.array],freq:str)-> pandas.DataFrame:
+def extend_time_df(x:pd.DataFrame,freq:str,group:Union[str,None]=None,global_minmax:bool=False)-> pandas.DataFrame:
     """Utility for generating a full dataset and then merge the real data
 
     Args:
-        x (Union[pd.Series, np.array]): array indicating the time
+        x (pd.DataFrame): dataframe containing the column time
         freq (str): frequency (in pandas notation) of the resulting dataframe
-
+        group (string or None): if not None the min max are computed by the group column, default None
+        global_minmax (bool): if True the min_max is computed globally for each group. Usually used for stacked model
     Returns:
         pd.DataFrame: a dataframe with the column time ranging from thr minumum of x to the maximum with frequency `freq`
     """
 
-    empty = pd.DataFrame({'time':pd.date_range(x.min(),x.max(),freq=freq)})
+    if group is None:
+        empty = pd.DataFrame({'time':pd.date_range(x.time.min(),x.time.max(),freq=freq)})
+    else:
+        if global_minmax:
+            _min = pd.DataFrame({group:x[group].unique(),'time':x.time.min()})
+            _max = pd.DataFrame({group:x[group].unique(),'time':x.time.max()})
+
+        else:
+            _min = x.groupby(group).time.min().reset_index()
+            _max = x.groupby(group).time.max().reset_index()
+        empty = []
+        for c in x[group].unique():
+            empty.append(pd.DataFrame({group:c,'time':pd.date_range(_min.time[_min[group]==c].values[0],_max.time[_max[group]==c].values[0],freq=freq)}))
+            
+        empty = pd.concat(empty,ignore_index=True)
     return empty
 
 
@@ -59,7 +74,7 @@ class MetricsCallback(Callback):
 
 class MyDataset(Dataset):
 
-    def __init__(self, data:dict,t:np.array,idx_target:Union[np.array,None])->torch.utils.data.Dataset:
+    def __init__(self, data:dict,t:np.array,groups:np.array,idx_target:Union[np.array,None])->torch.utils.data.Dataset:
         """
             Extension of Dataset class. While training the returned item is a batch containing the standard keys
 
@@ -79,6 +94,7 @@ class MyDataset(Dataset):
         """
         self.data = data
         self.t = t
+        self.groups = groups
         self.idx_target = np.array(idx_target) if idx_target is not None else None
     def __len__(self):
         return len(self.data['y'])

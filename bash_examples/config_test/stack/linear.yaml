@@ -1,0 +1,48 @@
+# @package _global_
+ts:
+  version: 1
+  name: stacked
+  type: stacked
+  enrich: ['hour']
+  use_covariates: false ##does not matter but it is mandatory
+  
+model:
+  type: linear
+  retrain: true
+
+##where are the initial model
+stack:
+  models: config_test
+  #models: ['config_used/linear.yaml']
+  dirpath: "/home/agobbi/Projects/ExpTS/test"
+  set: 'test'
+  name: 'prova'
+  rescaling: true
+
+model_configs:
+  quantiles: [0.1,0.5,0.9]
+  cat_emb_dim: 16
+  dropout_rate: 0.1
+  use_bn: false  
+  optim: torch.optim.Adam
+  activation: torch.nn.PReLU
+  persistence_weight: 0.010
+  loss_type: 'l1'
+  sum_emb: true
+  kernel_size: 5
+  hidden_size: 8
+  kind: 'nlinear'
+
+
+split_params:
+  perc_train: 0.8
+  perc_valid: 0.2
+  past_steps: null
+  starting_point: null
+  future_steps: null
+
+
+train_config:
+  batch_size: 64
+  max_epochs: 3
+

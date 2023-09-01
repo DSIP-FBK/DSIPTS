@@ -1,6 +1,6 @@
 models: config_test
 #models: ['config_used/linear.yaml']
-dirpath: "/home/agobbi/Projects/ExpTS"
+dirpath: "/home/agobbi/Projects/ExpTS/test"
 set: 'test'
 name: 'prova'
 rescaling: false

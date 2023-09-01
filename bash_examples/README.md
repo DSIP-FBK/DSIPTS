@@ -376,7 +376,7 @@ hydra:  ##SLURM STUFFS
       warn_independent_sampling: true
     _target_: hydra_plugins.hydra_optuna_sweeper.optuna_sweeper.OptunaSweeper
     direction: minimize
-    storage: null
+    storage: sqlite:///tutorial.db #or null
     study_name: tft
     n_trials: 3 ## put the number of maximun trials
     n_jobs: 3   ## parallel jobs
@@ -399,11 +399,43 @@ best_params:
 best_value: 16.59403419494629      
 ```
 where `best_value` is the mean loss in the validation step and `best_parameters` contains the best configuration. 
-Pay attention and use the same loss for all the experiments. Some losses have a different scale and can not compare! 
+Pay attention and use the same loss for all the experiments, some losses have a different scale and can not compare! 
+
+If `storage:sqlite:///<DBNAME>.db` a sqlit file fill be created listing all the trials performed and can easily recovered using
 
 ```
-##si puo fare di meglio!!!
-df = pd.read_sql_query("SELECT param_name, param_value,value FROM trial_params as t join trial_values as v on t.trial_id=v.trial_id ", cnx)
+df = pd.read_sql_query("SELECT  t.trial_id,param_name, param_value,value FROM trial_params as t join trial_values as v on t.trial_id=v.trial_id ", cnx)
+```
+
+This dataframe contains the parameters tested 
+
+
+```
+from copy import deepcopy
+def dict_of_dicts_merge(x, y):
+    z = {}
+    overlapping_keys = x.keys() & y.keys()
+    for key in overlapping_keys:
+        z[key] = dict_of_dicts_merge(x[key], y[key])
+    for key in x.keys() - overlapping_keys:
+        z[key] = deepcopy(x[key])
+    for key in y.keys() - overlapping_keys:
+        z[key] = deepcopy(y[key])
+    return z
+
+def unroll(x):
+  result = {}
+  for index, row in x.iterrows():
+    keys = row['param_name'].split('.')
+    tmp = {keys[-1]:row['param_value']}
+    for i in range(len(keys)-1):
+      tmp = {keys[-i-2]:tmp}
+    result = dict_of_dicts_merge(result, tmp)
+    #import pdb
+    #pdb.set_trace()
+  return pd.Series({'config':result,'loss':row['value']})
+
+df.groupby('trial_id').apply(unroll).reset_index()
 
 ```
 

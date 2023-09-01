@@ -1,5 +1,6 @@
 from .data_management.monash import Monash,get_freq
 from .data_structure.data_structure import TimeSeries,Categorical
+from .data_structure.utils import extend_time_df
 from .models.RNN import RNN
 from .models.LinearTS import LinearTS
 from .data_management.public_datasets import read_public_dataset

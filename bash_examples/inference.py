@@ -10,6 +10,8 @@ import numpy as np
 import plotly.express as px
 from sklearn.metrics import mean_squared_error
 from typing import List
+from datetime import timedelta 
+from dsipts import extend_time_df
 
 def rmse(x:np.array,y:np.array)->float:
     """custom RMSE avoinding nan
@@ -58,6 +60,48 @@ def mape(x:np.array,y:np.array)->float:
     res = res[np.isfinite(res)]
     return np.nanmean(res)
 
+def inference_stacked(conf:DictConfig,ts:TimeSeries)->List[pd.DataFrame]:
+    predictions = None
+    for i,f in enumerate(ts.models_used):
+        
+        _,prediction, _ = inference(f)
+        
+        ##this can be more informative but the names are too long
+        #prediction['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
+        model_features = [c for c in prediction.columns if ('pred' in c or 'median' in c)]
+        real_features = [c for c in prediction.columns if not any( k in c for k in ['median','pred','lag','low','high','time']  )]
+        ##renaming columns
+        prediction = prediction[real_features+model_features+['time','lag']]
+        mapping = {}            
+        for j,col in enumerate(model_features):
+            mapping[col] = f'pred_model_{i}_target_{j}'
+        prediction.rename(columns=mapping,inplace=True)
+        
+        if predictions is None:
+            predictions = prediction[['time','lag']+list(mapping.values())+real_features]
+        else:
+            assert(len(set(model_features).difference(set(model_features)))==0), print('Check models, seems with different targets')
+            prediction = prediction[['time','lag']+list(mapping.values())]
+            predictions = pd.merge(predictions, prediction)
+            
+
+    freq = prediction[prediction.lag==1].sort_values(by='time').time.diff()[1:].min()
+
+    predictions['prediction_time'] = predictions.apply(lambda x: x.time-timedelta(seconds= x.lag*freq.seconds), axis=1)
+
+    predictions = extend_time_df(predictions,freq,group='lag',global_minmax=True).merge(predictions,how='left')
+    predictions.sort_values(by=['prediction_time','lag'],inplace=True)
+
+
+    res = ts.inference(batch_size = conf.inference.batch_size,
+                                num_workers = conf.inference.num_workers,
+                                data = predictions,
+                                rescaling =conf.inference.rescaling,
+                                check_holes_and_duplicates=False)
+    import pdb
+    pdb.set_trace()
+    return res
+
 
 def inference(conf:DictConfig)->List[pd.DataFrame]:
     """Make inference on a selected set starting from a configuration file
@@ -71,6 +115,8 @@ def inference(conf:DictConfig)->List[pd.DataFrame]:
             res : containing the predictions
             losses : containing the losses during the train
     """
+
+    
     if conf.dataset.dataset == 'edison':
         from load_data.load_data_edison import load_data
     elif conf.dataset.dataset == 'incube': 
@@ -118,8 +164,12 @@ def inference(conf:DictConfig)->List[pd.DataFrame]:
   
     else:
         print('use a valid model')
+
+    if conf.ts.get('type','normal')=='stacked':
+        res = inference_stacked(conf,ts)
+    else:
     
-    res = ts.inference_on_set(batch_size = conf.inference.batch_size,
+        res = ts.inference_on_set(batch_size = conf.inference.batch_size,
                                 num_workers = conf.inference.num_workers,
                                 set = conf.inference.set,
                                 rescaling =conf.inference.rescaling)
