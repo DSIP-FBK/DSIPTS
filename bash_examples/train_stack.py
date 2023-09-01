@@ -151,16 +151,16 @@ def train_stack(conf: DictConfig) -> None:
     freq = prediction[prediction.lag==1].sort_values(by='time').time.diff()[1:].min()
 
     predictions['prediction_time'] = predictions.apply(lambda x: x.time-timedelta(seconds= x.lag*freq.seconds), axis=1)
-
+    predictions['fake'] = 1
     predictions = extend_time_df(predictions,freq,group='lag',global_minmax=True).merge(predictions,how='left')
-    ts.load_signal(predictions, enrich_cat=conf.ts.enrich,target_variables=real_features, past_variables=input_columns, future_variables=[],check_holes_and_duplicates=False)
+    ts.load_signal(predictions, enrich_cat=conf.ts.enrich,target_variables=real_features, past_variables=['fake'], future_variables=input_columns,check_holes_and_duplicates=False)
     ts.dataset.sort_values(by=['prediction_time','lag'],inplace=True)
 
     #these parameters depends on the model used not from the config file
     model_conf['past_steps'] = LAG
     model_conf['future_steps'] = LAG
-    model_conf['past_channels'] = len(targets)*(N_models+1)
-    model_conf['future_channels'] = 0
+    model_conf['past_channels'] = 1
+    model_conf['future_channels'] = len(targets)*N_models
     model_conf['embs'] = [ts.dataset[c].nunique() for c in ts.cat_var]
     model_conf['out_channels'] = len(targets)
 

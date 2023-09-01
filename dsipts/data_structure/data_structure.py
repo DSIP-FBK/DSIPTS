@@ -349,48 +349,55 @@ class TimeSeries():
             self.enrich(data,c)
 
         if self.normalize_per_group:
+            tot = []
+            
             for group in data[self.group].unique():
                 tmp = data[data[self.group]==group]
-      
+                tmp['_GROUP_'] = group
                 for c in self.num_var:
-                    self.scaler_num[f'{c}_{group}'].transform(tmp[c].values.reshape(-1,1)).flatten()
+                    tmp[c] = self.scaler_num[f'{c}_{group}'].transform(tmp[c].values.reshape(-1,1)).flatten()
                 for c in self.cat_var:                               
-                    self.scaler_cat[f'{c}_{group}'].transform(tmp[c].values.ravel()).flatten()
-        
+                    tmp[c] = self.scaler_cat[f'{c}_{group}'].transform(tmp[c].values.ravel()).flatten()
+                tot.append(tmp)
+            data = pd.concat(tot,ignore_index=True)
         else:
             for c in self.cat_var:
                 data[c] = self.scaler_cat[c].transform(data[c].values.ravel()).flatten()
             for c in self.num_var: 
                 data[c] = self.scaler_num[c].transform(data[c].values.reshape(-1,1)).flatten()
-            
+
         idx_target = []
         for c in self.target_variables:
             idx_target.append(self.past_variables.index(c))
          
         
-        x_num_past = data[self.past_variables].values
-        if len(self.future_variables)>0:
-            x_num_future = data[self.future_variables].values
-        if len(self.cat_var)>0:
-            x_cat = data[self.cat_var].values
-        y_target = data[self.target_variables].values
-        t = data.time.values
+       
+        
 
-        ##questo serve a forzare di iniziare i samples alla stessa ora per esempio (controllo sul primo indice della y)
-        if starting_point is not None:
-            check = data[list(starting_point.keys())[0]].values == starting_point[list(starting_point.keys())[0]]
-        else:
-            check = [True]*len(y_target)
+
         
         if self.group is None:
             data['_GROUP_'] = '1'
-        else:
-            data['_GROUP_'] = data[self.group]
-            
-        groups = data['_GROUP_'].values   
+                
+
 
         for group in data['_GROUP_'].unique():
             tmp = data[data['_GROUP_']==group]
+            groups = tmp['_GROUP_'].values  
+            t = tmp.time.values 
+            x_num_past = tmp[self.past_variables].values
+            if len(self.future_variables)>0:
+                x_num_future = tmp[self.future_variables].values
+            if len(self.cat_var)>0:
+                x_cat = tmp[self.cat_var].values
+            y_target = tmp[self.target_variables].values
+                
+            
+            ##questo serve a forzare di iniziare i samples alla stessa ora per esempio (controllo sul primo indice della y)
+            if starting_point is not None:
+                check = tmp[list(starting_point.keys())[0]].values == starting_point[list(starting_point.keys())[0]]
+            else:
+                check = [True]*len(y_target)
             
             for i in range(past_steps,tmp.shape[0]-future_steps,skip_step):
                 if check[i]:
@@ -512,9 +519,9 @@ class TimeSeries():
                     tmp = self.dataset[self.dataset[self.group]==group]
                     l = ls[ls[self.group]==group].time.values[0]
                     train.append(tmp[0:int(perc_train*l)])
-                    validation.append(tmp[0:int(perc_train*l)])
-                    test.append(tmp[0:int(perc_train*l)])
-                    
+                    validation.append(tmp[int(perc_train*l):int(perc_train*l+perc_valid*l)])
+                    test.append(tmp[int(perc_train*l+perc_valid*l):])
+
                 train = pd.concat(train,ignore_index=True)
                 validation = pd.concat(validation,ignore_index=True)
                 test = pd.concat(test,ignore_index=True)
@@ -791,7 +798,7 @@ class TimeSeries():
                     for j in range(res.shape[3]):
                         res[:,:,i,j] = self.scaler_num[c].inverse_transform(res[:,:,i,j].reshape(-1,1)).reshape(-1,res.shape[1])
             else:
-                for group in np.uniuqe(groups):
+                for group in np.unique(groups):
                     idx = np.where(groups==group)[0]
                     for i, c in enumerate(self.target_variables):
                         real[idx,:,i] = self.scaler_num[f'{c}_{group}'].inverse_transform(real[idx,:,i].reshape(-1,1)).reshape(-1,real.shape[1])
@@ -801,6 +808,8 @@ class TimeSeries():
         if self.model.use_quantiles:
             ##i+1 
             time = pd.DataFrame(time,columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':'time','variable':'lag'})
+            if self.group is not None:
+                time[group] = np.repeat(groups,res.shape[1])
             tot = [time]
             for i, c in enumerate(self.target_variables):
                 tot.append(pd.DataFrame(real[:,:,i],columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':c}).drop(columns=['variable']))
@@ -813,7 +822,15 @@ class TimeSeries():
             
         ## BxLxCx1
         else:
-            time = pd.DataFrame(time,columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':'time','variable':'lag'})
+            time = pd.DataFrame(time,columns=[i+1 for i in range(res.shape[1])]).melt()
+            
+            ##TODO CHEK HERE!!
+            if self.group is not None:
+                time[self.group] = np.repeat(groups,res.shape[1])
+
+            time.rename(columns={'value':'time','variable':'lag'},inplace=True)
+                 
+
             tot = [time]
             for i, c in enumerate(self.target_variables):
                 tot.append(pd.DataFrame(real[:,:,i],columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':c}).drop(columns=['variable']))

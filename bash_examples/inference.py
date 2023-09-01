@@ -122,6 +122,8 @@ def inference(conf:DictConfig)->List[pd.DataFrame]:
         from load_data.load_data_edison import load_data
     elif conf.dataset.dataset == 'incube': 
         from load_data.load_data_incube import load_data
+    elif conf.dataset.dataset == 'pollen': 
+        from load_data.load_data_pollen import load_data
     else:
         from load_data.load_data_public import load_data
     ts = load_data(conf)
