@@ -434,7 +434,7 @@ class TimeSeries():
                         t_samples.append(t[i:i+future_steps])
                         g_samples.append(groups[i])
 
-        if self.group is not None:
+        if starting_point is not None:
             import pdb
             pdb.set_trace()
         if len(self.future_variables)>0:
