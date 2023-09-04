@@ -386,7 +386,8 @@ class TimeSeries():
                 
         if self.stacked:
             skip_stacked = future_steps*future_steps-future_steps
-
+        else:
+            skip_step = 0
         for group in data['_GROUP_'].unique():
             tmp = data[data['_GROUP_']==group]
             groups = tmp['_GROUP_'].values  
