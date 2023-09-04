@@ -1,5 +1,5 @@
-#models: ['config_used/attention.yaml','config_used/persistent.yaml','config_used/linear.yaml','config_used/dlinear.yaml','config_used/nlinear.yaml','config_used/lstm.yaml','config_used/gru.yaml']
-models: 'config_incube'
+models:  ['config_incube/config_used/tft2_test_1_loss_type=std_normpersistence_weight=1.yaml','config_incube/config_used/crossformer_test_1_loss_type=std_penpersistence_weight=10.yaml','config_incube/config_used/mymodel_test_1.yaml','config_incube/config_used/gru_gru_1.yaml','config_incube/config_used/stacked_stacked_1_loss_type=std_normpersistence_weight=1.yaml']
+#models: 'config_incube'
 dirpath: "/home/agobbi/Projects/ExpTS/incube"
 set: 'test'
 name: 'prova'
