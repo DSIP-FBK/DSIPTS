@@ -434,7 +434,9 @@ class TimeSeries():
                         t_samples.append(t[i:i+future_steps])
                         g_samples.append(groups[i])
 
-
+        if self.group is not None:
+            import pdb
+            pdb.set_trace()
         if len(self.future_variables)>0:
             try:
                 x_num_future_samples = np.stack(x_num_future_samples)
