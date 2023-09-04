@@ -86,7 +86,8 @@ def inference_stacked(conf:DictConfig,ts:TimeSeries)->List[pd.DataFrame]:
             prediction = prediction[['time','lag']+list(mapping.values())]
             predictions = pd.merge(predictions, prediction)
             
-
+    import pdb
+    pdb.set_trace()
     freq = prediction[prediction.lag==1].sort_values(by='time').time.diff()[1:].min()
 
     predictions['prediction_time'] = predictions.apply(lambda x: x.time-timedelta(seconds= x.lag*freq.seconds), axis=1)
