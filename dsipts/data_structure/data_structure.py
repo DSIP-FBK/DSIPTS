@@ -825,9 +825,16 @@ class TimeSeries():
 
         if self.model.use_quantiles:
             ##i+1 
-            time = pd.DataFrame(time,columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':'time','variable':'lag'})
+            time = pd.DataFrame(time,columns=[i+1 for i in range(res.shape[1])])
+            
             if self.group is not None:
-                time[group] = np.repeat(groups,res.shape[1])
+                time[self.group] = groups
+                time = time.melt(id_vars=['region'])
+            else:
+                time = time.melt()
+            time.rename(columns={'value':'time','variable':'lag'},inplace=True)
+
+                
             tot = [time]
             for i, c in enumerate(self.target_variables):
                 tot.append(pd.DataFrame(real[:,:,i],columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':c}).drop(columns=['variable']))
@@ -840,11 +847,13 @@ class TimeSeries():
             
         ## BxLxCx1
         else:
-            time = pd.DataFrame(time,columns=[i+1 for i in range(res.shape[1])]).melt()
-            
-            if self.group is not None:
-                time[self.group] = np.repeat(groups,res.shape[1])
+            time = pd.DataFrame(time,columns=[i+1 for i in range(res.shape[1])])#.melt()
 
+            if self.group is not None:
+                time[self.group] = groups
+                time = time.melt(id_vars=['region'])
+            else:
+                time = time.melt()
             time.rename(columns={'value':'time','variable':'lag'},inplace=True)
                  
 
