@@ -356,13 +356,17 @@ class TimeSeries():
         if self.normalize_per_group:
             tot = []
             groups = data[self.group].unique()
+            data['_GROUP_'] = data[self.group].values
+            data[self.group] = self.scaler_cat[self.group].transform(data[self.group].values.ravel()).flatten()
+            
             for group in groups:
-                tmp = data[data[self.group]==group].copy()
-                tmp['_GROUP_'] = group
+                tmp = data[data['_GROUP_']==group].copy()
+                
                 for c in self.num_var:
                     tmp[c] = self.scaler_num[f'{c}_{group}'].transform(tmp[c].values.reshape(-1,1)).flatten()
-                for c in self.cat_var:                               
-                    tmp[c] = self.scaler_cat[f'{c}_{group}'].transform(tmp[c].values.ravel()).flatten()
+                for c in self.cat_var:      
+                    if c!=self.group:                         
+                        tmp[c] = self.scaler_cat[f'{c}_{group}'].transform(tmp[c].values.ravel()).flatten()
                 tot.append(tmp)
             data = pd.concat(tot,ignore_index=True)
         else:
@@ -374,10 +378,7 @@ class TimeSeries():
         idx_target = []
         for c in self.target_variables:
             idx_target.append(self.past_variables.index(c))
-         
-        import pdb
-        pdb.set_trace()
-       
+                
         
 
 
@@ -401,10 +402,7 @@ class TimeSeries():
             if len(self.cat_var)>0:
                 x_cat = tmp[self.cat_var].values
             y_target = tmp[self.target_variables].values
-                
-            
-            import pdb
-            pdb.set_trace()
+
             
             ##questo serve a forzare di iniziare i samples alla stessa ora per esempio (controllo sul primo indice della y)
             if starting_point is not None:
@@ -440,8 +438,7 @@ class TimeSeries():
                         t_samples.append(t[i+skip_stacked:i+future_steps+skip_stacked])
                         g_samples.append(groups[i])
 
-        import pdb
-        pdb.set_trace()
+    
   
         if len(self.future_variables)>0:
             try:
@@ -569,15 +566,18 @@ class TimeSeries():
                     self.scaler_cat[c].fit(train[c].values.reshape(-1,1))  
             else:
                 self.normalize_per_group = True
+                self.scaler_cat[self.group] =  LabelEncoder()
+                self.scaler_cat[self.group].fit(train[self.group].values.reshape(-1,1))  
                 for group in train[self.group].unique():
                     tmp = train[train[self.group]==group]
 
                     for c in self.num_var:
                         self.scaler_num[f'{c}_{group}'] =  StandardScaler()
                         self.scaler_num[f'{c}_{group}'].fit(tmp[c].values.reshape(-1,1))
-                    for c in self.cat_var:                               
-                        self.scaler_cat[f'{c}_{group}'] =  LabelEncoder()
-                        self.scaler_cat[f'{c}_{group}'].fit(tmp[c].values.reshape(-1,1))  
+                    for c in self.cat_var:
+                        if c!=self.group:                               
+                            self.scaler_cat[f'{c}_{group}'] =  LabelEncoder()
+                            self.scaler_cat[f'{c}_{group}'].fit(tmp[c].values.reshape(-1,1))  
         
         dl_train = self.create_data_loader(train,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)
         dl_validation = self.create_data_loader(validation,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)
