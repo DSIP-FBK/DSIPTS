@@ -94,14 +94,14 @@ def inference_stacked(conf:DictConfig,ts:TimeSeries)->List[pd.DataFrame]:
     predictions = extend_time_df(predictions,freq,group='lag',global_minmax=True).merge(predictions,how='left')
     predictions.sort_values(by=['prediction_time','lag'],inplace=True)
 
-
+    import pdb
+    pdb.set_trace()
     res = ts.inference(batch_size = conf.inference.batch_size,
                                 num_workers = conf.inference.num_workers,
                                 data = predictions,
                                 rescaling =conf.inference.rescaling,
                                 check_holes_and_duplicates=False)
-    import pdb
-    pdb.set_trace()
+
     return res
 
 
