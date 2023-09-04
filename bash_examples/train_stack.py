@@ -146,7 +146,7 @@ def train_stack(conf: DictConfig) -> None:
         model_conf = {}
         model_conf['quantiles'] = []
     
-    ts = TimeSeries(conf.ts.name)  
+    ts = TimeSeries(conf.ts.name,stacked=True)  
     ts.models_used = models_used
     freq = prediction[prediction.lag==1].sort_values(by='time').time.diff()[1:].min()
 

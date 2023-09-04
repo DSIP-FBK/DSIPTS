@@ -110,13 +110,13 @@ class Categorical():
  
 class TimeSeries():
     
-    def __init__(self,name:str):
+    def __init__(self,name:str,stacked:bool=False):
         """Class for generating time series object. If you don't have any time series you can build one fake timeseries using some helping classes (Categorical for instance).
 
 
         Args:
             name (str): name of the series
-                
+            stacked (bool): if true it is a stacked model
                 
         Usage:
             For example we can generate a toy timeseries:\n
@@ -132,7 +132,7 @@ class TimeSeries():
         """
         self.is_trained = False
         self.name = name
-
+        self.stacked = stacked
     def __str__(self) -> str:
         return f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables} \n With {'no group' if self.group is None else self.group+' as group' }"
     def __repr__(self) -> str:
@@ -384,7 +384,8 @@ class TimeSeries():
         if self.group is None:
             data['_GROUP_'] = '1'
                 
-
+        if self.stacked:
+            skip_stacked = future_steps*future_steps-future_steps
 
         for group in data['_GROUP_'].unique():
             tmp = data[data['_GROUP_']==group]
@@ -406,37 +407,35 @@ class TimeSeries():
             else:
                 check = [True]*len(y_target)
             
-            for i in range(past_steps,tmp.shape[0]-future_steps,skip_step):
+            for i in range(past_steps,tmp.shape[0]-future_steps-skip_stacked,skip_step):
                 if check[i]:
 
                     if len(self.future_variables)>0:
                         if keep_entire_seq_while_shifting:
-                            xx = x_num_future[i-shift:i+future_steps].mean()
+                            xx = x_num_future[i-shift+skip_stacked:i+future_steps+skip_stacked].mean()
                         else:
-                            xx = x_num_future[i-shift:i+future_steps-shift].mean()
+                            xx = x_num_future[i-shift+skip_stacked:i+future_steps-shift+skip_stacked].mean()
                     else:
                         xx = 0.0
-                    if np.isfinite(x_num_past[i-past_steps:i].min() + y_target[i:i+future_steps].min() + xx):
+                    if np.isfinite(x_num_past[i-past_steps:i].min() + y_target[i+skip_stacked:i+future_steps+skip_stacked].min() + xx):
                         
                         x_num_past_samples.append(x_num_past[i-past_steps:i])
                         if len(self.future_variables)>0:
                             if keep_entire_seq_while_shifting:
-                                x_num_future_samples.append(x_num_future[i-shift:i+future_steps])
+                                x_num_future_samples.append(x_num_future[i-shift+skip_stacked:i+future_steps+skip_stacked])
                             else:
-                                x_num_future_samples.append(x_num_future[i-shift:i+future_steps-shift])
+                                x_num_future_samples.append(x_num_future[i-shift+skip_stacked:i+future_steps-shift+skip_stacked])
                         if len(self.cat_var)>0:
                             x_cat_past_samples.append(x_cat[i-past_steps:i])
                             if keep_entire_seq_while_shifting:
-                                x_cat_future_samples.append(x_cat[i-shift:i+future_steps])
+                                x_cat_future_samples.append(x_cat[i-shift+skip_stacked:i+future_steps+skip_stacked])
                             else:
-                                x_cat_future_samples.append(x_cat[i-shift:i+future_steps-shift])
-                        y_samples.append(y_target[i:i+future_steps])
-                        t_samples.append(t[i:i+future_steps])
+                                x_cat_future_samples.append(x_cat[i-shift+skip_stacked:i+future_steps-shift+skip_stacked])
+                        y_samples.append(y_target[i+skip_stacked:i+future_steps+skip_stacked])
+                        t_samples.append(t[i+skip_stacked:i+future_steps+skip_stacked])
                         g_samples.append(groups[i])
 
-        if starting_point is not None:
-            import pdb
-            pdb.set_trace()
+  
         if len(self.future_variables)>0:
             try:
                 x_num_future_samples = np.stack(x_num_future_samples)
@@ -960,7 +959,10 @@ class TimeSeries():
         if 'normalize_per_group' not in params:
             logging.info('#########For compatibility with previous version we set normalize_per_group to False ############') ##TODO remove in future
             self.normalize_per_group = False
-        
+        if 'stacked' not in params:
+            logging.info('#########For compatibility with previous version we set stacked to False ############') ##TODO remove in future
+            self.stacked = False
+
         
         if weight_path is not None:
             tmp_path = weight_path
