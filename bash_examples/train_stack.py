@@ -169,7 +169,7 @@ def train_stack(conf: DictConfig) -> None:
     model_conf['past_steps'] = LAG
     model_conf['future_steps'] = LAG
     model_conf['past_channels'] = 1
-    model_conf['future_channels'] = len(targets)*N_models if silly_model==False else len(targets)*N_models + len(targets)*
+    model_conf['future_channels'] = len(targets)*N_models if silly_model==False else len(targets)*N_models + len(targets)
     model_conf['embs'] = [ts.dataset[c].nunique() for c in ts.cat_var]
     model_conf['out_channels'] = len(targets)
 
