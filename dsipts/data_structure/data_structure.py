@@ -355,9 +355,9 @@ class TimeSeries():
 
         if self.normalize_per_group:
             tot = []
-            
-            for group in data[self.group].unique():
-                tmp = data[data[self.group]==group]
+            groups = data[self.group].unique()
+            for group in groups:
+                tmp = data[data[self.group]==group].copy()
                 tmp['_GROUP_'] = group
                 for c in self.num_var:
                     tmp[c] = self.scaler_num[f'{c}_{group}'].transform(tmp[c].values.reshape(-1,1)).flatten()
@@ -375,7 +375,8 @@ class TimeSeries():
         for c in self.target_variables:
             idx_target.append(self.past_variables.index(c))
          
-        
+        import pdb
+        pdb.set_trace()
        
         
 
@@ -390,8 +391,7 @@ class TimeSeries():
             skip_stacked = 0
         for group in data['_GROUP_'].unique():
             
-            import pdb
-            pdb.set_trace()
+
             tmp = data[data['_GROUP_']==group]
             groups = tmp['_GROUP_'].values  
             t = tmp.time.values 
@@ -403,7 +403,8 @@ class TimeSeries():
             y_target = tmp[self.target_variables].values
                 
             
-            
+            import pdb
+            pdb.set_trace()
             
             ##questo serve a forzare di iniziare i samples alla stessa ora per esempio (controllo sul primo indice della y)
             if starting_point is not None:
@@ -439,6 +440,8 @@ class TimeSeries():
                         t_samples.append(t[i+skip_stacked:i+future_steps+skip_stacked])
                         g_samples.append(groups[i])
 
+        import pdb
+        pdb.set_trace()
   
         if len(self.future_variables)>0:
             try:
