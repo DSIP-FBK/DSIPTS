@@ -389,6 +389,9 @@ class TimeSeries():
         else:
             skip_stacked = 0
         for group in data['_GROUP_'].unique():
+            
+            import pdb
+            pdb.set_trace()
             tmp = data[data['_GROUP_']==group]
             groups = tmp['_GROUP_'].values  
             t = tmp.time.values 
