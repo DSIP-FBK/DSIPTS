@@ -214,7 +214,8 @@ class TimeSeries():
                     cat_var:List[str]=[],
                     check_past:bool=True,
                     group:Union[None,str]=None,
-                    check_holes_and_duplicates:bool=True)->None:
+                    check_holes_and_duplicates:bool=True,
+                    silly_model:bool=False)->None:
         """ This is a crucial point in the data structure. We expect here to have a dataset with time as timestamp.
             There are some checks:
                 1- the duplicates will tbe removed taking the first instance
@@ -286,7 +287,10 @@ class TimeSeries():
         self.target_variables = target_variables
         self.out_vars = len(target_variables)
         self.num_var = list(set(self.past_variables).union(set(self.future_variables)).union(set(self.target_variables)))
-        
+        if silly_model:
+            logging.info('#########YOU ARE TRAINING A SILLY MODEL WITH THE TARGETS IN THE INPUTS#########') 
+            self.future_variables+=self.target_variables
+
     def plot(self):
         """  
         Easy way to control the loaded data
@@ -551,7 +555,7 @@ class TimeSeries():
 
 
         logging.info('######################################################################################################')
-        logging.info('######Scaling numerical (standard scaler) and categorical (label encorer) on the training data! ######')
+        logging.info('######Scaling numerical (standard scaler) and categorical (label encoder) on the training data! ######')
         logging.info('######################################################################################################')
         if self.is_trained:
             pass
@@ -566,11 +570,11 @@ class TimeSeries():
                     self.scaler_num[c].fit(train[c].values.reshape(-1,1))
                 for c in self.cat_var:                               
                     self.scaler_cat[c] =  LabelEncoder()
-                    self.scaler_cat[c].fit(train[c].values.reshape(-1,1))  
+                    self.scaler_cat[c].fit(train[c].values.ravel())  
             else:
                 self.normalize_per_group = True
                 self.scaler_cat[self.group] =  LabelEncoder()
-                self.scaler_cat[self.group].fit(train[self.group].values.reshape(-1,1))  
+                self.scaler_cat[self.group].fit(train[self.group].values.ravel())  
                 for group in train[self.group].unique():
                     tmp = train[train[self.group]==group]
 
@@ -580,7 +584,7 @@ class TimeSeries():
                     for c in self.cat_var:
                         if c!=self.group:                               
                             self.scaler_cat[f'{c}_{group}'] =  LabelEncoder()
-                            self.scaler_cat[f'{c}_{group}'].fit(tmp[c].values.reshape(-1,1))  
+                            self.scaler_cat[f'{c}_{group}'].fit(tmp[c].values.ravel())  
         
         dl_train = self.create_data_loader(train,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)
         dl_validation = self.create_data_loader(validation,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)

@@ -185,6 +185,7 @@ class LinearTS(Base):
             torch.tensor: result
         """
         x =  batch['x_num_past'].to(self.device)
+        
         if self.kind=='nlinear':
             idx_target = batch['idx_target'][0]
             x_start = x[:,-1,idx_target].unsqueeze(1)
@@ -222,7 +223,8 @@ class LinearTS(Base):
             x_future = None
             
         tmp = [x]
-        
+   
+            
         for i in range(len(self.embs)):
             if self.sum_emb:
                 if i>0:

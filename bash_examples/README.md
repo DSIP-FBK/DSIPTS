@@ -486,3 +486,16 @@ When you lauch `compare.py` magically it will run also the stacked model and add
 
 ## Groups
 
+If you have more entities in your dataset (for example pollen stations, facilities) that share the same datastream you can use a model for each entity or a single model trained using all the data available.
+You can simply add the `group` parameter while defining the timeseries:
+```
+   ts.load_signal(data,past_variables = meteo + target, 
+                  future_variables = meteo,
+                  target_variables =target,
+                  cat_var= cat_var+[group],
+                  enrich_cat= conf.ts.enrich,
+                  group=group)
+```
+
+ Only percentage split is allowed and the splitting procedure is performed for each entity independetely. The temporal split is allowed but on your risk (it is performed globally). During the splitting procedure you can choose to normalize the dataset for each entity using the parameter `normalize_per_group=True`. In this case both categorical and numerical features are normalized independetely for each entity. The `group` column is added to the categorical variables pool available during the training process, please use a model that can deal with categorical variables. 
+ In the inference step the column `group` will be added to the final dataset.

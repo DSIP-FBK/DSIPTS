@@ -159,7 +159,8 @@ def train_stack(conf: DictConfig) -> None:
                    past_variables=[], 
                    future_variables=input_columns,
                    check_holes_and_duplicates=False,
-                   cat_var=['lag_m'])
+                   cat_var=['lag_m'],
+                   silly_model=True)
     ts.dataset.sort_values(by=['prediction_time','lag'],inplace=True)
 
     ## TODO qui ci sono delle cose sospette sul futuro...
