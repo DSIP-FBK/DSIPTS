@@ -455,8 +455,8 @@ df.groupby('trial_id').apply(unroll).reset_index()
 Once you have trained a bunch of good models you may try to train a stack generalization model: a (usually simpler) model that combines the output of the trained model and estimate the target. 
 You can use the routine `train_stack.py` similarly to `train.py` but with some differences:
 - the config file for the stacked model is in the folder `stack`
-- you need to set `ts.type=stacked`
-- you need to add a section called `stack` similar to the snipped below
+- you need to add `stacked=True` when creating the timeseries object
+- you need to add a section called `stack` similar to the snipped below to the configuration file
 - if you want to a special launcher (joblib or slurm) you need a little workaround
 ```
 stack:
@@ -481,4 +481,8 @@ If you can run the code without sweeper you can simple run:
 python train_stack.py  --config-dir=config_test --config-name=config stack=linear
 ```
 
-When you lauch `compare.py` magically it will run also the stacked model and add it to the pool (very cool right?).
+When you lauch `compare.py` magically it will run also the stacked model and add it to the model's pool (very cool, isn't it?).
+
+
+## Groups
+

@@ -84,8 +84,8 @@ def train_stack(conf: DictConfig) -> None:
      
         conf_tmp =  OmegaConf.load(conf_tmp) 
       
-        if conf_tmp.ts.get('type','normal') == 'stacked':
-            continue
+        #if conf_tmp.ts.get('type','normal') == 'stacked':
+        #    continue
         conf_tmp.inference.set = conf.stack.set
 
         conf_tmp.inference.rescaling = conf.stack.rescaling
@@ -152,7 +152,14 @@ def train_stack(conf: DictConfig) -> None:
 
     predictions['prediction_time'] = predictions.apply(lambda x: x.time-timedelta(seconds= x.lag*freq.seconds), axis=1)
     predictions = extend_time_df(predictions,freq,group='lag',global_minmax=True).merge(predictions,how='left')
-    ts.load_signal(predictions, enrich_cat=conf.ts.enrich,target_variables=real_features, past_variables=[], future_variables=input_columns,check_holes_and_duplicates=False)
+    predictions['lag_m'] = predictions.lag.values
+    ts.load_signal(predictions, 
+                   enrich_cat=conf.ts.enrich,
+                   target_variables=real_features,
+                   past_variables=[], 
+                   future_variables=input_columns,
+                   check_holes_and_duplicates=False,
+                   cat_var=['lag_m'])
     ts.dataset.sort_values(by=['prediction_time','lag'],inplace=True)
 
     ## TODO qui ci sono delle cose sospette sul futuro...
