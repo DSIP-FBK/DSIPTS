@@ -153,6 +153,7 @@ def train_stack(conf: DictConfig) -> None:
     predictions['prediction_time'] = predictions.apply(lambda x: x.time-timedelta(seconds= x.lag*freq.seconds), axis=1)
     predictions = extend_time_df(predictions,freq,group='lag',global_minmax=True).merge(predictions,how='left')
     predictions['lag_m'] = predictions.lag.values
+    silly_model = True
     ts.load_signal(predictions, 
                    enrich_cat=conf.ts.enrich,
                    target_variables=real_features,
@@ -160,7 +161,7 @@ def train_stack(conf: DictConfig) -> None:
                    future_variables=input_columns,
                    check_holes_and_duplicates=False,
                    cat_var=['lag_m'],
-                   silly_model=True)
+                   silly_model=silly_model)
     ts.dataset.sort_values(by=['prediction_time','lag'],inplace=True)
 
     ## TODO qui ci sono delle cose sospette sul futuro...
@@ -168,7 +169,7 @@ def train_stack(conf: DictConfig) -> None:
     model_conf['past_steps'] = LAG
     model_conf['future_steps'] = LAG
     model_conf['past_channels'] = 1
-    model_conf['future_channels'] = len(targets)*N_models
+    model_conf['future_channels'] = len(targets)*N_models if silly_model==False else len(targets)*N_models + len(targets)*
     model_conf['embs'] = [ts.dataset[c].nunique() for c in ts.cat_var]
     model_conf['out_channels'] = len(targets)
 
