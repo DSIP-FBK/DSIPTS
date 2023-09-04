@@ -344,6 +344,11 @@ class TimeSeries():
         y_samples = []
         t_samples = []
         g_samples = []
+        
+        if starting_point is not None:
+            kk = list(starting_point.keys())[0]
+            assert kk not in self.cat_var, print('CAN NOT USE FEATURE {kk} as starting point it may have a different value due to the normalization step, please add a second column with a suitable name')
+        
         ##overwrite categorical columns
         for c in self.cat_var:
             self.enrich(data,c)
@@ -392,6 +397,8 @@ class TimeSeries():
                 x_cat = tmp[self.cat_var].values
             y_target = tmp[self.target_variables].values
                 
+            
+            
             
             ##questo serve a forzare di iniziare i samples alla stessa ora per esempio (controllo sul primo indice della y)
             if starting_point is not None:

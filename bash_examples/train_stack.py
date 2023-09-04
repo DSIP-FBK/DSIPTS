@@ -154,6 +154,7 @@ def train_stack(conf: DictConfig) -> None:
     predictions = extend_time_df(predictions,freq,group='lag',global_minmax=True).merge(predictions,how='left')
     ts.load_signal(predictions, enrich_cat=conf.ts.enrich,target_variables=real_features, past_variables=[], future_variables=input_columns,check_holes_and_duplicates=False)
     ts.dataset.sort_values(by=['prediction_time','lag'],inplace=True)
+
     ## TODO qui ci sono delle cose sospette sul futuro...
     #these parameters depends on the model used not from the config file
     model_conf['past_steps'] = LAG
