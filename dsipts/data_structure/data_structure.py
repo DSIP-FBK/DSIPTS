@@ -454,10 +454,13 @@ class TimeSeries():
             x_cat_past_samples = np.stack(x_cat_past_samples)
             x_cat_future_samples = np.stack(x_cat_future_samples)
         x_num_past_samples = np.stack(x_num_past_samples)
-        
+        if self.stacked:
+            mod = 0
+        else:
+            mod = 1.0
         dd = {'y':y_samples.astype(np.float32),
 
-              'x_num_past':x_num_past_samples.astype(np.float32)}
+              'x_num_past':(x_num_past_samples*mod).astype(np.float32)}
         if len(self.cat_var)>0:
             dd['x_cat_past'] = x_cat_past_samples
             dd['x_cat_future'] = x_cat_future_samples
@@ -839,7 +842,6 @@ class TimeSeries():
         else:
             time = pd.DataFrame(time,columns=[i+1 for i in range(res.shape[1])]).melt()
             
-            ##TODO CHEK HERE!!
             if self.group is not None:
                 time[self.group] = np.repeat(groups,res.shape[1])
 
