@@ -30,9 +30,9 @@ model_configs:
   hidden_size: 2560
   kind: 'linear'
   dropout_rate: 0.5
-  use_bn: false  
+  use_bn: true  
   optim: torch.optim.Adam
-  activation: torch.nn.SELU
+  activation: torch.nn.GELU
   persistence_weight: 0.01
   loss_type: 'l1'
 
