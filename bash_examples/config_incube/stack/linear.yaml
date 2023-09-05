@@ -26,12 +26,12 @@ model_configs:
   cat_emb_dim: 6
   kernel_size: 3
   sum_emb: true
-  hidden_size: 2048
+  hidden_size: 512
   kind: 'linear'
   dropout_rate: 0.05
   use_bn: false  
-  optim: torch.optim.Adam
-  activation: torch.nn.PReLU
+  optim: torch.optim.SGD
+  activation: torch.nn.ReLU
   persistence_weight: 0.01
   loss_type: 'l1'
 
