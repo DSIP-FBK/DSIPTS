@@ -185,7 +185,8 @@ class LinearTS(Base):
             torch.tensor: result
         """
         x =  batch['x_num_past'].to(self.device)
-        
+        import pdb
+        pdb.set_trace()
         if self.kind=='nlinear':
             idx_target = batch['idx_target'][0]
             x_start = x[:,-1,idx_target].unsqueeze(1)
