@@ -5,7 +5,7 @@ ts:
   type: stacked
   enrich: ['hour']
   use_covariates: false ##does not matter but it is mandatory
-  silly: false
+  silly: true
 
 model:
   type: linear

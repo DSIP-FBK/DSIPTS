@@ -605,7 +605,7 @@ class TimeSeries():
         logging.info('######################################################################################################')
         logging.info('###########LOOK THE INIT PROCEDURE IF YOU NEED A CUSTOM INITIALIZATION of the weighjts################')
         logging.info('######################################################################################################')
-        self.model.apply(weight_init)
+        #self.model.apply(weight_init)
         self.config = config
         
         logging.info('######################################################################################################')
