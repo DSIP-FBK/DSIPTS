@@ -26,9 +26,9 @@ model_configs:
   cat_emb_dim: 6
   kernel_size: 3
   sum_emb: true
-  hidden_size: 512
+  hidden_size: 2048
   kind: 'linear'
-  dropout_rate: 0.15
+  dropout_rate: 0.05
   use_bn: false  
   optim: torch.optim.Adam
   activation: torch.nn.PReLU
@@ -46,6 +46,6 @@ split_params:
 
 
 train_config:
-  batch_size: 64
-  max_epochs: 5000
+  batch_size: 32
+  max_epochs: 200
 
