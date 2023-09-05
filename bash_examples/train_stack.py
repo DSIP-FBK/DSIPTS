@@ -153,7 +153,7 @@ def train_stack(conf: DictConfig) -> None:
     predictions['prediction_time'] = predictions.apply(lambda x: x.time-timedelta(seconds= x.lag*freq.seconds), axis=1)
     predictions = extend_time_df(predictions,freq,group='lag',global_minmax=True).merge(predictions,how='left')
     predictions['lag_m'] = predictions.lag.values
-    silly_model = True
+    silly_model = conf.ts.get('silly',False)
     ts.load_signal(predictions, 
                    enrich_cat=conf.ts.enrich,
                    target_variables=real_features,
