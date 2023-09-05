@@ -26,7 +26,7 @@ model_configs:
   cat_emb_dim: 6
   kernel_size: 3
   sum_emb: true
-  hidden_size: 256
+  hidden_size: 512
   kind: 'linear'
   dropout_rate: 0.15
   use_bn: false  
@@ -47,5 +47,5 @@ split_params:
 
 train_config:
   batch_size: 64
-  max_epochs: 500
+  max_epochs: 5000
 
