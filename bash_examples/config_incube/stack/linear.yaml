@@ -22,14 +22,14 @@ stack:
 
 
 model_configs:
-  quantiles: [0.1,0.5,0.9]
+  quantiles: []
   cat_emb_dim: 6
   kernel_size: 3
   sum_emb: true
   hidden_size: 64
   kind: 'linear'
   dropout_rate: 0.15
-  use_bn: false  
+  use_bn: true  
   optim: torch.optim.Adam
   activation: torch.nn.PReLU
   persistence_weight: 0.01
