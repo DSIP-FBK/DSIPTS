@@ -30,8 +30,8 @@ model_configs:
   kind: 'linear'
   dropout_rate: 0.05
   use_bn: false  
-  optim: torch.optim.SGD
-  activation: torch.nn.ReLU
+  optim: torch.optim.Adam
+  activation: torch.nn.PReLU
   persistence_weight: 0.01
   loss_type: 'l1'
 
