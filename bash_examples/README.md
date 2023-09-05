@@ -499,3 +499,7 @@ You can simply add the `group` parameter while defining the timeseries:
 
  Only percentage split is allowed and the splitting procedure is performed for each entity independetely. The temporal split is allowed but on your risk (it is performed globally). During the splitting procedure you can choose to normalize the dataset for each entity using the parameter `normalize_per_group=True`. In this case both categorical and numerical features are normalized independetely for each entity. The `group` column is added to the categorical variables pool available during the training process, please use a model that can deal with categorical variables. 
  In the inference step the column `group` will be added to the final dataset.
+
+
+## Silly model 
+If you need to test your architecture, expecially the decoder part that uses `x_num_future` as input, it is possible to include the target values as input using `silly=True` in the load function. This allow to see if all the pipeline works properly (remember to remove it when training the final model).

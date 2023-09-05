@@ -31,7 +31,7 @@ def load_data(conf):
     data_ex.temp = data_ex.temp.interpolate(limit=1)
 
     ts = TimeSeries(conf.ts.name)
-    ts.load_signal(data_ex,past_variables =['Value','rain','temp'],future_variables = ['rain','temp'],target_variables =['Value'],enrich_cat= conf.ts.enrich)
+    ts.load_signal(data_ex,past_variables =['Value','rain','temp'],future_variables = ['rain','temp'],target_variables =['Value'],enrich_cat= conf.ts.enrich,silly_model=conf.ts.get('silly',False))
 
  
 
