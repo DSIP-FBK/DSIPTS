@@ -1,7 +1,7 @@
 
 
 import pandas as pd
-from dsipts import TimeSeries, RNN, read_public_dataset, LinearTS, Persistent, D3VAE, MyModel, TFT,TFT2, Informer,VVA,VQVAEA,CrossFormer
+from dsipts import TimeSeries, RNN, read_public_dataset, LinearTS, Persistent, D3VAE, MyModel, TFT, Informer,VVA,VQVAEA,CrossFormer
 from omegaconf import DictConfig, OmegaConf
 from hydra.core.hydra_config import HydraConfig
 import hydra
@@ -116,9 +116,6 @@ def train(conf: DictConfig) -> None:
         model =  TFT(**model_conf,   optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )  
         
-    elif conf.model.type == 'tft2':
-        model =  TFT2(**model_conf,   optim_config = conf.optim_config,
-                          scheduler_config =conf.scheduler_config )  
         
     elif conf.model.type == 'vva':
         model =  VVA(**model_conf,   optim_config = conf.optim_config,

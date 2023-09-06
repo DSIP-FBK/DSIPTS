@@ -1,117 +1,85 @@
-from torch import  nn
 import torch
+import torch.nn as nn
+from .tft import sub_nn
 from .base import  Base
 from .utils import get_device, QuantileLossMO, L1Loss
-from .tft import encoder, decoder, embedding_nn
-import math
 from typing import List, Union
+import logging
 
 class TFT(Base):
-    
-    def __init__(self,
-                 use_target_past:bool,
-                 use_yprec_fut: bool,
+    def __init__(self, 
+                 d_model: int,
+                 out_channels:int,
                  past_steps:int,
-                 future_steps:int,
+                 future_steps: int, 
                  past_channels:int,
                  future_channels:int,
-                 embs:List[int],
-                 d_model:int,
-                 num_heads:int,
-                 head_size:int,
-                 fw_exp:int,
-                 dropout:float,
-                 n_layer_encoder:int,
-                 n_layer_decoder:int,
-                 num_layers_RNN:int,
-                 out_channels:int,
-                 kind: str,
+                 num_layers_RNN: int,
+                 embs: list[int],
+                 d_head: int,
+                 n_head: int,
+                 dropout_rate: float,
                  persistence_weight:float=0.0,
                  loss_type: str='l1',
                  quantiles:List[float]=[],
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
                  scheduler_config:dict=None)->None:
-        """TFT model 'arXiv:1912.09363v3 [stat.ML] 27 Sep 2020'
-
-        Strategies:
-        - use_target_past: choose if you want to consider also the past numerical variables for the encoding part
-        - use_y_prec_fut: choose if for prediction you want to use the previous values of the target variables. If True, the process becomes iterative (also slower)
+        """_summary_
 
         Args:
-            use_target_past (bool): usage of past numerical variables
-            use_yprec_fut (bool): usage of iterative procedure 
-            past_steps (int): past context steps
-            future_steps (int): future steps to be predicted
-            past_channels (int): number of variables used in past steps
-            future_channels (int): [now not used] number of future numerical variables for predictions
-            embs (List[int]): embedding dimensions for Embedding Layers of categorical variables
-            d_model (int): dimension of the model
-            num_heads (int): number of heads used in Encoder and Decoder multihead attentions
-            head_size (int): size of tensors 
-            fw_exp (int): _description_
-            dropout (float): _description_
-            n_layer_encoder (int): _description_
-            n_layer_decoder (int): _description_
-            num_layers_RNN (int): _description_
+            d_model (int): _description_
             out_channels (int): _description_
-            kind (str): gru or lstm layer
-            persistence_weight (float):  weight controlling the divergence from persistence model. Default 0
-            loss_type (str, optional): this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,
-            quantiles (List[int], optional): _description_. Defaults to [].
-            optim (str, optional): if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
+            past_steps (int): _description_
+            future_steps (int): _description_
+            past_channels (int): _description_
+            future_channels (int): _description_
+            num_layers_RNN (int): _description_
+            embs (list[int]): _description_
+            d_head (int): _description_
+            n_head (int): _description_
+            dropout_rate (float): _description_
+            persistence_weight (float, optional): _description_. Defaults to 0.0.
+            loss_type (str, optional): _description_. Defaults to 'l1'.
+            quantiles (List[float], optional): _description_. Defaults to [].
+            optim (Union[str,None], optional): _description_. Defaults to None.
             optim_config (dict, optional): _description_. Defaults to None.
             scheduler_config (dict, optional): _description_. Defaults to None.
         """
-        ##pytotch lightening stuff
-        self.save_hyperparameters(logger=False)
-        
+
         super().__init__()
-        # strategy applied
-        self.use_target_past = use_target_past
-        self.use_yprec_fut = use_yprec_fut
-        self.type_RNN = kind
-        
-        # params for structure of data and model
-        self.past_steps = past_steps
-        self.past_channels = past_channels
+        self.save_hyperparameters(logger=False)
+        # assert out_channels==1, logging.info("ONLY ONE CHANNEL IMPLEMENTED")
         self.future_steps = future_steps
-        self.seq_len = past_steps + future_steps
         self.d_model = d_model
         self.out_channels = out_channels
-        self.head_size = head_size # it can vary according to strategies
-        
-        ##
+
+        self.target_linear = nn.Linear(out_channels, d_model) # same for past and fut! (same variable)
+        self.aux_past_channels = past_channels - out_channels # -1 because one channel is occupied by the target variable
+        self.linear_aux_past = nn.ModuleList([nn.Linear(1, d_model) for _ in range(self.aux_past_channels)])
+        self.aux_fut_channels = future_channels
+        self.linear_aux_fut = nn.ModuleList([nn.Linear(1, d_model) for _ in range(self.aux_fut_channels)])
+        seq_len = past_steps+future_steps
+        self.emb_cat_var = sub_nn.embedding_cat_variables(seq_len, future_steps, d_model, embs, self.device)
+        self.rnn = sub_nn.LSTM_Model(num_var=out_channels, 
+                                     d_model = d_model, 
+                                     pred_step = future_steps, 
+                                     num_layers = num_layers_RNN, 
+                                     dropout = dropout_rate)
+
+        self.res_conn1_past = sub_nn.ResidualConnection(d_model, dropout_rate)
+        self.res_conn1_fut = sub_nn.ResidualConnection(d_model, dropout_rate)
+        self.grn1_past = sub_nn.GRN(d_model, dropout_rate)
+        self.grn1_fut = sub_nn.GRN(d_model, dropout_rate)
+        self.InterpretableMultiHead = sub_nn.InterpretableMultiHead(d_model, d_head, n_head)
+        self.res_conn2_att = sub_nn.ResidualConnection(d_model, dropout_rate)
+        self.grn2_att = sub_nn.GRN(d_model, dropout_rate)
+        self.res_conn3_out = sub_nn.ResidualConnection(d_model, dropout_rate)
+
         self.persistence_weight = persistence_weight 
         self.loss_type = loss_type
-        
-        
-        # NN of the model:
 
-        # - Starting Embedding
-        self.emb_cat_var = embedding_nn.embedding_cat_variables(self.seq_len, future_steps, d_model, embs)
-        if use_target_past:
-            self.emb_num_past_var = embedding_nn.embedding_num_past_variables(past_channels, d_model)
-        if use_yprec_fut:
-            self.emb_num_fut_var = embedding_nn.embedding_num_future_variables(future_steps, out_channels, d_model)
-
-        # - Encoder (past)
-        self.EncVariableSelection = embedding_nn.Encoder_Var_Selection(self.use_target_past, len(embs)+3, past_channels, d_model, dropout)
-        self.EncRNN = embedding_nn.Encoder_RNN(self.type_RNN, num_layers_RNN, d_model, dropout)
-        self.EncGRN = embedding_nn.GRN(d_model, dropout)
-        self.Encoder = encoder.Encoder(n_layer_encoder, d_model, num_heads, self.head_size, fw_exp, dropout)
-        
-        # - Decoder (future)
-        self.DecVariableSelection = embedding_nn.Decoder_Var_Selection(self.use_yprec_fut, len(embs)+3, out_channels+1, d_model, dropout)
-        self.DecRNN = embedding_nn.Decoder_RNN(self.type_RNN, num_layers_RNN, d_model, dropout)
-        self.DecGRN = embedding_nn.GRN(d_model, dropout)
-        self.Decoder = decoder.Decoder(n_layer_decoder, d_model, num_heads, self.head_size, fw_exp, future_steps, dropout)
-        
-        # - PostTransformer (future)
-        self.postTransformer = embedding_nn.postTransformer(d_model, dropout)
-
-        # quantiles defines the number of predicted values: only y or also 0.1 and 0.9 quantiles
-        # init the last linear, loss and mul according tothe size of quantiles
+        # output, handling quantiles or not
         assert (len(quantiles) ==0) or (len(quantiles)==3)
         if len(quantiles)==0:
             self.mul = 1
@@ -122,115 +90,121 @@ class TFT(Base):
             else:
                 self.loss = nn.L1Loss()
         else:
-            self.mul = 3
+            self.mul = len(quantiles)
             self.use_quantiles = True
             self.outLinear = nn.Linear(d_model, out_channels*len(quantiles))
             self.loss = QuantileLossMO(quantiles)
         self.optim = optim
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
-  
-    def forward(self, batch:dict) -> torch.Tensor:
-        """ --- TFT ---
-        This Model can perform iterative and direct predictions:\n
-        ITERATIVE:\n
-        yhat_i(q,t,tau) = f_q( tau, y_{i,t-k:t}, x_{i,t-k:t+tau} )\n
-        DIRECT:\n
-        yhat_i(q,t,tau) = f_q( tau, x_{i,t-k:t+tau} )\n
-         
-        - q is the quantile taken in consideration,
-        - t the time when the prediction starts, 
-        - tau the future step we are predicting
 
-        Structure of the Model:
-        - Gating Mechanisms: GRN and GLU give the model the flexibility 
-        to apply non-linear processing only where needed.
-        - Variable Selection Network: it is intended as instance-wise variable selection 
-        removing any unnecessary noisy inputs and focunsing on the most saient ones
-        - Interpretable Multi-head Attention: weights shared across all heads
-        - Quantile output: the model can predict the single value of y or its quantiles.
+    def forward(self, batch):
 
-        Args:
-            batch (dict): batch of the dataloader
+        num_past = batch['x_num_past'].to(self.device)
+        # PAST TARGET NUMERICAL VARIABLE
+        # always available: autoregressive variable
+        # compute rnn prediction
+        idx_target = batch['idx_target'][0]
+        target_num_past = num_past[:,:,idx_target]
+        target_emb_num_past = self.target_linear(target_num_past) # target_variables comunicating with each others
+        target_num_fut_approx = self.rnn(target_emb_num_past)
+        # embed future redictions
+        target_emb_num_fut_approx = self.target_linear(target_num_fut_approx)
 
-        Returns:
-            torch.Tensor: [Bs, future_steps, -1, number of quantiles computed for each timestep]
-        """
+        ### create variable summary_past and summary_fut
+        # at the beggining it is composed only by past and future target variable
+        summary_past = target_emb_num_past.unsqueeze(2)
+        summary_fut = target_emb_num_fut_approx.unsqueeze(2)
+        # now we search for others categorical and numerical variables!
+
+
+        ### PAST NUMERICAL VARIABLES
+        if self.aux_past_channels>0: # so we have more numerical variables about past
+            # AUX = AUXILIARY variables
+            aux_num_past = self.remove_var(num_past, idx_target, 2) # remove the target index on the second dimension
+            assert self.aux_past_channels == aux_num_past.size(2), logging.info(f"{self.aux_past_channels} LAYERS FOR PAST VARS AND {aux_num_past.shape(2)} VARS") # to check if we are using the expected number of variables about past
+            aux_emb_num_past = torch.Tensor().to(aux_num_past.device)
+            for i, layer in enumerate(self.linear_aux_past):
+                aux_emb_past = layer(aux_num_past[:,:,[i]]).unsqueeze(2)
+                aux_emb_num_past = torch.cat((aux_emb_num_past, aux_emb_past), dim=2)
+            ## update summary about past
+            summary_past = torch.cat((summary_past, aux_emb_num_past), dim=2)
         
-        # categorical past var
-        x_cat_past = batch['x_cat_past'].to(self.device)
-        x_cat_future = batch['x_cat_future'].to(self.device)
-        #embed all categorical values
-        embed_categorical = self.emb_cat_var(torch.cat((x_cat_past,x_cat_future), dim=1))
-        # split for past and future
-        embed_categorical_past = embed_categorical[:,:self.past_steps,:,:]
-        embed_categorical_future = embed_categorical[:,-self.future_steps:,:,:]
+        ### FUTURE NUMERICAL VARIABLES
+        if self.aux_fut_channels>0: # so we have more numerical variables about future
+            aux_num_fut = batch['x_num_future'].to(self.device)
+            assert self.aux_fut_channels == aux_num_fut.size(2), logging.info(f"{self.aux_fut_channels} LAYERS FOR PAST VARS AND {aux_num_fut.size(2)} VARS")  # to check if we are using the expected number of variables about fut
+            aux_emb_num_fut = torch.Tensor().to(aux_num_fut.device)
+            for j, layer in enumerate(self.linear_aux_fut):
+                aux_emb_fut = layer(aux_num_fut[:,:,[j]]).unsqueeze(2)
+                aux_emb_num_fut = torch.cat((aux_emb_num_fut, aux_emb_fut), dim=2)
+            ## update summary about future
+            summary_fut = torch.cat((summary_fut, aux_emb_num_fut), dim=2)
 
-        ### PAST #############
-        #Variable Selection
-        if self.use_target_past:
-            # numerical past var
-            embed_num_past = self.emb_num_past_var(batch['x_num_past'].to(self.device))
-            variable_selection_past = self.EncVariableSelection(embed_categorical_past, embed_num_past)
-        else:
-            variable_selection_past = self.EncVariableSelection(embed_categorical_past)
-        # RNN and GRN
-        past_RNN, hn = self.EncRNN(variable_selection_past)
-        encoding = self.EncGRN(past_RNN)
-        # Encoder
-        encoded = self.Encoder(encoding, encoding, encoding)
+        ### CATEGORICAL VARIABLES 
+        if 'x_cat_past' in batch.keys() and 'x_cat_future' in batch.keys(): # if we have both
+            # HERE WE ASSUME SAME NUMBER AND KIND OF VARIABLES IN PAST AND FUTURE
+            cat_past = batch['x_cat_past'].to(self.device)
+            cat_fut = batch['x_cat_future'].to(self.device)
+            cat_full = torch.cat((cat_past, cat_fut), dim = 1)
+            # EMB CATEGORICAL VARIABLES AND THEN SPLIT IN PAST AND FUTURE
+            emb_cat_full = self.emb_cat_var(cat_full)
+            cat_emb_past = emb_cat_full[:,:-self.future_steps,:,:]
+            cat_emb_fut = emb_cat_full[:,-self.future_steps:,:,:]
+            ## update summary
+            # past
+            summary_past = torch.cat((summary_past, cat_emb_past), dim=2)
+            # future
+            summary_fut = torch.cat((summary_fut, cat_emb_fut), dim=2)
 
-        ### FUTURE ###########
-        if self.use_yprec_fut:
-            # init output tensor on the right device
-            output = torch.Tensor().to(self.device)
-            # init decoder_out to store actual value predicted of the target variable
-            idx_target = batch['idx_target'][0,0].item()
-            decoder_out = batch['x_num_past'][:,-1,idx_target].unsqueeze(1).unsqueeze(2).to(self.device)
+        # >>> PAST:
+        summary_past = torch.mean(summary_past, dim=2)
+        # >>> FUTURE:
+        summary_fut = torch.mean(summary_fut, dim=2)
 
-            # start iterative procedure
-            for tau in range(1, self.future_steps+1):
-                embed_tau_y = self.emb_num_fut_var(decoder_out)
-                variable_selection_fut = self.DecVariableSelection(embed_categorical_future[:,:tau,:,:], embed_tau_y)
-                fut_RNN = self.DecRNN(variable_selection_fut, hn)
-                pred_decoding = self.DecGRN(fut_RNN)
-                pred_decoded = self.Decoder(pred_decoding, encoded, encoded)
-                out = self.postTransformer(pred_decoded, pred_decoding, fut_RNN)
-                out = self.outLinear(out) # [B, tau, self.mul]
-                # self.mul, by assert in __init__, ==1 or ==3
-                if self.mul==1:
-                    decoder_out = torch.cat((decoder_out, out[:,-1,:].unsqueeze(2)), dim = 1)
-                    output = torch.cat((output, out[:,-1,:].unsqueeze(1)), dim = 1)
-                else:
-                    # self.mul ==3 -> store the median quantile[q=0.5] predicted in the dec_out
-                    dec_out = out[:,:,1].unsqueeze(2)
-                    # cat to decoder_out only the actual value
-                    decoder_out = torch.cat((decoder_out, dec_out[:,-1,:].unsqueeze(2)), dim = 1)
-                    # cat to output all the quantiles predicted
-                    output = torch.cat((output, out[:,-1,:].unsqueeze(1)), dim = 1)
-            # ignore the first value y_0 used to start the iterative procedure
-            out = decoder_out[:,1:,:]
-            B, L, _ = output.shape
-            return output.reshape(B,L,-1,self.mul)
-        else:
-            # direct prediction mod
-            variable_selection_fut = self.DecVariableSelection(embed_categorical_future)
-            fut_RNN = self.DecRNN(variable_selection_fut, hn)
-            decoding = self.DecGRN(fut_RNN)
-            decoded = self.Decoder(decoding, encoded, encoded)
-            out = self.postTransformer(decoded, decoding, fut_RNN)
-            out = self.outLinear(out)
-            B, L, _ = out.shape
-            return out.reshape(B,L,-1,self.mul)
-        # daje roma
+        ### Residual Connection from LSTM
+        summary_past = self.res_conn1_past(summary_past, target_emb_num_past)
+        summary_fut = self.res_conn1_fut(summary_fut, target_emb_num_fut_approx)
+
+        ### GRN1
+        summary_past = self.grn1_past(summary_past)
+        summary_fut = self.grn1_fut(summary_fut)
+
+        ### INTERPRETABLE MULTI HEAD ATTENTION
+        attention = self.InterpretableMultiHead(summary_fut, summary_past, target_emb_num_past)
+
+        ### Residual Connection from ATT
+        attention = self.res_conn2_att(attention, attention)
+
+        ### GRN
+        attention = self.grn2_att(attention)
+
+        ### Resuidual Connection from GRN1
+        out = self.res_conn3_out(attention, summary_fut)
+
+        ### OUT
+        out = self.outLinear(out)
+
+        if self.mul>0:
+            out = out.view(-1, self.future_steps, self.out_channels, self.mul)
+        return out
     
-    def inference(self, batch:dict)->torch.tensor:
-        """Exactly equal to forward method
+    #function to extract from batch['x_num_past'] all variables except the one autoregressive
+    def remove_var(self, tensor: torch.Tensor, indexes_to_exclude: int, dimension: int)-> torch.Tensor:
+        """Function to remove variables from tensors in chosen dimension and position 
 
         Args:
-            batch (dict): batch of the dataloader
+            tensor (torch.Tensor): starting tensor
+            indexes_to_exclude (int): index of the chosen dimension we want t oexclude
+            dimension (int): dimension of the tensor on which we want to work
 
         Returns:
-            torch.tensor: result
+            torch.Tensor: new tensor without the chosen variables
         """
-        return self(batch) # exactly the same computations of forward
+
+        remaining_idx = torch.tensor([i for i in range(tensor.size(dimension)) if i not in indexes_to_exclude]).to(tensor.device)
+        # Select the desired sub-tensor
+        extracted_subtensors = torch.index_select(tensor, dim=dimension, index=remaining_idx)
+        
+        return extracted_subtensors
+    

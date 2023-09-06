@@ -2,7 +2,7 @@
 import argparse
 import pandas as pd
 from omegaconf import DictConfig, OmegaConf
-from dsipts import TimeSeries, RNN, read_public_dataset,Informer, LinearTS, Persistent,D3VAE,MyModel, TFT,TFT2,VVA,VQVAEA,CrossFormer
+from dsipts import TimeSeries, RNN, read_public_dataset,Informer, LinearTS, Persistent,D3VAE,MyModel, TFT,VVA,VQVAEA,CrossFormer
 import hydra
 import os
 import shutil

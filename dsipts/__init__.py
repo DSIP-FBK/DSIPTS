@@ -10,7 +10,6 @@ from .models.D3VAE import D3VAE
 from .models.MyModel import MyModel
 from .models.TFT import TFT
 from .models.Informer import Informer
-from .models.TFT2 import TFT2
 from .models.VVA import VVA
 from .models.VQVAEA import VQVAEA
 from .models.CrossFormer import CrossFormer
