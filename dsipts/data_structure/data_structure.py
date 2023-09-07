@@ -13,12 +13,13 @@ import os
 import torch
 pd.options.mode.chained_assignment = None 
 import pickle
-from .utils import extend_time_df,MetricsCallback, MyDataset, ActionEnum
+from .utils import extend_time_df,MetricsCallback, MyDataset, ActionEnum,beauty_string
 from datetime import datetime
 from ..models.base import Base
 from ..models.utils import weight_init
 import logging 
 from .modifiers import *
+
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())      
       
@@ -44,7 +45,6 @@ class Categorical():
         self.classes = classes
         self.action = action
         self.level = level
-
         self.validate()
     
     def validate(self):
@@ -56,10 +56,6 @@ class Categorical():
             pass
         else:
             raise ValueError("Length must match")
-        
-
-            
-
     
     def generate_signal(self,length:int)->None:
         """Generate the resposne signal
@@ -134,9 +130,9 @@ class TimeSeries():
         self.name = name
         self.stacked = stacked
     def __str__(self) -> str:
-        return f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables} \n With {'no group' if self.group is None else self.group+' as group' }"
+        return beauty_string(f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables} \n With {'no group' if self.group is None else self.group+' as group' }",'info')
     def __repr__(self) -> str:
-        return f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables}\n With {'no group' if self.group is None else self.group+' as group' }"
+        return beauty_string(f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables}\n With {'no group' if self.group is None else self.group+' as group' }",'info')
     
     def _generate_base(self,length:int,type:int=0)-> None:
         """Generate a basic timeseries 
@@ -265,7 +261,7 @@ class TimeSeries():
                 past_variables = list(set(past_variables).union(set(target_variables)))
         
         self.cat_var = cat_var
-        self.group = group ## can be useful
+        self.group = group 
         if group is not None:
             if group not in cat_var:
                 logging.info(f'##########I will add {group} to the categorical variables#############')
@@ -975,15 +971,17 @@ class TimeSeries():
                 setattr(self,p, params[p])    
         self.model = model(**self.config['model_configs'],optim_config = self.config['optim_config'],scheduler_config =self.config['scheduler_config'] )
         
-        if 'group' not in params:
-            logging.info('#########For compatibility with previous version we set group to None ############') ##TODO remove in future
-            self.group = None
-        if 'normalize_per_group' not in params:
-            logging.info('#########For compatibility with previous version we set normalize_per_group to False ############') ##TODO remove in future
-            self.normalize_per_group = False
-        if 'stacked' not in params:
-            logging.info('#########For compatibility with previous version we set stacked to False ############') ##TODO remove in future
-            self.stacked = False
+        
+        ##TODO secondo me possiamo rimuovere
+        #if 'group' not in params:
+        #    logging.info('#########For compatibility with previous version we set group to None ############') ##TODO remove in future
+        #    self.group = None
+        #if 'normalize_per_group' not in params:
+        #    logging.info('#########For compatibility with previous version we set normalize_per_group to False ############') ##TODO remove in future
+        #    self.normalize_per_group = False
+        #if 'stacked' not in params:
+        #    logging.info('#########For compatibility with previous version we set stacked to False ############') ##TODO remove in future
+        #    self.stacked = False
 
         
         if weight_path is not None:

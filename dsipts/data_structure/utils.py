@@ -7,6 +7,27 @@ from pytorch_lightning import Callback
 from typing import Union, List
 import torch
 import os
+import logging
+def beauty_string(message:str,type:str):
+    characters = len(message)
+    size = 100
+    border = max((100-characters)//2-5,0)
+    if type=='block':
+        logging.info('\n')
+        logging.info(f"{'#'*size}")
+        logging.info(f"{'#'*border}{''*(size-border*2)}{'#'*border}")
+        logging.info(f"{ message: ^border}")
+        logging.info(f"{'#'*border}{''*(size-border*2)}{'#'*border}")
+        logging.info(f"{'#'*size}")
+    elif type=='section':
+        logging.info('\n')
+        logging.info(f"{'#'*size}")
+        logging.info(f"{ message: ^border}")
+        logging.info(f"{'#'*size}")
+    else:
+        logging.info(f"{ message: ^border}")
+
+
 
 def extend_time_df(x:pd.DataFrame,freq:str,group:Union[str,None]=None,global_minmax:bool=False)-> pandas.DataFrame:
     """Utility for generating a full dataset and then merge the real data
