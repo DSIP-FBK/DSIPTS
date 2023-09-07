@@ -13,7 +13,7 @@ model_configs:
   d_model: 128
   d_head: 32
   n_head: 6
-  num_layers_RNN: 12
+  num_layers_RNN: 3
   optim: torch.optim.Adam
   dropout_rate: 0.5
   persistence_weight: 0.010
