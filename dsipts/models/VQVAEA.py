@@ -1,16 +1,15 @@
 
 from torch import  nn
 import torch
+from torch.nn import functional as F
 from .base import Base
-from .utils import QuantileLossMO,Permute, get_device, get_activation
+from .utils import get_device, get_activation
 from typing import List, Union
 from .vva.minigpt import Block
 from .vva.vqvae import VQVAE
-import numpy as np
 import logging
-import math
-from torch.nn import functional as F
 from random import random
+from ..data_structure.utils import beauty_string
 
 torch.autograd.set_detect_anomaly(True)
 
@@ -80,8 +79,8 @@ class VQVAEA(Base):
         self.future_steps = future_steps
         self.epoch_vqvae = epoch_vqvae
         ##PRIMA VQVAE
-        assert out_channels==1, logging.info('Working only for one singal')
-        assert past_steps%2==0 and future_steps%2==0, logging.info('There are some issue with the deconder in case of odd length')
+        assert out_channels==1, beauty_string('Working only for one singal','section')
+        assert past_steps%2==0 and future_steps%2==0, beauty_string('There are some issue with the deconder in case of odd length','section')
         self.vqvae = VQVAE(in_channels=1, hidden_channels=hidden_channels,out_channels=1,num_embeddings= max_voc_size,embedding_dim=d_model,commitment_cost=commitment_cost,decay=decay  )
         
         ##POI GPT
@@ -100,7 +99,7 @@ class VQVAEA(Base):
         ))
         # report number of parameters (note we don't count the decoder parameters in lm_head)
         n_params = sum(p.numel() for p in self.transformer.parameters())
-        logging.info("number of parameters: %.2fM" % (n_params/1e6,))
+        beauty_string("number of parameters: %.2fM" % (n_params/1e6,),'info')
         
         self.use_quantiles = False
         self.is_classification = True
@@ -127,7 +126,7 @@ class VQVAEA(Base):
     
     
         b, t = tokens.size()
-        assert t <= self.block_size, f"Cannot forward sequence of length {t}, block size is only {self.block_size}"
+        assert t <= self.block_size, beauty_string("Cannot forward sequence of length {t}, block size is only {self.block_size}",'section')
         pos = torch.arange(0, t, dtype=torch.long, device=self.device).unsqueeze(0) # shape (1, t)
 
         # forward the GPT model itself
@@ -163,7 +162,7 @@ class VQVAEA(Base):
         else:
             vq_loss, data_recon, perplexity,quantized_x,encodings_x = self.vqvae(data.permute(0,2,1))
             if random()<0.001:
-                logging.info(perplexity)
+                beauty_string(perplexity,'info')
             recon_error = F.mse_loss(data_recon.squeeze(), data.squeeze()) 
             loss_vqvae = recon_error + vq_loss
 

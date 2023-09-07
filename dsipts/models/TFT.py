@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 from .tft import sub_nn
 from .base import  Base
-from .utils import get_device, QuantileLossMO, L1Loss
+from .utils import QuantileLossMO
 from typing import List, Union
-import logging
+from ..data_structure.utils import beauty_string
 
 class TFT(Base):
     def __init__(self, 
@@ -122,7 +122,7 @@ class TFT(Base):
         if self.aux_past_channels>0: # so we have more numerical variables about past
             # AUX = AUXILIARY variables
             aux_num_past = self.remove_var(num_past, idx_target, 2) # remove the target index on the second dimension
-            assert self.aux_past_channels == aux_num_past.size(2), logging.info(f"{self.aux_past_channels} LAYERS FOR PAST VARS AND {aux_num_past.shape(2)} VARS") # to check if we are using the expected number of variables about past
+            assert self.aux_past_channels == aux_num_past.size(2), beauty_string(f"{self.aux_past_channels} LAYERS FOR PAST VARS AND {aux_num_past.shape(2)} VARS",'section') # to check if we are using the expected number of variables about past
             aux_emb_num_past = torch.Tensor().to(aux_num_past.device)
             for i, layer in enumerate(self.linear_aux_past):
                 aux_emb_past = layer(aux_num_past[:,:,[i]]).unsqueeze(2)
@@ -133,7 +133,7 @@ class TFT(Base):
         ### FUTURE NUMERICAL VARIABLES
         if self.aux_fut_channels>0: # so we have more numerical variables about future
             aux_num_fut = batch['x_num_future'].to(self.device)
-            assert self.aux_fut_channels == aux_num_fut.size(2), logging.info(f"{self.aux_fut_channels} LAYERS FOR PAST VARS AND {aux_num_fut.size(2)} VARS")  # to check if we are using the expected number of variables about fut
+            assert self.aux_fut_channels == aux_num_fut.size(2), beauty_string(f"{self.aux_fut_channels} LAYERS FOR PAST VARS AND {aux_num_fut.size(2)} VARS",'section')  # to check if we are using the expected number of variables about fut
             aux_emb_num_fut = torch.Tensor().to(aux_num_fut.device)
             for j, layer in enumerate(self.linear_aux_fut):
                 aux_emb_fut = layer(aux_num_fut[:,:,[j]]).unsqueeze(2)

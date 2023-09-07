@@ -4,6 +4,7 @@ import torch
 from .base import Base
 from .utils import QuantileLossMO,Permute, get_device, get_activation
 from typing import List, Union
+from ..data_structure.utils import beauty_string
 
 import numpy as np
 import logging
@@ -146,12 +147,12 @@ class MyModel(Base):
 
         """
         if activation == 'torch.nn.SELU':
-            logging.info('SELU do not require BN')
+            beauty_string('SELU do not require BN','info')
             use_bn = False
         if type(activation)==str:
             activation = get_activation(activation)
         else:
-            logging.info('There is a bug in pytorch lightening, the constructior is called twice ')
+            beauty_string('There is a bug in pytorch lightening, the constructior is called twice ','info')
         
         super(MyModel, self).__init__()
         self.save_hyperparameters(logger=False)
@@ -203,9 +204,9 @@ class MyModel(Base):
             
         if sum_emb and (emb_channels>0):
             emb_channels = cat_emb_dim
-            logging.info('Using sum')
+            beauty_string('Using sum','info')
         else:
-            logging.info('Using stacked')
+            beauty_string('Using stacked','info')
     
 
         if self.use_glu:
@@ -233,8 +234,7 @@ class MyModel(Base):
         self.conv_encoder = Block(emb_channels+hidden_RNN//4,kernel_size,hidden_RNN//2,self.past_steps,sum_emb)
         
         #nn.Sequential(Permute(), nn.Conv1d(emb_channels+hidden_RNN//8, hidden_RNN//8, kernel_size, stride=1,padding='same'),Permute(),nn.Dropout(0.3))
-        #import pdb
-        #pdb.set_trace()
+
         if future_channels+emb_channels==0:
             ## occhio che vuol dire che non ho passato , per ora ci metto una pezza e uso hidden dell'encoder
             self.conv_decoder = Block(hidden_RNN,kernel_size,hidden_RNN//2,self.future_steps,sum_emb) 
@@ -260,7 +260,7 @@ class MyModel(Base):
                                   num_layers = num_layers_RNN,
                                   batch_first=True,bidirectional=True)
         else:
-            print('Specify kind= lstm or gru please')
+            beauty_string('Specify kind lstm or gru please','section')
         self.final_linear = nn.ModuleList()
         for _ in range(out_channels*self.mul):
             self.final_linear.append(nn.Sequential(nn.Linear(hidden_RNN+emb_channels+future_channels,hidden_RNN*2), 
@@ -363,8 +363,7 @@ class MyModel(Base):
                 tmp.append(self.embs[i](cat_past[:,:,i]))
         if self.sum_emb and (len(self.embs)>0):
             tmp.append(tmp_emb)
-        #import pdb
-        #pdb.set_trace()
+
         tot = torch.cat(tmp,2)
 
         out, hidden = self.Encoder(self.conv_encoder(tot))      
@@ -397,8 +396,7 @@ class MyModel(Base):
             tmp = torch.cat([tot,out],axis=2)
         else:
             tmp = out
-        #import pdb
-        #pdb.set_trace()
+
         for j in range(self.out_channels*self.mul):
             res.append(self.final_linear[j](tmp))
 
@@ -415,5 +413,4 @@ class MyModel(Base):
     def inference(self, batch:dict)->torch.tensor:
         
         res, score = self(batch)
-        #logging.info(score)  ##????
         return res

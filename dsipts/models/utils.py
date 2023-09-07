@@ -3,14 +3,6 @@ import torch.nn.init as init
 from torch import nn
 
 
-
-
-def get_device():
-    return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-import torch
-import torch.nn as nn
-
 class SinkhornDistance():
     r"""
     Given two empirical measures each with :math:`P_1` locations

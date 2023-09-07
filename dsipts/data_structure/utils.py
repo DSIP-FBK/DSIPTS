@@ -9,23 +9,27 @@ import torch
 import os
 import logging
 def beauty_string(message:str,type:str):
-    characters = len(message)
+    
     size = 100
-    border = max((100-characters)//2-5,0)
+
     if type=='block':
+        characters = len(message)
+        border = max((100-characters)//2-5,0)
         logging.info('\n')
         logging.info(f"{'#'*size}")
-        logging.info(f"{'#'*border}{''*(size-border*2)}{'#'*border}")
-        logging.info(f"{ message: ^border}")
-        logging.info(f"{'#'*border}{''*(size-border*2)}{'#'*border}")
+        logging.info(f"{'#'*border}{' '*(size-border*2)}{'#'*border}")
+        logging.info(f"{ message:^{size}}")
+        logging.info(f"{'#'*border}{' '*(size-border*2)}{'#'*border}")
         logging.info(f"{'#'*size}")
     elif type=='section':
         logging.info('\n')
         logging.info(f"{'#'*size}")
-        logging.info(f"{ message: ^border}")
+        logging.info(f"{ message:^{size}}")
         logging.info(f"{'#'*size}")
+    elif type=='info':
+        logging.info(f"{ message:^{size}}")
     else:
-        logging.info(f"{ message: ^border}")
+        logging.info(message)
 
 
 

@@ -2,9 +2,9 @@
 from torch import  nn
 import torch
 from .base import Base
-from .utils import QuantileLossMO,Permute, get_device,L1Loss,get_activation
+from .utils import QuantileLossMO,Permute,get_activation
 from typing import List,Union
-import logging
+from ..data_structure.utils import beauty_string
 
 
 class MyBN(nn.Module):
@@ -70,12 +70,12 @@ class RNN(Base):
         """
         
         if activation == 'torch.nn.SELU':
-            logging.info('SELU do not require BN')
+            beauty_string('SELU do not require BN','info')
             use_bn = False
         if type(activation)==str:
             activation = get_activation(activation)
         else:
-            logging.info('There is a bug in pytorch lightening, the constructior is called twice ')
+            beauty_string('There is a bug in pytorch lightening, the constructior is called twice ','info')
         
         super(RNN, self).__init__()
         self.save_hyperparameters(logger=False)
@@ -124,9 +124,9 @@ class RNN(Base):
             
         if sum_emb and (emb_channels>0):
             emb_channels = cat_emb_dim
-            logging.info('Using sum')
+            beauty_string('Using sum','info')
         else:
-            logging.info('Using stacked')
+            beauty_string('Using stacked','info')
 
 
         self.initial_linear_encoder =  nn.Sequential(nn.Linear(past_channels,4),
@@ -162,7 +162,7 @@ class RNN(Base):
             self.Encoder = nn.GRU(input_size= hidden_RNN//8,hidden_size=hidden_RNN,num_layers = num_layers_RNN,batch_first=True)
             self.Decoder = nn.GRU(input_size= hidden_RNN//8,hidden_size=hidden_RNN,num_layers = num_layers_RNN,batch_first=True)
         else:
-            logging.error('Speciky kind= lstm or gru please')
+            beauty_string('Speciky kind= lstm or gru please','section')
         self.final_linear = nn.ModuleList()
         for _ in range(out_channels*self.mul):
             self.final_linear.append(nn.Sequential(nn.Linear(hidden_RNN,hidden_RNN//2), 
@@ -197,7 +197,6 @@ class RNN(Base):
             x_future = batch['x_num_future'].to(self.device)
         else:
             x_future = None
-        #import pdb
         
         if self.remove_last:
             idx_target = batch['idx_target'][0]
@@ -243,8 +242,6 @@ class RNN(Base):
         else:
             tot = out
         out, _ = self.Decoder(self.conv_decoder(tot),hidden)  
-        #else:
-        #    out, _ = self.Decoder(self.conv_decoder(out),hidden)  
         res = []
 
       

@@ -11,7 +11,7 @@ import numpy as np
 import plotly.express as px
 import logging
 import sys
-
+import traceback
 
 #file_handler = logging.FileHandler(filename='tmp.log')
 #stdout_handler = logging.StreamHandler(stream=sys.stdout)
@@ -70,7 +70,7 @@ def train(conf: DictConfig) -> None:
     try:
         ts = load_data(conf)
     except Exception as e:
-        logging.info(f"LOADING ERROR {e}")
+        logging.info(f"LOADING {conf.dataset.dataset} ERROR {traceback.format_exc()}")
 
     ######################################################################################################
     

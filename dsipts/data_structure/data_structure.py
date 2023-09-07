@@ -130,9 +130,9 @@ class TimeSeries():
         self.name = name
         self.stacked = stacked
     def __str__(self) -> str:
-        return beauty_string(f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables} \n With {'no group' if self.group is None else self.group+' as group' }",'info')
+        return beauty_string(f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables} \n With {'no group' if self.group is None else self.group+' as group' }",'')
     def __repr__(self) -> str:
-        return beauty_string(f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables}\n With {'no group' if self.group is None else self.group+' as group' }",'info')
+        return beauty_string(f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables}\n With {'no group' if self.group is None else self.group+' as group' }",'')
     
     def _generate_base(self,length:int,type:int=0)-> None:
         """Generate a basic timeseries 
@@ -145,7 +145,7 @@ class TimeSeries():
             self.base_signal = 10*np.cos(np.arange(length)/(2*np.pi*length/100))
             self.out_vars = 1
         else:
-            logging.error('Please implement your own method')
+            beauty_string('Please implement your own method','block')
         """
         
         """    
@@ -200,7 +200,8 @@ class TimeSeries():
         elif columns=='minute':
             dataset[columns] = dataset.time.dt.minute
         else:
-            logging.info(f'I can not automatically add column {columns} plase update this function accordlyng')
+            if columns  not in dataset.columns:
+                beauty_string(f'I can not automatically enrich column {columns}. Please contact the developers or add it manually to your dataset.','section')
 
     def load_signal(self,data:pd.DataFrame,
                     enrich_cat:List[str] = [],
@@ -237,7 +238,7 @@ class TimeSeries():
         dataset.sort_values(by='time',inplace=True)
         
         if check_holes_and_duplicates:
-            logging.info('################I will drop duplicates, I dont like them###################')
+            beauty_string('I will drop duplicates, I dont like them','section')
             dataset.drop_duplicates(subset=['time'] if group is None else [group,'time'],  keep='first', inplace=True, ignore_index=True)
             
             if group is None:
@@ -246,9 +247,9 @@ class TimeSeries():
                 differences = dataset[dataset[group]==dataset[group].unique()[0]].time.diff()[1:]
                 
             if differences.nunique()>1:
-                logging.info("#########There are holes in the dataset i will try to extend the dataframe inserting NAN#############")
+                beauty_string("There are holes in the dataset i will try to extend the dataframe inserting NAN",'info')
                 freq = pd.to_timedelta(differences.min())
-                logging.info(f'#############Detected minumum frequency: {freq}#############')
+                beauty_string(f'Detected minumum frequency: {freq}','section')
                 dataset = extend_time_df(dataset,freq,group).merge(dataset,how='left')
             
 
@@ -257,14 +258,14 @@ class TimeSeries():
         assert 'time'  in dataset.columns, f'The temporal column must be called time'
         if set(target_variables).intersection(set(past_variables))!= set(target_variables): 
             if check_past:
-                logging.info('##########I will update past column adding all target columns, if you want to avoid this beahviour please use check_pass as false############')
+                beauty_string('I will update past column adding all target columns, if you want to avoid this beahviour please use check_pass as false','info')
                 past_variables = list(set(past_variables).union(set(target_variables)))
         
         self.cat_var = cat_var
         self.group = group 
         if group is not None:
             if group not in cat_var:
-                logging.info(f'##########I will add {group} to the categorical variables#############')
+                beauty_string(f'I will add {group} to the categorical variables','info')
                 self.cat_var.append(group)
                 
                 
@@ -274,7 +275,7 @@ class TimeSeries():
             self.cat_var = list(set(self.cat_var+[c]))
                 
             if c in dataset.columns:
-                logging.info('#########Categorical {c} already present, it will be added to categorical variable but not recomputed#########') 
+                beauty_string('Categorical {c} already present, it will be added to categorical variable but not call the enriching function','info') 
             else:
                 self.enrich(dataset,c)
         self.dataset = dataset
@@ -284,7 +285,7 @@ class TimeSeries():
         self.out_vars = len(target_variables)
         self.num_var = list(set(self.past_variables).union(set(self.future_variables)).union(set(self.target_variables)))
         if silly_model:
-            logging.info('#########YOU ARE TRAINING A SILLY MODEL WITH THE TARGETS IN THE INPUTS#########') 
+            beauty_string('YOU ARE TRAINING A SILLY MODEL WITH THE TARGETS IN THE INPUTS','section') 
             self.future_variables+=self.target_variables
 
     def plot(self):
@@ -294,7 +295,7 @@ class TimeSeries():
             plotly.graph_objects._figure.Figure: figure of the target variables
         """
       
-        logging.info('plotting only target variables')
+        beauty_string('Plotting only target variables','block')
         if self.group is None:
             tmp = self.dataset[['time']+self.target_variables].melt(id_vars=['time'])
             fig = px.line(tmp,x='time',y='value',color='variable',title=self.name)
@@ -335,7 +336,7 @@ class TimeSeries():
                 x_cat_future: the categorical future variables
                 idx_target: index of target features in the past array
         """
-
+        beauty_string('Creating data loader','block')
         
         x_num_past_samples = []
         x_num_future_samples = []
@@ -347,7 +348,7 @@ class TimeSeries():
         
         if starting_point is not None:
             kk = list(starting_point.keys())[0]
-            assert kk not in self.cat_var, print('CAN NOT USE FEATURE {kk} as starting point it may have a different value due to the normalization step, please add a second column with a suitable name')
+            assert kk not in self.cat_var, beauty_string('CAN NOT USE FEATURE {kk} as starting point it may have a different value due to the normalization step, please add a second column with a suitable name','info')
         
         ##overwrite categorical columns
         for c in self.cat_var:
@@ -380,9 +381,6 @@ class TimeSeries():
             idx_target.append(self.past_variables.index(c))
                 
         
-
-
-        
         if self.group is None:
             data['_GROUP_'] = '1'
                 
@@ -391,8 +389,6 @@ class TimeSeries():
         else:
             skip_stacked = 0
         for group in data['_GROUP_'].unique():
-            
-
             tmp = data[data['_GROUP_']==group]
             groups = tmp['_GROUP_'].values  
             t = tmp.time.values 
@@ -403,8 +399,7 @@ class TimeSeries():
                 x_cat = tmp[self.cat_var].values
             y_target = tmp[self.target_variables].values
 
-            
-            ##questo serve a forzare di iniziare i samples alla stessa ora per esempio (controllo sul primo indice della y)
+        
             if starting_point is not None:
                 check = tmp[list(starting_point.keys())[0]].values == starting_point[list(starting_point.keys())[0]]
             else:
@@ -444,9 +439,8 @@ class TimeSeries():
             try:
                 x_num_future_samples = np.stack(x_num_future_samples)
             except:
-                logging.error(f'WARNING!!!!!!!!!!!!x_num_future_samples is empty and it should not')
+                beauty_string(f'WARNING x_num_future_samples is empty and it should not','info')
         y_samples = np.stack(y_samples)
-
         t_samples = np.stack(t_samples)   
         g_samples = np.stack(g_samples)
 
@@ -505,27 +499,23 @@ class TimeSeries():
             List[DataLoader,DataLoader,DataLoadtrainer]: three dataloader used for training or inference
         """
 
-        
+        beauty_string('Splitting for train','block')
+
         
         try:
             l = self.dataset.shape[0]
         except:
-            logging.error('Empty dataset')
+            beauty_string('Empty dataset','info')
             return None, None, None
         
-
-
-        
         if range_train is None:
-            
-
             if self.group is None:
-                logging.info(f'Split temporally using perc_train: {perc_train} and perc_valid:{perc_valid}')
+                beauty_string(f'Split temporally using perc_train: {perc_train} and perc_valid:{perc_valid}','section')
                 train = self.dataset.iloc[0:int(perc_train*l)]
                 validation = self.dataset.iloc[int(perc_train*l):int(perc_train*l+perc_valid*l)]
                 test = self.dataset.iloc[int(perc_train*l+perc_valid*l):]
             else:
-                logging.info(f'Split temporally using perc_train: {perc_train} and perc_valid:{perc_valid} for each group!')
+                beauty_string(f'Split temporally using perc_train: {perc_train} and perc_valid:{perc_valid} for each group!','info')
                 train = []
                 validation =[]
                 test = []
@@ -544,15 +534,14 @@ class TimeSeries():
 
         else:
 
-            logging.info('Split temporally using the time intervals provided')
+            beauty_string('Split temporally using the time intervals provided','section')
             train = self.dataset[self.dataset.time.between(range_train[0],range_train[1])]
             validation =  self.dataset[self.dataset.time.between(range_validation[0],range_validation[1])]
             test =  self.dataset[self.dataset.time.between(range_test[0],range_test[1])]
 
 
-        logging.info('######################################################################################################')
-        logging.info('######Scaling numerical (standard scaler) and categorical (label encoder) on the training data! ######')
-        logging.info('######################################################################################################')
+        beauty_string('Train categorical and numerical scalers','block')
+
         if self.is_trained:
             pass
         else:
@@ -598,16 +587,11 @@ class TimeSeries():
             config (dict, optional): usually the configuration used by the model. Defaults to None.
         """
         self.model = model
-        logging.info('######################################################################################################')
-        logging.info('###########LOOK THE INIT PROCEDURE IF YOU NEED A CUSTOM INITIALIZATION of the weighjts################')
-        logging.info('######################################################################################################')
         #self.model.apply(weight_init)
         self.config = config
         
-        logging.info('######################################################################################################')
-        logging.info('######################################################MODEL###########################################')
-        logging.info('######################################################################################################')
-        logging.info(model)
+        beauty_string('Setting the model','block')
+        beauty_string(model,'')
               
     def train_model(self,dirpath:str,
                     split_params:dict,
@@ -637,9 +621,8 @@ class TimeSeries():
             precision  (Union[str,int], optional): precision to use. Usually 32 bit is fine but for larger model you should try 'bf16'. If 'auto' it will use bf16 for GPU and 32 for cpu
         """
 
-        logging.info('###############################################################################')
-        logging.info('############################TRAINING###########################################')
-        logging.info('###############################################################################')
+        beauty_string('Training the model','block')
+
         self.split_params = split_params
         self.check_custom = False
         train,validation,test = self.split_for_train(**self.split_params)
@@ -651,12 +634,12 @@ class TimeSeries():
                 precision = 'bf16'
             #"bf16" ##in futuro magari inserirlo nei config, potrebbe essere che per alcuni modelli possa non andare bfloat32
             torch.set_float32_matmul_precision('medium')
-            logging.info('setting multiplication precision to medium')
+            beauty_string('Setting multiplication precision to medium','info')
         else:
             devices = 'auto'
             if precision=='auto':
                 precision  = 32
-        logging.info(f'train:{len(train)}, validation:{len(validation)}, test:{len(test) if test is not None else 0}')
+        beauty_string(f'train:{len(train)}, validation:{len(validation)}, test:{len(test) if test is not None else 0}','section')
         if (accelerator=='gpu') and (num_workers>0):
             persistent_workers = True
         else:
@@ -689,16 +672,12 @@ class TimeSeries():
         mc = MetricsCallback(dirpath)
         ## TODO se ci sono 2 o piu gpu MetricsCallback non funziona (secondo me fa una istanza per ogni dataparallel che lancia e poi non riesce a recuperare info)
         trainer = pl.Trainer(default_root_dir=dirpath,logger = logger,max_epochs=max_epochs,callbacks=[checkpoint_callback,mc],
-                             auto_lr_find=auto_lr_find, accelerator=accelerator,devices=devices,strategy=strategy,
+                             auto_lr_find=auto_lr_find, accelerator=accelerator,devices=devices,strategy=strategy,enable_progress_bar=False,
                              precision=precision,gradient_clip_val=gradient_clip_val, gradient_clip_algorithm=gradient_clip_algorithm)#,devices=1)
 
         if auto_lr_find:
             trainer.tune(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)
-            
-        ##clean lr finder
-      
             files = os.listdir(dirpath)
-    
             for f in files:
                 if '.lr_find' in f:
                     os.remove(os.path.join(dirpath,f))
@@ -707,7 +686,7 @@ class TimeSeries():
         self.checkpoint_file_best = checkpoint_callback.best_model_path
         self.checkpoint_file_last = checkpoint_callback.last_model_path 
         if self.checkpoint_file_last=='':
-            logging.info('There is a bug on saving last model I will try to fix it')
+            beauty_string('There is a bug on saving last model I will try to fix it','info')
             self.checkpoint_file_last = checkpoint_callback.best_model_path.replace('checkpoint','last')
 
         self.dirpath = dirpath
@@ -728,14 +707,16 @@ class TimeSeries():
         try:
             self.model = self.model.load_from_checkpoint(self.checkpoint_file_last)
         except:
-            logging.info(f'There is a problem loading the weights on file {self.checkpoint_file_last}')
+            beauty_string(f'There is a problem loading the weights on file {self.checkpoint_file_last}','section')
 
         try:
             val_loss = self.losses.val_loss.values[-1]
         except:
-            logging.info(f'Can not extract the validation loss, maybe it is a persistent model')
+            beauty_string(f'Can not extract the validation loss, maybe it is a persistent model','info')
             val_loss = 100
         self.is_trained = True
+        
+        beauty_string('END of the training process','block')
         return val_loss 
     
     def inference_on_set(self,batch_size:int=100,
@@ -755,10 +736,12 @@ class TimeSeries():
         Returns:
             pd.DataFrame: the predicted values in a pandas format
         """
+        
+        beauty_string('Inference on a set (train, validation o test)','block')
      
         if data is None:
             if split_params is None:
-                logging.info(f'splitting using train parameters {self.split_params}')
+                beauty_string(f'splitting using train parameters {self.split_params}','section')
                 train,validation,test = self.split_for_train(**self.split_params)
             else:
                 train,validation,test = self.split_for_train(**split_params)
@@ -779,20 +762,19 @@ class TimeSeries():
             if self.check_custom:
                 pass
             else:
-                logging.info('RUN IT AT YOUR OWN RISK, I RECCOMEND TO CALL .inference INSTEAD')
+                beauty_string('If you are here something went wrong, please report it','section')
             if self.modifier is not None:
                 data = self.modifier.transform(data)
             dl = DataLoader(data, batch_size = batch_size , shuffle=False,drop_last=False,num_workers=num_workers)    
   
         else:
-            logging.error('select one of train, test, or validation set')
+            beauty_string('Select one of train, test, or validation set','section')
         self.model.eval()
         
         res = []
         real = []
         self.model.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
-
-        logging.info(f'Device used: {self.model.device}')
+        beauty_string(f'Device used: {self.model.device}','info')
 
         for batch in dl:
             res.append(self.model.inference(batch).cpu().detach().numpy())
@@ -809,7 +791,7 @@ class TimeSeries():
 
         ## BxLxCx3
         if rescaling:
-            logging.info('Scaling back')
+            beauty_string('Scaling back','info')
             if self.normalize_per_group==False:
                 for i, c in enumerate(self.target_variables):
                     real[:,:,i] = self.scaler_num[c].inverse_transform(real[:,:,i].reshape(-1,1)).reshape(-1,real.shape[1])
@@ -824,7 +806,6 @@ class TimeSeries():
                             res[idx,:,i,j] = self.scaler_num[f'{c}_{group}'].inverse_transform(res[idx,:,i,j].reshape(-1,1)).reshape(-1,res.shape[1])
 
         if self.model.use_quantiles:
-            ##i+1 
             time = pd.DataFrame(time,columns=[i+1 for i in range(res.shape[1])])
             
             if self.group is not None:
@@ -893,27 +874,25 @@ class TimeSeries():
         Returns:
             pd.DataFrame: predicted values
         """
+        beauty_string('Inference on a custom dataset','block')
         
         self.check_custom = True ##this is a check for the dataset loading
         ## enlarge the dataset in order to have all the rows needed
         if check_holes_and_duplicates:
             if self.group is None:
                 freq = pd.to_timedelta(np.diff(data.time).min())
-                logging.info(f'#############Detected minumum frequency: {freq}#############')
+                beauty_string(f'Detected minumum frequency: {freq}','section')
                 empty = pd.DataFrame({'time':pd.date_range(data.time.min(),data.time.max()+freq*(steps_in_future+self.split_params['past_steps']+self.split_params['future_steps']),freq=freq)})
 
             else:
                 freq = pd.to_timedelta(np.diff(data[data[self.group==data[self.group].unique()[0]]].time).min())
-                logging.info(f'#############Detected minumum frequency: {freq} supposing constant frequence inside the groups #############')
+                beauty_string(f'Detected minumum frequency: {freq} supposing constant frequence inside the groups','section')
                 _min = data.groupby(self.group).time.min()
                 _max = data.groupby(self.group).time.max()
                 empty = []
                 for c in data[self.group].unique():
                     empty.append(pd.DataFrame({self.group:c,'time':pd.date_range(_min.time[_min[self.group]==c].values[0],_max.time[_max[self.group]==c].values[0]+freq*(steps_in_future+self.split_params['past_steps']+self.split_params['future_steps']),freq=freq)}))
-                            
                 empty = pd.concat(empty,ignore_index=True)
-
-        
             dataset = empty.merge(data,how='left')
         else:
             dataset = data.copy()
@@ -939,7 +918,7 @@ class TimeSeries():
         Args:
             filename (str): name of the file
         """
-        logging.info('Saving')
+        beauty_string('Saving','block')
         with open(f'{filename}.pkl','wb') as f:
             params =  self.__dict__.copy()
             for k in ['model']:
@@ -961,7 +940,7 @@ class TimeSeries():
 
             
         
-        logging.info('################Loading#################################')
+        beauty_string('Loading','block')
         self.modifier = None
         self.check_custom = False
         self.is_trained = True
@@ -998,15 +977,15 @@ class TimeSeries():
                 try:
                     tmp_path = os.path.join(directory,self.checkpoint_file_last.split('/')[-1])
                 except:
-                    logging.info('checkpoint_file_last not defined try to load best')
+                    beauty_string('checkpoint_file_last not defined try to load best','section')
                     tmp_path = os.path.join(directory,self.checkpoint_file_best.split('/')[-1])
             else:
                 try:
                     tmp_path = os.path.join(directory,self.checkpoint_file_best.split('/')[-1])
                 except:
-                    logging.info('checkpoint_file_best not defined try to load best')
+                    beauty_string('checkpoint_file_best not defined try to load best','section')
                     tmp_path = os.path.join(directory,self.checkpoint_file_last.split('/')[-1])
         try:
             self.model = self.model.load_from_checkpoint(tmp_path)
         except Exception as e:
-            logging.info(f'There is a problem loading the weights on file {tmp_path} {e}')
+            beauty_string(f'There is a problem loading the weights on file {tmp_path} {e}')

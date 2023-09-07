@@ -6,6 +6,7 @@ from .base import  Base
 from .utils import QuantileLossMO, get_device, L1Loss, get_activation
 from typing import List, Union
 import logging
+from ..data_structure.utils import beauty_string
 
 class moving_avg(nn.Module):
     """
@@ -92,17 +93,16 @@ class LinearTS(Base):
         """
   
         if activation == 'torch.nn.SELU':
-            logging.info('SELU do not require BN')
+            beauty_string('SELU do not require BN','info')
             use_bn = False
             
         if type(activation)==str:
             activation = get_activation(activation)
         else:
-            logging.info('There is a bug in pytorch lightening, the constructior is called twice ')
+            beauty_string('There is a bug in pytorch lightening, the constructior is called twice')
         
         super(LinearTS, self).__init__()
         self.save_hyperparameters(logger=False)
-        #self.device = get_device()
         self.past_steps = past_steps
         self.future_steps = future_steps
         self.kind = kind
@@ -145,7 +145,7 @@ class LinearTS(Base):
             
         if sum_emb and (emb_channels>0):
             emb_channels = cat_emb_dim
-            logging.info('Using sum')
+            beauty_string('Using sum')
         else:
             logging.info('Using stacked')
     

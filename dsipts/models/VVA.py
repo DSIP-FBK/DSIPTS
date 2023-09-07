@@ -2,13 +2,11 @@
 from torch import  nn
 import torch
 from .base import Base
-from .utils import QuantileLossMO,Permute, get_device, get_activation
 from typing import List, Union
 from .vva.minigpt import Block
-import numpy as np
-import logging
 import math
 from torch.nn import functional as F
+from ..data_structure.utils import beauty_string
 
 torch.autograd.set_detect_anomaly(True)
 
@@ -91,7 +89,7 @@ class VVA(Base):
 
         # report number of parameters (note we don't count the decoder parameters in lm_head)
         n_params = sum(p.numel() for p in self.transformer.parameters())
-        print("number of parameters: %.2fM" % (n_params/1e6,))
+        beauty_string("number of parameters: %.2fM" % (n_params/1e6,),'info')
         
         
         
@@ -139,9 +137,8 @@ class VVA(Base):
         param_dict = {pn: p for pn, p in self.named_parameters()}
         inter_params = decay & no_decay
         union_params = decay | no_decay
-        assert len(inter_params) == 0, "parameters %s made it into both decay/no_decay sets!" % (str(inter_params), )
-        assert len(param_dict.keys() - union_params) == 0, "parameters %s were not separated into either decay/no_decay set!" \
-                                                    % (str(param_dict.keys() - union_params), )
+        assert len(inter_params) == 0, beauty_string(f"parameters {inter_params} made it into both decay/no_decay sets!",'section' )
+        assert len(param_dict.keys() - union_params) == 0,  beauty_string(f"parameters {param_dict.keys() - union_params} were not separated into either decay/no_decay set!",'section')                                            
 
         # create the pytorch optimizer object
         optim_groups = [
@@ -162,7 +159,7 @@ class VVA(Base):
 
     def forward(self, batch):
         b, t = batch['x_emb'].size()
-        assert t <= self.block_size, f"Cannot forward sequence of length {t}, block size is only {self.block_size}"
+        assert t <= self.block_size, beauty_string("Cannot forward sequence of length {t}, block size is only {self.block_size}",'section')
         pos = torch.arange(0, t, dtype=torch.long, device=self.device).unsqueeze(0) # shape (1, t)
 
         # forward the GPT model itself
