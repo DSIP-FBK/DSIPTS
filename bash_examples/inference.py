@@ -6,7 +6,7 @@ from dsipts import TimeSeries, beauty_string, extend_time_df
 import os
 from typing import List
 from datetime import timedelta 
-from .utils import rmse, mse, mape, load_model
+from utils import rmse, mse, mape, load_model
 
 
 def inference_stacked(conf:DictConfig,ts:TimeSeries)->List[pd.DataFrame]:

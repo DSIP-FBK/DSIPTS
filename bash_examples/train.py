@@ -6,7 +6,7 @@ import hydra
 import os
 import shutil
 import traceback
-from .utils import select_model
+from utils import select_model
 
 
 
