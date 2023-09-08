@@ -47,7 +47,7 @@ def train(conf: DictConfig) -> None:
     try:
         ts = load_data(conf)
     except Exception as e:
-        beauty_string(f"LOADING {conf.dataset.dataset} ERROR {traceback.format_exc()}",'section')
+        beauty_string(f"LOADING {conf.dataset.dataset} ERROR {traceback.format_exc()}",'')
 
     ######################################################################################################
     
