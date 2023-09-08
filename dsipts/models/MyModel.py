@@ -2,12 +2,10 @@
 from torch import  nn
 import torch
 from .base import Base
-from .utils import QuantileLossMO,Permute, get_device, get_activation
+from .utils import QuantileLossMO,Permute, get_activation
 from typing import List, Union
 from ..data_structure.utils import beauty_string
-
 import numpy as np
-import logging
 torch.autograd.set_detect_anomaly(True)
 
 class GLU(nn.Module):
@@ -156,7 +154,6 @@ class MyModel(Base):
         
         super(MyModel, self).__init__()
         self.save_hyperparameters(logger=False)
-        #self.device = get_device()
         self.past_steps = past_steps
         self.future_steps = future_steps
         self.persistence_weight = persistence_weight 

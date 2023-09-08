@@ -1,11 +1,9 @@
 
 from torch import nn
 import torch
-import pytorch_lightning as pl
 from .base import  Base
-from .utils import QuantileLossMO, get_device, L1Loss, get_activation
+from .utils import QuantileLossMO, get_activation
 from typing import List, Union
-import logging
 from ..data_structure.utils import beauty_string
 
 class moving_avg(nn.Module):
@@ -145,9 +143,9 @@ class LinearTS(Base):
             
         if sum_emb and (emb_channels>0):
             emb_channels = cat_emb_dim
-            beauty_string('Using sum')
+            beauty_string('Using sum','info')
         else:
-            logging.info('Using stacked')
+            beauty_string('Using stacked',"info")
     
         ## ne faccio uno per ogni canale
         self.linear =  nn.ModuleList()

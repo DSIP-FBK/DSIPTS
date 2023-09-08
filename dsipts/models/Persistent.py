@@ -1,9 +1,7 @@
 
 from torch import nn
-import torch
-import pytorch_lightning as pl
 from .base import  Base
-from .utils import  get_device,L1Loss
+from .utils import L1Loss
 from typing import List
 
 

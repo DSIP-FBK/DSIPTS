@@ -10,7 +10,7 @@ import os
 import logging
 def beauty_string(message:str,type:str):
     
-    size = 100
+    size = 150
 
     if type=='block':
         characters = len(message)

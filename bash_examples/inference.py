@@ -2,63 +2,12 @@
 import argparse
 import pandas as pd
 from omegaconf import DictConfig, OmegaConf
-from dsipts import TimeSeries, RNN, read_public_dataset,Informer, LinearTS, Persistent,D3VAE,MyModel, TFT,VVA,VQVAEA,CrossFormer
-import hydra
+from dsipts import TimeSeries, beauty_string, extend_time_df
 import os
-import shutil
-import numpy as np
-import plotly.express as px
-from sklearn.metrics import mean_squared_error
 from typing import List
 from datetime import timedelta 
-from dsipts import extend_time_df
+from .utils import rmse, mse, mape, load_model
 
-def rmse(x:np.array,y:np.array)->float:
-    """custom RMSE avoinding nan
-
-    Args:
-        x (np.array): predicted
-        y (np.array): real
-
-    Returns:
-        float: RMSE
-    """
-    x = x.astype(float)
-    y = y.astype(float)
-    idx = list(np.where(~np.isnan(x*y))[0])
-    return np.sqrt(mean_squared_error(x[idx],y[idx]))
-
-def mse(x:np.array,y:np.array)->float:
-    """custom MSE avoinding nan
-
-    Args:
-        x (np.array): predicted
-        y (np.array): real
-
-    Returns:
-        float: MSE
-    """
-    x = x.astype(float)
-    y = y.astype(float)
-    idx = list(np.where(~np.isnan(x*y))[0])
-    return mean_squared_error(x[idx],y[idx])
-
-def mape(x:np.array,y:np.array)->float:
-    """custom mape avoinding nan
-
-    Args:
-        x (np.array): predicted
-        y (np.array): real
-
-    Returns:
-        float: mape
-    """
-    x = x.astype(float)
-    y = y.astype(float)
-    idx = list(np.where(~np.isnan(x*y))[0])
-    res = 100*np.abs((x[idx]-y[idx])/y[idx])
-    res = res[np.isfinite(res)]
-    return np.nanmean(res)
 
 def inference_stacked(conf:DictConfig,ts:TimeSeries)->List[pd.DataFrame]:
     predictions = None
@@ -82,7 +31,7 @@ def inference_stacked(conf:DictConfig,ts:TimeSeries)->List[pd.DataFrame]:
         if predictions is None:
             predictions = prediction[['time','lag']+list(mapping.values())+real_features]
         else:
-            assert(len(set(model_features).difference(set(model_features)))==0), print('Check models, seems with different targets')
+            assert(len(set(model_features).difference(set(model_features)))==0), beauty_string('Check models, seems with different targets','section')
             prediction = prediction[['time','lag']+list(mapping.values())]
             predictions = pd.merge(predictions, prediction)
             
@@ -129,51 +78,19 @@ def inference(conf:DictConfig)->List[pd.DataFrame]:
     else:
         from load_data.load_data_public import load_data
     ts = load_data(conf)
-
-    #data, columns = read_public_dataset(**conf.dataset)
-    #ts = TimeSeries(conf.ts.name)
-    #ts.load_signal(data, enrich_cat= conf.ts.enrich,target_variables=['y'], past_variables=columns)
-    ######################################################################################################
     
-
-    print(f"{''.join(['#']*100)}")
-    print(f"{conf.model.type:^100}")  
-    print(f"{''.join(['#']*100)}")
-
-    print(f'Model and weights will be placed and read from {conf.train_config.dirpath}')
-    
-
-
-    if conf.model.type == 'linear':
-        ts.load(LinearTS,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
-    elif conf.model.type == 'rnn':
-        ts.load(RNN,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
-    elif conf.model.type == 'persistent':
-        ts.load(Persistent,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
-    elif conf.model.type == 'd3vae':
-        ts.load(D3VAE,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
-    elif conf.model.type == 'mymodel':
-        ts.load(MyModel,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
-    elif conf.model.type == 'tft':
-        ts.load(TFT,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
-    elif conf.model.type == 'informer':
-        ts.load(Informer,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
-    elif conf.model.type == 'tft2':
-        ts.load(TFT2,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
-    elif conf.model.type == 'vva':
-        ts.load(VVA,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
-    elif conf.model.type == 'vqvae':
-        ts.load(VQVAEA,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
-    elif conf.model.type == 'crossformer':
-        ts.load(CrossFormer,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
-  
+    beauty_string(conf.model.type,'block')
+    beauty_string(f'Model and weights will be placed and read from {conf.train_config.dirpath}','info')
+    loaded = load_model(ts,conf)
+    if loaded:
+        beauty_string('Model successfully loaded','block')
     else:
-        print('use a valid model')
+        beauty_string('Model NOT loaded','block')
+        return None, None, None
 
-    if conf.ts.get('type','normal')=='stacked':
+    if ts.stacked:
         res = inference_stacked(conf,ts)
     else:
-    
         res = ts.inference_on_set(batch_size = conf.inference.batch_size,
                                 num_workers = conf.inference.num_workers,
                                 set = conf.inference.set,

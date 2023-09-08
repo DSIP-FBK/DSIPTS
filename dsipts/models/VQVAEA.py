@@ -3,7 +3,6 @@ from torch import  nn
 import torch
 from torch.nn import functional as F
 from .base import Base
-from .utils import get_device, get_activation
 from typing import List, Union
 from .vva.minigpt import Block
 from .vva.vqvae import VQVAE

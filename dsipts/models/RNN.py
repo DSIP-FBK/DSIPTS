@@ -79,7 +79,6 @@ class RNN(Base):
         
         super(RNN, self).__init__()
         self.save_hyperparameters(logger=False)
-        #self.device = get_device()
         self.past_steps = past_steps
         self.future_steps = future_steps
         self.persistence_weight = persistence_weight 
