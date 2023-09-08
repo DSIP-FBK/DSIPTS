@@ -22,8 +22,8 @@ model_configs:
   persistence_weight: 0.25
 
 split_params:
-  perc_train: 0.8
-  perc_valid: 0.1
+  perc_train: 0.5
+  perc_valid: 0.4
   range_train: null
   range_validation: null
   range_test: null
