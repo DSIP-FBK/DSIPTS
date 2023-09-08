@@ -20,14 +20,13 @@ def load_data(conf):
    target = ['totals']
    data.doy[data.doy>356] = 365
 
-   ts = TimeSeries(conf.ts.name)
+   ts = TimeSeries(conf.ts.name,stacked=False)
    ts.load_signal(data,past_variables = meteo + target, 
                   future_variables = meteo,
                   target_variables =target,
                   cat_var= cat_var+[group],
                   enrich_cat= conf.ts.enrich,group=group,
                   silly_model=conf.ts.get('silly',False))
-   print(ts)
    return ts
 
  
