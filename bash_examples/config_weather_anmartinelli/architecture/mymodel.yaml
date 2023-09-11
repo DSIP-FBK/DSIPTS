@@ -1,10 +1,10 @@
 # @package _global_
 
 model:
-  type: 'mymodel'
+  type: 'dilated_conv'
   
 ts:
-  name: 'weather_mymodel'
+  name: 'weather_dilated_conv'
   version: 1
   enrich: ['hour']
   use_covariates: true

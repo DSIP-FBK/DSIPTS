@@ -331,7 +331,7 @@ python train.py -m --config-dir=config_test --config-name=config_gpu
 # Same model differtent parameters
 It is possible also to perform a fine tuning procedure on a specific model, in this case:
 ```
-python train.py --config-dir=config_weather --config-name=config_slurm -m architecture=mymodel model_configs.hidden_RNN=32,64,128
+python train.py --config-dir=config_weather --config-name=config_slurm -m architecture=linear model_configs.hidden_RNN=32,64,128
 ```
 will spawn 3 paralle process trainin the same model with three different values of `hidden_RNN`. In case of multiple parameters to test hydra will generate all the couples of possibilities. This approach can explode very quickly, for this reason it is possible to use `optuna` for exploring the space of the configurations (THIS FEATURE IS NOT MATURE):
 
@@ -383,7 +383,7 @@ hydra:  ##SLURM STUFFS
 
 
     params:
-      architecture: mymodel                                #architecture you want to finetune
+      architecture: linear                                 #architecture you want to finetune
       model_configs.num_layers_RNN: choice(1,2,3)          #parameters you want to explore, categorical
       model_configs.persistence_weight: range(0.1,0.9,0.1) #or continuous
 
@@ -461,7 +461,7 @@ You can use the routine `train_stack.py` similarly to `train.py` but with some d
 ```
 stack:
   #models: config_test  ## if you want to use all the models
-  models: ['config_incube/config_used/tft2_test_1_loss_type=std_normpersistence_weight=1.yaml','config_incube/config_used/crossformer_test_1_loss_type=std_penpersistence_weight=10.yaml','config_incube/config_used/mymodel_test_1.yaml','config_incube/config_used/gru_gru_1.yaml']  #if you want to use only some models
+  models: ['config_incube/config_used/tft2_test_1_loss_type=std_normpersistence_weight=1.yaml','config_incube/config_used/crossformer_test_1_loss_type=std_penpersistence_weight=10.yaml','config_incube/config_used/linear_test_1.yaml','config_incube/config_used/gru_gru_1.yaml']  #if you want to use only some models
   dirpath: "/home/agobbi/Projects/ExpTS/incube"
   set: 'validation' ## the dataset of the trained model to use as a training set
   name: 'prova'

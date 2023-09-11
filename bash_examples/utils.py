@@ -1,5 +1,5 @@
 
-from dsipts import RNN, LinearTS, Persistent, D3VAE, MyModel, TFT, Informer,VVA,VQVAEA,CrossFormer, beauty_string
+from dsipts import RNN, LinearTS, Persistent, D3VAE, DilatedConv, TFT, Informer,VVA,VQVAEA,CrossFormer, beauty_string
 import numpy as np
 from sklearn.metrics import mean_squared_error
 import os
@@ -63,8 +63,8 @@ def select_model(conf, model_conf,ts):
                           optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )  
         
-    elif conf.model.type == 'mymodel':
-        model =  MyModel(**model_conf,
+    elif conf.model.type == 'dilated_conv':
+        model =  DilatedConv(**model_conf,
                           optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )      
     
@@ -116,8 +116,8 @@ def load_model(ts,conf):
         ts.load(Persistent,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
     elif conf.model.type == 'd3vae':
         ts.load(D3VAE,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
-    elif conf.model.type == 'mymodel':
-        ts.load(MyModel,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
+    elif conf.model.type == 'dilated_conv':
+        ts.load(DilatedConv,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
     elif conf.model.type == 'tft':
         ts.load(TFT,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
     elif conf.model.type == 'informer':

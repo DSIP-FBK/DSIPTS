@@ -229,7 +229,8 @@ class TimeSeries():
             check_past (bool, optional): see `target_variables`. Defaults to True.
             group (str or None, optional): if not None the time serie dataset is considered composed by omogeneus timeseries coming from different realization (for example point of sales, cities, locations)
             and the relative series are not splitted during the sample generation. Defaults to None
-            check_holes_and_duplicates (bool): if False duplicates or holes will not checked, the dataloader can not correctly work, disable at your own risk. Defaults True
+            check_holes_and_duplicates (bool, optional): if False duplicates or holes will not checked, the dataloader can not correctly work, disable at your own risk. Defaults True
+            silly_model (bool, optional): if True, target variables will be added to the pool of the future variables. This can be useful to see if information passes throught the decoder part of your model (if any)
         """
         
         

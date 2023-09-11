@@ -14,7 +14,7 @@ model:
 ##where are the initial model
 stack:
   #models: config_test
-  models: ['config_incube/config_used/tft2_test_1_loss_type=std_normpersistence_weight=1.yaml','config_incube/config_used/crossformer_test_1_loss_type=std_penpersistence_weight=10.yaml']
+  models: ['config_incube/config_used/tft_test_1_loss_type=std_penalizationpersistence_weight=10.yaml','crossformer_test_1_loss_type=std_penalizationpersistence_weight=10.yaml','informer_test_1_loss_type=std_penalizationpersistence_weight=10.yaml']
   dirpath: "/home/agobbi/Projects/ExpTS/incube"
   set: 'validation'
   name: 'prova'
