@@ -1,30 +1,16 @@
 
 
 import pandas as pd
-from dsipts import TimeSeries, RNN, read_public_dataset, LinearTS, Persistent, D3VAE, MyModel, TFT, Informer,VVA,VQVAEA,CrossFormer
+from dsipts import TimeSeries, beauty_string,extend_time_df
 from omegaconf import DictConfig, OmegaConf,ListConfig
 from hydra.core.hydra_config import HydraConfig
 import hydra
 import os
 import shutil
-import numpy as np
-import plotly.express as px
 import logging
-import sys
 from inference import inference
-import inspect
-from dsipts import extend_time_df
 from datetime import timedelta
-#file_handler = logging.FileHandler(filename='tmp.log')
-#stdout_handler = logging.StreamHandler(stream=sys.stdout)
-#handlers = [file_handler, stdout_handler]
-
-logging.basicConfig(
-    level=logging.INFO, 
- #   format='[%(asctime)s] {%(filename)s:%(lineno)d} %(levelname)s - %(message)s',
- #   handlers=handlers
-)
-
+from utils import select_model
 
 
 
@@ -42,7 +28,6 @@ def train_stack(conf: DictConfig) -> None:
     ##nel caso si faccia un multirun per    
  
     tasks = HydraConfig.get()['overrides']['task']
-    ##nel caso si faccia un multirun per cercare un parametro in particolare devo crearmi la versione giusta!
     version_modifier = ''
     for t in tasks:
         if 'model_configs' in t:
@@ -71,7 +56,7 @@ def train_stack(conf: DictConfig) -> None:
         ff = os.path.join(conf.stack.models,'config_used')
         files = [os.path.join(ff,f) for f in os.listdir(ff)]
     else:
-        logging.info('FAILED TO LOAD MODELS')
+        beauty_string('FAILED TO LOAD MODELS','block')
             
     predictions = None
     N_models = 0
@@ -81,22 +66,12 @@ def train_stack(conf: DictConfig) -> None:
     ## Collect all the prediction in the selected set
     
     for conf_tmp in files:
-     
         conf_tmp =  OmegaConf.load(conf_tmp) 
-      
-        #if conf_tmp.ts.get('type','normal') == 'stacked':
-        #    continue
         conf_tmp.inference.set = conf.stack.set
-
         conf_tmp.inference.rescaling = conf.stack.rescaling
         conf_tmp.inference.batch_size = conf.stack.get('batch_size',conf_tmp.inference.batch_size)
-        #conf_tmp.inference.num_workers = 1
+        beauty_string(f'PROCESSING {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} ','block')
 
-        logging.info(f"{''.join(['#']*200)}")
-        logging.info(f"{''.join([' ']*200)}")
-        logging.info(f'#####################PROCESSING {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} ############## ')
-        logging.info(f"{''.join([' ']*200)}")
-        logging.info(f"{''.join(['#']*200)}")
 
 
         try:
@@ -132,17 +107,16 @@ def train_stack(conf: DictConfig) -> None:
             i+=1
         except Exception as e:
             import traceback
-            print(traceback.format_exc())
-            logging.info(f'#######can not load model {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} {e} ######### ')
+            beauty_string(traceback.format_exc(),'')
+            beauty_string(f'Can not load model {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} {e}','block')
     
     
     
-    logging.info(f'#######USING {N_models} models  ######### ')
+    beauty_string(f'USING {N_models} models','section')
 
     
     model_conf = conf.model_configs
     if model_conf is None:
-        ##ste defaults
         model_conf = {}
         model_conf['quantiles'] = []
     
@@ -173,39 +147,10 @@ def train_stack(conf: DictConfig) -> None:
     model_conf['embs'] = [ts.dataset[c].nunique() for c in ts.cat_var]
     model_conf['out_channels'] = len(targets)
 
-    if conf.model.type == 'linear':
-        #required = inspect.getfullargspec(LinearTS.__init__)
-        #model_conf = {k:model_conf[k] for k in required.args if k in model_conf.keys() }
-        model =  LinearTS(**model_conf,
-                          optim_config = conf.optim_config,
-                          scheduler_config =conf.scheduler_config )
-        
-    elif conf.model.type == 'rnn':
-        #required = inspect.getfullargspec(RNN.__init__)
-        #model_conf = {k:model_conf[k] for k in required.args if k!='self'}
 
-        model =  RNN(**model_conf,
-                          optim_config = conf.optim_config,
-                          scheduler_config =conf.scheduler_config ) 
-    elif conf.model.type == 'tft2':
-        #required = inspect.getfullargspec(RNN.__init__)
-        #model_conf = {k:model_conf[k] for k in required.args if k!='self'}
-
-        model =  TFT2(**model_conf,
-                          optim_config = conf.optim_config,
-                          scheduler_config =conf.scheduler_config ) 
-    else:
-        logging.info('Tested only RNN and LINEAR, TODO: add more models')
-        logging.info(f"{''.join(['#']*300)}")
-        logging.info(f"{''.join([' ']*300)}")
-        logging.info(f'######use valid model { conf.model.type}-{conf.ts.name}-{conf.ts.version}########')
-        logging.info(f"{''.join([' ']*300)}")
-        logging.info(f"{''.join(['#']*300)}")
-    ##questa e' unica per ogni sequenza di dirpath type name version quindi dopo la RIMUOVO se mai ce n'e' una vecchia! 
-   
+    model = select_model(conf,model_conf,ts)   
     dirpath = os.path.join(conf.train_config.dirpath,'weights',conf.model.type,conf.ts.name, version)
-    logging.info(f'Model and weights will be placed and read from {dirpath}')
-    #/home/agobbi/Projexts/ExpTS/test/weights/linear/weather/1
+    beauty_string(f'Model and weights will be placed and read from {dirpath}','info')
     retrain = True
     ##if there is a model file look if you want to retrain it
     if os.path.exists(os.path.join(dirpath,'model.pkl')):
@@ -254,24 +199,12 @@ def train_stack(conf: DictConfig) -> None:
 
     valid_loss = ts.train_model(split_params=split_params,**conf.train_config)
     ts.save(os.path.join(conf.train_config.dirpath,'model'))
-    logging.info(f'##########FINISH TRAINING PROCEDURE with loss = {valid_loss}###############')
+    beauty_string(f'FINISH TRAINING PROCEDURE with loss = {valid_loss}','block')
     
-    
-    
-    
-    
-    
-    return valid_loss ##for optuna!    
+    return valid_loss 
         
 if __name__ == '__main__': 
-    
-    #if not os.path.exists('config_used'):
-    #    os.mkdir('config_used')
     train_stack()
-
-    #if os.path.exists('multirun'):
-    #    shutil.rmtree('multirun')
-    
     if os.path.exists('outputs'):
         shutil.rmtree('outputs', ignore_errors=True)
 
