@@ -152,7 +152,7 @@ class DilatedConv(Base):
         else:
             beauty_string('There is a bug in pytorch lightening, the constructior is called twice ','info')
         
-        super(MyModel, self).__init__()
+        super(DilatedConv, self).__init__()
         self.save_hyperparameters(logger=False)
         self.past_steps = past_steps
         self.future_steps = future_steps

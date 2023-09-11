@@ -97,7 +97,7 @@ class LinearTS(Base):
         if type(activation)==str:
             activation = get_activation(activation)
         else:
-            beauty_string('There is a bug in pytorch lightening, the constructior is called twice')
+            beauty_string('There is a bug in pytorch lightening, the constructior is called twice','info')
         
         super(LinearTS, self).__init__()
         self.save_hyperparameters(logger=False)
