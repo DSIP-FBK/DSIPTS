@@ -8,12 +8,13 @@ ts:
   version: 1
   enrich: ['month']
   use_covariates: false
+  silly: false
 
 model_configs:
-  d_model: 128
+  d_model: 256
   d_head: 48
-  n_head: 12
-  num_layers_RNN: 6
+  n_head: 24
+  num_layers_RNN: 8
   optim: torch.optim.Adam
   dropout_rate: 0.25
   persistence_weight: 0.010
