@@ -1,0 +1,32 @@
+# @package _global_
+
+model:
+  type: 'patchtst'
+  retrain: true
+ts:
+  name: 'test'
+  version: 1
+  enrich: ['dow','hour']
+  use_covariates: true
+
+
+model_configs:
+  d_model: 128
+  kernel_size: 3
+  decomposition: true
+  n_layer: 4
+  patch_len: 12
+  n_head: 4
+  stride: 8
+  dropout_rate: 0.25
+  hidden_size: 256
+  optim: torch.optim.Adam
+  activation: torch.nn.PReLU
+  persistence_weight: 0.010
+  loss_type: 'l1'
+  remove_last: true
+
+train_config:
+  batch_size: 64
+  max_epochs: 1000
+            
