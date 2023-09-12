@@ -117,10 +117,8 @@ class AutoCorrelation(nn.Module):
 
         # time delay agg
         if self.training:
-            print('train')
             V = self.time_delay_agg_training(values.permute(0, 2, 3, 1).contiguous(), corr).permute(0, 3, 1, 2)
         else:
-            print('inference')
             V = self.time_delay_agg_inference(values.permute(0, 2, 3, 1).contiguous(), corr).permute(0, 3, 1, 2)
 
         if self.output_attention:
