@@ -150,8 +150,9 @@ class Autoformer(Base):
         self.ped = PositionalEmbedding(d_model=d_model)
 
     def forward(self, batch):
-        self.linear_encoder.device = self.device
-        self.linear_decoder.device = self.device
+        
+        self.decoder.device = self.device
+        self.encoder.device = self.device
 
         idx_target = batch['idx_target'][0]
         idx_target_future = batch['idx_target_future'][0]

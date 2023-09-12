@@ -55,7 +55,7 @@ class AutoCorrelation(nn.Module):
         channel = values.shape[2]
         length = values.shape[3]
         # index init
-        init_index = torch.arange(length).unsqueeze(0).unsqueeze(0).unsqueeze(0).repeat(batch, head, channel, 1)
+        init_index = torch.arange(length).unsqueeze(0).unsqueeze(0).unsqueeze(0).repeat(batch, head, channel, 1).to(self.device)
         # find top k
         top_k = int(self.factor * math.log(length))
         mean_value = torch.mean(torch.mean(corr, dim=1), dim=1)
@@ -82,7 +82,7 @@ class AutoCorrelation(nn.Module):
         channel = values.shape[2]
         length = values.shape[3]
         # index init
-        init_index = torch.arange(length).unsqueeze(0).unsqueeze(0).unsqueeze(0).repeat(batch, head, channel, 1)
+        init_index = torch.arange(length).unsqueeze(0).unsqueeze(0).unsqueeze(0).repeat(batch, head, channel, 1).to(self.device)
         # find top k
         top_k = int(self.factor * math.log(length))
         weights = torch.topk(corr, top_k, dim=-1)[0]
@@ -119,6 +119,7 @@ class AutoCorrelation(nn.Module):
         if self.training:
             V = self.time_delay_agg_training(values.permute(0, 2, 3, 1).contiguous(), corr).permute(0, 3, 1, 2)
         else:
+            print('inference')
             V = self.time_delay_agg_inference(values.permute(0, 2, 3, 1).contiguous(), corr).permute(0, 3, 1, 2)
 
         if self.output_attention:
