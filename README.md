@@ -268,11 +268,14 @@ It is possible to use one of the following architectures:
 - **Linear** models based on the [official repository](https://github.com/cure-lab/LTSF-Linear), [paper](https://arxiv.org/pdf/2205.13504.pdf). An alternative model (alinear) has been implemented that drop the autoregressive part and uses only covariates
 - **Crossformer** [official repository](https://github.com/cheerss/CrossFormer), [paper](https://openreview.net/forum?id=vSVLM2j9eie)
 - **Informer** [official repository](https://github.com/zhouhaoyi/Informer2020), [paper](https://arxiv.org/abs/2012.07436)
+- **Autoformer** [non official repository](https://github.com/yuqinie98/PatchTST/tree/main), [paper](https://arxiv.org/abs/2106.13008)
+- **PatchTST** [official repository](https://github.com/yuqinie98/PatchTST/tree/main), [paper](https://arxiv.org/abs/2211.14730)
 - **D3VAE** adaptation of the [official repository](https://github.com/PaddlePaddle/PaddleSpatial), [paper](https://arxiv.org/abs/2301.03028)
 - **Persistent** baseline model
 - **TFT** [paper](https://arxiv.org/abs/1912.09363)
 - **VQVAE** adaptation of [vqvae for images](https://nbviewer.org/github/zalandoresearch/pytorch-vq-vae/blob/master/vq-vae.ipynb) decribed in this [paper](https://arxiv.org/abs/1711.00937) paired with [GPT](https://github.com/karpathy/minGPT) transformer.
 - **VVA** like VQVAE but the tokenization step is performed using a clustering standard procedure.
+
 
 
 ## Metrics

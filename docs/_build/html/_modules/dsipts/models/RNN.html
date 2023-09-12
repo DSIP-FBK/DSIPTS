@@ -72,9 +72,9 @@
 <span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span>  <span class="n">nn</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">Base</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">QuantileLossMO</span><span class="p">,</span><span class="n">Permute</span><span class="p">,</span> <span class="n">get_device</span><span class="p">,</span><span class="n">L1Loss</span><span class="p">,</span><span class="n">get_activation</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">QuantileLossMO</span><span class="p">,</span><span class="n">Permute</span><span class="p">,</span><span class="n">get_activation</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span><span class="n">Union</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">..data_structure.utils</span> <span class="kn">import</span> <span class="n">beauty_string</span>
 
 
 <div class="viewcode-block" id="MyBN"><a class="viewcode-back" href="../../../dsipts.models.html#dsipts.models.RNN.MyBN">[docs]</a><span class="k">class</span> <span class="nc">MyBN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
@@ -140,16 +140,15 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         
         <span class="k">if</span> <span class="n">activation</span> <span class="o">==</span> <span class="s1">&#39;torch.nn.SELU&#39;</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;SELU do not require BN&#39;</span><span class="p">)</span>
+            <span class="n">beauty_string</span><span class="p">(</span><span class="s1">&#39;SELU do not require BN&#39;</span><span class="p">,</span><span class="s1">&#39;info&#39;</span><span class="p">)</span>
             <span class="n">use_bn</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
             <span class="n">activation</span> <span class="o">=</span> <span class="n">get_activation</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;There is a bug in pytorch lightening, the constructior is called twice &#39;</span><span class="p">)</span>
+            <span class="n">beauty_string</span><span class="p">(</span><span class="s1">&#39;There is a bug in pytorch lightening, the constructior is called twice &#39;</span><span class="p">,</span><span class="s1">&#39;info&#39;</span><span class="p">)</span>
         
         <span class="nb">super</span><span class="p">(</span><span class="n">RNN</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">save_hyperparameters</span><span class="p">(</span><span class="n">logger</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="c1">#self.device = get_device()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">past_steps</span> <span class="o">=</span> <span class="n">past_steps</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">future_steps</span> <span class="o">=</span> <span class="n">future_steps</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">persistence_weight</span> <span class="o">=</span> <span class="n">persistence_weight</span> 
@@ -194,9 +193,9 @@
             
         <span class="k">if</span> <span class="n">sum_emb</span> <span class="ow">and</span> <span class="p">(</span><span class="n">emb_channels</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">):</span>
             <span class="n">emb_channels</span> <span class="o">=</span> <span class="n">cat_emb_dim</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using sum&#39;</span><span class="p">)</span>
+            <span class="n">beauty_string</span><span class="p">(</span><span class="s1">&#39;Using sum&#39;</span><span class="p">,</span><span class="s1">&#39;info&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using stacked&#39;</span><span class="p">)</span>
+            <span class="n">beauty_string</span><span class="p">(</span><span class="s1">&#39;Using stacked&#39;</span><span class="p">,</span><span class="s1">&#39;info&#39;</span><span class="p">)</span>
 
 
         <span class="bp">self</span><span class="o">.</span><span class="n">initial_linear_encoder</span> <span class="o">=</span>  <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">past_channels</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span>
@@ -232,7 +231,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">Encoder</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">GRU</span><span class="p">(</span><span class="n">input_size</span><span class="o">=</span> <span class="n">hidden_RNN</span><span class="o">//</span><span class="mi">8</span><span class="p">,</span><span class="n">hidden_size</span><span class="o">=</span><span class="n">hidden_RNN</span><span class="p">,</span><span class="n">num_layers</span> <span class="o">=</span> <span class="n">num_layers_RNN</span><span class="p">,</span><span class="n">batch_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">Decoder</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">GRU</span><span class="p">(</span><span class="n">input_size</span><span class="o">=</span> <span class="n">hidden_RNN</span><span class="o">//</span><span class="mi">8</span><span class="p">,</span><span class="n">hidden_size</span><span class="o">=</span><span class="n">hidden_RNN</span><span class="p">,</span><span class="n">num_layers</span> <span class="o">=</span> <span class="n">num_layers_RNN</span><span class="p">,</span><span class="n">batch_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Speciky kind= lstm or gru please&#39;</span><span class="p">)</span>
+            <span class="n">beauty_string</span><span class="p">(</span><span class="s1">&#39;Speciky kind= lstm or gru please&#39;</span><span class="p">,</span><span class="s1">&#39;section&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">final_linear</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">out_channels</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">mul</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">final_linear</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">hidden_RNN</span><span class="p">,</span><span class="n">hidden_RNN</span><span class="o">//</span><span class="mi">2</span><span class="p">),</span> 
@@ -267,7 +266,6 @@
             <span class="n">x_future</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;x_num_future&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">x_future</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="c1">#import pdb</span>
         
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_last</span><span class="p">:</span>
             <span class="n">idx_target</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="s1">&#39;idx_target&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
@@ -313,8 +311,6 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">tot</span> <span class="o">=</span> <span class="n">out</span>
         <span class="n">out</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Decoder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv_decoder</span><span class="p">(</span><span class="n">tot</span><span class="p">),</span><span class="n">hidden</span><span class="p">)</span>  
-        <span class="c1">#else:</span>
-        <span class="c1">#    out, _ = self.Decoder(self.conv_decoder(out),hidden)  </span>
         <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
 
       

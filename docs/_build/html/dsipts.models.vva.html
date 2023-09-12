@@ -299,62 +299,21 @@ registered hooks while the latter silently ignores them.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="dsipts.models.vva.vqvae.VectorQuantizer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.vva.vqvae.</span></span><span class="sig-name descname"><span class="pre">VectorQuantizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_embeddings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commitment_cost</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/vva/vqvae.html#VectorQuantizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.vva.vqvae.VectorQuantizer" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.vva.vqvae.</span></span><span class="sig-name descname"><span class="pre">VectorQuantizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_embeddings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commitment_cost</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/vva/vqvae.html#VectorQuantizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.vva.vqvae.VectorQuantizer" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></p>
-<p>Inspired from Sonnet implementation of VQ-VAE <a class="reference external" href="https://arxiv.org/abs/1711.00937">https://arxiv.org/abs/1711.00937</a>,
-in <a class="reference external" href="https://github.com/deepmind/sonnet/blob/master/sonnet/python/modules/nets/vqvae.py">https://github.com/deepmind/sonnet/blob/master/sonnet/python/modules/nets/vqvae.py</a> and
-pytorch implementation of it from zalandoresearch in <a class="reference external" href="https://github.com/zalandoresearch/pytorch-vq-vae/blob/master/vq-vae.ipynb">https://github.com/zalandoresearch/pytorch-vq-vae/blob/master/vq-vae.ipynb</a>.</p>
-<p>Implements the algorithm presented in
-‘Neural Discrete Representation Learning’ by van den Oord et al.
-<a class="reference external" href="https://arxiv.org/abs/1711.00937">https://arxiv.org/abs/1711.00937</a></p>
-<p>Input any tensor to be quantized. Last dimension will be used as space in
-which to quantize. All other dimensions will be flattened and will be seen
-as different examples to quantize.
-The output tensor will have the same shape as the input.
-For example a tensor with shape [16, 32, 32, 64] will be reshaped into
-[16384, 64] and all 16384 vectors (each of 64 dimensions)  will be quantized
-independently.
-:param embedding_dim: integer representing the dimensionality of the tensors in the</p>
-<blockquote>
-<div><p>quantized space. Inputs to the modules must be in this format as well.</p>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>num_embeddings</strong> – integer, the number of vectors in the quantized space.
-commitment_cost: scalar which controls the weighting of the loss terms
-(see equation 4 in the paper - this variable is Beta).</p>
-</dd>
-</dl>
 <p>Initializes internal Module state, shared by both nn.Module and ScriptModule.</p>
-<dl class="py property">
-<dt class="sig sig-object py" id="dsipts.models.vva.vqvae.VectorQuantizer.embedding">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">embedding</span></span><a class="headerlink" href="#dsipts.models.vva.vqvae.VectorQuantizer.embedding" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.vva.vqvae.VectorQuantizer.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_distances_if_possible</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_codebook_stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/vva/vqvae.html#VectorQuantizer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.vva.vqvae.VectorQuantizer.forward" title="Permalink to this definition"></a></dt>
-<dd><p>Connects the module to some inputs.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>inputs</strong> – Tensor, final dimension must be equal to embedding_dim. All other
-leading dimensions will be flattened and treated as a large batch.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><p>Tensor containing the loss to optimize.
-quantize: Tensor containing the quantized version of the input.
-perplexity: Tensor containing the perplexity of the encodings.
-encodings: Tensor containing the discrete encodings, ie which element</p>
-<blockquote>
-<div><p>of the quantized space each input element was mapped to.</p>
-</div></blockquote>
-<p>distances</p>
-</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>loss</p>
-</dd>
-</dl>
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/dsipts/models/vva/vqvae.html#VectorQuantizer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#dsipts.models.vva.vqvae.VectorQuantizer.forward" title="Permalink to this definition"></a></dt>
+<dd><p>Defines the computation performed at every call.</p>
+<p>Should be overridden by all subclasses.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the recipe for forward pass needs to be defined within
+this function, one should call the <code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code> instance afterwards
+instead of this since the former takes care of running the
+registered hooks while the latter silently ignores them.</p>
+</div>
 </dd></dl>
 
 </dd></dl>

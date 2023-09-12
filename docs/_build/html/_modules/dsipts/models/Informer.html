@@ -72,10 +72,8 @@
 <span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span>  <span class="n">nn</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">Base</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">QuantileLossMO</span><span class="p">,</span><span class="n">Permute</span><span class="p">,</span> <span class="n">get_device</span><span class="p">,</span><span class="n">L1Loss</span><span class="p">,</span> <span class="n">get_activation</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span><span class="n">Union</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+
 <span class="kn">from</span> <span class="nn">.informer.encoder</span> <span class="kn">import</span> <span class="n">Encoder</span><span class="p">,</span> <span class="n">EncoderLayer</span><span class="p">,</span> <span class="n">ConvLayer</span><span class="p">,</span> <span class="n">EncoderStack</span>
 <span class="kn">from</span> <span class="nn">.informer.decoder</span> <span class="kn">import</span> <span class="n">Decoder</span><span class="p">,</span> <span class="n">DecoderLayer</span>
 <span class="kn">from</span> <span class="nn">.informer.attn</span> <span class="kn">import</span> <span class="n">FullAttention</span><span class="p">,</span> <span class="n">ProbAttention</span><span class="p">,</span> <span class="n">AttentionLayer</span>
@@ -102,7 +100,6 @@
                  <span class="n">activation</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="s1">&#39;torch.nn.ReLU&#39;</span><span class="p">,</span>
                  <span class="n">remove_last</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                  <span class="n">attn</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;prob&#39;</span><span class="p">,</span>
-                 <span class="n">output_attention</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">distil</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                  <span class="n">factor</span><span class="p">:</span><span class="nb">int</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
                  <span class="n">n_head</span><span class="p">:</span><span class="nb">int</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
@@ -130,7 +127,6 @@
 <span class="sd">            activation (str, optional): relu or gelu. Defaults to &#39;relu&#39;.</span>
 <span class="sd">            remove_last (boolean,optional): if true the model try to predic the difference respect the last observation.</span>
 <span class="sd">            attn (str, optional): attention used in encoder, options:[prob, full]. Defaults to &#39;prob&#39;.</span>
-<span class="sd">            output_attention (bool, optional): visualize attention, keep it False please . Defaults to False. TODO: FIX THIS</span>
 <span class="sd">            distil (bool, optional): whether to use distilling in encoder, using this argument means not using distilling. Defaults to True.</span>
 <span class="sd">            factor (int, optional): probsparse attn factor. Defaults to 5.</span>
 <span class="sd">            n_head (int, optional):  heads equal in the encoder and encoder. Defaults to 1.</span>
@@ -151,7 +147,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">optim</span> <span class="o">=</span> <span class="n">optim</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">optim_config</span> <span class="o">=</span> <span class="n">optim_config</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scheduler_config</span> <span class="o">=</span> <span class="n">scheduler_config</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">output_attention</span> <span class="o">=</span> <span class="n">output_attention</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">persistence_weight</span> <span class="o">=</span> <span class="n">persistence_weight</span> 
         <span class="bp">self</span><span class="o">.</span><span class="n">loss_type</span> <span class="o">=</span> <span class="n">loss_type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">remove_last</span> <span class="o">=</span> <span class="n">remove_last</span>
@@ -169,7 +164,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span> <span class="o">=</span> <span class="n">Encoder</span><span class="p">(</span>
             <span class="p">[</span>
                 <span class="n">EncoderLayer</span><span class="p">(</span>
-                    <span class="n">AttentionLayer</span><span class="p">(</span><span class="n">Attn</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">factor</span><span class="p">,</span> <span class="n">attention_dropout</span><span class="o">=</span><span class="n">dropout_rate</span><span class="p">,</span> <span class="n">output_attention</span><span class="o">=</span><span class="n">output_attention</span><span class="p">),</span> 
+                    <span class="n">AttentionLayer</span><span class="p">(</span><span class="n">Attn</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">factor</span><span class="p">,</span> <span class="n">attention_dropout</span><span class="o">=</span><span class="n">dropout_rate</span><span class="p">,</span> <span class="n">output_attention</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> 
                                 <span class="n">d_model</span><span class="p">,</span> <span class="n">n_head</span><span class="p">,</span> <span class="n">mix</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
                     <span class="n">d_model</span><span class="p">,</span>
                     <span class="n">hidden_size</span><span class="p">,</span>
@@ -255,10 +250,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_last</span><span class="p">:</span>
             <span class="n">res</span><span class="o">+=</span><span class="n">x_start</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_attention</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">res</span><span class="p">,</span> <span class="n">attns</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span>  <span class="n">res</span></div></div>
+        <span class="k">return</span>  <span class="n">res</span></div></div>
        
        
        
