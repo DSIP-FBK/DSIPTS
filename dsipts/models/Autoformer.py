@@ -93,7 +93,7 @@ class Autoformer(Base):
         # Decomp
         self.decomp = series_decomp(kernel_size)
 
-        self.embs = []
+        self.embs = nn.ModuleList()
         emb_channels = 0
         for k in embs:
             self.embs.append(nn.Embedding(k+1,d_model))

@@ -90,7 +90,7 @@ class PatchTST(Base):
 
     
 
-        self.embs = []
+        self.embs = nn.ModuleList()
         emb_channels = 0
         for k in embs:
             self.embs.append(nn.Embedding(k+1,d_model))
