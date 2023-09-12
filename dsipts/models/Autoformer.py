@@ -169,10 +169,9 @@ class Autoformer(Base):
         x_future[:,:-self.pred_len,idx_target_future] = -100
         
         
-        import pdb
-        pdb.set_trace()
-        pee = self.pee(x_seq)
-        ped = self.ped(torch.zeros(x_seq.shape[0], self.pred_len+self.label_len).float())
+
+        pee = self.pee(x_seq).repeat(x_seq.shape[0],1,1)
+        ped = self.ped(torch.zeros(x_seq.shape[0], self.pred_len+self.label_len).float()).repeat(x_seq.shape[0],1,1)
         if 'x_cat_past' in batch.keys():
             for i in range(len(self.embs)):
                 if i>0:
