@@ -200,6 +200,8 @@ class Autoformer(Base):
         trend_init = torch.cat([trend_init[:, -self.label_len:, :], mean], dim=1)
         seasonal_init = torch.cat([seasonal_init[:, -self.label_len:, :], zeros], dim=1)
         # enc
+        import pdb
+        pdb.set_trace()
         enc_out = self.linear_encoder(x_seq)+pee
         enc_out, attns = self.encoder(enc_out, attn_mask=None)
         # dec
