@@ -1,18 +1,17 @@
-.. DISIPTS documentation master file, created by
-   sphinx-quickstart on Tue Apr  4 11:57:07 2023.
+.. dsipts documentation master file, created by
+   sphinx-quickstart on Tue Sep 12 13:48:01 2023.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to DISIPTS's documentation!
-===================================
+Welcome to dsipts's documentation!
+==================================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Contents:
 
-   modules
-   bash_examples
-      
+
+
 Indices and tables
 ==================
 
