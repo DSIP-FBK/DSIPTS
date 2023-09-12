@@ -99,8 +99,8 @@ class Autoformer(Base):
             self.embs.append(nn.Embedding(k+1,d_model))
             emb_channels = d_model
             
-        past_channels+=emb_channels
-        future_channels+=emb_channels
+        #past_channels+=emb_channels
+        #future_channels+=emb_channels
         
         self.linear_encoder = nn.Sequential(nn.Linear(past_channels,past_channels*2),activation() ,nn.Dropout(dropout_rate),nn.Linear(past_channels*2,d_model*2),activation() ,nn.Dropout(dropout_rate),nn.Linear(d_model*2,d_model))
         
