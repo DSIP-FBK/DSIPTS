@@ -73,6 +73,7 @@ class Autoformer(Base):
    
         super(Autoformer, self).__init__()
         self.save_hyperparameters(logger=False)
+        self.future_steps = future_steps ##mandatory
         self.use_quantiles = False
         self.optim = optim
         self.optim_config = optim_config
