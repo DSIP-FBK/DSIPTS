@@ -1,5 +1,5 @@
 
-from dsipts import RNN, LinearTS, Persistent, D3VAE, DilatedConv, TFT, Informer,VVA,VQVAEA,CrossFormer, beauty_string
+from dsipts import RNN, LinearTS, Persistent, D3VAE, DilatedConv, TFT, Informer,VVA,VQVAEA,CrossFormer,Autoformer,PatchTST,beauty_string
 import numpy as np
 from sklearn.metrics import mean_squared_error
 import os
@@ -99,6 +99,16 @@ def select_model(conf, model_conf,ts):
         model_conf['future_channels']= len(ts.future_variables)
         model =  Informer(**model_conf,   optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )  
+    elif conf.model.type == 'autoformer':
+        ##gli servono, poi mette a 0 quelle che serve
+        ts.future_variables +=ts.target_variables
+        model_conf['future_channels']= len(ts.future_variables)
+        model =  Autoformer(**model_conf,   optim_config = conf.optim_config,
+                          scheduler_config =conf.scheduler_config )  
+        
+    elif conf.model.type == 'patchtst':
+        model =  PatchTST(**model_conf,   optim_config = conf.optim_config,
+                          scheduler_config =conf.scheduler_config )  
     else:
         model = None
         beauty_string(f"Not a valid model { conf.model.type}-{conf.ts.name}-{conf.ts.version}",'block')
@@ -128,6 +138,10 @@ def load_model(ts,conf):
         ts.load(VQVAEA,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
     elif conf.model.type == 'crossformer':
         ts.load(CrossFormer,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
+    elif conf.model.type == 'autoformer':
+        ts.load(Autoformer,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
+    elif conf.model.type == 'pathctst':
+        ts.load(PatchTST,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
   
     else:
         beauty_string('NO VALID MODEL FOUND','block')

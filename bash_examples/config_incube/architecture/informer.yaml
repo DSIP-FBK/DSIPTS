@@ -23,6 +23,9 @@ model_configs:
   remove_last: true
 
 train_config:
-  batch_size: 128
+  batch_size: 64
   max_epochs: 500
             
+split_params:
+  shift: 48
+  keep_entire_seq_while_shifting: true

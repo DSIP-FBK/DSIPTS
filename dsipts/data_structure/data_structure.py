@@ -288,7 +288,7 @@ class TimeSeries():
         if silly_model:
             beauty_string('YOU ARE TRAINING A SILLY MODEL WITH THE TARGETS IN THE INPUTS','section') 
             self.future_variables+=self.target_variables
-
+            
     def plot(self):
         """  
         Easy way to control the loaded data
@@ -380,7 +380,14 @@ class TimeSeries():
         idx_target = []
         for c in self.target_variables:
             idx_target.append(self.past_variables.index(c))
-                
+            
+        idx_target_future = []
+        
+        for c in self.target_variables:
+            if c in self.future_variables:
+                idx_target_future.append(self.future_variables.index(c))    
+        if len(idx_target_future)==0:
+            idx_target_future = None
         
         if self.group is None:
             data['_GROUP_'] = '1'
@@ -462,7 +469,7 @@ class TimeSeries():
         if len(self.future_variables)>0:
             dd['x_num_future'] = x_num_future_samples.astype(np.float32)
         
-        return MyDataset(dd,t_samples,g_samples,idx_target)
+        return MyDataset(dd,t_samples,g_samples,idx_target,idx_target_future)
     
           
     

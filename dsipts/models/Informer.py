@@ -30,7 +30,6 @@ class Informer(Base):
                  activation:str='torch.nn.ReLU',
                  remove_last = False,
                  attn: str='prob',
-                 output_attention:bool=False,
                  distil:bool=True,
                  factor:int=5,
                  n_head:int=1,
@@ -58,7 +57,6 @@ class Informer(Base):
             activation (str, optional): relu or gelu. Defaults to 'relu'.
             remove_last (boolean,optional): if true the model try to predic the difference respect the last observation.
             attn (str, optional): attention used in encoder, options:[prob, full]. Defaults to 'prob'.
-            output_attention (bool, optional): visualize attention, keep it False please . Defaults to False. TODO: FIX THIS
             distil (bool, optional): whether to use distilling in encoder, using this argument means not using distilling. Defaults to True.
             factor (int, optional): probsparse attn factor. Defaults to 5.
             n_head (int, optional):  heads equal in the encoder and encoder. Defaults to 1.
@@ -79,7 +77,6 @@ class Informer(Base):
         self.optim = optim
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
-        self.output_attention = output_attention
         self.persistence_weight = persistence_weight 
         self.loss_type = loss_type
         self.remove_last = remove_last
@@ -97,7 +94,7 @@ class Informer(Base):
         self.encoder = Encoder(
             [
                 EncoderLayer(
-                    AttentionLayer(Attn(False, factor, attention_dropout=dropout_rate, output_attention=output_attention), 
+                    AttentionLayer(Attn(False, factor, attention_dropout=dropout_rate, output_attention=False), 
                                 d_model, n_head, mix=False),
                     d_model,
                     hidden_size,
@@ -183,10 +180,7 @@ class Informer(Base):
         if self.remove_last:
             res+=x_start.unsqueeze(1)
         
-        if self.output_attention:
-            return res, attns
-        else:
-            return  res
+        return  res
        
        
        

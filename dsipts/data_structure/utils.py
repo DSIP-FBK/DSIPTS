@@ -99,7 +99,7 @@ class MetricsCallback(Callback):
 
 class MyDataset(Dataset):
 
-    def __init__(self, data:dict,t:np.array,groups:np.array,idx_target:Union[np.array,None])->torch.utils.data.Dataset:
+    def __init__(self, data:dict,t:np.array,groups:np.array,idx_target:Union[np.array,None],idx_target_future:Union[np.array,None])->torch.utils.data.Dataset:
         """
             Extension of Dataset class. While training the returned item is a batch containing the standard keys
 
@@ -113,6 +113,7 @@ class MyDataset(Dataset):
                 idx_target: index of target features in the past array
             t (np.array): the time array related to the target variables
             idx_target (Union[np.array,None]): you can specify the index in the past data that represent the input features (for differntial analysis or detrending strategies)
+            idx_target (Union[np.array,None]): you can specify the index in the future data that represent the input features (for differntial analysis or detrending strategies)
 
         Returns:
             torch.utils.data.Dataset: a torch Dataset to be used in a Dataloader
@@ -121,7 +122,10 @@ class MyDataset(Dataset):
         self.t = t
         self.groups = groups
         self.idx_target = np.array(idx_target) if idx_target is not None else None
+        self.idx_target_future = np.array(idx_target_future) if idx_target_future is not None else None
+
     def __len__(self):
+        
         return len(self.data['y'])
 
     def __getitem__(self, idxs):
@@ -130,6 +134,8 @@ class MyDataset(Dataset):
             sample[k] = self.data[k][idxs]
         if self.idx_target is not None:
             sample['idx_target'] = self.idx_target
+        if self.idx_target_future is not None:
+            sample['idx_target_future'] = self.idx_target_future
         return sample
 
 class ActionEnum(Enum):
