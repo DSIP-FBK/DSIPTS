@@ -144,6 +144,7 @@ class AutoCorrelationLayer(nn.Module):
         self.n_heads = n_heads
 
     def forward(self, queries, keys, values, attn_mask):
+        self.inner_correlation.device = self.device
         B, L, _ = queries.shape
         _, S, _ = keys.shape
         H = self.n_heads
@@ -292,6 +293,7 @@ class DecoderLayer(nn.Module):
         self.activation = activation()
 
     def forward(self, x, cross, x_mask=None, cross_mask=None):
+        self.self_attention.device = x.device
         x = x + self.dropout(self.self_attention(
             x, x, x,
             attn_mask=x_mask

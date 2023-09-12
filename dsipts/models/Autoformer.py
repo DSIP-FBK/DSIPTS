@@ -151,8 +151,8 @@ class Autoformer(Base):
 
     def forward(self, batch):
         
-        self.decoder.device = self.device
-        self.encoder.device = self.device
+        #self.decoder.device = self.device
+        #self.encoder.device = self.device
 
         idx_target = batch['idx_target'][0]
         idx_target_future = batch['idx_target_future'][0]
