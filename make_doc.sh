@@ -3,6 +3,7 @@ sphinx-apidoc -o docs bash_examples/
 
 cd docs
 make clean html
+
 cd ..
 rm -rf dsipts/data_management/__pycache__
 rm -rf dsipts/models/__pycache__
