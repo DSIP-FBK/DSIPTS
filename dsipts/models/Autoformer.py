@@ -210,7 +210,8 @@ class Autoformer(Base):
         # final
         dec_out = trend_part + seasonal_part
 
-
+        import pdb
+        pdb.set_trace()
   
         return dec_out[:, -self.pred_len:, :].unsqueeze(3)  # [B, L, D]
          

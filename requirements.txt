@@ -13,3 +13,5 @@ sphinx==6.1.3
 sphinx_rtd_theme
 hydra-core
 einops
+m2r2
+docutils==0.19

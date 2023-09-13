@@ -6,9 +6,11 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-import os
 import sys
+import os
+
 sys.path.insert(0, os.path.abspath('..'))
+
 
 project = 'dsipts'
 copyright = '2023, Andrea Gobbi'
