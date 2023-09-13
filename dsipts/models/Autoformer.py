@@ -107,7 +107,7 @@ class Autoformer(Base):
         
         self.linear_decoder = nn.Sequential(nn.Linear(future_channels,future_channels*2),activation() ,nn.Dropout(dropout_rate),nn.Linear(future_channels*2,d_model*2),activation() ,nn.Dropout(dropout_rate),nn.Linear(d_model*2,d_model))
        
-        self.final_layer =  nn.Linear(past_channels,out_channels))
+        self.final_layer =  nn.Linear(past_channels,out_channels)
        
         # Encoder
         self.encoder = Encoder(
