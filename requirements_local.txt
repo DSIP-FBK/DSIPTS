@@ -1,7 +1,5 @@
 pandas
 numpy
-pytorch
-pytorch-lightning==1.9.4
 scikit-learn
 beautifulsoup4==4.12.0
 html5lib
