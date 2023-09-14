@@ -219,7 +219,7 @@ train_config:
 
 
 ```
-#########FINO A QUIEEEEEEEEEEEEEE
+
 Hydra allows us to train a specific model using if you are in a gpu environment
 
 ```

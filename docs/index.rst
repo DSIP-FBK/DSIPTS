@@ -15,7 +15,19 @@ You can easily add your architecture and test it against the other architectures
 
    modules
    bash_examples
-      
+
+README
+==================================
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Contents:
+
+   r_dsipts
+   r_bash_examples
+
+
+
 Indices and tables
 ==================
 

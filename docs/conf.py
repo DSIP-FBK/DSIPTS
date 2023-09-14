@@ -23,7 +23,8 @@ release = '0.0.2'
 extensions = [
    'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon'
+    'sphinx.ext.napoleon',
+     'm2r2'
     
 ]
 
@@ -38,3 +39,4 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 autoclass_content = 'both'
+source_suffix = ['.rst', '.md']
