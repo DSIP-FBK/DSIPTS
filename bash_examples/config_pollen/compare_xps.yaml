@@ -4,4 +4,4 @@ dirpath: "/home/agobbi/Projects/ExpTS/pollen"
 set: 'test'
 name: 'prova'
 rescaling: false
-batch_size: 32
+batch_size: 128
