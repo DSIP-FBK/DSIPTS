@@ -11,15 +11,15 @@ ts:
 
 
 model_configs:
-  d_model: 128
+  d_model: 64
   kernel_size: 3
   decomposition: true
-  n_layer: 4
+  n_layer: 2
   patch_len: 12
-  n_head: 4
+  n_head: 2
   stride: 8
   dropout_rate: 0.25
-  hidden_size: 256
+  hidden_size: 128
   optim: torch.optim.Adam
   activation: torch.nn.PReLU
   persistence_weight: 0.010
