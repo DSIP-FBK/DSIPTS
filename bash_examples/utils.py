@@ -140,7 +140,7 @@ def load_model(ts,conf):
         ts.load(CrossFormer,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
     elif conf.model.type == 'autoformer':
         ts.load(Autoformer,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
-    elif conf.model.type == 'pathctst':
+    elif conf.model.type == 'patchtst':
         ts.load(PatchTST,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
   
     else:
