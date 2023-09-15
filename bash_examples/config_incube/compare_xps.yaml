@@ -1,9 +1,9 @@
 models: 
-  - 'config_incube/config_used/tft_test_1_loss_type=std_penalizationpersistence_weight=10.yaml'
-  - 'config_incube/config_used/informer_test_1.yaml'
-  - 'config_incube/config_used/autoformer_test_1.yaml'
+  #- 'config_incube/config_used/tft_test_1_loss_type=std_penalizationpersistence_weight=10.yaml'
+  #- 'config_incube/config_used/informer_test_1.yaml'
+  #- 'config_incube/config_used/autoformer_test_1.yaml'
   - 'config_incube/config_used/patchtst_test_1.yaml'
-  - 'config_incube/config_used/stacked_test_1.yaml'
+  #- 'config_incube/config_used/stacked_test_1.yaml'
 
 #models: 'config_incube'
 dirpath: "/home/agobbi/Projects/ExpTS/incube"
