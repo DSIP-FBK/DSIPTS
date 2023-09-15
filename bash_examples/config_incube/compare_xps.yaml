@@ -3,7 +3,7 @@ models:
   - 'config_incube/config_used/informer_test_1.yaml'
   - 'config_incube/config_used/autoformer_test_1.yaml'
   - 'config_incube/config_used/patchtst_test_1.yaml'
-  - 'config_incube/config_used/stacked_test_1.yaml'
+  - 'config_incube/config_used/stacked_stacked_1.yaml'
 
 #models: 'config_incube'
 dirpath: "/home/agobbi/Projects/ExpTS/incube"
