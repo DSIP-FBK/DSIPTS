@@ -14,7 +14,12 @@ model:
 ##where are the initial model
 stack:
   #models: config_test
-  models: ['config_incube/config_used/tft_test_1_loss_type=std_penalizationpersistence_weight=10.yaml','config_incube/config_used/crossformer_test_1_loss_type=std_penalizationpersistence_weight=10.yaml','config_incube/config_used/informer_test_1_loss_type=std_penalizationpersistence_weight=10.yaml']
+  models:
+    - 'config_incube/config_used/tft_test_1_loss_type=std_penalizationpersistence_weight=10.yaml'
+    - 'config_incube/config_used/informer_test_1.yaml'
+    - 'config_incube/config_used/autoformer_test_1.yaml'
+    - 'config_incube/config_used/patchtst_test_1.yaml'
+
   dirpath: "/home/agobbi/Projects/ExpTS/incube"
   set: 'validation'
   name: 'prova'
@@ -24,10 +29,10 @@ stack:
 
 model_configs:
   quantiles: []
-  cat_emb_dim: 6
+  cat_emb_dim: 32
   kernel_size: 3
   sum_emb: true
-  hidden_size: 64
+  hidden_size: 128
   kind: 'linear'
   dropout_rate: 0.25
   use_bn: true  
