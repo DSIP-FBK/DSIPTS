@@ -147,7 +147,7 @@ class Informer(Base):
 
         
         ##FIX THIS, now all are 0!
-        x_dec[:,-self.future_steps:,:] = 0 
+        x_dec[:,-self.future_steps:,:] = -100 
         
         
         if 'x_cat_future' in batch.keys():
