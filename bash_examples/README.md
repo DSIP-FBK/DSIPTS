@@ -195,7 +195,7 @@ ts:
   use_covariates: false   # if true all the columns of the dataset will be used as past features
 
 
-## for more information about models please look at the documentation [here] (https://dsip.pages.fbk.eu/dsip_dlresearch/timeseries/)
+## for more information about the models please look at the documentation [here] (https://dsip.pages.fbk.eu/dsip_dl research/timeseries/)
 model_configs:
   cat_emb_dim: 32             # dimension of categorical variables
   kernel_size: 5              # kernel size 
