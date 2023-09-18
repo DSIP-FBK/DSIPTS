@@ -311,7 +311,7 @@ class Diffusion(Base):
                 update_past = cat_emb_past
             else:
                 update_past =  torch.cat((past_tensor_to_update, cat_emb_past), dim=2)
-                
+
             # update future
             # if we don't have a tensor to update, init a new one
             if future_tensor_to_update == None:
@@ -422,6 +422,8 @@ class SubNet(nn.Module):
 
 
     def forward(self, y_noised:torch.Tensor, y_past:torch.Tensor, past_summary:torch.Tensor, future_summary:torch.Tensor)-> torch.Tensor:
+        import pdb
+        pdb.set_trace()
         emb_y_noised = self.target_in_linear(y_noised)
         attention = self.attention(future_summary, past_summary, y_past)
         res_conn = self.res_conn(attention, emb_y_noised)
