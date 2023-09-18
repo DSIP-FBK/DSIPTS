@@ -88,11 +88,13 @@ class EncoderStack(nn.Module):
 
     def forward(self, x, attn_mask=None):
         # x [B, L, D]
-        x_stack = []; attns = []
+        x_stack = []
+        attns = []
         for i_len, encoder in zip(self.inp_lens, self.encoders):
             inp_len = x.shape[1]//(2**i_len)
             x_s, attn = encoder(x[:, -inp_len:, :])
-            x_stack.append(x_s); attns.append(attn)
+            x_stack.append(x_s)
+            attns.append(attn)
         x_stack = torch.cat(x_stack, -2)
         
         return x_stack, attns

@@ -94,7 +94,7 @@ class LinearTS(Base):
             beauty_string('SELU do not require BN','info')
             use_bn = False
             
-        if type(activation)==str:
+        if isinstance(activation, str):
             activation = get_activation(activation)
         else:
             beauty_string('There is a bug in pytorch lightening, the constructior is called twice','info')
@@ -221,7 +221,7 @@ class LinearTS(Base):
             
         tmp = [x]
    
-            
+        tmp_emb = None
         for i in range(len(self.embs)):
             if self.sum_emb:
                 if i>0:

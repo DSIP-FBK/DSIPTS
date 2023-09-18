@@ -112,7 +112,7 @@ if __name__=='__main__':
         path_work_model = path_folder_works + args.model_name + '/'
         #ex: '/home/andrea/timeseries/anmartinelli/works/Mix_Prec/'
         if not os.path.exists(path_work_model):
-            print(f'Wrong model name, check it carefully')
+            print('Wrong model name, check it carefully')
         # path for MODEL FILES (ADD ONLY .PKL, .PT, .PNG)
         saving_path_model_name = path_work_model + args.model_name
         

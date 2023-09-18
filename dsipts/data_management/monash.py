@@ -204,7 +204,7 @@ class Monash():
         """
         self.baseUrl = baseUrl
         self.downloaded = {}
-        if rebuild==False:
+        if rebuild is False:
             logging.info(filename)
             if os.path.exists(filename+'.pkl'):
                 self.load(filename)

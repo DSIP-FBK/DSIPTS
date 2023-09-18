@@ -1,7 +1,6 @@
 import os
 import time
 import subprocess
-import pickle
 v = """#!/bin/bash
 #
 ##Note: in this file use two # symbols to comment a line!
@@ -85,7 +84,7 @@ for n in parameters.keys():
     #if id not in saving:
     if n>jobs_already_done:
         executable, active_jobs = is_executable()
-        while executable!=True:
+        while executable is not True:
             t = 3600*0.5
             time.sleep(t)
             executable, active_jobs = is_executable()              

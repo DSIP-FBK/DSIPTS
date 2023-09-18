@@ -108,9 +108,9 @@ def crete_dataframe(config_path: str):
 
     scaler = MinMaxScaler()
     scaler.fit(d['train'][non_categorical].values)
-    scaler_path = os.path.join(config['paths']['dataset'], f"scaler.pkl")
+    scaler_path = os.path.join(config['paths']['dataset'], "scaler.pkl")
 
-    if os.path.exists(scaler_path)!= True:
+    if os.path.exists(scaler_path) is False:
         with open(scaler_path, 'wb') as f :
             pickle.dump(scaler,f)
     for step in d.keys():
@@ -128,8 +128,8 @@ def crete_dataframe(config_path: str):
                             columns=columns,
                             task = key)
 
-    path_dataset = os.path.join(config['paths']['dataset'], f"dataframes.pkl")    
-    path_date = os.path.join(config['paths']['dataset'], f"dates.pkl")    
+    path_dataset = os.path.join(config['paths']['dataset'], "dataframes.pkl")    
+    path_date = os.path.join(config['paths']['dataset'], "dates.pkl")    
 
     with open(path_dataset, 'wb') as f :
         pickle.dump(ds, f)
@@ -143,7 +143,7 @@ def crete_dataframe(config_path: str):
         n_cat = len(df_el[col].unique())
         emb[col]=(len(df_el[col].unique()), min(600, round(1.6 * n_cat**0.56)))
 
-    path_emb = os.path.join(config['paths']['dataset'], f"embedding_setting.pkl")    
+    path_emb = os.path.join(config['paths']['dataset'], "embedding_setting.pkl")    
 
     with open(path_emb, 'wb') as f :
         pickle.dump(emb, f)

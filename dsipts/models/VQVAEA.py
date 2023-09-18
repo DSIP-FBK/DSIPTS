@@ -218,7 +218,7 @@ class VQVAEA(Base):
         the sequence max_new_tokens times, feeding the predictions back into the model each time.
         Most likely you'll want to make sure to be in model.eval() mode of operation for this.
         """
-        assert do_sample==False,logging.info('NOT IMPLEMENTED YET')
+        assert do_sample is False,logging.info('NOT IMPLEMENTED YET')
         if do_sample:
             
             idx = idx.repeat(num_samples,1,1)

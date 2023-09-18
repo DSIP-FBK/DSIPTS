@@ -66,8 +66,7 @@ class PatchTST(Base):
         """
         if activation == 'torch.nn.SELU':
             beauty_string('SELU do not require BN','info')
-            use_bn = False
-        if type(activation)==str:
+        if isinstance(activation, str):
             activation = get_activation(activation)
         else:
             beauty_string('There is a bug in pytorch lightening, the constructior is called twice ','info')
@@ -141,6 +140,7 @@ class PatchTST(Base):
             cat_past = batch['x_cat_past'].to(self.device)
         tot = [x_seq]
         if 'x_cat_past' in batch.keys():
+            tmp_emb = None
             for i in range(len(self.embs)):
                 if i>0:
                     tmp_emb+=self.embs[i](cat_past[:,:,i])

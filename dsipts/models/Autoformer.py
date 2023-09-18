@@ -5,7 +5,8 @@ from .base import Base
 from typing import List,Union
 from ..data_structure.utils import beauty_string
 from .utils import  get_activation
-from .autoformer.layers import AutoCorrelation, AutoCorrelationLayer, Encoder, Decoder, EncoderLayer, DecoderLayer, my_Layernorm, series_decomp,PositionalEmbedding
+from .autoformer.layers import AutoCorrelation, AutoCorrelationLayer, Encoder, Decoder,\
+    EncoderLayer, DecoderLayer, my_Layernorm, series_decomp,PositionalEmbedding
 
 
   
@@ -48,27 +49,36 @@ class Autoformer(Base):
             embs (List): list of the initial dimension of the categorical variables
             embed_type (int): type of embedding
             kernel_size (int): kernel_size
-            activation (str, optional): activation fuction function pytorch. Default torch.nn.ReLU
+            activation (str, optional): activation fuction function pytorch. Default 
+                torch.nn.ReLU
             n_head (int, optional): number of heads
             n_layer_encoder (int, optional): number of encoding layers
             n_layer_decoder (int, optional): number of decoding layers
-            factor (int): num of routers in Cross-Dimension Stage of TSA (c) see the paper            
+            factor (int): num of routers in Cross-Dimension Stage of TSA (c) see the 
+                paper
             out_channels (int):  number of output channels
-            persistence_weight (float):  weight controlling the divergence from persistence model. Default 0
-            loss_type (str, optional): this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,
+            persistence_weight (float):  weight controlling the divergence from 
+                persistence model. Default 0
+            loss_type (str, optional): this model uses custom losses or l1 or mse.
+                Custom losses can be linear_penalization or exponential_penalization. 
+                Default l1,
             quantiles (List[int], optional): NOT USED YET
-            dropout_rate (float, optional):  dropout rate in Dropout layers. Defaults to 0.1.
-            optim (str, optional): if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
-            optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
-            scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
+            dropout_rate (float, optional):  dropout rate in Dropout layers.
+                Defaults to 0.1.
+            optim (str, optional): if not None it expects a pytorch optim method.
+                Defaults to None that is mapped to Adam.
+            optim_config (dict, optional): configuration for Adam optimizer. 
+                Defaults to None.
+            scheduler_config (dict, optional): configuration for stepLR scheduler.
+                Defaults to None.
         """
         if activation == 'torch.nn.SELU':
             beauty_string('SELU do not require BN','info')
-            use_bn = False
-        if type(activation)==str:
+        if isinstance(activation,str):
             activation = get_activation(activation)
         else:
-            beauty_string('There is a bug in pytorch lightening, the constructior is called twice ','info')
+            beauty_string('There is a bug in pytorch lightening, the constructior is \
+                            called twice ','info')
         
    
         super(Autoformer, self).__init__()
@@ -95,17 +105,26 @@ class Autoformer(Base):
         self.decomp = series_decomp(kernel_size)
 
         self.embs = nn.ModuleList()
-        emb_channels = 0
         for k in embs:
             self.embs.append(nn.Embedding(k+1,d_model))
-            emb_channels = d_model
             
         #past_channels+=emb_channels
         #future_channels+=emb_channels
         
-        self.linear_encoder = nn.Sequential(nn.Linear(past_channels,past_channels*2),activation() ,nn.Dropout(dropout_rate),nn.Linear(past_channels*2,d_model*2),activation() ,nn.Dropout(dropout_rate),nn.Linear(d_model*2,d_model))
+        self.linear_encoder = nn.Sequential(nn.Linear(past_channels,past_channels*2),
+                                            activation(),
+                                            nn.Dropout(dropout_rate),
+                                            nn.Linear(past_channels*2,d_model*2),
+                                            activation(),
+                                            nn.Dropout(dropout_rate),
+                                            nn.Linear(d_model*2,d_model))
         
-        self.linear_decoder = nn.Sequential(nn.Linear(future_channels,future_channels*2),activation() ,nn.Dropout(dropout_rate),nn.Linear(future_channels*2,d_model*2),activation() ,nn.Dropout(dropout_rate),nn.Linear(d_model*2,d_model))
+        self.linear_decoder = nn.Sequential(nn.Linear(future_channels,future_channels*2),
+                                            activation(),
+                                            nn.Dropout(dropout_rate),
+                                            nn.Linear(future_channels*2,d_model*2),
+                                            activation() ,nn.Dropout(dropout_rate),
+                                            nn.Linear(d_model*2,d_model))
        
         self.final_layer =  nn.Linear(past_channels,out_channels)
        
@@ -122,7 +141,7 @@ class Autoformer(Base):
                     moving_avg=kernel_size,
                     dropout=dropout_rate,
                     activation=activation
-                ) for l in range(n_layer_encoder)
+                ) for _ in range(n_layer_encoder)
             ],
             norm_layer=my_Layernorm(d_model)
         )
@@ -145,7 +164,7 @@ class Autoformer(Base):
                     dropout=dropout_rate,
                     activation=activation,
                 )
-                for l in range(n_layer_decoder)
+                for _ in range(n_layer_decoder)
             ],
             norm_layer=my_Layernorm(d_model),
             projection=nn.Linear(d_model, out_channels, bias=True)
@@ -158,7 +177,7 @@ class Autoformer(Base):
         #self.decoder.device = self.device
         #self.encoder.device = self.device
 
-        idx_target = batch['idx_target'][0]
+        batch['idx_target'][0]
         idx_target_future = batch['idx_target_future'][0]
         x_seq = batch['x_num_past'].to(self.device)#[:,:,idx_target]
         
@@ -178,11 +197,11 @@ class Autoformer(Base):
         pee = self.pee(x_seq).repeat(x_seq.shape[0],1,1)
         ped = self.ped(torch.zeros(x_seq.shape[0], self.pred_len+self.label_len).float()).repeat(x_seq.shape[0],1,1)
         if 'x_cat_past' in batch.keys():
-            for i in range(len(self.embs)):
-                if i>0:
+            tmp_emb=self.embs[0](cat_past[:,:,0])
+            if len(self.embs)>1:
+                for i in range(1,len(self.embs)):
                     tmp_emb+=self.embs[i](cat_past[:,:,i])
-                else:
-                    tmp_emb=self.embs[i](cat_past[:,:,i])
+                    
             pee+=tmp_emb
     
         

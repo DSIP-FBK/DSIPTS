@@ -1,10 +1,9 @@
 from enum import Enum
-import pandas,numpy
+from typing import Union
 import pandas as pd
 from torch.utils.data import Dataset
 import numpy as np
 from pytorch_lightning import Callback
-from typing import Union, List
 import torch
 import os
 import logging
@@ -33,7 +32,7 @@ def beauty_string(message:str,type:str):
 
 
 
-def extend_time_df(x:pd.DataFrame,freq:str,group:Union[str,None]=None,global_minmax:bool=False)-> pandas.DataFrame:
+def extend_time_df(x:pd.DataFrame,freq:str,group:Union[str,None]=None,global_minmax:bool=False)-> pd.DataFrame:
     """Utility for generating a full dataset and then merge the real data
 
     Args:

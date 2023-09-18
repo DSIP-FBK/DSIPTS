@@ -4,8 +4,6 @@ Authors:
     Li,Yan (liyan22021121@gmail.com)
 """
 from torch import nn
-from torch.autograd import grad
-import torch
 
 
 def weights_init(m):
@@ -97,12 +95,12 @@ class ResidualBlock(nn.Module):
             self.conv_2 = MyConvo2d(input_dim, output_dim, kernel_size = kernel_size)
                     
     def forward(self, input):
-        if self.input_dim == self.output_dim and self.resample == None:
+        if self.input_dim == self.output_dim and self.resample is None:
                 shortcut = input
         else:
             shortcut = self.conv_shortcut(input)
         
-        if self.normalize == False:
+        if self.normalize is False:
             output = input
             output = self.relu1(output)
             output = self.conv_1(output)

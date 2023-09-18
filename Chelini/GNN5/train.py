@@ -5,7 +5,6 @@ import sys
 import pickle
 from configparser import ConfigParser
 import torch
-import torch.nn as nn
 from tqdm import tqdm
 import numpy as np
 from torch.utils.data import DataLoader

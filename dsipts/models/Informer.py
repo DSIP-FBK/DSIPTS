@@ -4,7 +4,7 @@ import torch
 from .base import Base
 from typing import List,Union
 
-from .informer.encoder import Encoder, EncoderLayer, ConvLayer, EncoderStack
+from .informer.encoder import Encoder, EncoderLayer, ConvLayer
 from .informer.decoder import Decoder, DecoderLayer
 from .informer.attn import FullAttention, ProbAttention, AttentionLayer
 from .informer.embed import DataEmbedding
@@ -100,12 +100,12 @@ class Informer(Base):
                     hidden_size,
                     dropout=dropout_rate,
                     activation=activation
-                ) for l in range(n_layer_encoder)
+                ) for _ in range(n_layer_encoder)
             ],
             [
                 ConvLayer(
                     d_model
-                ) for l in range(n_layer_encoder-1)
+                ) for _ in range(n_layer_encoder-1)
             ] if distil else None,
             norm_layer=torch.nn.LayerNorm(d_model)
         )
@@ -122,7 +122,7 @@ class Informer(Base):
                     dropout=dropout_rate,
                     activation=activation,
                 )
-                for l in range(n_layer_decoder)
+                for _ in range(n_layer_decoder)
             ],
             norm_layer=torch.nn.LayerNorm(d_model)
         )

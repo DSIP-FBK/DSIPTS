@@ -5,13 +5,12 @@ Authors:
 """
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import numpy as np
 from .resnet import Res12_Quadratic
 from .diffusion_process import GaussianDiffusion, get_beta_schedule
 from .encoder import Encoder
 from .embedding import DataEmbedding
-
+from ...data_structure.utils import beauty_string
 
                  
 class diffusion_generate(nn.Module):
@@ -152,8 +151,8 @@ class pred_net(denoise_net):
         try:
             E = self.score_net(y).sum()
             grad_x = torch.autograd.grad(E, y, create_graph=True,allow_unused=True)[0]
-            print('WTF??')
-        except:
+        except Exception as e:
+            beauty_string(e,'')
             grad_x = 0
             
         out = y - grad_x*0.001

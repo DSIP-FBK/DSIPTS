@@ -1,6 +1,5 @@
 import pickle as pkl
 import argparse
-from conf_dicts import dictConfiguration
 
 def get_dict_conf(paths_pkl):
     for file_pkl in paths_pkl:

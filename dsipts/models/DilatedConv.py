@@ -147,7 +147,7 @@ class DilatedConv(Base):
         if activation == 'torch.nn.SELU':
             beauty_string('SELU do not require BN','info')
             use_bn = False
-        if type(activation)==str:
+        if isinstance(activation,str):
             activation = get_activation(activation)
         else:
             beauty_string('There is a bug in pytorch lightening, the constructior is called twice ','info')
@@ -350,16 +350,18 @@ class DilatedConv(Base):
             score = 0.5*(score_past_tot+score_future_tot)
         tmp = [self.initial_linear_encoder(x)]
         
-        for i in range(len(self.embs)):
-            if self.sum_emb:
-                if i>0:
-                    tmp_emb+=self.embs[i](cat_past[:,:,i])
+        if 'x_cat_past' in batch.keys():
+            tmp_emb = None
+            for i in range(len(self.embs)):
+                if self.sum_emb:
+                    if i>0:
+                        tmp_emb+=self.embs[i](cat_past[:,:,i])
+                    else:
+                        tmp_emb=self.embs[i](cat_past[:,:,i])
                 else:
-                    tmp_emb=self.embs[i](cat_past[:,:,i])
-            else:
-                tmp.append(self.embs[i](cat_past[:,:,i]))
-        if self.sum_emb and (len(self.embs)>0):
-            tmp.append(tmp_emb)
+                    tmp.append(self.embs[i](cat_past[:,:,i]))
+            if self.sum_emb and (len(self.embs)>0):
+                tmp.append(tmp_emb)
 
         tot = torch.cat(tmp,2)
 

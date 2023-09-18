@@ -225,7 +225,7 @@ class Encoder_Var_Selection(nn.Module): # input already embedded
         var_sel = self.get_cat_GRN(categorical)
         to_be_flat = categorical
         if y is not None:
-            assert self.use_target_past==True # you don't have y if mix is not True
+            assert self.use_target_past is True # you don't have y if mix is not True
             num_var_sel = self.get_num_GRN(y)
             var_sel = torch.cat((var_sel, num_var_sel), dim = 2)
             to_be_flat = torch.cat((to_be_flat, y), dim=2)
@@ -333,7 +333,7 @@ class Decoder_Var_Selection(nn.Module): # input already embedded
         var_sel = self.get_cat_GRN(categorical)
         to_be_flat = categorical
         if y is not None:
-            assert self.use_yprec==True
+            assert self.use_yprec is True
             num_after_GRN = self.get_num_GRN(y)
             var_sel = torch.cat((var_sel, num_after_GRN), dim = 2)
             to_be_flat = torch.cat((to_be_flat, y), dim=2)

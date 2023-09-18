@@ -2,7 +2,7 @@
 from torch import  nn,optim
 import torch
 from .base import  Base
-from typing import List,Union
+from typing import Union
 from .d3vae.model import diffusion_generate, denoise_net,pred_net
 
 

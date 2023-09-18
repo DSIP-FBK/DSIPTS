@@ -2,16 +2,14 @@ import os
 import pickle
 from configparser import ConfigParser
 import torch
-from torch.utils.data import DataLoader
 
 from model import GAT
-from inference import get_plot
 
 def test(config: ConfigParser, name_model:str) -> None:
     print(f'{" Upload the dataframe ":=^60s}')
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    path_dataset = os.path.join(config['paths']['dataset'], f"dataframes.pkl")    
-    path_emb = os.path.join(config['paths']['dataset'], f"embedding_setting.pkl")    
+    path_dataset = os.path.join(config['paths']['dataset'], "dataframes.pkl")    
+    path_emb = os.path.join(config['paths']['dataset'], "embedding_setting.pkl")    
 
     with open(path_dataset, 'rb') as f :
         ds = pickle.load(f)

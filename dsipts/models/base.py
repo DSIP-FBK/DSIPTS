@@ -1,11 +1,9 @@
 
-from torch import optim, nn
+from torch import optim
 import torch
-import pickle
 import pytorch_lightning as pl
 from torch.optim.lr_scheduler import StepLR
-from abc import ABCMeta, abstractmethod
-import logging
+from abc import  abstractmethod
 from .utils import SinkhornDistance
 from ..data_structure.utils import beauty_string
 
@@ -69,7 +67,7 @@ class Base(pl.LightningModule):
             self.initialize = True
         else:
             ##this is strange, pytorch lighening call twice this if autotune is true
-            if self.initialize==False:
+            if self.initialize is False:
                 self.optim = eval(self.optim)
             beauty_string(self.optim,'')
             optimizer = self.optim(self.parameters(),  **self.optim_config)
@@ -132,7 +130,7 @@ class Base(pl.LightningModule):
         :meta private:
         """
 
-        if self.use_quantiles==False:
+        if self.use_quantiles is False:
             initial_loss = self.loss(y_hat[:,:,:,0], batch['y'])
         else:
             initial_loss = self.loss(y_hat, batch['y'])
@@ -153,14 +151,14 @@ class Base(pl.LightningModule):
          
         elif self.loss_type=='sinkhorn':
             sinkhorn = SinkhornDistance(eps=0.1, max_iter=100, reduction='mean')
-            if self.use_quantiles==False:
+            if self.use_quantiles is False:
                 x = y_hat[:,:,:,0]
             else:
                 x = y_hat[:,:,:,1]
             loss = sinkhorn.compute(x,batch['y'])
 
         elif self.loss == 'std_norm':
-            if self.use_quantiles==False:
+            if self.use_quantiles is False :
                 x = y_hat[:,:,:,0]
             else:
                 x = y_hat[:,:,:,1]
@@ -168,7 +166,7 @@ class Base(pl.LightningModule):
             loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1) * (1.0+torch.exp(-self.persistence_weight*std)))
             
         elif self.loss == 'std_penalization':
-            if self.use_quantiles==False:
+            if self.use_quantiles is False :
                 x = y_hat[:,:,:,0]
             else:
                 x = y_hat[:,:,:,1]
@@ -177,7 +175,7 @@ class Base(pl.LightningModule):
             loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1) + self.persistence_weight*torch.abs(x_std-std).mean(axis=1))
                 
         elif self.loss_type=='high_order':
-            if self.use_quantiles==False:
+            if self.use_quantiles is False :
                 x = y_hat[:,:,:,0]
             else:
                 x = y_hat[:,:,:,1]
@@ -186,7 +184,7 @@ class Base(pl.LightningModule):
             loss = initial_loss +  self.persistence_weight*torch.mean(torch.abs(std_real-std_predict))
 
         elif self.loss_type=='smape':
-            if self.use_quantiles==False:
+            if self.use_quantiles is False :
                 x = y_hat[:,:,:,0]
             else:
                 x = y_hat[:,:,:,1]

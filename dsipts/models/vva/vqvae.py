@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-from itertools import combinations, product
 import logging
 
+'''
 class VectorQuantizer(nn.Module):
     """
     Inspired from Sonnet implementation of VQ-VAE https://arxiv.org/abs/1711.00937,
@@ -133,7 +133,7 @@ class VectorQuantizer(nn.Module):
     @property
     def embedding(self):
         return self._embedding
-
+'''
 
 class VectorQuantizer(nn.Module):
     def __init__(self, num_embeddings, embedding_dim, commitment_cost):

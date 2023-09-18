@@ -46,7 +46,7 @@ def train(conf: DictConfig) -> None:
         from load_data.load_data_public import load_data
     try:
         ts = load_data(conf)
-    except Exception as e:
+    except Exception:
         beauty_string(f"LOADING {conf.dataset.dataset} ERROR {traceback.format_exc()}",'')
 
     ######################################################################################################
@@ -77,7 +77,7 @@ def train(conf: DictConfig) -> None:
             retrain = False
             
 
-    if retrain==False:
+    if retrain is False:
         beauty_string(f'MODEL{ conf.model.type}-{conf.ts.name}-{conf.ts.version}  ALREADY TRAINED if you want to overwrite set model.retrain=True in the config ','block')
 
         ## TODO if a model is altready trained with a config I should save the testloss somewhere

@@ -49,7 +49,7 @@ def train_stack(conf: DictConfig) -> None:
     ######################################################################################################
     
     
-    if (type( conf.stack.models)==list) or (type( conf.stack.models)==ListConfig):
+    if isinstance( conf.stack.models,list) or isinstance( conf.stack.models,ListConfig):
         files =  conf.stack.models
     
     elif os.path.isdir(conf.stack.models):
@@ -143,7 +143,7 @@ def train_stack(conf: DictConfig) -> None:
     model_conf['past_steps'] = LAG
     model_conf['future_steps'] = LAG
     model_conf['past_channels'] = 1
-    model_conf['future_channels'] = len(targets)*N_models if silly_model==False else len(targets)*N_models + len(targets)
+    model_conf['future_channels'] = len(targets)*N_models if silly_model is False else len(targets)*N_models + len(targets)
     model_conf['embs'] = [ts.dataset[c].nunique() for c in ts.cat_var]
     model_conf['out_channels'] = len(targets)
 
@@ -162,7 +162,7 @@ def train_stack(conf: DictConfig) -> None:
             
     
 
-    if retrain==False:
+    if retrain is False:
         logging.info(f'##########MODEL{ conf.model.type}-{conf.ts.name}-{conf.ts.version}  ALREADY TRAINED#############')
 
         ## TODO if a model is altready trained with a config I should save the testloss somewhere

@@ -1,7 +1,6 @@
 import os
 import time
 import subprocess
-import pickle
 v = """#!/bin/bash
 #
 ##Note: in this file use two # symbols to comment a line!
@@ -63,7 +62,7 @@ def get_gpus(is_to_big = True):
     if is_to_big:
         return "V100"
     else:
-        if out == None:
+        if out is None:
             return "A40"
         else:
             return gpu
@@ -91,7 +90,7 @@ for n, model in enumerate(models):
     #if id not in saving:
     if (n+1) > jobs_already_done:
         executable, active_jobs = is_executable()
-        while executable!=True:
+        while executable is not True:
             t = 5
             time.sleep(t)
             executable, active_jobs = is_executable()              

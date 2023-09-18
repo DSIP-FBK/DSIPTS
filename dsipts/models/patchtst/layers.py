@@ -3,7 +3,7 @@
 import torch
 from torch import nn
 import math
-from typing import Callable, Optional
+from typing import Optional
 from torch import Tensor
 import torch.nn.functional as F
 import numpy as np
@@ -14,8 +14,10 @@ class Transpose(nn.Module):
         super().__init__()
         self.dims, self.contiguous = dims, contiguous
     def forward(self, x):
-        if self.contiguous: return x.transpose(*self.dims).contiguous()
-        else: return x.transpose(*self.dims)
+        if self.contiguous: 
+            return x.transpose(*self.dims).contiguous()
+        else:
+            return x.transpose(*self.dims)
 
     
 
@@ -76,10 +78,12 @@ def Coord2dPosEncoding(q_len, d_model, exponential=False, normalize=True, eps=1e
     i = 0
     for i in range(100):
         cpe = 2 * (torch.linspace(0, 1, q_len).reshape(-1, 1) ** x) * (torch.linspace(0, 1, d_model).reshape(1, -1) ** x) - 1
-        pv(f'{i:4.0f}  {x:5.3f}  {cpe.mean():+6.3f}', verbose)
-        if abs(cpe.mean()) <= eps: break
-        elif cpe.mean() > eps: x += .001
-        else: x -= .001
+        if abs(cpe.mean()) <= eps:
+            break
+        elif cpe.mean() > eps: 
+            x += .001
+        else: 
+            x -= .001
         i += 1
     if normalize:
         cpe = cpe - cpe.mean()
@@ -95,7 +99,7 @@ def Coord1dPosEncoding(q_len, exponential=False, normalize=True):
 
 def positional_encoding(pe, learn_pe, q_len, d_model):
     # Positional encoding
-    if pe == None:
+    if pe is None:
         W_pos = torch.empty((q_len, d_model)) # pe = None and learn_pe = False can be used to measure impact of pe
         nn.init.uniform_(W_pos, -0.02, 0.02)
         learn_pe = False
@@ -111,12 +115,18 @@ def positional_encoding(pe, learn_pe, q_len, d_model):
     elif pe == 'uniform':
         W_pos = torch.zeros((q_len, 1))
         nn.init.uniform_(W_pos, a=0.0, b=0.1)
-    elif pe == 'lin1d': W_pos = Coord1dPosEncoding(q_len, exponential=False, normalize=True)
-    elif pe == 'exp1d': W_pos = Coord1dPosEncoding(q_len, exponential=True, normalize=True)
-    elif pe == 'lin2d': W_pos = Coord2dPosEncoding(q_len, d_model, exponential=False, normalize=True)
-    elif pe == 'exp2d': W_pos = Coord2dPosEncoding(q_len, d_model, exponential=True, normalize=True)
-    elif pe == 'sincos': W_pos = PositionalEncoding(q_len, d_model, normalize=True)
-    else: raise ValueError(f"{pe} is not a valid pe (positional encoder. Available types: 'gauss'=='normal', \
+    elif pe == 'lin1d': 
+        W_pos = Coord1dPosEncoding(q_len, exponential=False, normalize=True)
+    elif pe == 'exp1d': 
+        W_pos = Coord1dPosEncoding(q_len, exponential=True, normalize=True)
+    elif pe == 'lin2d':
+        W_pos = Coord2dPosEncoding(q_len, d_model, exponential=False, normalize=True)
+    elif pe == 'exp2d': 
+        W_pos = Coord2dPosEncoding(q_len, d_model, exponential=True, normalize=True)
+    elif pe == 'sincos': 
+        W_pos = PositionalEncoding(q_len, d_model, normalize=True)
+    else: 
+        raise ValueError(f"{pe} is not a valid pe (positional encoder. Available types: 'gauss'=='normal', \
         'zeros', 'zero', uniform', 'lin1d', 'exp1d', 'lin2d', 'exp2d', 'sincos', None.)")
     return nn.Parameter(W_pos, requires_grad=learn_pe)
 
@@ -135,7 +145,8 @@ class PatchTST_backbone(nn.Module):
         
         # RevIn
         self.revin = revin
-        if self.revin: self.revin_layer = RevIN(c_in, affine=affine, subtract_last=subtract_last)
+        if self.revin: 
+            self.revin_layer = RevIN(c_in, affine=affine, subtract_last=subtract_last)
         
         # Patching
         self.patch_len = patch_len
@@ -292,17 +303,19 @@ class TSTEncoder(nn.Module):
         self.layers = nn.ModuleList([TSTEncoderLayer(q_len, d_model, n_heads=n_heads, d_k=d_k, d_v=d_v, d_ff=d_ff, norm=norm,
                                                       attn_dropout=attn_dropout, dropout=dropout,
                                                       activation=activation, res_attention=res_attention,
-                                                      pre_norm=pre_norm, store_attn=store_attn) for i in range(n_layers)])
+                                                      pre_norm=pre_norm, store_attn=store_attn) for _ in range(n_layers)])
         self.res_attention = res_attention
 
     def forward(self, src:Tensor, key_padding_mask:Optional[Tensor]=None, attn_mask:Optional[Tensor]=None):
         output = src
         scores = None
         if self.res_attention:
-            for mod in self.layers: output, scores = mod(output, prev=scores, key_padding_mask=key_padding_mask, attn_mask=attn_mask)
+            for mod in self.layers: 
+                output, scores = mod(output, prev=scores, key_padding_mask=key_padding_mask, attn_mask=attn_mask)
             return output
         else:
-            for mod in self.layers: output = mod(output, key_padding_mask=key_padding_mask, attn_mask=attn_mask)
+            for mod in self.layers:
+                output = mod(output, key_padding_mask=key_padding_mask, attn_mask=attn_mask)
             return output
 
 
@@ -408,8 +421,10 @@ class _MultiheadAttention(nn.Module):
                 key_padding_mask:Optional[Tensor]=None, attn_mask:Optional[Tensor]=None):
 
         bs = Q.size(0)
-        if K is None: K = Q
-        if V is None: V = Q
+        if K is None: 
+            K = Q
+        if V is None: 
+            V = Q
 
         # Linear (+ split in multiple heads)
         q_s = self.W_Q(Q).view(bs, -1, self.n_heads, self.d_k).transpose(1,2)       # q_s    : [bs x n_heads x max_q_len x d_k]
@@ -427,8 +442,10 @@ class _MultiheadAttention(nn.Module):
         output = output.transpose(1, 2).contiguous().view(bs, -1, self.n_heads * self.d_v) # output: [bs x q_len x n_heads * d_v]
         output = self.to_out(output)
 
-        if self.res_attention: return output, attn_weights, attn_scores
-        else: return output, attn_weights
+        if self.res_attention: 
+            return output, attn_weights, attn_scores
+        else: 
+            return output, attn_weights
 
 
 class _ScaledDotProductAttention(nn.Module):
@@ -463,7 +480,8 @@ class _ScaledDotProductAttention(nn.Module):
         attn_scores = torch.matmul(q, k) * self.scale      # attn_scores : [bs x n_heads x max_q_len x q_len]
 
         # Add pre-softmax attention scores from the previous layer (optional)
-        if prev is not None: attn_scores = attn_scores + prev
+        if prev is not None: 
+            attn_scores = attn_scores + prev
 
         # Attention mask (optional)
         if attn_mask is not None:                                     # attn_mask with shape [q_len x seq_len] - only used when q_len == seq_len
@@ -483,12 +501,12 @@ class _ScaledDotProductAttention(nn.Module):
         # compute the new values given the attention weights
         output = torch.matmul(attn_weights, v)                        # output: [bs x n_heads x max_q_len x d_v]
 
-        if self.res_attention: return output, attn_weights, attn_scores
-        else: return output, attn_weights
+        if self.res_attention: 
+            return output, attn_weights, attn_scores
+        else: 
+            return output, attn_weights
         
         
-import torch
-import torch.nn as nn
 
 class RevIN(nn.Module):
     def __init__(self, num_features: int, eps=1e-5, affine=True, subtract_last=False):
@@ -511,7 +529,8 @@ class RevIN(nn.Module):
             x = self._normalize(x)
         elif mode == 'denorm':
             x = self._denormalize(x)
-        else: raise NotImplementedError
+        else: 
+            raise NotImplementedError
         return x
 
     def _init_params(self):

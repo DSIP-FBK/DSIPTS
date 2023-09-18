@@ -1,8 +1,6 @@
-import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from einops import rearrange, repeat
-from .attn import FullAttention, AttentionLayer, TwoStageAttentionLayer
+from einops import rearrange
+from .attn import  AttentionLayer, TwoStageAttentionLayer
 
 class DecoderLayer(nn.Module):
     '''
@@ -10,8 +8,7 @@ class DecoderLayer(nn.Module):
     '''
     def __init__(self, seg_len, d_model, n_heads, d_ff=None, dropout=0.1, out_seg_num = 10, factor = 10):
         super(DecoderLayer, self).__init__()
-        self.self_attention = TwoStageAttentionLayer(out_seg_num, factor, d_model, n_heads, \
-                                d_ff, dropout)    
+        self.self_attention = TwoStageAttentionLayer(out_seg_num, factor, d_model, n_heads,d_ff, dropout)
         self.cross_attention = AttentionLayer(d_model, n_heads, dropout = dropout)
         self.norm1 = nn.LayerNorm(d_model)
         self.norm2 = nn.LayerNorm(d_model)

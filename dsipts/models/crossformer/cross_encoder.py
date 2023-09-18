@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from einops import rearrange, repeat
-from .attn import FullAttention, AttentionLayer, TwoStageAttentionLayer
+
+from .attn import TwoStageAttentionLayer
 from math import ceil
 
 class SegMerging(nn.Module):

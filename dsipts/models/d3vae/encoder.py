@@ -6,14 +6,12 @@ Description:
 Authors:
     Li,Yan (liyan22021121@gmail.com)
 """
-import time
 import math
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from .neural_operations import OPS, EncCombinerCell, DecCombinerCell, Conv2D, get_skip_connection
-from .utils import get_stride_for_cell_type, get_input_size, groups_per_scale, get_arch_cells
+from .utils import get_stride_for_cell_type, get_arch_cells
 
 
 class Cell(nn.Module):

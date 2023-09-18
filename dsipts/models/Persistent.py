@@ -2,7 +2,6 @@
 from torch import nn
 from .base import  Base
 from .utils import L1Loss
-from typing import List
 
 
 

@@ -1,7 +1,4 @@
 from setuptools import find_packages, setup
-import os
-import glob
-import shutil
 with open("requirements.txt") as f:
     requirements = f.read().splitlines()
 

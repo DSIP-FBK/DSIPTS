@@ -84,7 +84,7 @@ class CustomDataset(torch.utils.data.Dataset):
 
         for i in range(seq_len,len(df),step):
             if not (np.isnan(df.y[i-seq_len:i]).any()):
-                if not 0 in is_low[i-lag:i]:
+                if 0 not in is_low[i-lag:i]:
                     if hour==24:
                         # ALL SEQUENCES
                         X.append(torch.cat((x[i-seq_len:i],is_low[i-seq_len:i].unsqueeze(1)), dim=1))

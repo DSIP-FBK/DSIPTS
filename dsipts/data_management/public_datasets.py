@@ -16,7 +16,7 @@ def build_venice(path:str,url='https://www.comune.venezia.it/it/content/archivio
     print('CARE THE STRUCTURE OF THE SITE CAN BE CHANGED')
 
     def cast_string(x):
-        if np.isfinite(x)==False:
+        if np.isfinite(x) is False:
             return x
         if x<10:
             return f'0{int(x)}:00'

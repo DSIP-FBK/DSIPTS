@@ -1,5 +1,4 @@
 import numpy as np
-from dataclasses import dataclass
 import plotly.express as px
 import pandas as pd
 from typing import List
@@ -8,18 +7,17 @@ from torch.utils.data import DataLoader
 from pytorch_lightning.callbacks import ModelCheckpoint
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import CSVLogger
-from typing import Optional, Union
+from typing import Union
 import os
 import torch
-pd.options.mode.chained_assignment = None 
 import pickle
 from .utils import extend_time_df,MetricsCallback, MyDataset, ActionEnum,beauty_string
 from datetime import datetime
 from ..models.base import Base
-from ..models.utils import weight_init
 import logging 
 from .modifiers import *
 
+pd.options.mode.chained_assignment = None 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())      
       
@@ -255,8 +253,8 @@ class TimeSeries():
             
 
             
-        assert len(target_variables)>0, f'Provide at least one column for target'
-        assert 'time'  in dataset.columns, f'The temporal column must be called time'
+        assert len(target_variables)>0, 'Provide at least one column for target'
+        assert 'time'  in dataset.columns, 'The temporal column must be called time'
         if set(target_variables).intersection(set(past_variables))!= set(target_variables): 
             if check_past:
                 beauty_string('I will update past column adding all target columns, if you want to avoid this beahviour please use check_pass as false','info')
@@ -447,7 +445,7 @@ class TimeSeries():
             try:
                 x_num_future_samples = np.stack(x_num_future_samples)
             except:
-                beauty_string(f'WARNING x_num_future_samples is empty and it should not','info')
+                beauty_string('WARNING x_num_future_samples is empty and it should not','info')
         y_samples = np.stack(y_samples)
         t_samples = np.stack(t_samples)   
         g_samples = np.stack(g_samples)
@@ -511,17 +509,17 @@ class TimeSeries():
 
         
         try:
-            l = self.dataset.shape[0]
-        except:
+            ls = self.dataset.shape[0]
+        except Exception as _:
             beauty_string('Empty dataset','info')
             return None, None, None
         
         if range_train is None:
             if self.group is None:
                 beauty_string(f'Split temporally using perc_train: {perc_train} and perc_valid:{perc_valid}','section')
-                train = self.dataset.iloc[0:int(perc_train*l)]
-                validation = self.dataset.iloc[int(perc_train*l):int(perc_train*l+perc_valid*l)]
-                test = self.dataset.iloc[int(perc_train*l+perc_valid*l):]
+                train = self.dataset.iloc[0:int(perc_train*ls)]
+                validation = self.dataset.iloc[int(perc_train*ls):int(perc_train*ls+perc_valid*ls)]
+                test = self.dataset.iloc[int(perc_train*ls+perc_valid*ls):]
             else:
                 beauty_string(f'Split temporally using perc_train: {perc_train} and perc_valid:{perc_valid} for each group!','info')
                 train = []
@@ -530,10 +528,10 @@ class TimeSeries():
                 ls = self.dataset.groupby(self.group).time.count().reset_index()
                 for group in self.dataset[self.group].unique():
                     tmp = self.dataset[self.dataset[self.group]==group]
-                    l = ls[ls[self.group]==group].time.values[0]
-                    train.append(tmp[0:int(perc_train*l)])
-                    validation.append(tmp[int(perc_train*l):int(perc_train*l+perc_valid*l)])
-                    test.append(tmp[int(perc_train*l+perc_valid*l):])
+                    lt = ls[ls[self.group]==group].time.values[0]
+                    train.append(tmp[0:int(perc_train*lt)])
+                    validation.append(tmp[int(perc_train*lt):int(perc_train*lt+perc_valid*lt)])
+                    test.append(tmp[int(perc_train*lt+perc_valid*lt):])
 
                 train = pd.concat(train,ignore_index=True)
                 validation = pd.concat(validation,ignore_index=True)
@@ -556,7 +554,7 @@ class TimeSeries():
             self.scaler_cat = {}
             self.scaler_num = {}
         
-            if self.group is None or normalize_per_group==False:
+            if self.group is None or normalize_per_group is False:
                 self.normalize_per_group = False
                 for c in self.num_var:
                     self.scaler_num[c] =  StandardScaler()
@@ -710,17 +708,17 @@ class TimeSeries():
                 else:
                     self.losses = pd.read_csv(os.path.join(os.path.join(dirpath,f)))
                 os.remove(os.path.join(os.path.join(dirpath,f)))
-        if type(self.losses)==dict:
+        if isinstance(self.losses,dict):
             self.losses = pd.DataFrame()
         try:
             self.model = self.model.load_from_checkpoint(self.checkpoint_file_last)
-        except:
+        except Exception as _:
             beauty_string(f'There is a problem loading the weights on file {self.checkpoint_file_last}','section')
 
         try:
             val_loss = self.losses.val_loss.values[-1]
-        except:
-            beauty_string(f'Can not extract the validation loss, maybe it is a persistent model','info')
+        except Exception as _:
+            beauty_string('Can not extract the validation loss, maybe it is a persistent model','info')
             val_loss = 100
         self.is_trained = True
         
@@ -801,7 +799,7 @@ class TimeSeries():
         ## BxLxCx3
         if rescaling:
             beauty_string('Scaling back','info')
-            if self.normalize_per_group==False:
+            if self.normalize_per_group is False:
                 for i, c in enumerate(self.target_variables):
                     real[:,:,i] = self.scaler_num[c].inverse_transform(real[:,:,i].reshape(-1,1)).reshape(-1,real.shape[1])
                     for j in range(res.shape[3]):
@@ -991,7 +989,7 @@ class TimeSeries():
             else:
                 try:
                     tmp_path = os.path.join(directory,self.checkpoint_file_best.split('/')[-1])
-                except:
+                except :
                     beauty_string('checkpoint_file_best not defined try to load best','section')
                     tmp_path = os.path.join(directory,self.checkpoint_file_last.split('/')[-1])
         try:

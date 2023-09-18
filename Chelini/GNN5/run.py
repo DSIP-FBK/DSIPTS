@@ -13,7 +13,6 @@ from model import GAT
 from train import training
 from inference import get_plot
 from test import test
-from data_manipulation.data_generation import MyDataset
     
 split = {'start_train': datetime(2017,11,15,0), 
         'end_train':datetime(2020,1,1,0),
@@ -26,8 +25,8 @@ def train(config: ConfigParser) -> None:
     
     print(f'{" Upload the dataframe ":=^60s}')
     batch_size = config.getint('dataset', 'batch_size')
-    path_dataset = os.path.join(config['paths']['dataset'], f"dataframes.pkl")    
-    path_emb = os.path.join(config['paths']['dataset'], f"embedding_setting.pkl")    
+    path_dataset = os.path.join(config['paths']['dataset'], "dataframes.pkl")    
+    path_emb = os.path.join(config['paths']['dataset'], "embedding_setting.pkl")    
     
     
     with open(path_dataset, 'rb') as f :
@@ -125,7 +124,7 @@ if __name__ == "__main__":
     print(f'{" Cheking the paths ":=^60s}')
     if 'paths' in config.keys():
         for path in config['paths']:
-            if os.path.exists(config['paths'][path]) != True:
+            if os.path.exists(config['paths'][path]) is not True:
                 os.makedirs(config['paths'][path])
 
     print(f'{" Paths controlled ":=^60s}')

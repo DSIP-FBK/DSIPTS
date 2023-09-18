@@ -1,9 +1,5 @@
-import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from einops import rearrange, repeat
-
-import math
+from einops import rearrange
 
 class DSW_embedding(nn.Module):
     def __init__(self, seg_len, d_model):

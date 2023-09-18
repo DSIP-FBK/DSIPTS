@@ -147,7 +147,7 @@ class Model(nn.Module):
                 # update best model if the model reaches better performances
                 if curr_val_loss < val_loss:
                     val_loss = curr_val_loss
-                    best_model = torch.save(self.state_dict(), self.path_model_save + '_best.pt')
+                    torch.save(self.state_dict(), self.path_model_save + '_best.pt')
                     print('  - IMPROVED')
             #* TRAINING
             if (iter%5)==3: 
@@ -168,7 +168,7 @@ class Model(nn.Module):
             
             scheduler.step()
             #always update last_model
-            last_model = torch.save(self.state_dict(), self.path_model_save + '_last.pt') 
+            torch.save(self.state_dict(), self.path_model_save + '_last.pt') 
         curr_val_loss = self.validation_step(iter, dl_validation, cost_func)
         print(f'Last Val_Loss: {curr_val_loss}')
         res['val'][-1] = curr_val_loss
@@ -263,7 +263,7 @@ class Model(nn.Module):
         pred_best = []
         pred_last = []
 
-        for i,(ds,y) in enumerate(tqdm(dl, desc = f" > On Test DataLoader - ")):
+        for i,(ds,y) in enumerate(tqdm(dl, desc = " > On Test DataLoader - ")):
             ds = ds.to(self.device)
             y = y.to(self.device)
             y_clone_best = y.detach().clone().to(self.device)

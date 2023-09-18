@@ -5,7 +5,6 @@ from omegaconf import DictConfig, OmegaConf,ListConfig
 import os
 import numpy as np
 import plotly.express as px
-import logging
 from inference import inference
 import hydra
 from dsipts import beauty_string
@@ -31,7 +30,7 @@ def compare(conf:DictConfig)-> None:
     tot_losses = []
     tot_predictions = []
     
-    if (type( conf.models)==list) or (type( conf.models)==ListConfig):
+    if isinstance( conf.models,list) or isinstance( conf.models,ListConfig):
         files =  conf.models
     
     elif os.path.isdir(conf.models):
@@ -61,7 +60,7 @@ def compare(conf:DictConfig)-> None:
                 losses = losses.melt(id_vars='epoch')
                 losses['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
             else:
-                beauty_string(f'Can not load losses {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} {e} maybe the train procedure is not completed','block')
+                beauty_string(f'Can not load losses {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} maybe the train procedure is not completed','block')
 
             losses.value = np.log(losses.value)
             res.append(tmp )
@@ -107,7 +106,7 @@ def compare(conf:DictConfig)-> None:
                             )
     fig_rel.write_image(os.path.join(conf.dirpath,'plots',f'{conf.name}_{conf.set}_MAPE.jpeg'),width=1000,scale=10)
     
-    fig_losses.update_layout(title = {'text':f'Losses', 'x':0.5},
+    fig_losses.update_layout(title = {'text':'Losses', 'x':0.5},
                           xaxis_title={'text':'Epochs'},
                           yaxis_title={'text':'Value'},
                         

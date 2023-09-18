@@ -6,13 +6,12 @@ from torch.utils.data.dataloader import DataLoader
 from minigpt import GPT
 from trainer import Trainer
 import logging
-logging.basicConfig(level=logging.INFO)
-import argparse
-from omegaconf import DictConfig, OmegaConf
-from hydra.core.hydra_config import HydraConfig
+from omegaconf import DictConfig
 import hydra
 import pickle
 import numpy as np
+logging.basicConfig(level=logging.INFO)
+
 class SortDataset(Dataset):
     """ 
     Dataset for the Sort problem. E.g. for problem length 6:
@@ -109,7 +108,7 @@ def run(conf: DictConfig) -> None:
 
     trainer.run()
 
-    trans.eval();
+    trans.eval()
 
     def eval_split(trainer, split, max_batches):
         dataset = {'train':train_dataset, 'test':test_dataset,'validation':validation_dataset}[split]

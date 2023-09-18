@@ -7,8 +7,6 @@ import torch
 from tqdm import tqdm
 from configparser import ConfigParser
 from torch.utils.data import DataLoader
-
-import torch
 import matplotlib.pyplot as plt
 
 
@@ -50,7 +48,7 @@ def print_csv(model,
               config: ConfigParser, 
               ds: list):
     
-    with open(os.path.join(config['paths']['dataset'], f"scaler_min_max.pkl")    , 'rb') as f :
+    with open(os.path.join(config['paths']['dataset'], "scaler_min_max.pkl")    , 'rb') as f :
         scaler = pickle.load(f)
     dataloader = []
     for key in ds.keys():
@@ -78,7 +76,7 @@ def get_plot(model,
 
     ################## Carico i file che mi servono ################
     path_losses = os.path.join(config['paths']['net_weights'], f'loss_{id_model}.pkl')
-    path_date = os.path.join(config['paths']['dataset'], f"dates.pkl")    
+    path_date = os.path.join(config['paths']['dataset'], "dates.pkl")    
     name_scaler = 'scaler_sc.pkl' if config.getboolean('dataset','sc') else 'scaler_min_max.pkl'
 
     with open(os.path.join(config['paths']['dataset'], name_scaler), 'rb') as f:

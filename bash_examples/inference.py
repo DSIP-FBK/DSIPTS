@@ -6,7 +6,7 @@ from dsipts import TimeSeries, beauty_string, extend_time_df
 import os
 from typing import List
 from datetime import timedelta 
-from utils import rmse, mse, mape, load_model
+from utils import mse, mape, load_model
 
 
 def inference_stacked(conf:DictConfig,ts:TimeSeries)->List[pd.DataFrame]:
@@ -100,7 +100,7 @@ def inference(conf:DictConfig)->List[pd.DataFrame]:
     feat = '_median' if ts.model.use_quantiles else '_pred'
     for c in ts.target_variables:
         
-        tmp = res.groupby('lag').apply(lambda x: mse(x[f'{c}{feat}'].values,x[c].values)).reset_index().rename(columns={0:f'MSE'})
+        tmp = res.groupby('lag').apply(lambda x: mse(x[f'{c}{feat}'].values,x[c].values)).reset_index().rename(columns={0:'MSE'})
         tmp['variable'] = c
         
         tmp2 = res.groupby('lag').apply(lambda x: mape(x[f'{c}{feat}'].values,x[c].values)).reset_index().rename(columns={0:'MAPE'})

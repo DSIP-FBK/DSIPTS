@@ -1,5 +1,3 @@
-import os
-import pickle
 from dsipts import TimeSeries,read_public_dataset
 
 def load_data(conf):

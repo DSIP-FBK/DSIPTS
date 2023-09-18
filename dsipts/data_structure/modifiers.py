@@ -3,7 +3,6 @@ from abc import  abstractmethod,ABC
 from sklearn.cluster import BisectingKMeans
 from scipy.stats import bootstrap
 from torch.utils.data import Dataset
-from torch.utils.data.dataloader import DataLoader
 import torch
 import numpy as np
 import logging
