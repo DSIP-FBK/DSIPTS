@@ -250,6 +250,9 @@ class Diffusion(Base):
         ### CATEGORICAL VARIABLES 
         summary_past, summary_fut = self.cat_categorical_vars(batch, summary_past, summary_fut)
 
+
+        #! summary future could be none if only autoregressive
+        # IF summary_fut is None change tactic?.
         # >>> PAST:
         summary_past = torch.mean(summary_past, dim=2)
         # >>> FUTURE:
