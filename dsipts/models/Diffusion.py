@@ -304,22 +304,22 @@ class Diffusion(Base):
             emb_cat_full = self.emb_cat_var(cat_full)
             cat_emb_past = emb_cat_full[:,:self.past_steps,:,:]
             cat_emb_fut = emb_cat_full[:,-self.future_steps:,:,:]
-            ## update summary
-            # past
-            summary_past = torch.cat((summary_past, cat_emb_past), dim=2)
-            # future
-            summary_fut = torch.cat((summary_fut, cat_emb_fut), dim=2)
+            # ## update summary
+            # # past
+            # summary_past = torch.cat((summary_past, cat_emb_past), dim=2)
+            # # future
+            # summary_fut = torch.cat((summary_fut, cat_emb_fut), dim=2)
 
             # update past
             if past_tensor_to_update == None:
-                update_past = summary_past
+                update_past = cat_emb_past
             else:
-                update_past =  torch.cat((past_tensor_to_update, summary_past), dim=2)
+                update_past =  torch.cat((past_tensor_to_update, cat_emb_past), dim=2)
             # update future
-            if past_tensor_to_update == None:
-                update_future = summary_past
+            if future_tensor_to_update == None:
+                update_future = cat_emb_fut
             else:
-                update_future =  torch.cat((future_tensor_to_update, summary_past), dim=2)
+                update_future =  torch.cat((future_tensor_to_update, cat_emb_fut), dim=2)
         
             return update_past, update_future
         # in case we don't have information to concat
