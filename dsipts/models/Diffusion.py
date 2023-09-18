@@ -422,9 +422,7 @@ class SubNet(nn.Module):
 
 
     def forward(self, y_noised:torch.Tensor, y_past:torch.Tensor, past_summary:torch.Tensor, future_summary:torch.Tensor)-> torch.Tensor:
-        import pdb
-        pdb.set_trace()
-        emb_y_noised = self.target_in_linear(y_noised)
+        emb_y_noised = self.target_in_linear(y_noised.unsqueeze(2))
         attention = self.attention(future_summary, past_summary, y_past)
         res_conn = self.res_conn(attention, emb_y_noised)
         emb_y_noised = emb_y_noised + res_conn
