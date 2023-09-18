@@ -190,7 +190,7 @@ class Autoformer(Base):
         if 'x_num_future' in batch.keys():
             x_future = batch['x_num_future'].to(self.device)
         
-        x_future[:,-self.pred_len:,idx_target_future] = -100
+        x_future[:,-self.pred_len:,idx_target_future] = 0
         
         
 

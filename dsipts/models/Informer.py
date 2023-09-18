@@ -137,6 +137,8 @@ class Informer(Base):
         #x_enc, x_mark_enc, x_dec, x_mark_dec,enc_self_mask=None, dec_self_mask=None, dec_enc_mask=None):
         
         x_enc = batch['x_num_past'].to(self.device)
+        idx_target_future = batch['idx_target_future'][0]
+
         if 'x_cat_past' in batch.keys():
             x_mark_enc = batch['x_cat_past'].to(self.device)
         else:
@@ -144,10 +146,7 @@ class Informer(Base):
         enc_self_mask = None
         
         x_dec = batch['x_num_future'].to(self.device)
-
-        
-        ##FIX THIS, now all are 0!
-        x_dec[:,-self.future_steps:,:] = -100 
+        x_dec[:,-self.future_steps:,idx_target_future] = 0
         
         
         if 'x_cat_future' in batch.keys():
