@@ -185,7 +185,7 @@ class Diffusion(Base):
         noise_pred = sub_net(y_t_noised, target_emb_num_past, summary_past, summary_fut)
 
         # compute the loss with the drawn eps
-        loss_noise = np.sqrt(self.noise_loss(noise_pred, noise))
+        loss_noise = torch.sqrt(self.noise_loss(noise_pred, noise))
         return loss_noise
 
     # re-defined to extract directly the loss of the training step
