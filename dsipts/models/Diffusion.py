@@ -258,7 +258,7 @@ class Diffusion(Base):
         ### DIFFUSION INFERENCE
         # The process starts from a white noise, that will be modified by all subnets of the model
         B = summary_past.shape[0]
-        z_t = self.generate_noise(batch_size = B)
+        z_t = self.generate_noise(batch_size = B).to(self.device)
 
         sqrt_alpha = np.sqrt(self.alpha) # auxiliary term, outside the for because beta now is constant
         # pass the white noise in sub nets
@@ -304,18 +304,16 @@ class Diffusion(Base):
             emb_cat_full = self.emb_cat_var(cat_full)
             cat_emb_past = emb_cat_full[:,:self.past_steps,:,:]
             cat_emb_fut = emb_cat_full[:,-self.future_steps:,:,:]
-            # ## update summary
-            # # past
-            # summary_past = torch.cat((summary_past, cat_emb_past), dim=2)
-            # # future
-            # summary_fut = torch.cat((summary_fut, cat_emb_fut), dim=2)
-
-            # update past
+            
+            ## update past
+            # if we don't have a tensor to update, init a new one
             if past_tensor_to_update == None:
                 update_past = cat_emb_past
             else:
                 update_past =  torch.cat((past_tensor_to_update, cat_emb_past), dim=2)
+                
             # update future
+            # if we don't have a tensor to update, init a new one
             if future_tensor_to_update == None:
                 update_future = cat_emb_fut
             else:
