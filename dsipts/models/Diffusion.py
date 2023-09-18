@@ -261,7 +261,7 @@ class Diffusion(Base):
         ### DIFFUSION INFERENCE
         # The process starts from a white noise, that will be modified by all subnets of the model
         B = summary_past.shape[0]
-        z_t = self.generate_noise(batch_size = B).to(self.device)
+        z_t = self.generate_noise(batch_size = B).to(self.device) # [bayìtch_size, self.future_steps, self.output_channels]
 
         sqrt_alpha = np.sqrt(self.alpha) # auxiliary term, outside the for because beta now is constant
         # pass the white noise in sub nets
@@ -273,7 +273,7 @@ class Diffusion(Base):
             computed_noise = sub_net(z_t, target_emb_num_past, summary_past, summary_fut)  
 
             z_t_hat = z_t / sqrt_alpha - self.beta * computed_noise / (np.sqrt(1 - alpha_t) * sqrt_alpha)
-            noise = self.generate_noise(B)
+            noise = self.generate_noise(B).to(self.device)
             # next latent variable, here it is z_{t-1}
             z_t = z_t_hat + self.sigma * noise 
 
