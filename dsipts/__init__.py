@@ -14,4 +14,4 @@ from .models.TFT2 import TFT2
 from .models.VVA import VVA
 from .models.VQVAEA import VQVAEA
 from .models.CrossFormer import CrossFormer
-from .models.Diffusion_TFT import DiffuionTFT2
+from .models.Diffusion import Diffusion

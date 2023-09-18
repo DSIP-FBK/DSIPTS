@@ -1,7 +1,7 @@
 
 
 import pandas as pd
-from dsipts import TimeSeries, RNN, Attention,read_public_dataset, LinearTS, Persistent, D3VAE, MyModel, TFT,TFT2, Informer,VVA,VQVAEA,CrossFormer, DiffuionTFT2
+from dsipts import TimeSeries, RNN, Attention,read_public_dataset, LinearTS, Persistent, D3VAE, MyModel, TFT,TFT2, Informer,VVA,VQVAEA,CrossFormer, Diffusion
 from omegaconf import DictConfig, OmegaConf
 from hydra.core.hydra_config import HydraConfig
 import hydra
@@ -123,7 +123,7 @@ def train(conf: DictConfig) -> None:
         model =  TFT2(**model_conf,   optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )  
     elif conf.model.type == 'diffusion':
-        model =  DiffuionTFT2(**model_conf,   optim_config = conf.optim_config,
+        model =  Diffusion(**model_conf,   optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )  
         
     elif conf.model.type == 'vva':
