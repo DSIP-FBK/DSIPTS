@@ -177,8 +177,6 @@ class Diffusion(Base):
         batch_size = y_to_be_pred.shape[0]
         noise = self.generate_noise(batch_size).to(self.device)
         ##* INPUT FOR SUBNET
-        import pdb
-        pdb.set_trace()
         y_t_noised = np.sqrt(alpha_t) * y_to_be_pred + np.sqrt(1 - alpha_t) * noise
 
         # compute the output from that network using the sample with noises
