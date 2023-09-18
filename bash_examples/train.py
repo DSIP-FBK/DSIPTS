@@ -123,7 +123,7 @@ def train(conf: DictConfig) -> None:
         model =  TFT2(**model_conf,   optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )  
     elif conf.model.type == 'diffusion':
-        model =  TFT2(**model_conf,   optim_config = conf.optim_config,
+        model =  DiffuionTFT2(**model_conf,   optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config )  
         
     elif conf.model.type == 'vva':
