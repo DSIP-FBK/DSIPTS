@@ -75,16 +75,32 @@ class embedding_cat_variables(nn.Module):
 
 class LSTM_Model(nn.Module):
     def __init__(self, num_var: int, d_model: int, pred_step: int, num_layers: int, dropout: float):
+        """LSTM from [..., d_model] to [..., predicted_step, num_of_vars] 
+
+        Args:
+            num_var (int): number of variables encoded in the input tensor
+            d_model (int): encoding dimension of the tensor
+            pred_step (int): step to be predicted by LSTM
+            num_layers (int): number of layers of LSTM
+            dropout (float): 
+        """
         super().__init__()
         self.num_var = num_var
         self.d_model = d_model
         self.num_layers = num_layers
         self.pred_step = pred_step
-
         self.lstm = nn.LSTM(d_model, d_model, num_layers=num_layers, batch_first=True, dropout=dropout)
         self.linear = nn.Linear(d_model, pred_step*num_var)
 
-    def forward(self, x):
+    def forward(self, x:torch.Tensor) -> torch.Tensor:
+        """LSTM process over the x tensor and reshaping according to pred_step and num_var to be predicted 
+
+        Args:
+            x (torch.Tensor): input tensor
+
+        Returns:
+            torch.Tensor: tensor resized to [B, pred_step, num_var]
+        """
         h0 = torch.zeros(self.num_layers, x.size(0), self.d_model).to(x.device)
         c0 = torch.zeros(self.num_layers, x.size(0), self.d_model).to(x.device)
         out, _ = self.lstm(x, (h0, c0))
@@ -94,12 +110,29 @@ class LSTM_Model(nn.Module):
     
 class GLU(nn.Module):
     def __init__(self, d_model: int):
+        """Gated Linear Unit
+        
+        Auxiliary subnet for sigmoid element-wise multiplication
+
+        Args:
+            d_model (int): dimension of operations
+        """
         super().__init__()
         self.linear1 = nn.Linear(d_model, d_model, bias = False)
         self.linear2 = nn.Linear(d_model, d_model, bias = False)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Gated Linear Unit
+        
+        Tensor passed through linear and sigmoid, then multiplied to itself.
+        
+        Args:
+            x (torch.Tensor): input tensor
+
+        Returns:
+            torch.Tensor: 
+        """
         x1 = self.sigmoid(self.linear1(x))
         x2 = self.linear2(x)
         out = x1*x2 #element-wise multiplication
@@ -107,6 +140,14 @@ class GLU(nn.Module):
     
 class GRN(nn.Module):
     def __init__(self, d_model: int, dropout_rate: float):
+        """Gated Residual Network
+
+        Auxiliary subnet for gating residual connections
+
+        Args:
+            d_model (int): 
+            dropout_rate (float):
+        """
         super().__init__()
         self.linear1 = nn.Linear(d_model, d_model) 
         self.elu = nn.ELU()
@@ -114,25 +155,67 @@ class GRN(nn.Module):
         self.res_conn = ResidualConnection(d_model, dropout_rate)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Gated Residual Network
+
+        ELU activation of x before a Residual Connection on originary x itself
+
+        Args:
+            x (torch.Tensor): 
+
+        Returns:
+            torch.Tensor: 
+        """
         eta1 = self.elu(self.linear1(x))
         eta2 = self.linear2(eta1)
         out = self.res_conn(eta2, x)
         return out
     
 class ResidualConnection(nn.Module):
-    def __init__(self, d_model, dropout_rate) -> None:
+    def __init__(self, d_model: int, dropout_rate: float):
+        """Residual Connection of res_conn with GLU(x)
+        
+        Auxiliary subnet for residual connections
+
+        Args:
+            d_model (int): 
+            dropout_rate (float): 
+        """
         super().__init__()
         self.dropout = nn.Dropout(dropout_rate)
         self.glu = GLU(d_model)
         self.norm = nn.LayerNorm(d_model)
     
     def forward(self, x: torch.Tensor, res_conn: torch.Tensor) -> torch.Tensor:
+        """Residual Connection
+
+        Norm(GLU(x) + res_conn) 
+
+        Args:
+            x (torch.Tensor): tensor for GLU
+            res_conn (torch.Tensor): Skip connected tensor
+
+        Returns:
+            torch.Tensor: 
+        """
         x = self.glu(self.dropout(x))
         out = self.norm(res_conn + x)
         return out
 
 class InterpretableMultiHead(nn.Module):
-    def __init__(self, d_model, d_head, n_head) -> None:
+    def __init__(self, d_model:int, d_head:int, n_head:int) -> None:
+        """Interpretable MultiHead Attention
+
+        Similar to canonical MultiHead Attention with Query-Keys-Value structure
+        Particularities are:
+        - Only one common "Value"-Linear layer for all heads
+        - output of all heads are summed together and then rescaled over the number of heads
+        The final output tensor is re-embedded in the initial dimension
+
+        Args:
+            d_model (int): starting and ending dimension of the net
+            d_head (int): hidden dimension of all heads
+            n_head (int): number of heads
+        """
         super().__init__()
         self.d_head = d_head
         self.n_head = n_head
@@ -143,6 +226,18 @@ class InterpretableMultiHead(nn.Module):
         self.out_layer = nn.Linear(d_head, d_model)
 
     def forward(self, query:torch.Tensor, key:torch.Tensor, value:torch.Tensor) -> torch.Tensor:
+        """Interpretable MultiHead Attention
+        
+        softmax( Q @ K.T ) @ V 
+
+        Args:
+            query (torch.Tensor): Q
+            key (torch.Tensor): K
+            value (torch.Tensor): V
+
+        Returns:
+            torch.Tensor: MultiHead Attention Tensor
+        """
         out = torch.Tensor()
         for (q_layer, k_layer, softmax) in zip(self.Q_layers, self.K_layers, self.Softmax_layers):
             Q = q_layer(query)
