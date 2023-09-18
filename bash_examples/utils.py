@@ -115,6 +115,8 @@ def select_model(conf, model_conf,ts):
         
     return model
 
+#def check_split_parameters
+
 
 def load_model(ts,conf):
     loaded = True
