@@ -393,7 +393,7 @@ class Diffusion(Base):
         """
         all_eps = []
         for i in range(batch_size):
-            eps = torch.normal(mean=0., std=1., size=(1, self.future_steps))
+            eps = torch.normal(mean=0., std=1., size=(1, self.future_steps, self.output_channels))
             all_eps.append(eps)
         all_eps = torch.cat(all_eps, dim = 0)
         return all_eps
@@ -426,7 +426,7 @@ class SubNet(nn.Module):
 
 
     def forward(self, y_noised:torch.Tensor, y_past:torch.Tensor, past_summary:torch.Tensor, future_summary:torch.Tensor)-> torch.Tensor:
-        emb_y_noised = self.target_in_linear(y_noised.unsqueeze(2))
+        emb_y_noised = self.target_in_linear(y_noised)
         attention = self.attention(future_summary, past_summary, y_past)
         res_conn = self.res_conn(attention, emb_y_noised)
         emb_y_noised = emb_y_noised + res_conn
