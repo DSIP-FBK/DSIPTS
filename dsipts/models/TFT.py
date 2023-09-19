@@ -47,7 +47,7 @@ class TFT(Base):
             scheduler_config (dict, optional): _description_. Defaults to None.
         """
 
-        super(TFT).__init__()
+        super(TFT,self).__init__()
         self.save_hyperparameters(logger=False)
         # assert out_channels==1, logging.info("ONLY ONE CHANNEL IMPLEMENTED")
         self.future_steps = future_steps
