@@ -40,7 +40,8 @@ class CrossFormer(Base):
                  dropout_rate:float=0.1,
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
-                 scheduler_config:dict=None)->None:
+                 scheduler_config:dict=None,
+                 **kwargs)->None:
         """CroosFormer (https://openreview.net/forum?id=vSVLM2j9eie)
 
         Args:
@@ -69,7 +70,7 @@ class CrossFormer(Base):
         """
       
    
-        super(CrossFormer, self).__init__()
+        super().__init__(**kwargs)
         self.save_hyperparameters(logger=False)
         self.use_quantiles = False
         self.optim = optim

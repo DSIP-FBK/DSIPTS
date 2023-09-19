@@ -63,7 +63,8 @@ class LinearTS(Base):
                  n_classes:int=0,
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
-                 scheduler_config:dict=None)->None:
+                 scheduler_config:dict=None,
+                 **kwargs)->None:
         """Linear model from https://github.com/cure-lab/LTSF-Linear/blob/main/run_longExp.py
 
         Args:
@@ -89,7 +90,7 @@ class LinearTS(Base):
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
         """
-        super(LinearTS, self).__init__()
+        super().__init__(**kwargs)
 
         if activation == 'torch.nn.SELU':
             beauty_string('SELU do not require BN','info',self.verbose)

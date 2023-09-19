@@ -39,7 +39,8 @@ class Informer(Base):
                  dropout_rate:float=0.1,
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
-                 scheduler_config:dict=None)->None:
+                 scheduler_config:dict=None,
+                 **kwargs)->None:
         """Informer
 
         Args:
@@ -69,7 +70,7 @@ class Informer(Base):
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
         """
    
-        super(Informer, self).__init__()
+        super().__init__(**kwargs)
         self.save_hyperparameters(logger=False)
 
         self.future_steps = future_steps

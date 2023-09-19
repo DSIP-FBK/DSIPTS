@@ -35,7 +35,8 @@ class PatchTST(Base):
                  dropout_rate:float=0.1,
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
-                 scheduler_config:dict=None)->None:
+                 scheduler_config:dict=None,
+                 **kwargs)->None:
         """
 
         Args:
@@ -64,7 +65,7 @@ class PatchTST(Base):
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
         """
-        super(PatchTST, self).__init__()
+        super().__init__(**kwargs)
 
         if activation == 'torch.nn.SELU':
             beauty_string('SELU do not require BN','info',self.verbose)

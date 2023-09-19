@@ -113,7 +113,8 @@ class DilatedConv(Base):
                  n_classes:int=0,
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
-                 scheduler_config:dict=None)->None:
+                 scheduler_config:dict=None,
+                 **kwargs)->None:
         """ Custom encoder-decoder 
         
         Args:
@@ -144,8 +145,7 @@ class DilatedConv(Base):
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
 
         """
-        super(DilatedConv, self).__init__()
-
+        super().__init__(**kwargs)
         if activation == 'torch.nn.SELU':
             beauty_string('SELU do not require BN','info',self.verbose)
             use_bn = False

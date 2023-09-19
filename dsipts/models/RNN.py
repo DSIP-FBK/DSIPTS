@@ -40,7 +40,8 @@ class RNN(Base):
                  n_classes:int=0,
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
-                 scheduler_config:dict=None)->None:
+                 scheduler_config:dict=None,
+                 **kwargs)->None:
         """ Recurrent model with an encoder decoder structure
 
         Args:
@@ -68,7 +69,7 @@ class RNN(Base):
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
         """
-        super(RNN, self).__init__()
+        super().__init__(**kwargs)
 
         if activation == 'torch.nn.SELU':
             beauty_string('SELU do not require BN','info',self.verbose)

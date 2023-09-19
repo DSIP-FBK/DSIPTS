@@ -24,7 +24,8 @@ class TFT(Base):
                  quantiles:List[float]=[],
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
-                 scheduler_config:dict=None)->None:
+                 scheduler_config:dict=None,
+                 **kwargs)->None:
         """_summary_
 
         Args:
@@ -47,7 +48,7 @@ class TFT(Base):
             scheduler_config (dict, optional): _description_. Defaults to None.
         """
 
-        super(TFT,self).__init__()
+        super().__init__(**kwargs)
         self.save_hyperparameters(logger=False)
         # assert out_channels==1, logging.info("ONLY ONE CHANNEL IMPLEMENTED")
         self.future_steps = future_steps

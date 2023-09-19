@@ -14,7 +14,8 @@ class Persistent(Base):
                  loss_type:str=None,#not used but needed
                  persistence_weight:float=0.1,#not used but needed
                  optim_config:dict=None,
-                 scheduler_config:dict=None)->None:
+                 scheduler_config:dict=None,
+                 **kwargs)->None:
         """Persistent model propagatinng  last observed values
 
         Args:
@@ -27,7 +28,7 @@ class Persistent(Base):
         """
         
     
-        super(Persistent, self).__init__()
+        super().__init__(**kwargs)
         self.save_hyperparameters(logger=False)
         self.past_steps = past_steps
         self.future_steps = future_steps

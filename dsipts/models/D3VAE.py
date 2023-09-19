@@ -67,8 +67,9 @@ class D3VAE(Base):
                  optim_config=None,
                  
                  scheduler_config=None,
+                 **kwargs
                  )->None:
-     
+        super().__init__(**kwargs)
         input_dim = past_channels
         sequence_length = past_steps
         prediction_length = future_steps
@@ -76,7 +77,7 @@ class D3VAE(Base):
         ##pytotch lightening stuff
         self.save_hyperparameters(logger=False)
         
-        super().__init__()
+        
         
         
         self.gen_net = diffusion_generate(target_dim,embedding_dimension,prediction_length,sequence_length,scale,hidden_size,num_layers,dropout_rate,diff_steps,loss_type,beta_end,beta_schedule, channel_mult,mult,

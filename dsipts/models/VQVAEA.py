@@ -38,7 +38,8 @@ class VQVAEA(Base):
                  quantiles:List[int]=[],
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
-                 scheduler_config:dict=None)->None:
+                 scheduler_config:dict=None,
+                 **kwargs)->None:
         """ Custom encoder-decoder 
         
         Args:
@@ -71,7 +72,7 @@ class VQVAEA(Base):
         """
 
         
-        super(VQVAEA, self).__init__()
+        super().__init__(**kwargs)
         self.save_hyperparameters(logger=False)
         self.d_model = d_model
         self.max_voc_size = max_voc_size

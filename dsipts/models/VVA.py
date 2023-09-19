@@ -33,7 +33,8 @@ class VVA(Base):
                  quantiles:List[int]=[],
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
-                 scheduler_config:dict=None)->None:
+                 scheduler_config:dict=None,
+                 **kwargs)->None:
         """ Custom encoder-decoder 
         
         Args:
@@ -66,9 +67,7 @@ class VVA(Base):
         """
 
         
-        super(VVA, self).__init__()
-
-
+        super().__init__(**kwargs)
         self.block_size = past_steps//token_split + future_steps//token_split -1
         self.save_hyperparameters(logger=False)
         self.sentence_length = future_steps//token_split
