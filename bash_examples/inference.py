@@ -107,7 +107,7 @@ def inference(conf:DictConfig)->List[pd.DataFrame]:
         tmp2['variable'] = c
         errors.append(pd.merge(tmp,tmp2))
     errors = pd.concat(errors,ignore_index=True)
-    print(errors)
+    beauty_string(errors,'',VERBOSE)
 
     if not os.path.exists(os.path.join(conf.inference.output_path,'csv')):
         os.makedirs(os.path.join(conf.inference.output_path,'csv'))

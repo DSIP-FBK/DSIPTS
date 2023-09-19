@@ -68,16 +68,16 @@ class RNN(Base):
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
         """
-        
+        super(RNN, self).__init__()
+
         if activation == 'torch.nn.SELU':
-            beauty_string('SELU do not require BN','info')
+            beauty_string('SELU do not require BN','info',self.verbose)
             use_bn = False
         if isinstance(activation, str):
             activation = get_activation(activation)
         else:
-            beauty_string('There is a bug in pytorch lightening, the constructior is called twice ','info')
+            beauty_string('There is a bug in pytorch lightening, the constructior is called twice ','info',self.verbose)
         
-        super(RNN, self).__init__()
         self.save_hyperparameters(logger=False)
         self.past_steps = past_steps
         self.future_steps = future_steps
@@ -123,10 +123,9 @@ class RNN(Base):
             
         if sum_emb and (emb_channels>0):
             emb_channels = cat_emb_dim
-            beauty_string('Using sum','info')
+            beauty_string('Using sum','info',self.verbose)
         else:
-            beauty_string('Using stacked','info')
-
+            beauty_string('Using stacked','info',self.verbose)
 
         self.initial_linear_encoder =  nn.Sequential(nn.Linear(past_channels,4),
                                                      activation(),
@@ -161,7 +160,7 @@ class RNN(Base):
             self.Encoder = nn.GRU(input_size= hidden_RNN//8,hidden_size=hidden_RNN,num_layers = num_layers_RNN,batch_first=True)
             self.Decoder = nn.GRU(input_size= hidden_RNN//8,hidden_size=hidden_RNN,num_layers = num_layers_RNN,batch_first=True)
         else:
-            beauty_string('Speciky kind= lstm or gru please','section')
+            beauty_string('Speciky kind= lstm or gru please','section',True)
         self.final_linear = nn.ModuleList()
         for _ in range(out_channels*self.mul):
             self.final_linear.append(nn.Sequential(nn.Linear(hidden_RNN,hidden_RNN//2), 

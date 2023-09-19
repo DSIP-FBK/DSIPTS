@@ -144,15 +144,16 @@ class DilatedConv(Base):
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
 
         """
+        super(DilatedConv, self).__init__()
+
         if activation == 'torch.nn.SELU':
-            beauty_string('SELU do not require BN','info')
+            beauty_string('SELU do not require BN','info',self.verbose)
             use_bn = False
         if isinstance(activation,str):
             activation = get_activation(activation)
         else:
-            beauty_string('There is a bug in pytorch lightening, the constructior is called twice ','info')
+            beauty_string('There is a bug in pytorch lightening, the constructior is called twice ','info',self.verbose)
         
-        super(DilatedConv, self).__init__()
         self.save_hyperparameters(logger=False)
         self.past_steps = past_steps
         self.future_steps = future_steps

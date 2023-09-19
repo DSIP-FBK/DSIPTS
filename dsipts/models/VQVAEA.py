@@ -78,8 +78,8 @@ class VQVAEA(Base):
         self.future_steps = future_steps
         self.epoch_vqvae = epoch_vqvae
         ##PRIMA VQVAE
-        assert out_channels==1, beauty_string('Working only for one singal','section')
-        assert past_steps%2==0 and future_steps%2==0, beauty_string('There are some issue with the deconder in case of odd length','section')
+        assert out_channels==1, beauty_string('Working only for one singal','section',True)
+        assert past_steps%2==0 and future_steps%2==0, beauty_string('There are some issue with the deconder in case of odd length','section',True)
         self.vqvae = VQVAE(in_channels=1, hidden_channels=hidden_channels,out_channels=1,num_embeddings= max_voc_size,embedding_dim=d_model,commitment_cost=commitment_cost,decay=decay  )
         
         ##POI GPT
@@ -98,7 +98,7 @@ class VQVAEA(Base):
         ))
         # report number of parameters (note we don't count the decoder parameters in lm_head)
         n_params = sum(p.numel() for p in self.transformer.parameters())
-        beauty_string("number of parameters: %.2fM" % (n_params/1e6,),'info')
+        beauty_string("number of parameters: %.2fM" % (n_params/1e6,),'info',self.verbose)
         
         self.use_quantiles = False
         self.is_classification = True
@@ -125,7 +125,7 @@ class VQVAEA(Base):
     
     
         b, t = tokens.size()
-        assert t <= self.block_size, beauty_string("Cannot forward sequence of length {t}, block size is only {self.block_size}",'section')
+        assert t <= self.block_size, beauty_string("Cannot forward sequence of length {t}, block size is only {self.block_size}",'section',True)
         pos = torch.arange(0, t, dtype=torch.long, device=self.device).unsqueeze(0) # shape (1, t)
 
         # forward the GPT model itself
@@ -161,7 +161,7 @@ class VQVAEA(Base):
         else:
             vq_loss, data_recon, perplexity,quantized_x,encodings_x = self.vqvae(data.permute(0,2,1))
             if random()<0.001:
-                beauty_string(perplexity,'info')
+                beauty_string(perplexity,'info',self.verbose)
             recon_error = F.mse_loss(data_recon.squeeze(), data.squeeze()) 
             loss_vqvae = recon_error + vq_loss
 

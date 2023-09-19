@@ -56,62 +56,62 @@ def select_model(conf, model_conf,ts):
     if conf.model.type == 'linear':
         model =  LinearTS(**model_conf,
                           optim_config = conf.optim_config,
-                          scheduler_config =conf.scheduler_config )
+                          scheduler_config =conf.scheduler_config,verbose=ts.verbose )
         
     elif conf.model.type == 'rnn':
         model =  RNN(**model_conf,
                           optim_config = conf.optim_config,
-                          scheduler_config =conf.scheduler_config )  
+                          scheduler_config =conf.scheduler_config,verbose=ts.verbose )  
         
     elif conf.model.type == 'dilated_conv':
         model =  DilatedConv(**model_conf,
                           optim_config = conf.optim_config,
-                          scheduler_config =conf.scheduler_config )      
+                          scheduler_config =conf.scheduler_config,verbose=ts.verbose )      
     
     elif conf.model.type == 'persistent':
         model_conf = {'future_steps':model_conf['future_steps'],
                       'past_steps':model_conf['past_steps']}
         model =  Persistent(**model_conf,
                           optim_config = conf.optim_config,
-                          scheduler_config =conf.scheduler_config )
+                          scheduler_config =conf.scheduler_config,verbose=ts.verbose )
     elif conf.model.type == 'd3vae':
 
         model =  D3VAE(**model_conf,   optim_config = conf.optim_config,
-                          scheduler_config =conf.scheduler_config ) 
+                          scheduler_config =conf.scheduler_config,verbose=ts.verbose ) 
          
     elif conf.model.type == 'tft':
         model =  TFT(**model_conf,   optim_config = conf.optim_config,
-                          scheduler_config =conf.scheduler_config )  
+                          scheduler_config =conf.scheduler_config,verbose=ts.verbose )  
         
         
     elif conf.model.type == 'vva':
         model =  VVA(**model_conf,   optim_config = conf.optim_config,
-                          scheduler_config =conf.scheduler_config )  
+                          scheduler_config =conf.scheduler_config,verbose=ts.verbose )  
     elif conf.model.type == 'vqvae':
         model =  VQVAEA(**model_conf,   optim_config = conf.optim_config,
-                          scheduler_config =conf.scheduler_config )  
+                          scheduler_config =conf.scheduler_config,verbose=ts.verbose )  
     elif conf.model.type == 'crossformer':
         model =  CrossFormer(**model_conf,   optim_config = conf.optim_config,
-                          scheduler_config =conf.scheduler_config )   
+                          scheduler_config =conf.scheduler_config,verbose=ts.verbose )   
     elif conf.model.type == 'informer':
         ##gli servono, poi mette a 0 quelle che serve
         ts.future_variables +=ts.target_variables
         model_conf['future_channels']= len(ts.future_variables)
         model =  Informer(**model_conf,   optim_config = conf.optim_config,
-                          scheduler_config =conf.scheduler_config )  
+                          scheduler_config =conf.scheduler_config,verbose=ts.verbose )  
     elif conf.model.type == 'autoformer':
         ##gli servono, poi mette a 0 quelle che serve
         ts.future_variables +=ts.target_variables
         model_conf['future_channels']= len(ts.future_variables)
         model =  Autoformer(**model_conf,   optim_config = conf.optim_config,
-                          scheduler_config =conf.scheduler_config )  
+                          scheduler_config =conf.scheduler_config,verbose=ts.verbose )  
         
     elif conf.model.type == 'patchtst':
         model =  PatchTST(**model_conf,   optim_config = conf.optim_config,
-                          scheduler_config =conf.scheduler_config )  
+                          scheduler_config =conf.scheduler_config,verbose=ts.verbose )  
     else:
         model = None
-        beauty_string(f"Not a valid model { conf.model.type}-{conf.ts.name}-{conf.ts.version}",'block')
+        beauty_string(f"Not a valid model { conf.model.type}-{conf.ts.name}-{conf.ts.version}",'block',ts.verbose)
         
     return model
 
@@ -149,6 +149,6 @@ def load_model(ts,conf):
         ts.load(PatchTST,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
   
     else:
-        beauty_string('NO VALID MODEL FOUND','block')
+        beauty_string('NO VALID MODEL FOUND','block',ts.verbose)
         loaded=False
     return loaded

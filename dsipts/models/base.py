@@ -10,7 +10,7 @@ from ..data_structure.utils import beauty_string
 
 class Base(pl.LightningModule):
     @abstractmethod
-    def __init__(self):
+    def __init__(self,verbose:bool):
         """
         This is the basic model, each model implemented must overwrite the init method and the forward method. The inference step is optional, by default it uses the forward method but for recurrent 
         network you should implement your own method
@@ -21,6 +21,7 @@ class Base(pl.LightningModule):
         self.count_epoch = 0
         self.initialize = False
         self.train_loss_epoch = -100.0
+        self.verbose = verbose
     @abstractmethod
     def forward(self, batch:dict)-> torch.tensor:
         """Forlward method used during the training loop
@@ -69,7 +70,7 @@ class Base(pl.LightningModule):
             ##this is strange, pytorch lighening call twice this if autotune is true
             if self.initialize is False:
                 self.optim = eval(self.optim)
-            beauty_string(self.optim,'')
+            beauty_string(self.optim,'',self.verbose)
             optimizer = self.optim(self.parameters(),  **self.optim_config)
             self.initialize = True
         self.lr = self.optim_config['lr']
@@ -108,7 +109,7 @@ class Base(pl.LightningModule):
     
         loss = torch.stack(outs).mean()
         self.log("val_loss", loss.item(),sync_dist=True)
-        beauty_string(f'Epoch: {self.count_epoch} train error: {self.train_loss_epoch:.4f} validation loss: {loss.item():.4f}','info')
+        beauty_string(f'Epoch: {self.count_epoch} train error: {self.train_loss_epoch:.4f} validation loss: {loss.item():.4f}','info',self.verbose)
 
     def training_epoch_end(self, outs):
         """
