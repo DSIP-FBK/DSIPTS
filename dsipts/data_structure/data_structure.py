@@ -966,8 +966,6 @@ class TimeSeries():
             params = pickle.load(f)
             for p in params:
                 setattr(self,p, params[p])    
-        import pdb
-        pdb.set_trace()
         self.model = model(**self.config['model_configs'],optim_config = self.config['optim_config'],scheduler_config =self.config['scheduler_config'],verbose=self.verbose )
         
         
@@ -994,6 +992,6 @@ class TimeSeries():
                     beauty_string('checkpoint_file_best not defined try to load best','section',self.verbose)
                     tmp_path = os.path.join(directory,self.checkpoint_file_last.split('/')[-1])
         try:
-            self.model = self.model.load_from_checkpoint(tmp_path)
+            self.model = self.model.load_from_checkpoint(tmp_path,verbose=self.verbose)
         except Exception as e:
             beauty_string(f'There is a problem loading the weights on file {tmp_path} {e}',True)
