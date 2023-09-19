@@ -266,6 +266,8 @@ class Diffusion(Base):
 
         sqrt_alpha = np.sqrt(self.alpha) # auxiliary term, outside the for because beta now is constant
         # pass the white noise in sub nets
+        import pdb
+        pdb.set_trace()
         for t in range(self.T-1, 0, -1): # INVERSE cycle over all subnets, but not the last one
             sub_net = self.sub_nets[t] # load the subnet
             alpha_t = self.alpha**t  # update
