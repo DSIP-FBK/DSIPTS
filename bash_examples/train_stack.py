@@ -12,7 +12,7 @@ from inference import inference
 from datetime import timedelta
 from utils import select_model
 
-
+VERBOSE = True
 
 @hydra.main(version_base=None)
 def train_stack(conf: DictConfig) -> None:
@@ -56,8 +56,8 @@ def train_stack(conf: DictConfig) -> None:
         ff = os.path.join(conf.stack.models,'config_used')
         files = [os.path.join(ff,f) for f in os.listdir(ff)]
     else:
-        beauty_string('FAILED TO LOAD MODELS','block')
-            
+        beauty_string('FAILED TO LOAD MODELS','block',True)
+
     predictions = None
     N_models = 0
     models_used = []
@@ -70,7 +70,7 @@ def train_stack(conf: DictConfig) -> None:
         conf_tmp.inference.set = conf.stack.set
         conf_tmp.inference.rescaling = conf.stack.rescaling
         conf_tmp.inference.batch_size = conf.stack.get('batch_size',conf_tmp.inference.batch_size)
-        beauty_string(f'PROCESSING {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} ','block')
+        beauty_string(f'PROCESSING {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} ','block',VERBOSE)
 
 
 
@@ -107,12 +107,12 @@ def train_stack(conf: DictConfig) -> None:
             i+=1
         except Exception as e:
             import traceback
-            beauty_string(traceback.format_exc(),'')
-            beauty_string(f'Can not load model {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} {e}','block')
+            beauty_string(traceback.format_exc(),'',True)
+            beauty_string(f'Can not load model {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} {e}','block', True)
     
     
     
-    beauty_string(f'USING {N_models} models','section')
+    beauty_string(f'USING {N_models} models','section',VERBOSE)
 
     
     model_conf = conf.model_configs
@@ -150,7 +150,7 @@ def train_stack(conf: DictConfig) -> None:
 
     model = select_model(conf,model_conf,ts)   
     dirpath = os.path.join(conf.train_config.dirpath,'weights',conf.model.type,conf.ts.name, version)
-    beauty_string(f'Model and weights will be placed and read from {dirpath}','info')
+    beauty_string(f'Model and weights will be placed and read from {dirpath}','info',VERBOSE)
     retrain = True
     ##if there is a model file look if you want to retrain it
     if os.path.exists(os.path.join(dirpath,'model.pkl')):
@@ -163,7 +163,7 @@ def train_stack(conf: DictConfig) -> None:
     
 
     if retrain is False:
-        logging.info(f'##########MODEL{ conf.model.type}-{conf.ts.name}-{conf.ts.version}  ALREADY TRAINED#############')
+        logging.info(f'##########MODEL{ conf.model.type}-{conf.ts.name}-{conf.ts.version}  ALREADY TRAINED#############',True)
 
         ## TODO if a model is altready trained with a config I should save the testloss somewhere
         return 0.0
@@ -173,6 +173,7 @@ def train_stack(conf: DictConfig) -> None:
         shutil.rmtree(dirpath)
     os.makedirs(dirpath)
     conf.train_config.dirpath = dirpath
+    ts.set_verbose(VERBOSE)
     ts.set_model(model,config=dict(model_configs=model_conf,
                                     optim_config=conf.optim_config,
                                     scheduler_config =conf.scheduler_config ) )
@@ -199,7 +200,7 @@ def train_stack(conf: DictConfig) -> None:
 
     valid_loss = ts.train_model(split_params=split_params,**conf.train_config)
     ts.save(os.path.join(conf.train_config.dirpath,'model'))
-    beauty_string(f'FINISH TRAINING PROCEDURE with loss = {valid_loss}','block')
+    beauty_string(f'FINISH TRAINING PROCEDURE with loss = {valid_loss}','block',VERBOSE)
     
     return valid_loss 
         

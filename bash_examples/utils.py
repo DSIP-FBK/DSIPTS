@@ -115,7 +115,10 @@ def select_model(conf, model_conf,ts):
         
     return model
 
-#def check_split_parameters
+def check_split_parameters(conf):
+    if conf.model in['autoformer','informer']:
+        assert conf.split_params.keep_entire_seq_while_shifting is True
+        
 
 
 def load_model(ts,conf):

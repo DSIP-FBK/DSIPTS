@@ -8,7 +8,7 @@ import plotly.express as px
 from inference import inference
 import hydra
 from dsipts import beauty_string
-
+VERBOSE = True
 
 
 
@@ -42,14 +42,14 @@ def compare(conf:DictConfig)-> None:
         
     for conf_tmp in files:
         
-        beauty_string(f'Processing file: {conf_tmp}','block')
+        beauty_string(f'Processing file: {conf_tmp}','block',VERBOSE)
         conf_tmp =  OmegaConf.load(conf_tmp) 
         
         conf_tmp.inference.set = conf.set
         conf_tmp.inference.rescaling = conf.rescaling
         conf_tmp.inference.batch_size = conf.get('batch_size',conf_tmp.inference.batch_size)
 
-        beauty_string(f'PROCESSING {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}','section')
+        beauty_string(f'PROCESSING {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}','section',VERBOSE)
 
         try:
             tmp,predictions, losses = inference(conf_tmp)
@@ -60,7 +60,7 @@ def compare(conf:DictConfig)-> None:
                 losses = losses.melt(id_vars='epoch')
                 losses['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
             else:
-                beauty_string(f'Can not load losses {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} maybe the train procedure is not completed','block')
+                beauty_string(f'Can not load losses {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} maybe the train procedure is not completed','block',True)
 
             losses.value = np.log(losses.value)
             res.append(tmp )
@@ -68,7 +68,7 @@ def compare(conf:DictConfig)-> None:
             tot_predictions.append(predictions)
         
         except Exception as e:
-            beauty_string(f'Can not load model {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} {e} ','')
+            beauty_string(f'Can not load model {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} {e} ','',True)
             
 
     tot_losses = pd.concat(tot_losses,ignore_index=True)
@@ -114,6 +114,7 @@ def compare(conf:DictConfig)-> None:
     
     ##TODO seems not working
     fig_losses.write_image(os.path.join(conf.dirpath,'plots',f'{conf.name}_{conf.set}_LOSSES.jpeg'),width=1000,scale=10)
+    
     tot_losses.to_csv(os.path.join(conf.dirpath,'csv',f'{conf.name}_{conf.set}_LOSSES.csv'))
     res.to_csv(os.path.join(conf.dirpath,'csv',f'{conf.name}_{conf.set}_errors.csv'))
     tot_predictions.to_csv(os.path.join(conf.dirpath,'csv',f'{conf.name}_{conf.set}_tot_predictions.csv'))

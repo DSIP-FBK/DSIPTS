@@ -143,7 +143,8 @@ class D3VAE(Base):
         batch_x_mark = batch['x_cat_past'].to(self.device)
         batch_y = batch['y'].to(self.device)
 
-        
+        import pdb
+        pdb.set_trace()
         _, out, _, _ = self.pred_net(batch_x, batch_x_mark)
         mse = self.loss(out.squeeze(1), batch_y)
         

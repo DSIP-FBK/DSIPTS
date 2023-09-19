@@ -7,7 +7,7 @@ import os
 from typing import List
 from datetime import timedelta 
 from utils import mse, mape, load_model
-
+VERBOSE = True
 
 def inference_stacked(conf:DictConfig,ts:TimeSeries)->List[pd.DataFrame]:
     predictions = None
@@ -31,7 +31,7 @@ def inference_stacked(conf:DictConfig,ts:TimeSeries)->List[pd.DataFrame]:
         if predictions is None:
             predictions = prediction[['time','lag']+list(mapping.values())+real_features]
         else:
-            assert(len(set(model_features).difference(set(model_features)))==0), beauty_string('Check models, seems with different targets','section')
+            assert(len(set(model_features).difference(set(model_features)))==0), beauty_string('Check models, seems with different targets','section',True)
             prediction = prediction[['time','lag']+list(mapping.values())]
             predictions = pd.merge(predictions, prediction)
             
@@ -78,14 +78,14 @@ def inference(conf:DictConfig)->List[pd.DataFrame]:
     else:
         from load_data.load_data_public import load_data
     ts = load_data(conf)
-    
-    beauty_string(conf.model.type,'block')
-    beauty_string(f'Model and weights will be placed and read from {conf.train_config.dirpath}','info')
+    ts.set_verbose(VERBOSE)
+    beauty_string(conf.model.type,'block',VERBOSE)
+    beauty_string(f'Model and weights will be placed and read from {conf.train_config.dirpath}','info',VERBOSE)
     loaded = load_model(ts,conf)
     if loaded:
-        beauty_string('Model successfully loaded','block')
+        beauty_string('Model successfully loaded','block',VERBOSE)
     else:
-        beauty_string('Model NOT loaded','block')
+        beauty_string('Model NOT loaded','block',True)
         return None, None, None
 
     if ts.stacked:

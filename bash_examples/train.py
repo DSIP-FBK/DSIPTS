@@ -6,10 +6,10 @@ import hydra
 import os
 import shutil
 import traceback
-from utils import select_model
+from utils import select_model, check_split_parameters
 
 
-
+VERBOSE = True
 
 
 @hydra.main(version_base=None)
@@ -32,7 +32,7 @@ def train(conf: DictConfig) -> None:
         version = version+'_'+version_modifier
     conf.ts.version = version
     selection = HydraConfig.get()['runtime']['choices'][K]+'_'+conf.ts.name+'_'+version
-    beauty_string(selection,'block')
+    beauty_string(selection,'block', VERBOSE)
 
     ##OCCHIO CHE tutti questi dataset hanno y come target! ###############################################
     
@@ -47,11 +47,13 @@ def train(conf: DictConfig) -> None:
     try:
         ts = load_data(conf)
     except Exception:
-        beauty_string(f"LOADING {conf.dataset.dataset} ERROR {traceback.format_exc()}",'')
+        beauty_string(f"LOADING {conf.dataset.dataset} ERROR {traceback.format_exc()}",'', True)
 
+    ts.set_verbose(VERBOSE)
     ######################################################################################################
     ts
-    
+    check_split_parameters(conf)
+    ######################################################################################################
     model_conf = conf.model_configs
     if model_conf is None:
         model_conf = {}
@@ -67,7 +69,7 @@ def train(conf: DictConfig) -> None:
         return 1000
 
     dirpath = os.path.join(conf.train_config.dirpath,'weights',conf.model.type,conf.ts.name, version)
-    beauty_string(f'Model and weights will be placed and read from {dirpath}','info')
+    beauty_string(f'Model and weights will be placed and read from {dirpath}','info', VERBOSE)
     
     retrain = True
     if os.path.exists(os.path.join(dirpath,'model.pkl')):
@@ -78,7 +80,7 @@ def train(conf: DictConfig) -> None:
             
 
     if retrain is False:
-        beauty_string(f'MODEL{ conf.model.type}-{conf.ts.name}-{conf.ts.version}  ALREADY TRAINED if you want to overwrite set model.retrain=True in the config ','block')
+        beauty_string(f'MODEL{ conf.model.type}-{conf.ts.name}-{conf.ts.version}  ALREADY TRAINED if you want to overwrite set model.retrain=True in the config ','block', True)
 
         ## TODO if a model is altready trained with a config I should save the testloss somewhere
         return 1000
@@ -106,12 +108,21 @@ def train(conf: DictConfig) -> None:
     used_config = os.path.join(path,'config_used')
     if not os.path.exists(used_config):
         os.mkdir(used_config)
-    with open(os.path.join(used_config,selection+'.yaml'),'w') as f:
-        f.write(OmegaConf.to_yaml(conf))
+
+    try:    
+        valid_loss = ts.train_model(split_params=split_params,**conf.train_config)
+        ok = True
+    except Exception as _:
+        beauty_string(traceback.format_exc(),'', True)
+        ok = False
         
-    valid_loss = ts.train_model(split_params=split_params,**conf.train_config)
-    ts.save(os.path.join(conf.train_config.dirpath,'model'))
-    beauty_string(f'##########FINISH TRAINING PROCEDURE with loss = {valid_loss}###############','block')
+    if ok:
+        ts.save(os.path.join(conf.train_config.dirpath,'model'))
+        with open(os.path.join(used_config,selection+'.yaml'),'w') as f:
+            f.write(OmegaConf.to_yaml(conf))
+        beauty_string(f'##########FINISH TRAINING PROCEDURE with loss = {valid_loss}###############','block', VERBOSE)
+    
+        
     return valid_loss ##for optuna!    
         
 if __name__ == '__main__': 

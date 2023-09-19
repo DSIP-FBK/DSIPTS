@@ -7,28 +7,28 @@ from pytorch_lightning import Callback
 import torch
 import os
 import logging
-def beauty_string(message:str,type:str):
+def beauty_string(message:str,type:str,verbose:bool):
     
     size = 80
-
-    if type=='block':
-        characters = len(message)
-        border = max((100-characters)//2-5,0)
-        logging.info('\n')
-        logging.info(f"{'#'*size}")
-        logging.info(f"{'#'*border}{' '*(size-border*2)}{'#'*border}")
-        logging.info(f"{ message:^{size}}")
-        logging.info(f"{'#'*border}{' '*(size-border*2)}{'#'*border}")
-        logging.info(f"{'#'*size}")
-    elif type=='section':
-        logging.info('\n')
-        logging.info(f"{'#'*size}")
-        logging.info(f"{ message:^{size}}")
-        logging.info(f"{'#'*size}")
-    elif type=='info':
-        logging.info(f"{ message:^{size}}")
-    else:
-        logging.info(message)
+    if verbose is True:
+        if type=='block':
+            characters = len(message)
+            border = max((100-characters)//2-5,0)
+            logging.info('\n')
+            logging.info(f"{'#'*size}")
+            logging.info(f"{'#'*border}{' '*(size-border*2)}{'#'*border}")
+            logging.info(f"{ message:^{size}}")
+            logging.info(f"{'#'*border}{' '*(size-border*2)}{'#'*border}")
+            logging.info(f"{'#'*size}")
+        elif type=='section':
+            logging.info('\n')
+            logging.info(f"{'#'*size}")
+            logging.info(f"{ message:^{size}}")
+            logging.info(f"{'#'*size}")
+        elif type=='info':
+            logging.info(f"{ message:^{size}}")
+        else:
+            logging.info(message)
 
 
 

@@ -12,9 +12,8 @@ model:
 
 ##where are the initial model
 stack:
-  models: config_test
+  models: null
   #models: ['config_used/linear.yaml']
-  dirpath: "/home/agobbi/Projects/ExpTS/test"
   set: 'test'
   name: 'prova'
   rescaling: true

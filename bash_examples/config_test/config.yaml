@@ -1,6 +1,6 @@
 dataset:
   dataset: 'weather'  
-  path: '/home/agobbi/Projects/ExpTS/data'
+  path: null
 
 scheduler_config:
   gamma: 0.1
@@ -19,6 +19,9 @@ model_configs:
   embs: null #dataset dependent
   out_channels: null #dataset dependent
 
+stack:
+  dirpath: null
+
 split_params:
   perc_train: 0.7
   perc_valid: 0.1
@@ -32,13 +35,13 @@ split_params:
   future_steps: model_configs@future_steps
 
 train_config:
-  dirpath: "/home/agobbi/Projects/ExpTS/test"
+  dirpath: null
   num_workers: 4
   auto_lr_find: false
   devices: [0]                   
 
 inference:
-  output_path: "/home/agobbi/Projects/ExpTS/test"
+  output_path: null
   load_last: true
   batch_size: 200 
   num_workers: 4

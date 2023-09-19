@@ -324,7 +324,7 @@ The loss plot is currenty broken on server, you can reproduce it form the notebo
 You can use the `config_test` for testing your models. In this case you can use smaller model with fewer epochs:
 
 ```
-python train.py -m --config-dir=config_test --config-name=config_gpu
+python train.py -m --config-dir=config_test --config-name=config
 ```
 
 
@@ -503,3 +503,16 @@ You can simply add the `group` parameter while defining the timeseries:
 
 ## Silly model 
 If you need to test your architecture, expecially the decoder part that uses `x_num_future` as input, it is possible to include the target values as input using `silly=True` in the load function. This allow to see if all the pipeline works properly (remember to remove it when training the final model).
+
+## Test
+You can execute all the tests with the command
+```
+pytest tests/test_all.py --folder /home/agobbi/Projects/ExpTS/test --data_dir /home/agobbi/Projects/ExpTS/data
+```
+All the models are trained on the same dataset (weather) for few epochs and with a small number of total parameters. If the `folder` parameter is missing the routine will create a temporary folder called  `TESTDSIPTS_tmp_TESTDSIPTS` containing the weights and the outputs. 
+The test are performed using the scripts `train.py, train_stacked.py` and `compare.py` testing the trainin procedure, the coparaison procedure, the optuna fine tuning step and the training of a stacked model. The whole procedure can take a lot of time, we are working to decrease the waiting time preserving the integrity of the tests.
+
+## TODO
+- reduce test time 
+- add pre-commit hook for code checking (`ruff check --ignore E501,E722 .`)
+- add pre-commit hook testing
