@@ -129,9 +129,9 @@ class TimeSeries():
         self.stacked = stacked
         self.verbose = True
     def __str__(self) -> str:
-        return beauty_string(f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables} \n With {'no group' if self.group is None else self.group+' as group' }",'')
+        return beauty_string(f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables} \n With {'no group' if self.group is None else self.group+' as group' }",'',True)
     def __repr__(self) -> str:
-        return beauty_string(f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables}\n With {'no group' if self.group is None else self.group+' as group' }",'')
+        return beauty_string(f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables}\n With {'no group' if self.group is None else self.group+' as group' }",'',True)
     def set_verbose(self,verbose:bool):
         self.verbose = verbose
     def _generate_base(self,length:int,type:int=0)-> None:
@@ -266,7 +266,7 @@ class TimeSeries():
         self.group = group 
         if group is not None:
             if group not in cat_var:
-                beauty_string(f'I will add {group} to the categorical variables','info')
+                beauty_string(f'I will add {group} to the categorical variables','info',self.verbose)
                 self.cat_var.append(group)
                 
                 
@@ -337,7 +337,7 @@ class TimeSeries():
                 x_cat_future: the categorical future variables
                 idx_target: index of target features in the past array
         """
-        beauty_string('Creating data loader','block')
+        beauty_string('Creating data loader','block',self.verbose)
         
         x_num_past_samples = []
         x_num_future_samples = []
@@ -507,7 +507,7 @@ class TimeSeries():
             List[DataLoader,DataLoader,DataLoadtrainer]: three dataloader used for training or inference
         """
 
-        beauty_string('Splitting for train','block')
+        beauty_string('Splitting for train','block',self.verbose)
 
         
         try:
@@ -629,7 +629,7 @@ class TimeSeries():
             precision  (Union[str,int], optional): precision to use. Usually 32 bit is fine but for larger model you should try 'bf16'. If 'auto' it will use bf16 for GPU and 32 for cpu
         """
 
-        beauty_string('Training the model','block')
+        beauty_string('Training the model','block',self.verbose)
 
         self.split_params = split_params
         self.check_custom = False
@@ -754,7 +754,7 @@ class TimeSeries():
             pd.DataFrame: the predicted values in a pandas format
         """
         
-        beauty_string('Inference on a set (train, validation o test)','block')
+        beauty_string('Inference on a set (train, validation o test)','block',self.verbose)
      
         if data is None:
             if split_params is None:

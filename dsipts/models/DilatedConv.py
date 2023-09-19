@@ -202,9 +202,9 @@ class DilatedConv(Base):
             
         if sum_emb and (emb_channels>0):
             emb_channels = cat_emb_dim
-            beauty_string('Using sum','info')
+            beauty_string('Using sum','info',self.verbose)
         else:
-            beauty_string('Using stacked','info')
+            beauty_string('Using stacked','info',self.verbose)
     
 
         if self.use_glu:
@@ -258,7 +258,7 @@ class DilatedConv(Base):
                                   num_layers = num_layers_RNN,
                                   batch_first=True,bidirectional=True)
         else:
-            beauty_string('Specify kind lstm or gru please','section')
+            beauty_string('Specify kind lstm or gru please','section',True)
         self.final_linear = nn.ModuleList()
         for _ in range(out_channels*self.mul):
             self.final_linear.append(nn.Sequential(nn.Linear(hidden_RNN+emb_channels+future_channels,hidden_RNN*2), 
