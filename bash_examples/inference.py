@@ -82,6 +82,8 @@ def inference(conf:DictConfig)->List[pd.DataFrame]:
     beauty_string(conf.model.type,'block',VERBOSE)
     beauty_string(f'Model and weights will be placed and read from {conf.train_config.dirpath}','info',VERBOSE)
     loaded = load_model(ts,conf)
+    import pdb
+    pdb.set_trace()
     if loaded:
         beauty_string('Model successfully loaded','block',VERBOSE)
     else:
