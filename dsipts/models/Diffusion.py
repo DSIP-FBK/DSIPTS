@@ -35,6 +35,29 @@ class Diffusion(Base):
                  scheduler_config:dict=None)->None:
         super().__init__()
         self.save_hyperparameters(logger=False)
+        # ...
+        self.persistence_weight = persistence_weight 
+        self.loss_type = loss_type
+        self.optim = optim
+        self.optim_config = optim_config
+        self.scheduler_config = scheduler_config
+        self.noise_loss = nn.MSELoss()
+
+        # output, handling quantiles or not
+        assert (len(quantiles) ==0) or (len(quantiles)==3)
+        if len(quantiles)==0:
+            self.mul = 1
+            self.use_quantiles = False
+            self.outLinear = nn.Linear(d_model, out_channels)
+            if self.loss_type == 'mse':
+                self.loss = nn.MSELoss()
+            else:
+                self.loss = nn.L1Loss()
+        else:
+            self.mul = len(quantiles)
+            self.use_quantiles = True
+            self.outLinear = nn.Linear(d_model, out_channels*len(quantiles))
+            self.loss = QuantileLossMO(quantiles)
         
         # params data
         self.d_model = d_model
@@ -74,30 +97,6 @@ class Diffusion(Base):
         # deciding which way to get the output is better (paper not clear) 
         self.inference_out_from_sub_net = inference_out_from_sub_net
 
-        # ...
-        self.persistence_weight = persistence_weight 
-        self.loss_type = loss_type
-        self.optim = optim
-        self.optim_config = optim_config
-        self.scheduler_config = scheduler_config
-        self.noise_loss = nn.MSELoss()
-
-        #? TO HANDLE QUANTILES
-        # output, handling quantiles or not
-        assert (len(quantiles) ==0) or (len(quantiles)==3)
-        if len(quantiles)==0:
-            self.mul = 1
-            self.use_quantiles = False
-            self.outLinear = nn.Linear(d_model, out_channels)
-            if self.loss_type == 'mse':
-                self.loss = nn.MSELoss()
-            else:
-                self.loss = nn.L1Loss()
-        else:
-            self.mul = len(quantiles)
-            self.use_quantiles = True
-            self.outLinear = nn.Linear(d_model, out_channels*len(quantiles))
-            self.loss = QuantileLossMO(quantiles)
 
     def forward(self, batch:dict) -> torch.Tensor:
         """forward method used to make subnet learn the noise added the the latent variable.
