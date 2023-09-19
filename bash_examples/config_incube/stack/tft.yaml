@@ -1,0 +1,52 @@
+# @package _global_
+ts:
+  version: 1
+  name: stacked
+  type: stacked
+  enrich: []
+  use_covariates: false ##does not matter but it is mandatory
+  
+model:
+  type: tft
+  retrain: true
+
+##where are the initial model
+stack:
+  #models: config_test
+  models:
+    - 'config_incube/config_used/tft_test_1_loss_type=std_penalizationpersistence_weight=10.yaml'
+    #- 'config_incube/config_used/informer_test_1.yaml'
+    #- 'config_incube/config_used/autoformer_test_1.yaml'
+    - 'config_incube/config_used/patchtst_test_1.yaml'
+  dirpath: "/home/agobbi/Projects/ExpTS/incube"
+  set: 'validation'
+  name: 'prova'
+  rescaling: true
+  batch_size: 64
+
+
+model_configs:
+  quantiles: [0.1,0.5,0.9]
+  d_model: 128
+  d_head: 32
+  n_head: 6
+  num_layers_RNN: 12
+  optim: torch.optim.Adam
+  dropout_rate: 0.5
+  persistence_weight: 0.010
+  loss_type: 'l1'
+
+
+
+split_params:
+  perc_train: 0.8
+  perc_valid: 0.2
+  past_steps: null
+  starting_point: null
+  future_steps: null
+
+
+train_config:
+  batch_size: 64
+  max_epochs: 1000
+
