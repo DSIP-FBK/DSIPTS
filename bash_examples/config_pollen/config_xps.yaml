@@ -32,7 +32,7 @@ split_params:
   skip_step: 1
   past_steps: model_configs@past_steps 
   future_steps: model_configs@future_steps
-  normalize_per_group: true
+  normalize_per_group: false
 
 train_config:
   dirpath: "/home/agobbi/Projects/ExpTS/pollen" 
