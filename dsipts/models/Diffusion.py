@@ -285,6 +285,8 @@ class Diffusion(Base):
         else:   
             computed_noise_0 = sub_net(z_t, target_emb_num_past, summary_past, summary_fut)
             out = z_t/sqrt_alpha - np.sqrt(self.beta)*computed_noise_0/sqrt_alpha # last diffusion step without re-adding noise, rewritten considering alpha_1 = 1 - beta_1
+
+        out = out.view(-1, self.future_steps, self.output_channels, self.mul)
         return out
 
 
@@ -394,13 +396,13 @@ class Diffusion(Base):
         """
         all_eps = []
         for i in range(batch_size):
-            eps = torch.normal(mean=0., std=1., size=(1, self.future_steps, self.output_channels))
+            eps = torch.normal(mean=0., std=1., size=(1, self.future_steps, self.output_channels * self.mul))
             all_eps.append(eps)
         all_eps = torch.cat(all_eps, dim = 0)
         return all_eps
 
 class SubNet(nn.Module):
-    def __init__(self, output_channel:int, d_model:int, d_head:int, n_head:int, dropout_rate:float) -> None:
+    def __init__(self, output_channel:int, quantiles:int, d_model:int, d_head:int, n_head:int, dropout_rate:float) -> None:
         """SUB NET of the Diffusion Model
 
         Due to a reparametrization of the task, the subnet is intended to compute the noise to be subtracted at each step to the input sequence.
@@ -414,16 +416,17 @@ class SubNet(nn.Module):
 
         Args:
             output_channel (int): number of target variables
+            quantiles (int): number of quantiles for each output_channel
             d_model (int): hidden dimension of the Net
             d_head (int): subNet dependent - dimension of each head
             n_head (int): subNet dependent - number of heads
             dropout_rate (float): 
         """
         super().__init__()
-        self.target_in_linear = nn.Linear(output_channel, d_model)
+        self.target_in_linear = nn.Linear(output_channel*quantiles, d_model)
         self.attention = sub_nn.InterpretableMultiHead(d_model, d_head, n_head)
         self.res_conn = sub_nn.ResidualConnection(d_model, dropout_rate)
-        self.target_out_linear = nn.Linear(d_model, output_channel)
+        self.target_out_linear = nn.Linear(d_model, output_channel*quantiles)
 
 
     def forward(self, y_noised:torch.Tensor, y_past:torch.Tensor, past_summary:torch.Tensor, future_summary:torch.Tensor)-> torch.Tensor:
