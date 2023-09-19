@@ -355,10 +355,16 @@ class TimeSeries():
         for c in self.cat_var:
             self.enrich(data,c)
 
+        if self.group is None:
+            data['_GROUP_'] = '1'
+        else:
+            data['_GROUP_'] = data[self.group].values
+            
+            
         if self.normalize_per_group:
             tot = []
             groups = data[self.group].unique()
-            data['_GROUP_'] = data[self.group].values
+            
             data[self.group] = self.scaler_cat[self.group].transform(data[self.group].values.ravel()).flatten()
             
             for group in groups:
@@ -389,9 +395,7 @@ class TimeSeries():
         if len(idx_target_future)==0:
             idx_target_future = None
         
-        if self.group is None:
-            data['_GROUP_'] = '1'
-                
+
         if self.stacked:
             skip_stacked = future_steps*future_steps-future_steps
         else:
