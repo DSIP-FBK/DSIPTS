@@ -966,7 +966,7 @@ class TimeSeries():
             params = pickle.load(f)
             for p in params:
                 setattr(self,p, params[p])    
-        self.model = model(**self.config['model_configs'],optim_config = self.config['optim_config'],scheduler_config =self.config['scheduler_config'] )
+        self.model = model(**self.config['model_configs'],optim_config = self.config['optim_config'],scheduler_config =self.config['scheduler_config'],verbose=self.verbose )
         
         
         if weight_path is not None:
