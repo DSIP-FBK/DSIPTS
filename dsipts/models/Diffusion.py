@@ -92,7 +92,7 @@ class Diffusion(Base):
         # diffusion sub nets
         # one subnet for each step
         self.sub_nets = nn.ModuleList([
-            SubNet(out_channels, d_model, d_head, n_head, dropout_rate) for _ in range(diffusion_steps)
+            SubNet(out_channels, self.mul, d_model, d_head, n_head, dropout_rate) for _ in range(diffusion_steps)
         ])
         # deciding which way to get the output is better (paper not clear) 
         self.inference_out_from_sub_net = inference_out_from_sub_net
