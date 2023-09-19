@@ -194,7 +194,8 @@ class Diffusion(Base):
     # for validation extract the output from the self.inference method
     def validation_step(self, batch, batch_idx):
         out = self.inference(batch)
-        return out
+        loss = self.compute_loss(batch,out)
+        return loss
 
     
     def inference(self, batch:dict) -> torch.Tensor:
