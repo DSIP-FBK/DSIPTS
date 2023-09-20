@@ -31,7 +31,8 @@ class Diffusion(Base):
                  optim_config:dict=None,
                  scheduler_config:dict=None,
                  **kwargs)->None:
-        super().__init__()
+        
+        super().__init__(**kwargs)
         self.save_hyperparameters(logger=False)
     
         self.persistence_weight = persistence_weight 
@@ -234,7 +235,7 @@ class Diffusion(Base):
         # if we have future numerical variables, concatenate them to the summary fut
         if self.aux_fut_channels>0: # so we have more numerical variables about future
             aux_num_fut = batch['x_num_future'].to(self.device)
-            assert self.aux_fut_channels == aux_num_fut.size(2), logging.info(f"{self.aux_fut_channels} LAYERS FOR PAST VARS AND {aux_num_fut.size(2)} VARS")  # to check if we are using the expected number of variables about fut
+            assert self.aux_fut_channels == aux_num_fut.size(2), beauty_string(f"{self.aux_fut_channels} LAYERS FOR PAST VARS AND {aux_num_fut.size(2)} VARS",'section',True)  # to check if we are using the expected number of variables about fut
             aux_emb_num_fut = torch.Tensor().to(aux_num_fut.device)
             for j, layer in enumerate(self.linear_aux_fut):
                 aux_emb_fut = layer(aux_num_fut[:,:,[j]]).unsqueeze(2)
