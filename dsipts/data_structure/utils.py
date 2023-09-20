@@ -9,7 +9,7 @@ import os
 import logging
 def beauty_string(message:str,type:str,verbose:bool):
     
-    size = 80
+    size = 150
     if verbose is True:
         if type=='block':
             characters = len(message)
