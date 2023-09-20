@@ -75,6 +75,16 @@ class embedding_cat_variables(nn.Module):
 
 class LSTM_Model(nn.Module):
     def __init__(self, num_var: int, d_model: int, pred_step: int, num_layers: int, dropout: float):
+        """LSTM from [..., d_model] to [..., predicted_step, num_of_vars] 
+
+        Args:
+            num_var (int): number of variables encoded in the input tensor
+            d_model (int): encoding dimension of the tensor
+            pred_step (int): step to be predicted by LSTM
+            num_layers (int): number of layers of LSTM
+            dropout (float): 
+        """
+
         super().__init__()
         self.num_var = num_var
         self.d_model = d_model
@@ -85,6 +95,15 @@ class LSTM_Model(nn.Module):
         self.linear = nn.Linear(d_model, pred_step*num_var)
 
     def forward(self, x):
+        """LSTM process over the x tensor and reshaping according to pred_step and num_var to be predicted 
+
+        Args:
+            x (torch.Tensor): input tensor
+
+        Returns:
+            torch.Tensor: tensor resized to [B, pred_step, num_var]
+        """
+
         h0 = torch.zeros(self.num_layers, x.size(0), self.d_model).to(x.device)
         c0 = torch.zeros(self.num_layers, x.size(0), self.d_model).to(x.device)
         out, _ = self.lstm(x, (h0, c0))
@@ -94,6 +113,14 @@ class LSTM_Model(nn.Module):
     
 class GLU(nn.Module):
     def __init__(self, d_model: int):
+        """Gated Linear Unit
+        
+        Auxiliary subnet for sigmoid element-wise multiplication
+
+        Args:
+            d_model (int): dimension of operations
+        """
+
         super().__init__()
         self.linear1 = nn.Linear(d_model, d_model, bias = False)
         self.linear2 = nn.Linear(d_model, d_model, bias = False)
@@ -107,6 +134,15 @@ class GLU(nn.Module):
     
 class GRN(nn.Module):
     def __init__(self, d_model: int, dropout_rate: float):
+        """Gated Residual Network
+
+        Auxiliary subnet for gating residual connections
+
+        Args:
+            d_model (int): 
+            dropout_rate (float):
+        """
+
         super().__init__()
         self.linear1 = nn.Linear(d_model, d_model) 
         self.elu = nn.ELU()
@@ -120,7 +156,16 @@ class GRN(nn.Module):
         return out
     
 class ResidualConnection(nn.Module):
-    def __init__(self, d_model, dropout_rate) -> None:
+    def __init__(self, d_model, dropout_rate):
+        """Residual Connection of res_conn with GLU(x)
+        
+        Auxiliary subnet for residual connections
+
+        Args:
+            d_model (int): 
+            dropout_rate (float): 
+        """
+
         super().__init__()
         self.dropout = nn.Dropout(dropout_rate)
         self.glu = GLU(d_model)
@@ -132,7 +177,21 @@ class ResidualConnection(nn.Module):
         return out
 
 class InterpretableMultiHead(nn.Module):
-    def __init__(self, d_model, d_head, n_head) -> None:
+    def __init__(self, d_model, d_head, n_head):
+        """Interpretable MultiHead Attention
+
+        Similar to canonical MultiHead Attention with Query-Keys-Value structure
+        Particularities are:
+        - Only one common "Value"-Linear layer for all heads
+        - output of all heads are summed together and then rescaled over the number of heads
+        The final output tensor is re-embedded in the initial dimension
+
+        Args:
+            d_model (int): starting and ending dimension of the net
+            d_head (int): hidden dimension of all heads
+            n_head (int): number of heads
+        """
+
         super().__init__()
         self.d_head = d_head
         self.n_head = n_head
