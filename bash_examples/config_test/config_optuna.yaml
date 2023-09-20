@@ -1,0 +1,87 @@
+dataset:
+  dataset: 'weather'  
+  path: null
+
+scheduler_config:
+  gamma: 0.1
+  step_size: 100
+
+optim_config:
+  lr: 0.0005
+  weight_decay: 0.01
+
+model_configs:
+  past_steps: 16
+  future_steps: 16
+  quantiles: [0.1,0.5,0.9]
+  past_channels : null #dataset dependent
+  future_channels : null #dataset dependent
+  embs: null #dataset dependent
+  out_channels: null #dataset dependent
+
+split_params:
+  perc_train: 0.7
+  perc_valid: 0.1
+  range_train: null
+  range_validation: null 
+  range_test: null
+  shift: 0
+  starting_point: null
+  skip_step: 1
+  past_steps: model_configs@past_steps 
+  future_steps: model_configs@future_steps
+
+train_config:
+  dirpath: null
+  num_workers: 0
+  auto_lr_find: false
+  devices: [0]                   
+
+inference:
+  output_path: null
+  load_last: true
+  batch_size: 200 
+  num_workers: 4
+  set: "validation"
+  rescaling: true
+
+defaults:
+  - _self_
+  - architecture: null #architecture
+  - override hydra/launcher: joblib
+  - override hydra/sweeper: optuna 
+
+hydra:
+  launcher:
+    n_jobs:  4
+    verbose: 1
+    pre_dispatch: 1
+    batch_size: 4
+
+  output_subdir: null 
+
+
+  sweeper:
+    sampler:
+      _target_: optuna.samplers.TPESampler ## see https://optuna.readthedocs.io/en/stable/reference/samplers/index.html for other samplers
+      seed: 123
+      consider_prior: true
+      prior_weight: 1.0
+      consider_magic_clip: true
+      consider_endpoints: false
+      n_startup_trials: 10
+      n_ei_candidates: 24
+      multivariate: false
+      warn_independent_sampling: true
+    _target_: hydra_plugins.hydra_optuna_sweeper.optuna_sweeper.OptunaSweeper
+    direction: minimize
+    storage: sqlite:///tutorial.db  ## or null
+    study_name: tft
+    n_trials: 4 ## put the number of maximun trials
+    n_jobs: 2   ## parallel jobs
+
+
+    params:
+      architecture: linear                                 #architecture you want to finetune
+      model_configs.cat_emb_dim: choice(2,4,16)            #parameters you want to explore, categorical
+      model_configs.dropout_rate: range(0.1,0.9,0.1) #or continuous
