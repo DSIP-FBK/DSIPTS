@@ -2,7 +2,7 @@
 import argparse
 import pandas as pd
 from omegaconf import DictConfig, OmegaConf
-from dsipts import TimeSeries, RNN, Attention,read_public_dataset,Informer, LinearTS, Persistent,D3VAE,MyModel, TFT,TFT2,VVA,VQVAEA,CrossFormer
+from dsipts import TimeSeries, RNN, Attention,read_public_dataset,Informer, LinearTS, Persistent,D3VAE,MyModel, TFT,TFT2,VVA,VQVAEA,CrossFormer, Diffusion
 import hydra
 import os
 import shutil
@@ -116,6 +116,8 @@ def inference(conf:DictConfig)->List[pd.DataFrame]:
         ts.load(VQVAEA,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
     elif conf.model.type == 'crossformer':
         ts.load(CrossFormer,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
+    elif conf.model.type == 'diffusion':
+        ts.load(Diffusion,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
   
     else:
         print('use a valid model')

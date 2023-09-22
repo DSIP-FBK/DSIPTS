@@ -251,7 +251,6 @@ class Diffusion(Base):
         summary_past, summary_fut = self.cat_categorical_vars(batch, summary_past, summary_fut)
 
 
-        #! summary future could be none if only autoregressive
         # IF summary_fut is None change tactic?.
         # >>> PAST:
         summary_past = torch.mean(summary_past, dim=2)
@@ -311,14 +310,14 @@ class Diffusion(Base):
             
             ## update past
             # if we don't have a tensor to update, init a new one
-            if past_tensor_to_update == None:
+            if past_tensor_to_update is None:
                 update_past = cat_emb_past
             else:
                 update_past =  torch.cat((past_tensor_to_update, cat_emb_past), dim=2)
 
             # update future
             # if we don't have a tensor to update, init a new one
-            if future_tensor_to_update == None:
+            if future_tensor_to_update is None:
                 update_future = cat_emb_fut
             else:
                 update_future =  torch.cat((future_tensor_to_update, cat_emb_fut), dim=2)
@@ -374,7 +373,7 @@ class Diffusion(Base):
         """
         all_samples = []
         for i in range(batch_size):
-            if type(means)==float:
+            if isinstance(means, float):
                 samples = torch.normal(mean=means, std=stds, size=(1, self.seq_len))
             else:
                 samples = torch.normal(mean=means[i], std=stds[i], size=(1, self.seq_len))
