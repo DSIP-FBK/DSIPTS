@@ -4,7 +4,7 @@ import torch
 import pytorch_lightning as pl
 from torch.optim.lr_scheduler import StepLR
 from abc import  abstractmethod
-from .utils import SinkhornDistance
+from .utils import SinkhornDistance,dilate_loss
 from ..data_structure.utils import beauty_string
 
 
@@ -190,7 +190,25 @@ class Base(pl.LightningModule):
             else:
                 x = y_hat[:,:,:,1]
             loss = torch.mean(2*torch.abs(x-batch['y']) / (torch.abs(x)+torch.abs(batch['y'])))
+            
+        elif self.loss_type=='dilated':
+            #BxLxCxMUL
+            if self.use_quantiles is False :
+                x = y_hat[:,:,:,0]
+            else:
+                x = y_hat[:,:,:,1]
+            alpha = 0.5
+            gamma = 0.01
+            loss = 0
+            ##no multichannel here
+            for i in range(y_hat.shape[2]):
+                 
+                loss+= dilate_loss(y_hat[:,:,i:i+1], batch['y'][:,:,i:i+1], alpha, gamma, y_hat.device)
+            
+            
         else:
             loss = initial_loss
+
+
 
         return loss
