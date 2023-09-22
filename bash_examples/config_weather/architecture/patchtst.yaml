@@ -1,7 +1,7 @@
 # @package _global_
 
 model:
-  type: 'tft'
+  type: 'patchtst'
   retrain: true
 ts:
   name: 'weather'
@@ -11,16 +11,22 @@ ts:
 
 
 model_configs:
-  d_model: 128
-  d_head: 32
-  n_head: 6
-  num_layers_RNN: 12
+  d_model: 64
+  kernel_size: 3
+  decomposition: true
+  n_layer: 2
+  patch_len: 12
+  n_head: 2
+  stride: 8
+  dropout_rate: 0.25
+  hidden_size: 128
   optim: torch.optim.Adam
-  dropout_rate: 0.5
+  activation: torch.nn.PReLU
   persistence_weight: 0.010
   loss_type: 'l1'
+  remove_last: true
 
 train_config:
   batch_size: 64
-  max_epochs: 500
+  max_epochs: 1000
             

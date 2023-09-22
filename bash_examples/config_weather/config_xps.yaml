@@ -22,8 +22,8 @@ model_configs:
   persistence_weight: 1.0
 
 split_params:
-  perc_train: 0.8
-  perc_valid: 0.1
+  perc_train: 0.5
+  perc_valid: 0.4
   range_train: null
   range_validation: null
   range_test: null
@@ -43,13 +43,14 @@ train_config:
 inference:
   output_path: "/home/agobbi/Projects/ExpTS/weather" 
   load_last: true
-  batch_size: 200 
+  batch_size: 64 
   num_workers: 4
-  set: "validation"
+  set: "test"
   rescaling: true
 
 defaults:
   - _self_
+  - stack: null
   - architecture: null 
   - override hydra/launcher: joblib 
 

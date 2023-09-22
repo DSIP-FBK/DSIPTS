@@ -3,5 +3,5 @@ models: 'config_weather'
 dirpath: "/home/agobbi/Projects/ExpTS/weather"
 set: 'test'
 name: 'prova'
-rescaling: true
+rescaling: false
 batch_size: 32

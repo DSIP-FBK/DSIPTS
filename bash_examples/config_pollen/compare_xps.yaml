@@ -3,5 +3,5 @@ models: 'config_pollen'
 dirpath: "/home/agobbi/Projects/ExpTS/pollen"
 set: 'test'
 name: 'prova'
-rescaling: true
+rescaling: false
 batch_size: 128
