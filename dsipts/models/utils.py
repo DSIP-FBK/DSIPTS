@@ -458,3 +458,4 @@ class PathDTWBatch(Function):
             Hessian[k:k+1,:,:] = torch.FloatTensor(hess_k).to(device)
 
         return  Hessian, None
+    

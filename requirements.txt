@@ -16,4 +16,5 @@ hydra-core
 einops
 m2r2
 pytest
+numba
 #docutils==0.19

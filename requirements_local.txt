@@ -13,4 +13,5 @@ sphinx_rtd_theme
 hydra-core
 einops
 m2r2
+numba
 #docutils==0.19
