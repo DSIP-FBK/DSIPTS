@@ -11,12 +11,12 @@ ts:
 
 model_configs:
   d_model: 128
-  diffusion_steps: 40
-  beta: 0.05
+  diffusion_steps: 20
+  beta: 0.1
   sigma: 1
   inference_out_from_sub_net: True
   d_head: 128
-  n_head: 8
+  n_head: 16
   optim: torch.optim.Adam
   dropout_rate: 0.2
   persistence_weight: 0.010
@@ -25,5 +25,5 @@ model_configs:
 
 train_config:
   batch_size: 64
-  max_epochs: 2000
+  max_epochs: 800
             
