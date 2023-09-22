@@ -222,9 +222,7 @@ class Base(pl.LightningModule):
             ##no multichannel here
             for i in range(y_hat.shape[2]):
                 ##error here
-                import pdb
-                pdb.set_trace()
-                loss+= dilate_loss(y_hat[:,:,i:i+1], batch['y'][:,:,i:i+1], alpha, gamma, y_hat.device)
+                loss+= dilate_loss(x[:,:,i:i+1], batch['y'][:,:,i:i+1], alpha, gamma, y_hat.device)
             
             
         else:
