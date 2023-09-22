@@ -13,7 +13,7 @@ optim_config:
 model_configs:
   past_steps: 168
   future_steps: 48
-  quantiles: []
+  quantiles: [0.1, 0.5, 0.9]
   past_channels : null #dataset dependent
   future_channels : null #dataset dependent
   embs: null #dataset dependent
@@ -33,13 +33,13 @@ split_params:
   future_steps: model_configs@future_steps
 
 train_config:
-  dirpath: "/home/agobbi/Projects/ExpTS/incube" 
+  dirpath: '/storage/DSIP/edison/TsExp/data/incube'
   num_workers: 0
   auto_lr_find: true
   devices: [0]                   
 
 inference:
-  output_path: "/home/agobbi/Projects/ExpTS/incube" 
+  output_path: '/storage/DSIP/edison/TsExp/data/incube'
   load_last: true
   batch_size: 200 
   num_workers: 4
