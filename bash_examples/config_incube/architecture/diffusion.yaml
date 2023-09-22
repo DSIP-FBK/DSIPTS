@@ -15,10 +15,10 @@ model_configs:
   beta: 0.1
   sigma: 1
   inference_out_from_sub_net: True
-  d_head: 64
-  n_head: 8
-  optim: torch.optim.Adam
-  dropout_rate: 0.2
+  d_head: 128
+  n_head: 16
+  optim: torch.optim.SGD
+  dropout_rate: 0.3
   persistence_weight: 0.010
   loss_type: 'l1'
 
