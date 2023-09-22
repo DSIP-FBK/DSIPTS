@@ -24,7 +24,7 @@ def dilate_loss(outputs, targets, alpha, gamma, device):
 	Omega =  pairwise_distances(torch.range(1,N_output).view(N_output,1)).to(device)
 	loss_temporal =  torch.sum( path*Omega ) / (N_output*N_output) 
 	loss = alpha*loss_shape+ (1-alpha)*loss_temporal
-	return loss, loss_shape, loss_temporal
+	return loss#, loss_shape, loss_temporal
 
 
 class Base(pl.LightningModule):
@@ -222,6 +222,7 @@ class Base(pl.LightningModule):
             ##no multichannel here
             for i in range(y_hat.shape[2]):
                 ##error here
+                
                 loss+= dilate_loss(x[:,:,i:i+1], batch['y'][:,:,i:i+1], alpha, gamma, y_hat.device)
             
             
