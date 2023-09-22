@@ -10,13 +10,13 @@ ts:
   use_covariates: false
 
 model_configs:
-  d_model: 128
+  d_model: 64
   diffusion_steps: 20
   beta: 0.1
   sigma: 1
   inference_out_from_sub_net: True
-  d_head: 128
-  n_head: 16
+  d_head: 64
+  n_head: 8
   optim: torch.optim.Adam
   dropout_rate: 0.2
   persistence_weight: 0.010
