@@ -7,7 +7,7 @@ import os
 import shutil
 import traceback
 from utils import select_model, check_split_parameters
-
+import time
 
 VERBOSE = True
 
@@ -108,7 +108,7 @@ def train(conf: DictConfig) -> None:
     used_config = os.path.join(path,'config_used')
     if not os.path.exists(used_config):
         os.mkdir(used_config)
-
+    tot_seconds = time.time()
     try:    
         valid_loss = ts.train_model(split_params=split_params,**conf.train_config)
         ok = True
@@ -120,7 +120,7 @@ def train(conf: DictConfig) -> None:
         ts.save(os.path.join(conf.train_config.dirpath,'model'))
         with open(os.path.join(used_config,selection+'.yaml'),'w') as f:
             f.write(OmegaConf.to_yaml(conf))
-        beauty_string(f'##########FINISH TRAINING PROCEDURE with loss = {valid_loss}###############','block', VERBOSE)
+        beauty_string(f'FINISH TRAINING PROCEDURE in {(time.time()-tot_seconds)/60} with loss = {valid_loss}','block', VERBOSE)
     
         
     return valid_loss ##for optuna!    
