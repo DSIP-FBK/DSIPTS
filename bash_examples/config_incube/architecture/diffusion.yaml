@@ -10,11 +10,11 @@ ts:
   use_covariates: false
 
 model_configs:
-  d_model: 64
+  d_model: 256
   diffusion_steps: 20
   beta: 0.1
   sigma: 1
-  inference_out_from_sub_net: True
+  inference_out_from_sub_net: False
   d_head: 128
   n_head: 16
   optim: torch.optim.SGD
