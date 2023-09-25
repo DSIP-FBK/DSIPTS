@@ -17,8 +17,8 @@ model_configs:
   num_layers_RNN: 2
   optim: torch.optim.Adam
   dropout_rate: 0.5
-  persistence_weight: 0.010
-  loss_type: 'l1'
+  persistence_weight: 10
+  loss_type: 'std_penalization'
 
 
 train_config:
