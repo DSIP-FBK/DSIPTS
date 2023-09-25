@@ -216,7 +216,7 @@ class Base(pl.LightningModule):
                 x = y_hat[:,:,:,0]
             else:
                 x = y_hat[:,:,:,1]
-            alpha = 0.5
+            alpha = 0.75
             gamma = 0.01
             loss = 0
             ##no multichannel here
