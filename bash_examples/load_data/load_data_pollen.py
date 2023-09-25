@@ -10,7 +10,7 @@ def load_data(conf):
    data.data = pd.to_datetime(data.data, utc=True)
    data.rename(columns={'data':'time'},inplace=True)
    data.totals[data.totals<0] = 0
-   #data.totals = np.log(data.totals+1)
+   data.totals = np.log(data.totals+1)
    meteo = ['vsw_1', 'vsw_2', 'vsw_3', 'vsw_4', 'lai_H',
       'lai_L', 'st_1', 's_pres', 'u_comp', 'v_comp', '2mT', '2mTd', 'st_2',
       'st_3', 's_res_c', 'skin_T', 'st_4', 'fc_alb', 'net_sol', 'p_evap',
