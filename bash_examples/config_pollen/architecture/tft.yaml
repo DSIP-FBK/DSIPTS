@@ -11,10 +11,10 @@ ts:
   silly: false
 
 model_configs:
-  d_model: 64
-  d_head: 32
-  n_head: 6
-  num_layers_RNN: 2
+  d_model: 128
+  d_head: 64
+  n_head: 12
+  num_layers_RNN: 4
   optim: torch.optim.Adam
   dropout_rate: 0.5
   persistence_weight: 10
