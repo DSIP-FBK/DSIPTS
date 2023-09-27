@@ -223,7 +223,7 @@ class Base(pl.LightningModule):
             for i in range(y_hat.shape[2]):
                 ##error here
                 
-                loss+= dilate_loss(x[:,:,i:i+1], batch['y'][:,:,i:i+1], alpha, gamma, y_hat.device)
+                loss+= dilate_loss( batch['y'][:,:,i:i+1],x[:,:,i:i+1], alpha, gamma, y_hat.device)
             
             
         else:
