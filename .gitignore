@@ -1,3 +1,12 @@
-.ipynb_checkpoints
-.pyc
-.ckpt
+*.ipynb_checkpoints
+*.pyc
+*.ckpt
+__pycache__/
+*.rst
+*.pkl
+*config_used*
+logs
+multirun
+tmp
+*.db
+dist*
