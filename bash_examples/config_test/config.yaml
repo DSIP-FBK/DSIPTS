@@ -39,7 +39,7 @@ train_config:
   num_workers: 4
   auto_lr_find: false
   devices: [0]                   
-
+  seed: 42    
 inference:
   output_path: null
   load_last: true

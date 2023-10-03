@@ -39,7 +39,8 @@ train_config:
   num_workers: 0
   auto_lr_find: true
   devices: [0]                   
-
+  seed: 42    
+  
 inference:
   output_path: "/home/agobbi/Projects/ExpTS/incube" 
   load_last: true

@@ -64,6 +64,7 @@ class LinearTS(Base):
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
                  scheduler_config:dict=None,
+                 simple:bool=False,
                  **kwargs)->None:
         """Linear model from https://github.com/cure-lab/LTSF-Linear/blob/main/run_longExp.py
 
@@ -89,6 +90,7 @@ class LinearTS(Base):
             optim (str, optional): if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
+            simple (bool, optional): if simple, the model used is the same that the one illustrated in the paper, otherwise it is a more complicated one with the same idea
         """
         super().__init__(**kwargs)
 
@@ -111,6 +113,7 @@ class LinearTS(Base):
         self.sum_emb = sum_emb
         self.persistence_weight = persistence_weight 
         self.loss_type = loss_type
+        self.simple = simple
         if n_classes==0:
             self.is_classification = False
             if len(quantiles)>0:
@@ -160,49 +163,42 @@ class LinearTS(Base):
             
         
         for _ in range(out_channels):
-            self.linear.append(nn.Sequential(nn.Linear(emb_channels*(past_steps+future_steps)+past_steps*past_channels+future_channels*future_steps,hidden_size),
-                                                activation(),
-                                                nn.BatchNorm1d(hidden_size) if use_bn else nn.Dropout(dropout_rate) ,    
-                                                nn.Linear(hidden_size,hidden_size//2), 
-                                                activation(),
-                                                nn.BatchNorm1d(hidden_size//2) if use_bn else nn.Dropout(dropout_rate) ,    
-                                                nn.Linear(hidden_size//2,hidden_size//4),
-                                                activation(),
-                                                nn.BatchNorm1d(hidden_size//4) if use_bn else nn.Dropout(dropout_rate) ,    
-                                                nn.Linear(hidden_size//4,hidden_size//8),
-                                                activation(),
-                                                nn.BatchNorm1d(hidden_size//8) if use_bn else nn.Dropout(dropout_rate) ,    
-                                                nn.Linear(hidden_size//8,self.future_steps*self.mul)))
+            if simple:
+                self.linear.append(nn.Linear(past_steps,self.future_steps*self.mul))
+                                               
+            else:
+                self.linear.append(nn.Sequential(nn.Linear(emb_channels*(past_steps+future_steps)+past_steps*past_channels+future_channels*future_steps,hidden_size),
+                                                    activation(),
+                                                    nn.BatchNorm1d(hidden_size) if use_bn else nn.Dropout(dropout_rate) ,    
+                                                    nn.Linear(hidden_size,hidden_size//2), 
+                                                    activation(),
+                                                    nn.BatchNorm1d(hidden_size//2) if use_bn else nn.Dropout(dropout_rate) ,    
+                                                    nn.Linear(hidden_size//2,hidden_size//4),
+                                                    activation(),
+                                                    nn.BatchNorm1d(hidden_size//4) if use_bn else nn.Dropout(dropout_rate) ,    
+                                                    nn.Linear(hidden_size//4,hidden_size//8),
+                                                    activation(),
+                                                    nn.BatchNorm1d(hidden_size//8) if use_bn else nn.Dropout(dropout_rate) ,    
+                                                    nn.Linear(hidden_size//8,self.future_steps*self.mul)))
                                
     def forward(self, batch):
-        """It is mandatory to implement this method
-
-        Args:
-            batch (dict): batch of the dataloader
-
-        Returns:
-            torch.tensor: result
-        """
+      
         x =  batch['x_num_past'].to(self.device)
+        idx_target = batch['idx_target'][0]
         if self.kind=='nlinear':
-            idx_target = batch['idx_target'][0]
+            
             x_start = x[:,-1,idx_target].unsqueeze(1)
             ##BxC
             x[:,:,idx_target]-=x_start
         
         if self.kind=='alinear':
-            idx_target = batch['idx_target'][0]
             x[:,:,idx_target]=0
         
         if self.kind=='dlinear':
-            idx_target = batch['idx_target'][0]
             x_start = x[:,:,idx_target]
-
             seasonal_init, trend_init = self.decompsition(x_start.permute(0,2,1))
             seasonal_init, trend_init = seasonal_init.permute(0,2,1), trend_init.permute(0,2,1)
-            
             x[:,:,idx_target] = seasonal_init
-
             tmp = []
             for j in range(len(self.Linear_Trend)):
                
@@ -210,60 +206,63 @@ class LinearTS(Base):
 
             trend = torch.stack(tmp,2)
             
-            
-        if 'x_cat_future' in batch.keys():
-            cat_future = batch['x_cat_future'].to(self.device)
-        if 'x_cat_past' in batch.keys():
-            cat_past = batch['x_cat_past'].to(self.device)
-        if 'x_num_future' in batch.keys():
-            x_future = batch['x_num_future'].to(self.device)
-        else:
-            x_future = None
-            
-        tmp = [x]
-   
-        tmp_emb = None
-        for i in range(len(self.embs)):
-            if self.sum_emb:
-                if i>0:
-                    tmp_emb+=self.embs[i](cat_past[:,:,i])
-                else:
-                    tmp_emb=self.embs[i](cat_past[:,:,i])
+        if self.simple is False:
+            if 'x_cat_future' in batch.keys():
+                cat_future = batch['x_cat_future'].to(self.device)
+            if 'x_cat_past' in batch.keys():
+                cat_past = batch['x_cat_past'].to(self.device)
+            if 'x_num_future' in batch.keys():
+                x_future = batch['x_num_future'].to(self.device)
             else:
-                tmp.append(self.embs[i](cat_past[:,:,i]))
-        if self.sum_emb and (len(self.embs)>0):
-            tmp.append(tmp_emb)
-        ##BxLxC
-        tot_past = torch.cat(tmp,2).flatten(1)
+                x_future = None
+                
+            tmp = [x]
+    
+            tmp_emb = None
+            for i in range(len(self.embs)):
+                if self.sum_emb:
+                    if i>0:
+                        tmp_emb+=self.embs[i](cat_past[:,:,i])
+                    else:
+                        tmp_emb=self.embs[i](cat_past[:,:,i])
+                else:
+                    tmp.append(self.embs[i](cat_past[:,:,i]))
+            if self.sum_emb and (len(self.embs)>0):
+                tmp.append(tmp_emb)
+            ##BxLxC
+            tot_past = torch.cat(tmp,2).flatten(1)
         
 
 
-        tmp = []
-        for i in range(len(self.embs)):
-            if self.sum_emb:
-                if i>0:
-                    tmp_emb+=self.embs[i](cat_future[:,:,i])
+            tmp = []
+            for i in range(len(self.embs)):
+                if self.sum_emb:
+                    if i>0:
+                        tmp_emb+=self.embs[i](cat_future[:,:,i])
+                    else:
+                        tmp_emb=self.embs[i](cat_future[:,:,i])
                 else:
-                    tmp_emb=self.embs[i](cat_future[:,:,i])
+                    tmp.append(self.embs[i](cat_future[:,:,i]))   
+            if self.sum_emb and (len(self.embs)):
+                tmp.append(tmp_emb)
+                
+            if x_future is not None:
+                tmp.append(x_future)
+            if len(tmp)>0:           
+
+                tot_future = torch.cat(tmp,2).flatten(1)
+                tot = torch.cat([tot_past,tot_future],1)
+                
             else:
-                tmp.append(self.embs[i](cat_future[:,:,i]))   
-        if self.sum_emb and (len(self.embs)):
-            tmp.append(tmp_emb)
-            
-        if x_future is not None:
-            tmp.append(x_future)
-        if len(tmp)>0:           
-
-            tot_future = torch.cat(tmp,2).flatten(1)
-            tot = torch.cat([tot_past,tot_future],1)
-            
+                tot = tot_past
+            tot = tot.unsqueeze(2).repeat(1,1,len(self.linear))
         else:
-            tot = tot_past
-
+            tot = x[:,:,idx_target]
         res = []
         B = tot.shape[0]
+
         for j in range(len(self.linear)):
-            res.append(self.linear[j](tot).reshape(B,-1,self.mul))
+            res.append(self.linear[j](tot[:,:,j]).reshape(B,-1,self.mul))
         ## BxLxCxMUL
         res = torch.stack(res,2)
 

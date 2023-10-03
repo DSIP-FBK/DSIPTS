@@ -367,8 +367,7 @@ class DilatedConvVAE(Base):
         tot = torch.cat(tmp,2)
 
         out, hidden = self.Encoder(self.conv_encoder(tot))      
-        import pdb
-        pdb.set_trace()
+
         ## hidden  = 2 x bs x channels_out_encoder
         ## out = BS x len x channels_out_encoder
         tmp = []
@@ -380,12 +379,13 @@ class DilatedConvVAE(Base):
                     tmp_emb=self.embs[i](cat_future[:,:,i])
             else:
                 tmp.append(self.embs[i](cat_future[:,:,i]))   
-        if self.sum_emb and (len(self.embs)):
+        if self.sum_emb and (len(self.embs)>0):
             tmp.append(tmp_emb)
             
         if x_future is not None:
             tmp.append(x_future)
-
+        import pdb
+        pdb.set_trace()
         if len(tmp)>0:
             tot = torch.cat(tmp,2)
             out, _ = self.Decoder(self.conv_decoder(tot),hidden)  

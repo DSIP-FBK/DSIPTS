@@ -22,6 +22,7 @@ model_configs:
   activation: torch.nn.PReLU
   persistence_weight: 0.010
   loss_type: 'l1'
+  simple: false
   
 
 train_config:

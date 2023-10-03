@@ -16,6 +16,8 @@ from datetime import datetime
 from ..models.base import Base
 import logging 
 from .modifiers import *
+ 
+
 
 pd.options.mode.chained_assignment = None 
 log = logging.getLogger(__name__)
@@ -617,6 +619,7 @@ class TimeSeries():
                     precision:Union[str,int]=32,
                     modifier:Union[None,str]=None,
                     modifier_params:Union[None,dict]=None,
+                    seed:int=42
                     )-> float:
         """Train the model
 
@@ -631,6 +634,9 @@ class TimeSeries():
             gradient_clip_algorithm (str, optional): gradient_clip_algorithm. Defaults to 'norm '. See https://lightning.ai/docs/pytorch/stable/advanced/training_tricks.html
             devices (Union[str,List[int]], optional): devices to use. Use auto if cpu or the list of gpu to use otherwise. Defaults to 'auto'.
             precision  (Union[str,int], optional): precision to use. Usually 32 bit is fine but for larger model you should try 'bf16'. If 'auto' it will use bf16 for GPU and 32 for cpu
+            modifier (Union[str,int], optional): if not None a modifier is applyed to the dataloader. Sometimes lightening has very restrictive rules on the dataloader, or we want to use a ML model before or after the DL model (See readme for more information)
+            modifier_params (Union[dict,int], optional): parameters of the modifier
+            seed (int, optional): seed for reproducibility
         """
 
         beauty_string('Training the model','block',self.verbose)
@@ -683,6 +689,7 @@ class TimeSeries():
 
         mc = MetricsCallback(dirpath)
         ## TODO se ci sono 2 o piu gpu MetricsCallback non funziona (secondo me fa una istanza per ogni dataparallel che lancia e poi non riesce a recuperare info)
+        pl.seed_everything(seed, workers=True)
         trainer = pl.Trainer(default_root_dir=dirpath,
                              logger = logger,
                              max_epochs=max_epochs,
