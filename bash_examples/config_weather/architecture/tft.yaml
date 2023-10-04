@@ -11,13 +11,13 @@ ts:
 
 
 model_configs:
-  d_model: 32
-  d_head: 32
-  n_head: 8
+  d_model: 128
+  d_head: 64
+  n_head: 16
   num_layers_RNN: 8
   optim: torch.optim.Adam
   dropout_rate: 0.15
-  persistence_weight: 0.010
+  persistence_weight: 1
   loss_type: 'std_penalization'
 
 train_config:
