@@ -76,10 +76,11 @@ def compare(conf:DictConfig)-> None:
 
     res = pd.concat(res,ignore_index=True)
     res.MAPE = np.round(res.MAPE/100,4)
+    tot_losses.rename(columns = {'value':'loss','variable':'set'},inplace=True)
+
     '''
     fig_ass = px.line(res,x = 'lag',y='MSE',color = 'model',facet_row='variable')
     fig_rel = px.line(res,x = 'lag',y='MAPE',color = 'model',facet_row='variable')
-    tot_losses.rename(columns = {'value':'loss','variable':'set'},inplace=True)
     fig_losses = px.line(tot_losses,x = 'epoch',y='loss',color = 'set',facet_col='model')
 
         
