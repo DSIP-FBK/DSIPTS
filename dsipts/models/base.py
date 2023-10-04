@@ -159,63 +159,51 @@ class Base(pl.LightningModule):
         x_start = x[:,-1,idx_target].unsqueeze(1)
         y_persistence = x_start.repeat(1,self.future_steps,1)
         
+        ##generally you want to work without quantile loss
+        if self.use_quantiles is False:
+            x = y_hat[:,:,:,0]
+        else:
+            x = y_hat[:,:,:,1]
+        
+
         if self.loss_type == 'linear_penalization':
-            idx = 1 if self.use_quantiles else 0
-            persistence_error = self.persistence_weight*(2.0-10.0*torch.clamp( torch.abs((y_persistence-y_hat[:,:,:,idx])/(0.001+torch.abs(y_persistence))),min=0.0,max=0.1))
-            loss = torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y'])*persistence_error)
+            persistence_error = self.persistence_weight*(2.0-10.0*torch.clamp( torch.abs((y_persistence-x)/(0.001+torch.abs(y_persistence))),min=0.0,max=0.1))
+            loss = torch.mean(torch.abs(x- batch['y'])*persistence_error)
             
         elif self.loss_type == 'exponential_penalization':
-            idx = 1 if self.use_quantiles else 0
-            weights = (1+self.persistence_weight*torch.exp(-torch.abs(y_persistence-y_hat[:,:,:,idx])))
-            loss =  torch.mean(torch.abs(y_hat[:,:,:,idx]- batch['y'])*weights)
+            weights = (1+self.persistence_weight*torch.exp(-torch.abs(y_persistence-x)))
+            loss =  torch.mean(torch.abs(x- batch['y'])*weights)
          
         elif self.loss_type=='sinkhorn':
             sinkhorn = SinkhornDistance(eps=0.1, max_iter=100, reduction='mean')
-            if self.use_quantiles is False:
-                x = y_hat[:,:,:,0]
-            else:
-                x = y_hat[:,:,:,1]
             loss = sinkhorn.compute(x,batch['y'])
 
-        elif self.loss == 'std_norm':
-            if self.use_quantiles is False :
-                x = y_hat[:,:,:,0]
-            else:
-                x = y_hat[:,:,:,1]
-            std = torch.sqrt(torch.var(batch['y'], dim=(1))+ 1e-8)
-            loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1) * (1.0+torch.exp(-self.persistence_weight*std)))
             
-        elif self.loss == 'std_penalization':
-            if self.use_quantiles is False :
-                x = y_hat[:,:,:,0]
-            else:
-                x = y_hat[:,:,:,1]
-            std = torch.sqrt(torch.var(batch['y'], dim=(1))+ 1e-8)
+        elif self.loss == 'additive_iv':
+            std = torch.sqrt(torch.var(batch['y'], dim=(1))+ 1e-8) ##--> BSxChannel
             x_std = torch.sqrt(torch.var(x, dim=(1))+ 1e-8)
-            loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1) + self.persistence_weight*torch.abs(x_std-std).mean(axis=1))
-                
-        elif self.loss_type=='high_order':
-            if self.use_quantiles is False :
-                x = y_hat[:,:,:,0]
-            else:
-                x = y_hat[:,:,:,1]
-            std_real = torch.sqrt(torch.var(batch['y'], dim=(0,1))+ 1e-8)
-            std_predict = torch.sqrt(torch.var(x, dim=(0,1))+ 1e-8)
-            loss = initial_loss +  self.persistence_weight*torch.mean(torch.abs(std_real-std_predict))
+            loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten() + self.persistence_weight*torch.abs(x_std-std).mean(axis=1).flatten())
+            
+        elif self.loss == 'multiplicative_iv':
+            std = torch.sqrt(torch.var(batch['y'], dim=(1))+ 1e-8) ##--> BSxChannel
+            x_std = torch.sqrt(torch.var(x, dim=(1))+ 1e-8)
+            loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten()*torch.abs(x_std-std).mean(axis=1).flatten())   
+              
+        elif self.loss_type=='global_iv':
+            std_real = torch.sqrt(torch.var(batch['y'], dim=(0,1)))
+            std_predict = torch.sqrt(torch.var(x, dim=(0,1)))
+            loss = initial_loss +  self.persistence_weight*torch.abs(std_real-std_predict)
 
         elif self.loss_type=='smape':
-            if self.use_quantiles is False :
-                x = y_hat[:,:,:,0]
-            else:
-                x = y_hat[:,:,:,1]
             loss = torch.mean(2*torch.abs(x-batch['y']) / (torch.abs(x)+torch.abs(batch['y'])))
+            
+        elif self.loss_type=='triplet':
+            loss_fn = torch.nn.TripletMarginLoss(margin=0.1, p=1.0,swap=False)
+            loss = initial_loss +  self.persistence_weight*loss_fn(x, batch['y'], y_persistence)
+                
             
         elif self.loss_type=='dilated':
             #BxLxCxMUL
-            if self.use_quantiles is False :
-                x = y_hat[:,:,:,0]
-            else:
-                x = y_hat[:,:,:,1]
             alpha = 0.75
             gamma = 0.01
             loss = 0
