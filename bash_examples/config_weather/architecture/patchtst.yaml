@@ -11,20 +11,20 @@ ts:
 
 
 model_configs:
-  d_model: 64
+  d_model: 128
   kernel_size: 3
   decomposition: true
   n_layer: 2
-  patch_len: 12
+  patch_len: 4
   n_head: 2
-  stride: 8
+  stride: 4 #non overlapping?
   dropout_rate: 0.25
   hidden_size: 128
   optim: torch.optim.Adam
   activation: torch.nn.PReLU
-  persistence_weight: 0.010
+  persistence_weight: 1
   loss_type: 'std_penalization'
-  remove_last: true
+  remove_last: false
 
 train_config:
   batch_size: 64
