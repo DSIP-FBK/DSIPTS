@@ -9,9 +9,10 @@ from ..data_structure.utils import beauty_string
 
 def standardize_momentum(x,order):
     mean = torch.mean(x,1).unsqueeze(1).repeat(1,x.shape[1],1)
-    num=torch.pow(x-mean,order).mean(axis=1)
-    den=torch.pow(x-mean,order-1).mean(axis=1)
-    den = torch.pow(den,order*1.0/order-1)
+    num = torch.pow(x-mean,order).mean(axis=1)
+    den = torch.sqrt(torch.pow(x-mean,2).mean(axis=1)+1e-8)
+    den = torch.pow(den,order)
+    
     return num/den
 
 
