@@ -7,6 +7,13 @@ from abc import  abstractmethod
 from .utils import SinkhornDistance, SoftDTWBatch,PathDTWBatch,pairwise_distances
 from ..data_structure.utils import beauty_string
 
+def standardize_momentum(x,order):
+    mean = torch.mean(x,1).unsqueeze(1).repeat(1,x.shape[1],1)
+    num=torch.pow(x-mean,order).mean(axis=1)
+    den=torch.pow(x-mean,order-1).mean(axis=1)
+    den = torch.pow(den,order*1.0/order-1)
+    return num/den
+
 
 def dilate_loss(outputs, targets, alpha, gamma, device):
 	# outputs, targets: shape (batch_size, N_output, 1)
@@ -201,6 +208,13 @@ class Base(pl.LightningModule):
             loss_fn = torch.nn.TripletMarginLoss(margin=0.1, p=1.0,swap=False)
             loss = initial_loss +  self.persistence_weight*loss_fn(x, batch['y'], y_persistence)
                 
+        elif self.loss_type=='high_order':
+            loss = initial_loss
+            for i in range(2,5):
+                mom_real = standardize_momentum( batch['y'],i)
+                mom_pred = standardize_momentum(x,i)
+                mom_loss = torch.abs(mom_real-mom_pred).mean()
+                loss+=self.persistence_weight*mom_loss
             
         elif self.loss_type=='dilated':
             #BxLxCxMUL
