@@ -15,9 +15,9 @@ model_configs:
   kernel_size: 3
   decomposition: true
   n_layer: 2
-  patch_len: 4
+  patch_len: 8
   n_head: 2
-  stride: 4 #non overlapping?
+  stride: 8 #non overlapping?
   dropout_rate: 0.25
   hidden_size: 128
   optim: torch.optim.Adam
