@@ -166,6 +166,7 @@ class Base(pl.LightningModule):
         idx_target = batch['idx_target'][0]
         x_start = x[:,-1,idx_target].unsqueeze(1)
         y_persistence = x_start.repeat(1,self.future_steps,1)
+        #y_persistence =  batch['y'].to(self.device).mean(axis=1).unsqueeze(1).repeat(1,self.future_steps,1) ##quello che fa meno errori e' la media
         
         ##generally you want to work without quantile loss
         if self.use_quantiles is False:

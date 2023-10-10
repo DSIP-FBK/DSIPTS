@@ -24,9 +24,9 @@ model_configs:
   activation: torch.nn.PReLU
   persistence_weight: 1
   loss_type: 'std_penalization'
-  remove_last: false
+  remove_last: true
 
 train_config:
-  batch_size: 64
-  max_epochs: 1000
+  batch_size: 32
+  max_epochs: 500
             

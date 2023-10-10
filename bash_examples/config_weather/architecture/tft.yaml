@@ -16,11 +16,11 @@ model_configs:
   n_head: 16
   num_layers_RNN: 8
   optim: torch.optim.Adam
-  dropout_rate: 0.15
+  dropout_rate: 0.2
   persistence_weight: 1
   loss_type: 'std_penalization'
 
 train_config:
-  batch_size: 64
-  max_epochs: 500
+  batch_size: 32
+  max_epochs: 300
             
