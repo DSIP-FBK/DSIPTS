@@ -22,9 +22,10 @@ model_configs:
   activation: torch.nn.PReLU
   persistence_weight: 0.010
   loss_type: 'l1'
-  
+  simple: true
+
 train_config:
-  batch_size: 128
-  max_epochs: 1000
+  batch_size: 64
+  max_epochs: 300
   gradient_clip_val: null
   gradient_clip_algorithm: 'norm'
