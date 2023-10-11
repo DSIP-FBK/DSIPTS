@@ -13,7 +13,7 @@ model_configs:
   cat_emb_dim: 128
   kernel_size: 5
   sum_emb: true
-  hidden_size: 512
+  hidden_size: 128
   kind: 'dlinear'
   dropout_rate: 0.5
   use_bn: false  
@@ -23,7 +23,7 @@ model_configs:
   loss_type: 'l1'
   
 train_config:
-  batch_size: 128
-  max_epochs: 1000          
+  batch_size: 64
+  max_epochs: 300          
   gradient_clip_val: null
   gradient_clip_algorithm: 'norm'
