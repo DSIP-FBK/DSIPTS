@@ -7,7 +7,7 @@ ts:
   name: 'weather'
   version: 1
   enrich: []
-  use_covariates: true
+  use_covariates: false
 
 
 model_configs:
