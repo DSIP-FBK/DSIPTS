@@ -10,10 +10,10 @@ ts:
   use_covariates: true
 
 model_configs:
-  cat_emb_dim: 128
-  kernel_size: 5
+  cat_emb_dim: 512
+  kernel_size: 25
   sum_emb: true
-  hidden_size: 128
+  hidden_size: 2048
   kind: 'dlinear'
   dropout_rate: 0.5
   use_bn: false  
