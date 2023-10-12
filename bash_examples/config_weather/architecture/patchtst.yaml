@@ -6,7 +6,7 @@ model:
 ts:
   name: 'weather'
   version: 1
-  enrich: ['hour','month']
+  enrich: ['hour']
   use_covariates: false
 
 
