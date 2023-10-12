@@ -4,7 +4,7 @@ dataset:
 
 scheduler_config:
   gamma: 0.75
-  step_size: 250
+  step_size: 2500 ##non lo voglio per ora
 
 optim_config:
   lr: 0.00005
@@ -13,7 +13,7 @@ optim_config:
 model_configs:
   past_steps: 64
   future_steps: 64
-  quantiles: [0.1,0.5,0.9]
+  quantiles: []  #[0.1,0.5,0.9]
   past_channels : null #dataset dependent
   future_channels : null #dataset dependent
   embs: null #dataset dependent
@@ -22,8 +22,8 @@ model_configs:
   persistence_weight: 1.0
 
 split_params:
-  perc_train: 0.5
-  perc_valid: 0.4
+  perc_train: 0.6
+  perc_valid: 0.2
   range_train: null
   range_validation: null
   range_test: null

@@ -6,7 +6,7 @@ model:
 ts:
   name: 'weather'
   version: 1
-  enrich: []
+  enrich: ['hour','month']
   use_covariates: false
 
 
@@ -21,6 +21,6 @@ model_configs:
   loss_type: 'std_penalization'
 
 train_config:
-  batch_size: 32
+  batch_size: 64
   max_epochs: 300
             

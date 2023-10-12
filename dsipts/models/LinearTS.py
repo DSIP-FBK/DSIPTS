@@ -196,13 +196,13 @@ class LinearTS(Base):
         
         if self.kind=='dlinear':
             x_start = x[:,:,idx_target]
-            seasonal_init, trend_init = self.decompsition(x_start.permute(0,2,1))
+            seasonal_init, trend_init = self.decompsition(x_start)
             seasonal_init, trend_init = seasonal_init.permute(0,2,1), trend_init.permute(0,2,1)
-            x[:,:,idx_target] = seasonal_init
+            x[:,:,idx_target] = seasonal_init.permute(0,2,1)
             tmp = []
             for j in range(len(self.Linear_Trend)):
                
-                tmp.append(self.Linear_Trend[j](trend_init[:,:,j]))
+                tmp.append(self.Linear_Trend[j](trend_init[:,j,:]))
 
             trend = torch.stack(tmp,2)
             
@@ -255,14 +255,14 @@ class LinearTS(Base):
                 
             else:
                 tot = tot_past
-            tot = tot.unsqueeze(2).repeat(1,1,len(self.linear))
+            tot = tot.unsqueeze(2).repeat(1,1,len(self.linear)).permute(0,2,1)
         else:
-            tot = x[:,:,idx_target]
+            tot = seasonal_init
         res = []
         B = tot.shape[0]
-
+    
         for j in range(len(self.linear)):
-            res.append(self.linear[j](tot[:,:,j]).reshape(B,-1,self.mul))
+            res.append(self.linear[j](tot[:,j,:]).reshape(B,-1,self.mul))
         ## BxLxCxMUL
         res = torch.stack(res,2)
 

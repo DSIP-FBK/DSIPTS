@@ -6,7 +6,7 @@ model:
 ts:
   name: 'l'
   version: 1
-  enrich: []
+  enrich: ['hour','month']
   use_covariates: false
 
 
