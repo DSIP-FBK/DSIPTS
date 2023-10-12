@@ -11,7 +11,7 @@ ts:
 
 
 model_configs:
-  d_model: 128
+  d_model: 64
   kernel_size: 3
   decomposition: true
   n_layer: 2
