@@ -29,6 +29,7 @@ def beauty_string(message:str,type:str,verbose:bool):
             logging.info(f"{ message:^{size}}")
         else:
             logging.info(message)
+    
 
 
 

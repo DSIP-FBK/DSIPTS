@@ -260,7 +260,7 @@ class LinearTS(Base):
             tot = seasonal_init
         res = []
         B = tot.shape[0]
-    
+ 
         for j in range(len(self.linear)):
             res.append(self.linear[j](tot[:,j,:]).reshape(B,-1,self.mul))
         ## BxLxCxMUL
