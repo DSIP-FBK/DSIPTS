@@ -188,12 +188,12 @@ class Base(pl.LightningModule):
             loss = sinkhorn.compute(x,batch['y'])
 
             
-        elif self.loss == 'additive_iv':
+        elif self.loss_type == 'additive_iv':
             std = torch.sqrt(torch.var(batch['y'], dim=(1))+ 1e-8) ##--> BSxChannel
             x_std = torch.sqrt(torch.var(x, dim=(1))+ 1e-8)
             loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten() + self.persistence_weight*torch.abs(x_std-std).mean(axis=1).flatten())
             
-        elif self.loss == 'multiplicative_iv':
+        elif self.loss_type == 'multiplicative_iv':
             std = torch.sqrt(torch.var(batch['y'], dim=(1))+ 1e-8) ##--> BSxChannel
             x_std = torch.sqrt(torch.var(x, dim=(1))+ 1e-8)
             loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten()*torch.abs(x_std-std).mean(axis=1).flatten())   
