@@ -14,6 +14,7 @@ import pickle
 from .utils import extend_time_df,MetricsCallback, MyDataset, ActionEnum,beauty_string
 from datetime import datetime
 from ..models.base import Base
+from ..models.utils import weight_init_zeros,weight_init
 import logging 
 from .modifiers import *
  
@@ -602,7 +603,9 @@ class TimeSeries():
             config (dict, optional): usually the configuration used by the model. Defaults to None.
         """
         self.model = model
-        #self.model.apply(weight_init)
+        self.model.apply(weight_init)
+        #self.model.apply(weight_init_zeros)
+
         self.config = config
         
         beauty_string('Setting the model','block',self.verbose)

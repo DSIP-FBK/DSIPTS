@@ -145,8 +145,54 @@ def get_activation(activation):
     return eval(activation)
 
 
+def weight_init_zeros(m):
+    
+    if isinstance(m, nn.LSTM):
+        for param in m.parameters():
+            if len(param.shape) >= 2:
+                init.constant_(param.data,0.0)
+            else:
+                init.constant_(param.data,0.0)
+    elif isinstance(m, nn.Embedding):
+        init.constant_(m.weight,0.0)             
+        
+    elif isinstance(m, nn.LayerNorm):
+        init.zeros_(m.bias)
+        init.ones_(m.weight)   
+        
+    elif isinstance(m, nn.LSTMCell):
+        for param in m.parameters():
+            if len(param.shape) >= 2:
+                init.constant_(param.data,0.0)
+            else:
+                init.constant_(param.data,0.0)
+    elif isinstance(m, nn.GRU):
+        for param in m.parameters():
+            if len(param.shape) >= 2:
+                init.constant_(param.data,0.0)
+            else:
+                init.constant_(param.data,0.0)
+        for names in m._all_weights:
+            for name in filter(lambda n: "bias" in n, names):
+                bias = getattr(m, name)
+                n = bias.size(0)
+                bias.data[:n // 3].fill_(-1.)
+    elif isinstance(m, nn.GRUCell):
+        for param in m.parameters():
+            if len(param.shape) >= 2:
+                init.constant_(param.data,0.0)
+            else:
+                init.constant_(param.data,0.0)
 
 
+    else:
+        try:
+            init.constant_(m.weight.data, 0.0)
+            if m.bias is not None:
+                init.constant_(m.bias.data, 0.0)
+        except:
+            pass
+            
 def weight_init(m):
     """
     Usage:
