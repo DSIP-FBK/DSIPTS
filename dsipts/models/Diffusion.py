@@ -91,6 +91,7 @@ class Diffusion(Base):
             self.alphas_cumprod = f_cos_t/f_cos_t[0] # scaled cumulative product of alphas 
             self.alphas_cumprod_prev = np.append(1.0, self.alphas_cumprod[:-1]) # auxiliar vector to get easily alphaBAT_t-1 
             self.betas = np.array([1 - self.alphas_cumprod/self.alphas_cumprod_prev]) # new definition of betas
+            self.alphas = 1 - self.betas
         else:
             # STANDARD ALPHA
             # beta is considered constant in [0,1) for all time steps. Good values near 0.03
