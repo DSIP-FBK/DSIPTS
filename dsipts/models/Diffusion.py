@@ -322,7 +322,7 @@ class Diffusion(Base):
         return loss
 
     # function to concat embedded categorical variables
-    def cat_categorical_vars(self, batch:dict) -> List[torch.Tensor, torch.Tensor]:
+    def cat_categorical_vars(self, batch:dict):
         """Extracting 
 
         Args:
