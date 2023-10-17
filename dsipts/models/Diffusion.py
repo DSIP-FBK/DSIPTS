@@ -376,7 +376,7 @@ class Diffusion(Base):
         return
     
     ### >>>>>>>>>>>>> AUXILIARY MODEL FUNCS
-    def q_sample(self, x_start: torch.Tensor, t: int, noise: torch.Tensor=None)-> List[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def q_sample(self, x_start: torch.Tensor, t: int, noise: torch.Tensor=None)-> List[torch.Tensor]:
         """Diffuse x_start for t diffusion steps.
 
         In other words, sample from q(x_t | x_0).
