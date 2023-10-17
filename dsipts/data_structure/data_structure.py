@@ -450,7 +450,7 @@ class TimeSeries():
                         g_samples.append(groups[i])
 
     
-  
+        
         if len(self.future_variables)>0:
             try:
                 x_num_future_samples = np.stack(x_num_future_samples)
