@@ -102,14 +102,11 @@ class DilatedConvVAE(Base):
                  sum_emb:bool,
                  out_channels:int,
                  activation:str='torch.nn.ReLU',
-                 remove_last = False,
                  persistence_weight:float=0.0,
                  loss_type: str='l1',
                  quantiles:List[int]=[],
                  dropout_rate:float=0.1,
                  use_bn:bool=False,
-                 use_glu:bool=True,
-                 glu_percentage: float=1.0,
                  n_classes:int=0,
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
@@ -166,10 +163,7 @@ class DilatedConvVAE(Base):
         self.embs = nn.ModuleList()
         self.sum_emb = sum_emb
         self.kind = kind
-        self.use_glu = use_glu
-        self.glu_percentage = torch.tensor(glu_percentage).to(self.device)
         self.out_channels = out_channels
-        self.remove_last = remove_last
         if n_classes==0:
             self.is_classification = False
             if len(quantiles)>0:
@@ -207,14 +201,7 @@ class DilatedConvVAE(Base):
             beauty_string('Using stacked','info',self.verbose)
     
 
-        if self.use_glu:
-            self.past_glu = nn.ModuleList()
-            self.future_glu = nn.ModuleList()
-            for i in range(past_channels):
-                self.past_glu.append(GLU(1))
-            
-            for i in range(future_channels):
-                self.future_glu.append(GLU(1))
+   
     
         self.initial_linear_encoder =  nn.Sequential(Permute(),
                                                     nn.Conv1d(past_channels, (past_channels+hidden_RNN//4)//2, kernel_size, stride=1,padding='same'),
@@ -231,7 +218,6 @@ class DilatedConvVAE(Base):
                                                     Permute())
         self.conv_encoder = Block(emb_channels+hidden_RNN//4,kernel_size,hidden_RNN//2,self.past_steps,sum_emb)
         
-        #nn.Sequential(Permute(), nn.Conv1d(emb_channels+hidden_RNN//8, hidden_RNN//8, kernel_size, stride=1,padding='same'),Permute(),nn.Dropout(0.3))
 
         if future_channels+emb_channels==0:
             ## occhio che vuol dire che non ho passato , per ora ci metto una pezza e uso hidden dell'encoder
@@ -259,9 +245,8 @@ class DilatedConvVAE(Base):
                                   batch_first=True,bidirectional=True)
         else:
             beauty_string('Specify kind lstm or gru please','section',True)
-        self.final_linear = nn.ModuleList()
-        for _ in range(out_channels*self.mul):
-            self.final_linear.append(nn.Sequential(nn.Linear(hidden_RNN+emb_channels+future_channels,hidden_RNN*2), 
+            
+        self.final_linear_decoder  (nn.Sequential(nn.Linear(num_layers_RNN*2,hidden_RNN*2), 
                                             activation(),
                                             Permute() if use_bn else nn.Identity() ,
                                             nn.BatchNorm1d(hidden_RNN*2) if use_bn else nn.Dropout(dropout_rate) ,
@@ -284,23 +269,6 @@ class DilatedConvVAE(Base):
 
         
 
-    def training_step(self, batch, batch_idx):
-        """
-        pythotrch lightening stuff
-        
-        :meta private:
-        """
-        y_hat,score = self(batch)
-        return self.compute_loss(batch,y_hat)#+torch.abs(score-self.glu_percentage)*loss/5.0 ##TODO investigating
-    
-    def validation_step(self, batch, batch_idx):
-        """
-        pythotrch lightening stuff
-        
-        :meta private:
-        """
-        y_hat,score = self(batch)
-        return self.compute_loss(batch,y_hat)#+torch.abs(score-self.glu_percentage)*loss/5.0 ##TODO investigating
 
     def forward(self, batch):
         """It is mandatory to implement this method
@@ -318,37 +286,10 @@ class DilatedConvVAE(Base):
             cat_past = batch['x_cat_past'].to(self.device)
         if 'x_num_future' in batch.keys():
             x_future = batch['x_num_future'].to(self.device)
-            xf = torch.clone(x_future)
         else:
             x_future = None     
             
-        if self.remove_last:
-            idx_target = batch['idx_target'][0]
-
-            x_start = x[:,-1,idx_target].unsqueeze(1)
-            ##BxC
-            x[:,:,idx_target]-=x_start        
-            
-    
-        ## first GLU
-        score = 0
-        xp =  torch.clone(x)
-        
-        if self.use_glu:
-            score_past_tot = 0
-            score_future_tot = 0
-            
-            for i in range(len(self.past_glu)):
-                x[:,:,i],score = self.past_glu[i](xp[:,:,i])
-                score_past_tot+=score
-            score_past_tot/=len(self.past_glu)
-            
-            if x_future is not None:
-                for i in range(len(self.future_glu)):
-                    x_future[:,:,i],score = self.future_glu[i](xf[:,:,i])
-                    score_future_tot+=score
-                score_future_tot/=len(self.future_glu)
-            score = 0.5*(score_past_tot+score_future_tot)
+ 
         tmp = [self.initial_linear_encoder(x)]
         
         if 'x_cat_past' in batch.keys():
@@ -366,7 +307,7 @@ class DilatedConvVAE(Base):
 
         tot = torch.cat(tmp,2)
 
-        out, hidden = self.Encoder(self.conv_encoder(tot))      
+        out_past, hidden_past = self.Encoder(self.conv_encoder(tot))      
 
         ## hidden  = 2 x bs x channels_out_encoder
         ## out = BS x len x channels_out_encoder
@@ -384,36 +325,28 @@ class DilatedConvVAE(Base):
             
         if x_future is not None:
             tmp.append(x_future)
-        import pdb
-        pdb.set_trace()
+     
+     
+     
+     
         if len(tmp)>0:
             tot = torch.cat(tmp,2)
-            out, _ = self.Decoder(self.conv_decoder(tot),hidden)  
-            has_future = True
+            out_future, hidden_future = self.Decoder(self.conv_decoder(tot))  
         else:
-            out, _ = self.Decoder(self.conv_decoder(out),hidden)  
-            has_future = False
-        res = []
+            out_future, hidden_future = self.Decoder(self.conv_decoder(out_past))  
+        ##hidden state of the past --> initial state
+        BS = out_past.shape[1]
+        out_past = out_past.permute(1,0,2).reshape(BS,-1) #BSx2xC --> BSx2C
+        
+        res = torch.zeros(BS,self.future_steps,self.future_channels,self.mul).to(self.device)
+        
+        for i in range(self.future_steps):
+            out_past+=out_future[:,i,:].unsqueeze(1).repeat(1,2,1).reshape(BS,-1)
+            decoded = self.final_linear_decoder(out_past)
+            res[:,i,:,:] = decoded.reshape(BS,self.future_channels,self.mul)
+            
 
-        if has_future:
-            tmp = torch.cat([tot,out],axis=2)
-        else:
-            tmp = out
-
-        for j in range(self.out_channels*self.mul):
-            res.append(self.final_linear[j](tmp))
-
-        res = torch.cat(res,2)
-        ##BxLxC
-        B = res.shape[0]
-        res = res.reshape(B,self.future_steps,-1,self.mul)
-        if self.remove_last:
-            res+=x_start.unsqueeze(1)
         
       
-        return res, score
-
-    def inference(self, batch:dict)->torch.tensor:
-        
-        res, score = self(batch)
         return res
+
