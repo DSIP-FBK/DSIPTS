@@ -81,6 +81,8 @@ class Diffusion(Base):
         self.sigma = sigma
 
         # >>>>>>>>>>>>> specific diffusion setup
+        import pdb
+        pdb.set_trace()
         if cosine_alpha:
             # COSINE_ALPHA Computation
             # offset variables to control betas and alphas
