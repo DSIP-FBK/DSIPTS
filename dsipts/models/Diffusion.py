@@ -89,6 +89,7 @@ class Diffusion(Base):
             # alpha is the 'forgetting' schedule
             f_cos_t = [(np.cos( (t/self.T +s)/(1+s) * np.pi/2 ))**2 for t in range(self.T)]
             self.alphas_cumprod = f_cos_t/f_cos_t[0] # scaled cumulative product of alphas 
+            self.alphas_cumprod_prev = np.append(1.0, self.alphas_cumprod[:-1]) # auxiliar vector to get easily alphaBAT_t-1 
             self.betas = np.array([1 - self.alphas_cumprod/self.alphas_cumprod_prev]) # new definition of betas
         else:
             # STANDARD ALPHA
@@ -96,8 +97,8 @@ class Diffusion(Base):
             self.betas = np.array([beta]*self.T) 
             self.alphas = 1 - self.betas
             self.alphas_cumprod = np.cumprod(self.alphas)
+            self.alphas_cumprod_prev = np.append(1.0, self.alphas_cumprod[:-1]) # auxiliar vector to get easily alphaBAT_t-1 
         # values for posterior distribution
-        self.alphas_cumprod_prev = np.append(1.0, self.alphas_cumprod[:-1]) # auxiliar vector to get easily alphaBAT_t-1 
         self.posterior_mean_coef1 = self.betas * np.sqrt(self.alphas_cumprod_prev) / (1.0 - self.alphas_cumprod)
         self.posterior_mean_coef2 = (1.0 - self.alphas_cumprod_prev) * np.sqrt(self.alphas) / (1.0 - self.alphas_cumprod)
         self.posterior_variance = self.betas * (1.0 - self.alphas_cumprod_prev) / (1.0 - self.alphas_cumprod)
