@@ -595,15 +595,17 @@ class TimeSeries():
             dl_test = None
         return dl_train,dl_validation,dl_test
             
-    def set_model(self,model:Base,config:dict=None):
+    def set_model(self,model:Base,config:dict=None,custom_init:bool=False):
         """Set the model to train
 
         Args:
             model (Base): see `models`
             config (dict, optional): usually the configuration used by the model. Defaults to None.
+            custom_init (bool, optional): if true a custom initialization paradigm will be used (see weight_init in models/utils.py ) .
         """
         self.model = model
-        self.model.apply(weight_init)
+        if custom_init:
+            self.model.apply(weight_init)
         #self.model.apply(weight_init_zeros)
 
         self.config = config
