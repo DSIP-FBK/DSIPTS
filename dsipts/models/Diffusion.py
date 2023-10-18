@@ -197,11 +197,6 @@ class Diffusion(Base):
 
         # init negative loss for the first step
         tot_loss = -1
-
-        # variance range
-        var_range_A = _extract_into_tensor(np.log(self.betas) , t, eps_pred.shape)
-        var_range_B = true_log_var_clipped
-
         for t in drawn_t:
             # LOADING THE SUBNET
             sub_net = self.sub_nets[t]
@@ -213,6 +208,9 @@ class Diffusion(Base):
             # output composed of: noise predicted and vector for variances
             if self.learn_var:
                 eps_pred, var_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
+                # variance range
+                var_range_A = _extract_into_tensor(np.log(self.betas) , t, eps_pred.shape)
+                var_range_B = true_log_var_clipped
                 out_log_var = torch.exp(var_pred*var_range_A + (1-var_pred)*var_range_B)
             else:
                 eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
@@ -220,18 +218,17 @@ class Diffusion(Base):
 
             out_mean = _extract_into_tensor(1/self.alphas, t, eps_pred.shape) * ( y_noised - _extract_into_tensor(self.betas , t, eps_pred.shape) / _extract_into_tensor(self.betas , t, eps_pred.shape) * eps_pred )
             
-            # COMPUTE LOSS between TRUE eps and DRAWN eps_pred
-            kl = self.normal_kl(true_mean, true_log_var_clipped, out_mean, out_log_var)
-            kl = torch.mean(kl) / np.log(2.0)
-            decoder_nll = -self.discretized_gaussian_log_likelihood(y_to_be_pred, means=out_mean, log_scales=0.5 * out_log_var)
-            assert decoder_nll.shape == y_to_be_pred.shape
-            decoder_nll = torch.mean(decoder_nll) / np.log(2.0)
-
             # # At the first timestep return the decoder NLL,
             # # otherwise return KL(q(x_{t-1}|x_t,x_0) || p(x_{t-1}|x_t))
             if t==0:
+                decoder_nll = -self.discretized_gaussian_log_likelihood(y_to_be_pred, means=out_mean, log_scales=0.5 * out_log_var)
+                assert decoder_nll.shape == y_to_be_pred.shape
+                decoder_nll = torch.mean(decoder_nll) / np.log(2.0)
                 loss_output = decoder_nll
             else:
+                # COMPUTE LOSS between TRUE eps and DRAWN eps_pred
+                kl = self.normal_kl(true_mean, true_log_var_clipped, out_mean, out_log_var)
+                kl = torch.mean(kl) / np.log(2.0)
                 loss_output = kl
             # loss_output = torch.where((t == 0), decoder_nll, kl)
             
