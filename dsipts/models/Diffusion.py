@@ -150,6 +150,8 @@ class Diffusion(Base):
 
         # LOADING EMBEDDING CATEGORICAL VARIABLES
         emb_cat_past, emb_cat_fut = self.cat_categorical_vars(batch)
+        emb_cat_past = torch.mean(emb_cat_past, dim = 2)
+        emb_cat_fut = torch.mean(emb_cat_fut, dim = 2)
 
         ### LOADING PAST AND FUTURE NUMERICAL VARIABLES
         # this check is done simultaneously 
