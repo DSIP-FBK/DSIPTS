@@ -563,8 +563,6 @@ class SubNet(nn.Module):
         """
 
         # AUTOREGRESSIVE prediction of the future values of y using lstm(y_past) with embeddings
-        import pdb
-        pdb.set_trace()
         emb_y_past = self.lin_y_past_d_model(y_past)
         y_noised_hat = self.lstm(emb_y_past)
 
@@ -579,23 +577,23 @@ class SubNet(nn.Module):
         # emb_eps_hat updated according to changes of CATEGORICAL information
         # needed info about both past and future
         if (cat_past is not None and cat_future is not None): 
-            cat_attention = self.cat_attention(cat_future, cat_past, emb_y_past) # -> [B, future_step, d_model]
-            emb_eps_hat = self.cat_res_conn(cat_attention, emb_eps_hat)
+            cat_attention = self.cat_attention(cat_future, cat_past, emb_y_past.float()) # -> [B, future_step, d_model]
+            emb_eps_hat = self.cat_res_conn(cat_attention, emb_eps_hat.float())
 
         # emb_eps_hat updated according to changes of NUMERICAL information
         # needed info about both past and future
         if (num_past is not None and num_future is not None): 
-            num_attention = self.num_attention(num_future, num_past, emb_y_past) # -> [B, future_step, d_model]
-            emb_eps_hat = self.num_res_conn(num_attention, emb_eps_hat)
+            num_attention = self.num_attention(num_future, num_past, emb_y_past.float()) # -> [B, future_step, d_model]
+            emb_eps_hat = self.num_res_conn(num_attention, emb_eps_hat.float())
             
         # last residual connection on dimension = actual number of variables to be predicted
         # emb_eps_hat re-mapped to the starting dimension
-        aux_eps_hat = self.lin_eps_out(emb_eps_hat)
+        aux_eps_hat = self.lin_eps_out(emb_eps_hat.float())
         # Res Conn (last update of eps)
-        eps_hat = self.eps_res_conn(eps_hat, aux_eps_hat)
+        eps_hat = self.eps_res_conn(eps_hat.float(), aux_eps_hat.float())
 
         if self.learn_var:
-            var_hat = self.var_res_conn(eps_hat, y_noised_hat)
+            var_hat = self.var_res_conn(eps_hat.float(), y_noised_hat.float())
             return eps_hat, var_hat
         else:
             return eps_hat
