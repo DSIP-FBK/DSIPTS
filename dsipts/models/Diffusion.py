@@ -420,7 +420,7 @@ class Diffusion(Base):
         # return, the sample, its posterior mean and log_variance
         return q_sample, q_mean, q_log_var_clipped
 
-    def normal_kl(mean1, logvar1, mean2, logvar2):
+    def normal_kl(self, mean1, logvar1, mean2, logvar2):
         """
         Compute the KL divergence between two gaussians.
 
