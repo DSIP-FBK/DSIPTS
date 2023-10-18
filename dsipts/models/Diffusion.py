@@ -227,8 +227,13 @@ class Diffusion(Base):
 
             # # At the first timestep return the decoder NLL,
             # # otherwise return KL(q(x_{t-1}|x_t,x_0) || p(x_{t-1}|x_t))
-            loss_output = torch.where((t == 0), decoder_nll, kl)
+            if t==0:
+                loss_output = decoder_nll
+            else:
+                loss_output = kl
+            # loss_output = torch.where((t == 0), decoder_nll, kl)
             
+            # update the total loss
             if tot_loss==-1:
                 tot_loss = loss_output
             else:
@@ -262,6 +267,8 @@ class Diffusion(Base):
 
         # LOADING EMBEDDING CATEGORICAL VARIABLES
         emb_cat_past, emb_cat_fut = self.cat_categorical_vars(batch)
+        emb_cat_past = torch.mean(emb_cat_past, dim = 2)
+        emb_cat_fut = torch.mean(emb_cat_fut, dim = 2)
 
         ### LOADING PAST AND FUTURE NUMERICAL VARIABLES
         # this check is done simultaneously 
@@ -294,10 +301,11 @@ class Diffusion(Base):
         # pass the white noise in sub nets
         for t in range(self.T-1, -1, -1): # INVERSE cycle over all subnets, but not the last one
             sub_net = self.sub_nets[t] # load the subnet
-            import pdb
-            pdb.set_trace()
+            ## CHECK THE NUMBER OF PARAMS
+            #   model_parameters = filter(lambda p: p.requires_grad, model.parameters())
+            #   params = sum([np.prod(p.size()) for p in model_parameters]) -> 13K
             true_log_var_clipped = _extract_into_tensor( self.posterior_log_variance_clipped, t, y_noised.shape )
-            nonzero_mask = ( (t != 0).float().view(-1, *([1] * (len(y_noised.shape) - 1))) )  # no noise when t == 0
+            nonzero_mask = float((t != 0))  # no adding noise when t == 0
             # variance range if it is learned (constant values, so out of the for cycle)
             var_range_A = _extract_into_tensor(np.log(self.betas) , t, eps_pred.shape)
             var_range_B = true_log_var_clipped
@@ -317,7 +325,6 @@ class Diffusion(Base):
         
         out = y_noised.view(-1, self.future_steps, self.output_channels, 1)
         return out
-
 
     # for validation extract the output from the self.inference method
     def validation_step(self, batch, batch_idx):
