@@ -294,6 +294,8 @@ class Diffusion(Base):
         # pass the white noise in sub nets
         for t in range(self.T-1, -1, -1): # INVERSE cycle over all subnets, but not the last one
             sub_net = self.sub_nets[t] # load the subnet
+            import pdb
+            pdb.set_trace()
             true_log_var_clipped = _extract_into_tensor( self.posterior_log_variance_clipped, t, y_noised.shape )
             nonzero_mask = ( (t != 0).float().view(-1, *([1] * (len(y_noised.shape) - 1))) )  # no noise when t == 0
             # variance range if it is learned (constant values, so out of the for cycle)
@@ -594,11 +596,7 @@ def _extract_into_tensor(arr, timesteps, broadcast_shape):
     :param timesteps: a tensor of indices into the array to extract.
     :param broadcast_shape: a larger shape of K dimensions with the batch
                             dimension equal to the length of timesteps.
-    :return: a tensor of shape [batch_size, 1, ...] where the shape has K dims.
+    :return: a tensor of shape 'broadcast_shape' where the shape has K dims.
     """
-    import pdb
-    pdb.set_trace()
-    res = torch.from_numpy(arr).to(device=arr.device)[timesteps].float()
-    while len(res.shape) < len(broadcast_shape):
-        res = res[..., None]
-    return res.expand(broadcast_shape)
+    ten = torch.tensor(arr[timesteps])
+    return ten.expand(broadcast_shape)
