@@ -324,7 +324,7 @@ class Diffusion(Base):
             # compute 
             out_mean = _extract_into_tensor(1/self.alphas , t, eps_pred.shape) * ( y_noised - _extract_into_tensor(self.betas , t, eps_pred.shape) / _extract_into_tensor(self.betas , t, eps_pred.shape) * eps_pred )
             # Sample x_{t-1} from the model at the given timestep.
-            noise = torch.rand_like((batch_size, self.future_steps, self.output_channels)).to(self.device)
+            noise = torch.rand_like(out_mean).to(self.device)
             y_noised = out_mean + nonzero_mask * torch.exp(0.5 * out_log_var) * noise
         
         out = y_noised.view(-1, self.future_steps, self.output_channels, 1)
