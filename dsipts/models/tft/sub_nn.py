@@ -218,8 +218,6 @@ class InterpretableMultiHead(nn.Module):
         for (q_layer, k_layer, softmax) in zip(self.Q_layers, self.K_layers, self.Softmax_layers):
             Q = q_layer(query)
             K = k_layer(key)
-            import pdb
-            pdb.set_trace()
             wei = Q @ K.transpose(-2,-1) * (self.d_head**-0.5)
             wei = softmax(wei)
             V = self.V_layer(value)
