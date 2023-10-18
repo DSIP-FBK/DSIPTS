@@ -86,14 +86,14 @@ class Diffusion(Base):
         if cosine_alpha:
             # COSINE_ALPHA Computation
             # offset variables to control betas and alphas
-            assert self.T < 500 # to avoid problems with extremes
+            # assert self.T < 500 # to avoid problems with extremes
             s = 0.001
             # alpha is the 'forgetting' schedule
             f_cos_t = [(np.cos( (t/self.T +s)/(1+s) * np.pi/2 ))**2 for t in range(self.T)]
             self.alphas_cumprod = f_cos_t/f_cos_t[0] # scaled cumulative product of alphas 
             self.alphas_cumprod_prev = np.append(1.0, self.alphas_cumprod[:-1]) # auxiliar vector to get easily alphaBAT_t-1 
-            self.betas = np.array([1 - self.alphas_cumprod/self.alphas_cumprod_prev]) # new definition of betas
-            self.alphas = 1 - self.betas
+            self.alphas = self.alphas_cumprod * (self.alphas_cumprod_prev)**(-1)
+            self.betas = 1-self.alphas
         else:
             # STANDARD ALPHA
             # beta is considered constant in [0,1) for all time steps. Good values near 0.03
