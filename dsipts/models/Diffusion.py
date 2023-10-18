@@ -81,8 +81,6 @@ class Diffusion(Base):
         self.sigma = sigma
 
         # >>>>>>>>>>>>> specific diffusion setup
-        import pdb
-        pdb.set_trace()
         if cosine_alpha:
             # COSINE_ALPHA Computation
             # offset variables to control betas and alphas
@@ -293,14 +291,14 @@ class Diffusion(Base):
 
         # DIFFUSION INFERENCE 
         y_noised = torch.randn((batch_size, self.future_steps, self.output_channels)).to(self.device)
-        nonzero_mask = ( (t != 0).float().view(-1, *([1] * (len(y_noised.shape) - 1))) )  # no noise when t == 0
-        # variance range if it is learned (constant values, so out of the for cycle)
-        var_range_A = _extract_into_tensor(np.log(self.betas) , t, eps_pred.shape)
-        var_range_B = true_log_var_clipped
         # pass the white noise in sub nets
         for t in range(self.T-1, -1, -1): # INVERSE cycle over all subnets, but not the last one
             sub_net = self.sub_nets[t] # load the subnet
             true_log_var_clipped = _extract_into_tensor( self.posterior_log_variance_clipped, t, y_noised.shape )
+            nonzero_mask = ( (t != 0).float().view(-1, *([1] * (len(y_noised.shape) - 1))) )  # no noise when t == 0
+            # variance range if it is learned (constant values, so out of the for cycle)
+            var_range_A = _extract_into_tensor(np.log(self.betas) , t, eps_pred.shape)
+            var_range_B = true_log_var_clipped
 
             if self.learn_var:
                 eps_pred, var_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
