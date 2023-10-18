@@ -307,11 +307,11 @@ class Diffusion(Base):
             true_log_var_clipped = _extract_into_tensor( self.posterior_log_variance_clipped, t, y_noised.shape )
             nonzero_mask = float((t != 0))  # no adding noise when t == 0
             # variance range if it is learned (constant values, so out of the for cycle)
-            var_range_A = _extract_into_tensor(np.log(self.betas) , t, eps_pred.shape)
-            var_range_B = true_log_var_clipped
 
             if self.learn_var:
                 eps_pred, var_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
+                var_range_A = _extract_into_tensor(np.log(self.betas) , t, eps_pred.shape)
+                var_range_B = true_log_var_clipped
                 out_log_var = torch.exp(var_pred*var_range_A + (1-var_pred)*var_range_B)
             else:
                 eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
