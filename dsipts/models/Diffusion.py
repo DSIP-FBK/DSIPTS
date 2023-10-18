@@ -190,7 +190,7 @@ class Diffusion(Base):
         # normalizing weights
         t_wei = self.multinomial_step_weights/np.sum(self.multinomial_step_weights)
         # extract times t
-        drawn_t = np.random.choice(values, size=self.simultaneous_steps, replace=False, p=t_wei).to(self.device)
+        drawn_t = np.random.choice(values, size=self.simultaneous_steps, replace=False, p=t_wei)
         # update weights
         non_draw_val = np.delete(values, drawn_t)
         self.multinomial_step_weights[non_draw_val] += 1
