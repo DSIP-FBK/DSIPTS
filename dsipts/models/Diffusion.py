@@ -563,6 +563,8 @@ class SubNet(nn.Module):
         """
 
         # AUTOREGRESSIVE prediction of the future values of y using lstm(y_past) with embeddings
+        import pdb
+        pdb.set_trace()
         emb_y_past = self.lin_y_past_d_model(y_past)
         y_noised_hat = self.lstm(emb_y_past)
 
