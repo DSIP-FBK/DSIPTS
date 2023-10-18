@@ -166,6 +166,7 @@ class Diffusion(Base):
             for i, layer in enumerate(self.linear_aux_past):
                 aux_emb_past = layer(aux_num_past[:,:,[i]]).unsqueeze(2)
                 aux_emb_num_past = torch.cat((aux_emb_num_past, aux_emb_past), dim=2)
+            aux_emb_num_past = torch.mean(aux_emb_num_past, dim = 2)
             
             # future_variables
             aux_num_fut = batch['x_num_future'].to(self.device)
@@ -174,6 +175,7 @@ class Diffusion(Base):
             for j, layer in enumerate(self.linear_aux_fut):
                 aux_emb_fut = layer(aux_num_fut[:,:,[j]]).unsqueeze(2)
                 aux_emb_num_fut = torch.cat((aux_emb_num_fut, aux_emb_fut), dim=2)
+            aux_emb_num_fut = torch.mean(aux_emb_num_fut, dim = 2)
         else:
             aux_emb_num_past, aux_emb_num_fut = None, None
 
