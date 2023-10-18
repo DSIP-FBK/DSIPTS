@@ -184,7 +184,7 @@ class Diffusion(Base):
         ##* CHOOSE THE t SUBNET
         # extract a t, indicating which network will be used
         # We have T subnets: [0, 1, ..., T-1].
-        values = list(range(self.T)).to(self.device)
+        values = list(range(self.T))
         # avoid exploding step_weights with usages
         self.improving_weight_during_training()
         # normalizing weights
