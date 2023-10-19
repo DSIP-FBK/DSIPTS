@@ -86,8 +86,10 @@ class Diffusion(Base):
             # offset variables to control betas and alphas
             # assert self.T < 500 # to avoid problems with extremes
             s = 0.001
+            aux_perc = 0.05
+            avoid_comp_err_norm = self.T*(1+aux_perc)
             # alpha is the 'forgetting' schedule
-            f_cos_t = [(np.cos( (t/self.T +s)/(1+s) * np.pi/2 ))**2 for t in range(self.T)]
+            f_cos_t = [(np.cos( (t/avoid_comp_err_norm +s)/(1+s) * np.pi/2 ))**2 for t in range(self.T)]
             self.alphas_cumprod = f_cos_t/f_cos_t[0] # scaled cumulative product of alphas 
             self.alphas_cumprod_prev = np.append(1.0, self.alphas_cumprod[:-1]) # auxiliar vector to get easily alphaBAT_t-1 
             self.alphas = self.alphas_cumprod * (self.alphas_cumprod_prev)**(-1)
