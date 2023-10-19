@@ -259,8 +259,8 @@ class Diffusion(Base):
         Returns:
             torch.Tensor: generated sequence [batch_size, future_steps, num_var]
         """
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
 
         # LOADING AUTOREGRESSIVE CONTEXT OF TARGET VARIABLES
         num_past = batch['x_num_past'].to(self.device)
