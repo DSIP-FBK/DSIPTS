@@ -69,7 +69,7 @@ def compare(conf:DictConfig)-> None:
         
         except Exception as e:
             beauty_string(f'Can not load model {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} {e} ','',True)
-            
+            pass
 
     tot_losses = pd.concat(tot_losses,ignore_index=True)
     tot_predictions = pd.concat(tot_predictions,ignore_index=True)
