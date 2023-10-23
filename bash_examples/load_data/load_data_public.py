@@ -7,5 +7,5 @@ def load_data(conf):
                    past_variables=columns if conf.ts.use_covariates else [],
                    future_variables=columns if conf.ts.get('use_future_covariates',False) else [],
                    silly_model=conf.ts.get('silly',False))
-    print(ts)
+    ts
     return ts
