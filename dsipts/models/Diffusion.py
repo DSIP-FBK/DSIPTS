@@ -102,8 +102,6 @@ class Diffusion(Base):
             self.alphas_cumprod = np.cumprod(self.alphas)
             self.alphas_cumprod_prev = np.append(1.0, self.alphas_cumprod[:-1]) # auxiliar vector to get easily alphaBAT_t-1 
         # values for posterior distribution
-        import pdb
-        pdb.set_trace()
         self.posterior_mean_coef1 = np.append(1, self.betas[1:] * np.sqrt(self.alphas_cumprod_prev[1:]) / (1.0 - self.alphas_cumprod[1:]))
         self.posterior_mean_coef2 = np.append(0, (1.0 - self.alphas_cumprod_prev[1:]) * np.sqrt(self.alphas[1:]) / (1.0 - self.alphas_cumprod[1:]))
         self.posterior_variance = np.append([self.s,self.s], self.betas[2:] * (1.0 - self.alphas_cumprod_prev[2:]) / (1.0 - self.alphas_cumprod[2:]))
@@ -261,9 +259,6 @@ class Diffusion(Base):
         Returns:
             torch.Tensor: generated sequence [batch_size, future_steps, num_var]
         """
-        # import pdb
-        # pdb.set_trace()
-
         # LOADING AUTOREGRESSIVE CONTEXT OF TARGET VARIABLES
         num_past = batch['x_num_past'].to(self.device)
         batch_size = num_past.shape[0]
