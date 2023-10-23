@@ -323,4 +323,4 @@ If you want to add a model:
 # TODO
 - add more sintetic data
 
-python train.py  --config-dir=config_weather --config-name=config_xps -m architecture=tft,patchtst model_configs.loss_type=linear_penalization,exponential_penalization,additive_iv,multiplicative_iv,global_iv,triplet,mse,high_order,dilated,sinkhorn model_configs.persistence_weight=1
+python train.py  --config-dir=config_weather --config-name=config_xps -m architecture=dilated_conv model_configs.use_cumsum=true,false
