@@ -85,11 +85,11 @@ class Diffusion(Base):
             # COSINE_ALPHA Computation
             # offset variables to control betas and alphas
             # assert self.T < 500 # to avoid problems with extremes
-            s = 0.001
+            self.s = 0.001
             aux_perc = 0.05
             avoid_comp_err_norm = self.T*(1+aux_perc)
             # alpha is the 'forgetting' schedule
-            f_cos_t = [(np.cos( (t/avoid_comp_err_norm +s)/(1+s) * np.pi/2 ))**2 for t in range(self.T)]
+            f_cos_t = [(np.cos( (t/avoid_comp_err_norm +self.s)/(1+self.s) * np.pi/2 ))**2 for t in range(self.T)]
             self.alphas_cumprod = f_cos_t/f_cos_t[0] # scaled cumulative product of alphas 
             self.alphas_cumprod_prev = np.append(1.0, self.alphas_cumprod[:-1]) # auxiliar vector to get easily alphaBAT_t-1 
             self.alphas = self.alphas_cumprod * (self.alphas_cumprod_prev)**(-1)
@@ -215,7 +215,10 @@ class Diffusion(Base):
             if self.learn_var:
                 eps_pred, var_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 # variance range
-                var_range_A = _extract_into_tensor(np.log(self.betas) , t, eps_pred.shape)
+                if t == 0:
+                    var_range_A = _extract_into_tensor(np.log(self.s) , t, eps_pred.shape) # beta[0] = 0
+                else:
+                    var_range_A = _extract_into_tensor(np.log(self.betas) , t, eps_pred.shape)
                 var_range_B = true_log_var_clipped
                 out_log_var = torch.exp(var_pred*var_range_A + (1-var_pred)*var_range_B)
             else:
@@ -317,7 +320,10 @@ class Diffusion(Base):
             if self.learn_var:
                 eps_pred, var_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 # variance range if it is learned (constant values, so out of the for cycle)
-                var_range_A = _extract_into_tensor(np.log(self.betas) , t, eps_pred.shape)
+                if t == 0:
+                    var_range_A = _extract_into_tensor(np.log(self.s) , t, eps_pred.shape) # beta[0] = 0
+                else:
+                    var_range_A = _extract_into_tensor(np.log(self.betas) , t, eps_pred.shape)
                 var_range_B = true_log_var_clipped
                 out_log_var = torch.exp(var_pred*var_range_A + (1-var_pred)*var_range_B)
             else:
