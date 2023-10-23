@@ -104,10 +104,10 @@ class Diffusion(Base):
         # values for posterior distribution
         import pdb
         pdb.set_trace()
-        self.posterior_mean_coef1 = self.betas * np.sqrt(self.alphas_cumprod_prev) / (1.0 - self.alphas_cumprod)
-        self.posterior_mean_coef2 = (1.0 - self.alphas_cumprod_prev) * np.sqrt(self.alphas) / (1.0 - self.alphas_cumprod)
-        self.posterior_variance = self.betas * (1.0 - self.alphas_cumprod_prev) / (1.0 - self.alphas_cumprod)
-        self.posterior_log_variance_clipped = np.log( np.append(self.posterior_variance[1], self.posterior_variance[1:]) )
+        self.posterior_mean_coef1 = np.append(1, self.betas[1:] * np.sqrt(self.alphas_cumprod_prev[1:]) / (1.0 - self.alphas_cumprod[1:]))
+        self.posterior_mean_coef2 = np.append(0, (1.0 - self.alphas_cumprod_prev[1:]) * np.sqrt(self.alphas[1:]) / (1.0 - self.alphas_cumprod[1:]))
+        self.posterior_variance = np.append([self.s,self.s], self.betas[2:] * (1.0 - self.alphas_cumprod_prev[2:]) / (1.0 - self.alphas_cumprod[2:]))
+        self.posterior_log_variance_clipped = np.log(self.posterior_variance)
 
         # >>>>>>>>>>>>> LAYERS    
         # the target variables will be embedded inside the subnet, while other context variables
@@ -216,16 +216,16 @@ class Diffusion(Base):
                 eps_pred, var_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 # variance range
                 if t == 0:
-                    var_range_A = _extract_into_tensor(np.log(self.s) , t, eps_pred.shape) # beta[0] = 0
+                    var_range_A = self._extract_into_tensor(np.log(self.s) , t, eps_pred.shape) # beta[0] = 0
                 else:
-                    var_range_A = _extract_into_tensor(np.log(self.betas) , t, eps_pred.shape)
+                    var_range_A = self._extract_into_tensor(np.log(self.betas) , t, eps_pred.shape)
                 var_range_B = true_log_var_clipped
                 out_log_var = torch.exp(var_pred*var_range_A + (1-var_pred)*var_range_B)
             else:
                 eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 out_log_var = true_log_var_clipped
 
-            out_mean = _extract_into_tensor(1/self.alphas, t, eps_pred.shape) * ( y_noised - _extract_into_tensor(self.betas , t, eps_pred.shape) / _extract_into_tensor(self.betas , t, eps_pred.shape) * eps_pred )
+            out_mean = self._extract_into_tensor(1/self.alphas, t, eps_pred.shape) * ( y_noised - self._extract_into_tensor(self.betas , t, eps_pred.shape) / self._extract_into_tensor(self.betas , t, eps_pred.shape) * eps_pred )
             
             # # At the first timestep return the decoder NLL,
             # # otherwise return KL(q(x_{t-1}|x_t,x_0) || p(x_{t-1}|x_t))
@@ -314,16 +314,16 @@ class Diffusion(Base):
             ## CHECK THE NUMBER OF PARAMS
             #   model_parameters = filter(lambda p: p.requires_grad, model.parameters())
             #   params = sum([np.prod(p.size()) for p in model_parameters]) -> 13K
-            true_log_var_clipped = _extract_into_tensor( self.posterior_log_variance_clipped, t, y_noised.shape )
+            true_log_var_clipped = self._extract_into_tensor( self.posterior_log_variance_clipped, t, y_noised.shape )
             nonzero_mask = float((t != 0))  # no adding noise when t == 0
 
             if self.learn_var:
                 eps_pred, var_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 # variance range if it is learned (constant values, so out of the for cycle)
                 if t == 0:
-                    var_range_A = _extract_into_tensor(np.log(self.s) , t, eps_pred.shape) # beta[0] = 0
+                    var_range_A = self._extract_into_tensor(np.log(self.s) , t, eps_pred.shape) # beta[0] = 0
                 else:
-                    var_range_A = _extract_into_tensor(np.log(self.betas) , t, eps_pred.shape)
+                    var_range_A = self._extract_into_tensor(np.log(self.betas) , t, eps_pred.shape)
                 var_range_B = true_log_var_clipped
                 out_log_var = torch.exp(var_pred*var_range_A + (1-var_pred)*var_range_B)
             else:
@@ -331,7 +331,7 @@ class Diffusion(Base):
                 out_log_var = true_log_var_clipped
 
             # compute 
-            out_mean = _extract_into_tensor(1/self.alphas , t, eps_pred.shape) * ( y_noised - _extract_into_tensor(self.betas , t, eps_pred.shape) / _extract_into_tensor(self.betas , t, eps_pred.shape) * eps_pred )
+            out_mean = self._extract_into_tensor(1/self.alphas , t, eps_pred.shape) * ( y_noised - self._extract_into_tensor(self.betas , t, eps_pred.shape) / self._extract_into_tensor(self.betas , t, eps_pred.shape) * eps_pred )
             # Sample x_{t-1} from the model at the given timestep.
             noise = torch.rand_like(out_mean).to(self.device)
             y_noised = out_mean + nonzero_mask * torch.exp(0.5 * out_log_var) * noise
@@ -424,9 +424,9 @@ class Diffusion(Base):
             noise = torch.randn_like(x_start)
         assert noise.shape == x_start.shape
 
-        q_sample = _extract_into_tensor(np.sqrt(self.alphas_cumprod), t, x_start.shape) * x_start + _extract_into_tensor(np.sqrt(1 - self.alphas_cumprod), t, x_start.shape) * noise
-        q_mean = _extract_into_tensor(self.posterior_mean_coef1, t, q_sample.shape) * x_start + _extract_into_tensor(self.posterior_mean_coef2, t, q_sample.shape) * q_sample
-        q_log_var_clipped = _extract_into_tensor( self.posterior_log_variance_clipped, t, q_sample.shape )
+        q_sample = self._extract_into_tensor(np.sqrt(self.alphas_cumprod), t, x_start.shape) * x_start + self._extract_into_tensor(np.sqrt(1 - self.alphas_cumprod), t, x_start.shape) * noise
+        q_mean = self._extract_into_tensor(self.posterior_mean_coef1, t, q_sample.shape) * x_start + self._extract_into_tensor(self.posterior_mean_coef2, t, q_sample.shape) * q_sample
+        q_log_var_clipped = self._extract_into_tensor( self.posterior_log_variance_clipped, t, q_sample.shape )
         # return, the sample, its posterior mean and log_variance
         return q_sample, q_mean, q_log_var_clipped
 
@@ -494,6 +494,19 @@ class Diffusion(Base):
         standard normal.
         """
         return 0.5 * (1.0 + torch.tanh(np.sqrt(2.0 / np.pi) * (x + 0.044715 * torch.pow(x, 3))))
+
+    def _extract_into_tensor(self, arr, timesteps, broadcast_shape):
+        """
+        Extract values from a 1-D numpy array for a batch of indices.
+
+        :param arr: the 1-D numpy array.
+        :param timesteps: a tensor of indices into the array to extract.
+        :param broadcast_shape: a larger shape of K dimensions with the batch
+                                dimension equal to the length of timesteps.
+        :return: a tensor of shape 'broadcast_shape' where the shape has K dims.
+        """
+        ten = torch.tensor(arr[timesteps])
+        return ten.expand(broadcast_shape).to(self.device)
 
 ### >>>>>>>>>>>>>  SUB NET
 class SubNet(nn.Module):
@@ -607,16 +620,3 @@ class SubNet(nn.Module):
         else:
             return eps_hat
         
-
-def _extract_into_tensor(arr, timesteps, broadcast_shape):
-    """
-    Extract values from a 1-D numpy array for a batch of indices.
-
-    :param arr: the 1-D numpy array.
-    :param timesteps: a tensor of indices into the array to extract.
-    :param broadcast_shape: a larger shape of K dimensions with the batch
-                            dimension equal to the length of timesteps.
-    :return: a tensor of shape 'broadcast_shape' where the shape has K dims.
-    """
-    ten = torch.tensor(arr[timesteps])
-    return ten.expand(broadcast_shape)
