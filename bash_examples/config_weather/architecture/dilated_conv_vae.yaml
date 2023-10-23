@@ -1,7 +1,7 @@
 # @package _global_
 
 model:
-  type: 'dilated_conv'
+  type: 'dilated_conv_vae'
   retrain: true
 ts:
   name: 'test'
@@ -18,7 +18,7 @@ model_configs:
   kind: 'gru'
   sum_emb: true
   use_bn: false
-  dropout_rate: 0.5
+  dropout_rate: 0.1
   optim: torch.optim.Adam
   activation: torch.nn.GELU
   persistence_weight: 0.010
@@ -27,6 +27,6 @@ model_configs:
 
 train_config:
   batch_size: 64
-  max_epochs: 1000
+  max_epochs: 500
   gradient_clip_val: null
   gradient_clip_algorithm: 'norm'
