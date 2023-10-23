@@ -1,0 +1,30 @@
+# @package _global_
+
+model:
+  type: 'dilated_conv_vae'
+  retrain: true
+ts:
+  name: 'dilated_conv_vae'
+  version: 1
+  enrich: ['hour']
+  use_covariates: true
+
+model_configs:
+  cat_emb_dim: 4
+  hidden_RNN: 16
+  num_layers_RNN: 1
+  kernel_size: 3
+  kind: 'gru'
+  sum_emb: true
+  persistence_weight: 1.0
+  use_bn: false
+  quantiles: [0.1,0.5,0.9]
+  optim: torch.optim.SGD
+  activation: torch.nn.SELU
+  loss_type: 'linear_penalization'
+
+train_config:
+  batch_size: 128
+  max_epochs: 2
+  gradient_clip_val: null
+  gradient_clip_algorithm: 'norm'

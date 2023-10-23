@@ -1,0 +1,30 @@
+# @package _global_
+
+model:
+  type: 'linear'
+  retrain: true
+ts:
+  name: 'd'
+  version: 1
+  enrich: []
+  use_covariates: false
+
+model_configs:
+  cat_emb_dim: 8
+  kernel_size: 3
+  sum_emb: true
+  hidden_size: 2048
+  kind: 'dlinear'
+  dropout_rate: 0.25
+  use_bn: true,
+  optim: torch.optim.Adam
+  activation: torch.nn.PReLU
+  persistence_weight: 0.010
+  loss_type: 'l1'
+  simple: false
+
+train_config:
+  batch_size: 4
+  max_epochs: 50          
+  gradient_clip_val: null
+  gradient_clip_algorithm: 'norm'

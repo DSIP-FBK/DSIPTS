@@ -1,0 +1,43 @@
+# @package _global_
+
+model:
+  type: 'vva'
+  retrain: true
+ts:
+  name: 'test'
+  version: 1
+  enrich: []
+  use_covariates: true
+
+
+scheduler_config:
+  gamma: 0.75
+  step_size: 250
+
+optim_config:
+  lr: 0.0005
+  weight_decay: 0.01 #001
+  betas: [0.9,0.95]
+    
+model_configs:
+  d_model: 64
+  max_voc_size: 128  
+  token_split: 4     
+  num_layers: 4
+  dropout_rate: 0.5
+  n_heads: 4
+  optim: torch.optim.Adam
+  persistence_weight: 0.010
+  loss_type: 'l1'
+  
+train_config:
+  auto_lr_find: false
+  modifier: 'ModifierVVA'
+  modifier_params:
+    token_split: ${...model_configs.token_split}
+    max_voc_size: ${...model_configs.max_voc_size}
+  batch_size: 128
+  max_epochs: 1000
+  gradient_clip_val: null
+  gradient_clip_algorithm: 'norm'
+  

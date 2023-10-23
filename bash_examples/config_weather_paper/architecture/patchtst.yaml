@@ -1,0 +1,32 @@
+# @package _global_
+
+model:
+  type: 'patchtst'
+  retrain: true
+ts:
+  name: 'weather'
+  version: 1
+  enrich: ['hour']
+  use_covariates: false
+
+
+model_configs:
+  d_model: 64
+  kernel_size: 3
+  decomposition: true
+  n_layer: 2
+  patch_len: 8
+  n_head: 2
+  stride: 8 #non overlapping?
+  dropout_rate: 0.25
+  hidden_size: 128
+  optim: torch.optim.Adam
+  activation: torch.nn.PReLU
+  persistence_weight: 1
+  loss_type: 'std_penalization'
+  remove_last: true
+
+train_config:
+  batch_size: 64
+  max_epochs: 600
+            
