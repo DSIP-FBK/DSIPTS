@@ -251,14 +251,25 @@ class TimeSeries():
             else:
                 differences = dataset[dataset[group]==dataset[group].unique()[0]].time.diff()[1:]
                 
+            
+            if isinstance(dataset.time.dtype, datetime):
+                freq = pd.to_timedelta(differences.min())   
+            else:
+                freq = differences.min()
+            self.freq = freq 
+            
+            
             if differences.nunique()>1:
                 beauty_string("There are holes in the dataset i will try to extend the dataframe inserting NAN",'info',self.verbose)
-                freq = pd.to_timedelta(differences.min())
                 beauty_string(f'Detected minumum frequency: {freq}','section',self.verbose)
                 dataset = extend_time_df(dataset,freq,group).merge(dataset,how='left')
+        else:
+            beauty_string("I will compute the frequency as minimum of the time difference",'info',self.verbose)
+            self.freq =  dataset.time.diff()[1:].min()
+            if isinstance(dataset.time.dtype, datetime):
+                self.freq = pd.to_timedelta(self.freq)   
             
-
-            
+                
         assert len(target_variables)>0, 'Provide at least one column for target'
         assert 'time'  in dataset.columns, 'The temporal column must be called time'
         if set(target_variables).intersection(set(past_variables))!= set(target_variables): 
@@ -493,7 +504,8 @@ class TimeSeries():
                         keep_entire_seq_while_shifting:bool=False,
                         starting_point:Union[None, dict]=None,
                         skip_step:int=1,
-                        normalize_per_group: bool=False
+                        normalize_per_group: bool=False,
+                        check_consecutive: bool=True
                         )->List[DataLoader]:
         """Split the data and create the datasets.
 
@@ -510,7 +522,9 @@ class TimeSeries():
 
             starting_point (Union[None, dict], optional):  see `create_data_loader`. Defaults to None.
             skip_step (int, optional):  see `create_data_loader`. Defaults to 1.
-            normalize_per_group (boolean, optional): if true and self.group is not None, the variables are scaled respect to the groups
+            normalize_per_group (boolean, optional): if true and self.group is not None, the variables are scaled respect to the groups. Default False
+            check_consecutive (boolean, optional): if false it skips the check on the consecutive ranges. Default True
+
         Returns:
             List[DataLoader,DataLoader,DataLoadtrainer]: three dataloader used for training or inference
         """
@@ -549,7 +563,8 @@ class TimeSeries():
 
 
         else:
-
+            if check_consecutive:
+                assert range_train[0]<range_train[1]<=range_validation[0]<range_validation[1]<=range_test[0]<range_test[1], beauty_string(f'The range are not correct','info',True)
             beauty_string('Split temporally using the time intervals provided','section',self.verbose)
             train = self.dataset[self.dataset.time.between(range_train[0],range_train[1])]
             validation =  self.dataset[self.dataset.time.between(range_validation[0],range_validation[1])]
@@ -879,7 +894,7 @@ class TimeSeries():
                 tot.append(pd.DataFrame(res[:,:,i,0],columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':c+'_pred'}).drop(columns=['variable']))
             res = pd.concat(tot,axis=1)
 
-            
+        res['prediction_time'] = res.apply(lambda x: x.time-self.freq*x.lag, axis=1)
         return res
     def inference(self,batch_size:int=100,
                   num_workers:int=4,

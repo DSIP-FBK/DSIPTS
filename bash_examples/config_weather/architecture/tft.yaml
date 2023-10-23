@@ -6,8 +6,8 @@ model:
 ts:
   name: 'weather'
   version: 1
-  enrich: ['hour']
-  use_covariates: false
+  enrich: []
+  use_covariates: true
 
 
 model_configs:

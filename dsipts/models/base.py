@@ -178,7 +178,13 @@ class Base(pl.LightningModule):
         if self.loss_type == 'linear_penalization':
             persistence_error = self.persistence_weight*(2.0-10.0*torch.clamp( torch.abs((y_persistence-x)/(0.001+torch.abs(y_persistence))),min=0.0,max=0.1))
             loss = torch.mean(torch.abs(x- batch['y'])*persistence_error)
+        
+        if self.loss_type == 'mda':
+            mda =  (1-torch.mean( torch.sign(torch.diff(x,axis=1))*torch.sign(torch.diff(batch['y'],axis=1)).flatten()))
+            loss =  torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten()) + self.persistence_weight*mda
             
+            
+        
         elif self.loss_type == 'exponential_penalization':
             weights = (1+self.persistence_weight*torch.exp(-torch.abs(y_persistence-x)))
             loss =  torch.mean(torch.abs(x- batch['y'])*weights)
@@ -196,8 +202,10 @@ class Base(pl.LightningModule):
         elif self.loss_type == 'multiplicative_iv':
             std = torch.sqrt(torch.var(batch['y'], dim=(1))+ 1e-8) ##--> BSxChannel
             x_std = torch.sqrt(torch.var(x, dim=(1))+ 1e-8)
-            loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten()*torch.abs(x_std-std).mean(axis=1).flatten())   
-              
+            if self.persistence_weight>0:
+                loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten()*torch.abs(x_std-std).mean(axis=1).flatten())   
+            else:
+                loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten())   
         elif self.loss_type=='global_iv':
             std_real = torch.sqrt(torch.var(batch['y'], dim=(0,1)))
             std_predict = torch.sqrt(torch.var(x, dim=(0,1)))

@@ -107,6 +107,7 @@ class DilatedConvVAE(Base):
                  quantiles:List[int]=[],
                  dropout_rate:float=0.1,
                  use_bn:bool=False,
+                 use_cumsum:bool=True,
                  n_classes:int=0,
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
@@ -134,8 +135,7 @@ class DilatedConvVAE(Base):
             quantiles (List[int], optional): we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
             dropout_rate (float, optional): dropout rate in Dropout layers
             use_bn (bool, optional): if true BN layers will be added and dropouts will be removed
-            use_glu (bool,optional): use GLU for feature selection. Defaults to True.
-            glu_percentage (float, optiona): percentage of features to use. Defaults to 1.0.
+            use_cumsum (bool, optional): if true use cumsum of future representation else it uses the same covariate represnetation for each future step
             n_classes (int): number of classes (0 in regression)
             optim (str, optional): if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
@@ -162,6 +162,7 @@ class DilatedConvVAE(Base):
         self.future_channels = future_channels 
         self.embs = nn.ModuleList()
         self.sum_emb = sum_emb
+        self.use_cumsum = use_cumsum
         self.kind = kind
         self.out_channels = out_channels
         if n_classes==0:
@@ -245,8 +246,7 @@ class DilatedConvVAE(Base):
                                   batch_first=True,bidirectional=True)
         else:
             beauty_string('Specify kind lstm or gru please','section',True)
-            
-        self.final_linear_decoder  (nn.Sequential(nn.Linear(num_layers_RNN*2,hidden_RNN*2), 
+        self.final_linear_decoder = nn.Sequential(nn.Linear((hidden_RNN//2*2)*num_layers_RNN ,hidden_RNN*2), 
                                             activation(),
                                             Permute() if use_bn else nn.Identity() ,
                                             nn.BatchNorm1d(hidden_RNN*2) if use_bn else nn.Dropout(dropout_rate) ,
@@ -263,7 +263,7 @@ class DilatedConvVAE(Base):
                                             Permute() if use_bn else nn.Identity() ,
                                             nn.Linear(hidden_RNN//2,hidden_RNN//4),
                                             activation(),
-                                            nn.Linear(hidden_RNN//4,1)))
+                                            nn.Linear(hidden_RNN//4,1))
         
         
 
@@ -308,7 +308,8 @@ class DilatedConvVAE(Base):
         tot = torch.cat(tmp,2)
 
         out_past, hidden_past = self.Encoder(self.conv_encoder(tot))      
-
+        
+            
         ## hidden  = 2 x bs x channels_out_encoder
         ## out = BS x len x channels_out_encoder
         tmp = []
@@ -335,15 +336,23 @@ class DilatedConvVAE(Base):
         else:
             out_future, hidden_future = self.Decoder(self.conv_decoder(out_past))  
         ##hidden state of the past --> initial state
-        BS = out_past.shape[1]
-        out_past = out_past.permute(1,0,2).reshape(BS,-1) #BSx2xC --> BSx2C
-        
-        res = torch.zeros(BS,self.future_steps,self.future_channels,self.mul).to(self.device)
-        
-        for i in range(self.future_steps):
-            out_past+=out_future[:,i,:].unsqueeze(1).repeat(1,2,1).reshape(BS,-1)
-            decoded = self.final_linear_decoder(out_past)
-            res[:,i,:,:] = decoded.reshape(BS,self.future_channels,self.mul)
+
+        if self.kind=='lstm':
+            hidden_past = hidden_past[0] 
+            
+        #past= 2num_layers_RNNxBSxhidden_RNN//2
+        # furture = BSx L x    hidden_RNN//2 --> BSxLxC
+        BS = hidden_past.shape[1]
+        N = hidden_past.shape[0]//2
+        past = hidden_past.permute(1,0,2).reshape(BS,-1) #BSx2NxC --> BSx2CN
+        future = out_future.repeat(1,1,N)
+
+        if self.use_cumsum:
+            final = torch.cumsum(future,axis=1).permute(0,2,1)+past.unsqueeze(2).repeat(1,1,self.future_steps)
+        else:
+            final = future.permute(0,2,1)+past.unsqueeze(2).repeat(1,1,self.future_steps)
+            
+        res= self.final_linear_decoder(final.permute(0,2,1)).reshape(BS,self.future_steps,self.out_channels,self.mul)
             
 
         
