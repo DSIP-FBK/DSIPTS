@@ -5,6 +5,6 @@ def load_data(conf):
     ts = TimeSeries(conf.ts.name)
     ts.load_signal(data, enrich_cat= conf.ts.enrich,target_variables=['y'],
                    past_variables=columns if conf.ts.use_covariates else [],
-                   future_variables=columns if conf.ts.use_future_covariates else [],
+                   future_variables=columns if conf.ts.get('use_future_covariates',False) else [],
                    silly_model=conf.ts.get('silly',False))
     return ts
