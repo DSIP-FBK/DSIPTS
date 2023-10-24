@@ -33,6 +33,7 @@ class PatchTST(Base):
                  loss_type: str='l1',
                  quantiles:List[int]=[],
                  dropout_rate:float=0.1,
+                 simple:bool=True,
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
                  scheduler_config:dict=None,
@@ -53,14 +54,13 @@ class PatchTST(Base):
             activation (str, optional): activation fuction function pytorch. Default torch.nn.ReLU
             n_head (int, optional): number of heads
             n_layer (int, optional): number of encoding layers
-            
             remove_last (boolean,optional): if true the model try to predic the difference respect the last observation.
-            
             out_channels (int):  number of output channels
             persistence_weight (float):  weight controlling the divergence from persistence model. Default 0
             loss_type (str, optional): this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,
             quantiles (List[int], optional): NOT USED YET
             dropout_rate (float, optional):  dropout rate in Dropout layers. Defaults to 0.1.
+            simple (bool, optional): if true it uses the original implementationz
             optim (str, optional): if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
@@ -84,24 +84,27 @@ class PatchTST(Base):
         self.persistence_weight = persistence_weight 
         self.remove_last = remove_last
         self.future_steps = future_steps  ##this is mandatory
+        self.simple = simple
         if self.loss_type == 'mse':
             self.loss = nn.MSELoss()
         else:
             self.loss = nn.L1Loss()
 
     
-
-        self.embs = nn.ModuleList()
-        emb_channels = 0
-        for k in embs:
-            self.embs.append(nn.Embedding(k+1,d_model))
-            emb_channels = d_model
-            
-        past_channels+=emb_channels
+        if simple:
+            past_channels = out_channels
+        else:
+            self.embs = nn.ModuleList()
+            emb_channels = 0
+            for k in embs:
+                self.embs.append(nn.Embedding(k+1,d_model))
+                emb_channels = d_model
+                
+            past_channels+=emb_channels
         
         
 
-        
+        #norm = 'BatchNorm' if use_bn else None
         
         # model
         self.decomposition = decomposition
@@ -109,7 +112,7 @@ class PatchTST(Base):
             self.decomp_module = series_decomp(kernel_size)
             self.model_trend = PatchTST_backbone(c_in=past_channels, context_window = past_steps, target_window=future_steps, patch_len=patch_len, stride=stride, 
                                   max_seq_len=past_steps+future_steps, n_layers=n_layer, d_model=d_model,
-                                  n_heads=n_head, d_k=None, d_v=None, d_ff=hidden_size, norm=False, attn_dropout=dropout_rate,
+                                  n_heads=n_head, d_k=None, d_v=None, d_ff=hidden_size, norm='BatchNorm', attn_dropout=dropout_rate,
                                   dropout=dropout_rate, act=activation(), key_padding_mask='auto', padding_var=None, 
                                   attn_mask=None, res_attention=True, pre_norm=False, store_attn=False,
                                   pe='zeros', learn_pe=True, fc_dropout=dropout_rate, head_dropout=dropout_rate, padding_patch = 'end',
@@ -117,7 +120,7 @@ class PatchTST(Base):
                                   subtract_last=remove_last, verbose=False)
             self.model_res = PatchTST_backbone(c_in=past_channels, context_window = past_steps, target_window=future_steps, patch_len=patch_len, stride=stride, 
                                   max_seq_len=past_steps+future_steps, n_layers=n_layer, d_model=d_model,
-                                  n_heads=n_head, d_k=None, d_v=None, d_ff=hidden_size, norm=False, attn_dropout=dropout_rate,
+                                  n_heads=n_head, d_k=None, d_v=None, d_ff=hidden_size, norm='BatchNorm', attn_dropout=dropout_rate,
                                   dropout=dropout_rate, act=activation(), key_padding_mask='auto', padding_var=None, 
                                   attn_mask=None, res_attention=True, pre_norm=False, store_attn=False,
                                   pe='zeros', learn_pe=True, fc_dropout=dropout_rate, head_dropout=dropout_rate, padding_patch = 'end',
@@ -126,7 +129,7 @@ class PatchTST(Base):
         else:
             self.model = PatchTST_backbone(c_in=past_channels, context_window = past_steps, target_window=future_steps, patch_len=patch_len, stride=stride, 
                                   max_seq_len=past_steps+future_steps, n_layers=n_layer, d_model=d_model,
-                                  n_heads=n_head, d_k=None, d_v=None, d_ff=hidden_size, norm=False, attn_dropout=dropout_rate,
+                                  n_heads=n_head, d_k=None, d_v=None, d_ff=hidden_size, norm='BatchNorm', attn_dropout=dropout_rate,
                                   dropout=dropout_rate, act=activation(), key_padding_mask='auto', padding_var=None, 
                                   attn_mask=None, res_attention=True, pre_norm=False, store_attn=False,
                                   pe='zeros', learn_pe=True, fc_dropout=dropout_rate, head_dropout=dropout_rate, padding_patch = 'end',
@@ -137,20 +140,26 @@ class PatchTST(Base):
     
     def forward(self, batch):           # x: [Batch, Input length, Channel]
         
-        x_seq = batch['x_num_past'].to(self.device)#[:,:,idx_target]
-        if 'x_cat_past' in batch.keys():
-            cat_past = batch['x_cat_past'].to(self.device)
-        tot = [x_seq]
-        if 'x_cat_past' in batch.keys():
-            tmp_emb = None
-            for i in range(len(self.embs)):
-                if i>0:
-                    tmp_emb+=self.embs[i](cat_past[:,:,i])
-                else:
-                    tmp_emb=self.embs[i](cat_past[:,:,i])
-            tot.append(tmp_emb)
+        if self.simple:
+            idx_target = batch['idx_target'][0]
+            x_seq = batch['x_num_past'].to(self.device)[:,:,idx_target]
+            
+        else:
+            x_seq = batch['x_num_past'].to(self.device)#[:,:,idx_target]
+            
+            if 'x_cat_past' in batch.keys():
+                cat_past = batch['x_cat_past'].to(self.device)
+            tot = [x_seq]
+            if 'x_cat_past' in batch.keys():
+                tmp_emb = None
+                for i in range(len(self.embs)):
+                    if i>0:
+                        tmp_emb+=self.embs[i](cat_past[:,:,i])
+                    else:
+                        tmp_emb=self.embs[i](cat_past[:,:,i])
+                tot.append(tmp_emb)
 
-        x_seq = torch.cat(tot,axis=2)
+            x_seq = torch.cat(tot,axis=2)
             
             
             
@@ -165,8 +174,9 @@ class PatchTST(Base):
             x = x.permute(0,2,1)    # x: [Batch, Channel, Input length]
             x = self.model(x)
             x = x.permute(0,2,1)    # x: [Batch, Input length, Channel]
-            
-        x = self.final_linear(x)       
+        
+        if not self.simple:
+            x = self.final_linear(x)       
     
         return x.unsqueeze(3)
         
