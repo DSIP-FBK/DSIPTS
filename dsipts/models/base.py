@@ -6,6 +6,7 @@ from torch.optim.lr_scheduler import StepLR
 from abc import  abstractmethod
 from .utils import SinkhornDistance, SoftDTWBatch,PathDTWBatch,pairwise_distances
 from ..data_structure.utils import beauty_string
+from .utils import  get_scope
 
 def standardize_momentum(x,order):
     mean = torch.mean(x,1).unsqueeze(1).repeat(1,x.shape[1],1)
@@ -36,6 +37,14 @@ def dilate_loss(outputs, targets, alpha, gamma, device):
 
 
 class Base(pl.LightningModule):
+    
+    ############### SET THE PROPERTIES OF THE ARCHITECTURE##############
+    handle_multivariate = False
+    handle_future_covariates = False
+    handle_categorical_variables = False
+    description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables)
+    beauty_string(description,'info',True)
+    #####################################################################
     @abstractmethod
     def __init__(self,verbose:bool):
         """

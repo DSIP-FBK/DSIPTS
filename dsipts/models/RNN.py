@@ -5,7 +5,7 @@ from .base import Base
 from .utils import QuantileLossMO,Permute,get_activation
 from typing import List,Union
 from ..data_structure.utils import beauty_string
-
+from .utils import  get_scope
 
 class MyBN(nn.Module):
     def __init__(self,channels):
@@ -15,7 +15,12 @@ class MyBN(nn.Module):
         return self.BN(x.permute(0,2,1)).permute(0,2,1)
 
 class RNN(Base):
-
+    handle_multivariate = True
+    handle_future_covariates = True
+    handle_categorical_variables = True
+    description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables)
+    beauty_string(description,'info',True)
+    
     
     def __init__(self, 
                  past_steps:int,

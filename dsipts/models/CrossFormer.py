@@ -4,7 +4,8 @@ import torch
 from .base import Base
 from typing import List,Union
 from einops import  repeat
-
+from ..data_structure.utils import beauty_string
+from .utils import  get_scope
 from .crossformer.cross_encoder import Encoder
 from .crossformer.cross_decoder import Decoder
 from .crossformer.cross_embed import DSW_embedding
@@ -17,7 +18,11 @@ from math import ceil
 #                dropout=0.0, baseline = False,
   
 class CrossFormer(Base):
-
+    handle_multivariate = True
+    handle_future_covariates = False
+    handle_categorical_variables = False
+    description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables)
+    beauty_string(description,'info',True)
     
     def __init__(self, 
                  past_steps:int,

@@ -8,12 +8,18 @@ from .informer.encoder import Encoder, EncoderLayer, ConvLayer
 from .informer.decoder import Decoder, DecoderLayer
 from .informer.attn import FullAttention, ProbAttention, AttentionLayer
 from .informer.embed import DataEmbedding
-  
+from ..data_structure.utils import beauty_string
+from .utils import  get_scope
   
     
   
 class Informer(Base):
-
+    handle_multivariate = True
+    handle_future_covariates = True
+    handle_categorical_variables = True
+    description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables)
+    beauty_string(description,'info',True)
+    
     
     def __init__(self, 
                  past_steps:int,

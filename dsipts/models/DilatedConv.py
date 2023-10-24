@@ -7,6 +7,7 @@ from typing import List, Union
 from ..data_structure.utils import beauty_string
 import numpy as np
 torch.autograd.set_detect_anomaly(True)
+from .utils import  get_scope
 
 class GLU(nn.Module):
     def __init__(self, d_model: int):
@@ -86,7 +87,11 @@ class Block(nn.Module):
         
 
 class DilatedConv(Base):
-
+    handle_multivariate = True
+    handle_future_covariates = True
+    handle_categorical_variables = True
+    description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables)
+    beauty_string(description,'info',True)
     
     def __init__(self, 
                  past_steps:int,

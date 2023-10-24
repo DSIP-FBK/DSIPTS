@@ -6,11 +6,17 @@ from typing import List,Union
 from ..data_structure.utils import beauty_string
 from .utils import  get_activation
 from .patchtst.layers import series_decomp, PatchTST_backbone
+from .utils import  get_scope
 
 
   
 class PatchTST(Base):
-
+    handle_multivariate = True
+    handle_future_covariates = False
+    handle_categorical_variables = True
+    description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables)
+    beauty_string(description,'info',True)
+    
     
     def __init__(self, 
                  past_steps:int,

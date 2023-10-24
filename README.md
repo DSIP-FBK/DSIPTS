@@ -316,6 +316,7 @@ If you want to add a model:
 - extend the `Base` class in `dsipts/models`
 - add the export line in the `dsipts/__init__.py` 
 - add a full configuration file in `bash_examples/config_test/architecture`
+- optional: add in `bash_script/utils.py` the section to initializate and load the new model
 - add the modifier in `dsipts/data_structure/modifiers.py` if it is required
 
 
@@ -323,4 +324,3 @@ If you want to add a model:
 # TODO
 - add more sintetic data
 
-python train.py  --config-dir=config_weather --config-name=config_xps -m architecture=dilated_conv model_configs.use_cumsum=true,false

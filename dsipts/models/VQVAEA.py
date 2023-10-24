@@ -9,13 +9,19 @@ from .vva.vqvae import VQVAE
 import logging
 from random import random
 from ..data_structure.utils import beauty_string
+from .utils import  get_scope
 
 torch.autograd.set_detect_anomaly(True)
 
         
 
 class VQVAEA(Base):
-
+    handle_multivariate = False
+    handle_future_covariates = False
+    handle_categorical_variables = False
+    description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables)
+    beauty_string(description,'info',True)
+    
     
     def __init__(self, 
                  past_steps:int,

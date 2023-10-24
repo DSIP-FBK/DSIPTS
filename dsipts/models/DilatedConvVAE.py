@@ -6,6 +6,8 @@ from .utils import QuantileLossMO,Permute, get_activation
 from typing import List, Union
 from ..data_structure.utils import beauty_string
 import numpy as np
+from .utils import  get_scope
+
 torch.autograd.set_detect_anomaly(True)
 
 class GLU(nn.Module):
@@ -86,7 +88,11 @@ class Block(nn.Module):
         
 
 class DilatedConvVAE(Base):
-
+    handle_multivariate = True
+    handle_future_covariates = True
+    handle_categorical_variables = True
+    description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables)
+    beauty_string(description,'info',True)
     
     def __init__(self, 
                  past_steps:int,
