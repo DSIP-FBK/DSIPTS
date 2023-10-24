@@ -68,6 +68,8 @@ class Base(pl.LightningModule):
         """
         return None
     
+
+
     def inference(self, batch:dict)->torch.tensor:
         """Usually it is ok to return the output of the forward method but sometimes not (e.g. RNN)
 

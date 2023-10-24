@@ -14,12 +14,12 @@ model_configs:
   d_model: 64
   kernel_size: 3
   decomposition: true
-  n_layer: 2
+  n_layer: 6
   patch_len: 8
-  n_head: 2
+  n_head: 4
   stride: 8 #non overlapping?
   dropout_rate: 0.25
-  hidden_size: 128
+  hidden_size: 256
   optim: torch.optim.Adam
   activation: torch.nn.GELU
   persistence_weight: 1

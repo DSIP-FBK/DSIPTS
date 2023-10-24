@@ -4,14 +4,18 @@ import torch
 from .base import Base
 from typing import List,Union
 from ..data_structure.utils import beauty_string
-from .utils import  get_activation
+from .utils import  get_activation,get_scope
 from .autoformer.layers import AutoCorrelation, AutoCorrelationLayer, Encoder, Decoder,\
     EncoderLayer, DecoderLayer, my_Layernorm, series_decomp,PositionalEmbedding
 
 
   
 class Autoformer(Base):
-
+    handle_multivariate = True
+    handle_future_covariates = True
+    handle_categorical_variables = True
+    descrizione = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables)
+    beauty_string(descrizione,'info',True)
     
     def __init__(self, 
                  past_steps:int,
@@ -75,6 +79,7 @@ class Autoformer(Base):
                 Defaults to None.
         """
         super().__init__(**kwargs)
+        
         if activation == 'torch.nn.SELU':
             beauty_string('SELU do not require BN','info',self.verbose)
         if isinstance(activation,str):

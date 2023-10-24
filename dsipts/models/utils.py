@@ -6,6 +6,15 @@ from numba import jit
 from torch.autograd import Function
 
 
+def get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables):
+    message = f'Can {"NOT" if not handle_multivariate else "" }  handle multivariate output \n'\
+                  f'Can {"NOT" if not handle_future_covariates else "" }  handle future covariates\n'\
+                  f'Can {"NOT" if not handle_categorical_variables else "" }  handle categorical covariates'
+    return message
+    
+
+
+
 class SinkhornDistance():
     r"""
     Given two empirical measures each with :math:`P_1` locations
