@@ -99,8 +99,6 @@ class PatchTST(Base):
         
         
 
-        #norm = 'BatchNorm' if use_bn else None
-        
         # model
         self.decomposition = decomposition
         if self.decomposition:
@@ -131,7 +129,7 @@ class PatchTST(Base):
                                   pretrain_head=False, head_type='flatten', individual=False, revin=True, affine=False,
                                   subtract_last=remove_last, verbose=False)
     
-        self.final_linear = nn.Sequential(nn.Linear(past_channels,past_channels//2),activation(),nn.Dropout(dropout_rate), nn.Linear(past_channels//2,out_channels)  )
+        #self.final_linear = nn.Sequential(nn.Linear(past_channels,past_channels//2),activation(),nn.Dropout(dropout_rate), nn.Linear(past_channels//2,out_channels)  )
     
     def forward(self, batch):           # x: [Batch, Input length, Channel]
         
@@ -166,9 +164,10 @@ class PatchTST(Base):
             x = self.model(x)
             x = x.permute(0,2,1)    # x: [Batch, Input length, Channel]
         
-        x = self.final_linear(x)       
-    
-        return x.unsqueeze(3)
+        res = x.unsqueeze(3)
+        
+        idx_target = batch['idx_target'][0]
+        return res[:, :,idx_target,:]
         
         
         
