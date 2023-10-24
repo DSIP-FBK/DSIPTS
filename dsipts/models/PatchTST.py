@@ -33,7 +33,6 @@ class PatchTST(Base):
                  loss_type: str='l1',
                  quantiles:List[int]=[],
                  dropout_rate:float=0.1,
-                 simple:bool=True,
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
                  scheduler_config:dict=None,
@@ -60,7 +59,6 @@ class PatchTST(Base):
             loss_type (str, optional): this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,
             quantiles (List[int], optional): NOT USED YET
             dropout_rate (float, optional):  dropout rate in Dropout layers. Defaults to 0.1.
-            simple (bool, optional): if true it uses the original implementationz
             optim (str, optional): if not None it expects a pytorch optim method. Defaults to None that is mapped to Adam.
             optim_config (dict, optional): configuration for Adam optimizer. Defaults to None.
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
@@ -84,23 +82,20 @@ class PatchTST(Base):
         self.persistence_weight = persistence_weight 
         self.remove_last = remove_last
         self.future_steps = future_steps  ##this is mandatory
-        self.simple = simple
         if self.loss_type == 'mse':
             self.loss = nn.MSELoss()
         else:
             self.loss = nn.L1Loss()
 
     
-        if simple:
-            past_channels = out_channels
-        else:
-            self.embs = nn.ModuleList()
-            emb_channels = 0
-            for k in embs:
-                self.embs.append(nn.Embedding(k+1,d_model))
-                emb_channels = d_model
-                
-            past_channels+=emb_channels
+    
+        self.embs = nn.ModuleList()
+        emb_channels = 0
+        for k in embs:
+            self.embs.append(nn.Embedding(k+1,d_model))
+            emb_channels = d_model
+            
+        past_channels+=emb_channels
         
         
 
@@ -140,26 +135,22 @@ class PatchTST(Base):
     
     def forward(self, batch):           # x: [Batch, Input length, Channel]
         
-        if self.simple:
-            idx_target = batch['idx_target'][0]
-            x_seq = batch['x_num_past'].to(self.device)[:,:,idx_target]
-            
-        else:
-            x_seq = batch['x_num_past'].to(self.device)#[:,:,idx_target]
-            
-            if 'x_cat_past' in batch.keys():
-                cat_past = batch['x_cat_past'].to(self.device)
-            tot = [x_seq]
-            if 'x_cat_past' in batch.keys():
-                tmp_emb = None
-                for i in range(len(self.embs)):
-                    if i>0:
-                        tmp_emb+=self.embs[i](cat_past[:,:,i])
-                    else:
-                        tmp_emb=self.embs[i](cat_past[:,:,i])
-                tot.append(tmp_emb)
 
-            x_seq = torch.cat(tot,axis=2)
+        x_seq = batch['x_num_past'].to(self.device)#[:,:,idx_target]
+        
+        if 'x_cat_past' in batch.keys():
+            cat_past = batch['x_cat_past'].to(self.device)
+        tot = [x_seq]
+        if 'x_cat_past' in batch.keys():
+            tmp_emb = None
+            for i in range(len(self.embs)):
+                if i>0:
+                    tmp_emb+=self.embs[i](cat_past[:,:,i])
+                else:
+                    tmp_emb=self.embs[i](cat_past[:,:,i])
+            tot.append(tmp_emb)
+
+        x_seq = torch.cat(tot,axis=2)
             
             
             
@@ -175,8 +166,7 @@ class PatchTST(Base):
             x = self.model(x)
             x = x.permute(0,2,1)    # x: [Batch, Input length, Channel]
         
-        if not self.simple:
-            x = self.final_linear(x)       
+        x = self.final_linear(x)       
     
         return x.unsqueeze(3)
         
