@@ -25,7 +25,6 @@ model_configs:
   persistence_weight: 1
   loss_type: 'std_penalization'
   remove_last: true
-  simple: true
 
 train_config:
   batch_size: 64
