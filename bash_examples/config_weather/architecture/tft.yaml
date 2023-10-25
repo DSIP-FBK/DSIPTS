@@ -6,19 +6,19 @@ model:
 ts:
   name: 'weather'
   version: 1
-  enrich: []
+  enrich: ['dow','hour']
   use_covariates: true
 
 
 model_configs:
-  d_model: 32
+  d_model: 128
   d_head: 32
   n_head: 4
-  num_layers_RNN: 4
+  num_layers_RNN: 6
   optim: torch.optim.Adam
   dropout_rate: 0.25
   persistence_weight: 1
-  loss_type: 'std_penalization'
+  loss_type: 'mse'
 
 train_config:
   batch_size: 64

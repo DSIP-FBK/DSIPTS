@@ -6,9 +6,9 @@ model:
 ts:
   name: 'test'
   version: 1
-  enrich: []
+  enrich: ['dow','hour']
   use_covariates: true
-  use_future_covariates: true
+  use_future_covariates: 'false'
 
 
 model_configs:
@@ -23,8 +23,8 @@ model_configs:
   optim: torch.optim.Adam
   activation: torch.nn.GELU
   persistence_weight: 0.010
-  loss_type: 'l1'
-  use_cumsum: true
+  loss_type: 'mse'
+  use_cumsum: false
 
 train_config:
   batch_size: 64
