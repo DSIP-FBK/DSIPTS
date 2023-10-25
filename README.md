@@ -5,7 +5,8 @@ This library allows to:
 - (1) load timeseries in a convenient format
 - (2) create tool timeseries with controlled categorical features (additive and multiplicative)
 - (3) load public timeseries
-- (4) train a predictive model using different pytroch architectures
+- (4) train a predictive model using different PyTorch architectures
+- (5) define more complex structures using Modifiers (e.g. combining unsupervised learning + deep learning)
 
 ## Background
 
@@ -171,11 +172,12 @@ future_steps = 20
 
 Let suppose to use a RNN encoder-decoder sturcture, then the model has the following parameters:
 ```
-
+past_steps = 100
+future_steps = 20
 config = dict(model_configs =dict(
                                     cat_emb_dim = 16,
                                     kind = 'gru',
-                                    hidden_RNN = 12,
+                                    hidden_RNN = 32,
                                     num_layers_RNN = 2,
                                     sum_emb = True,
                                     kernel_size = 15,
@@ -191,13 +193,13 @@ config = dict(model_configs =dict(
                                     remove_last= True,
                                     use_bn = False,
                                     optim= 'torch.optim.Adam',
-                                    activation= 'torch.nn.PReLU',                            
+                                    activation= 'torch.nn.GELU', 
+                                    verbose = True,
                                     out_channels = len(ts.target_variables)),
                 scheduler_config = dict(gamma=0.1,step_size=100),
                 optim_config = dict(lr = 0.0005,weight_decay=0.01))
 model_sum = RNN(**config['model_configs'],optim_config = config['optim_config'],scheduler_config =config['scheduler_config'] )
 ts.set_model(model_sum,config=config )
-
 ```
 
 Notice that there are some free parameters: `cat_emb_dim` for example represent the dimension of the embedded categorical variable, `sum_embs` will sum all the categorical contribution otherwise it will concatenate them. It is possible to use a quantile loss, specify some parameters of the scheduler (StepLR) and optimizer parameters (Adam). 
@@ -205,7 +207,7 @@ Notice that there are some free parameters: `cat_emb_dim` for example represent 
 
 Now we are ready to split and train our model using:
 ```
-ts.train_model(dirpath=<path to weights>,split_params=dict(perc_train=0.6, perc_valid=0.2,past_steps = past_steps,future_steps=future_steps, range_train=None, range_validation=None, range_test=None,shift = 0,starting_point=None,skip_step=1),batch_size=100,num_workers=4,max_epochs=40,auto_lr_find=True,devices='auto')
+ts.train_model(dirpath="/home/agobbi/Projects/TT/tmp/4656719v2",split_params=dict(perc_train=0.6, perc_valid=0.2,past_steps = past_steps,future_steps=future_steps, range_train=None, range_validation=None, range_test=None,shift = 0,starting_point=None,skip_step=1),batch_size=100,num_workers=4,max_epochs=40,auto_lr_find=True,devices='auto')
 ```
 It is possble to split the data indicating the percentage of data to use in train, validation, test or the ranges. The `shift` parameters indicates if there is a shift constucting the y array. It cab be used for some attention model where we need to know the first value of the timeseries to predict. It may disappear in future because it is misleading. The `skip_step` parameters indicates how many temporal steps there are between samples. If you need a futture signal that is long `skip_step+future_steps` then you should put `keep_entire_seq_while_shifting` to True (see Informer model).
 
@@ -213,30 +215,28 @@ During the training phase a log stream will be generated. If a single process is
 
 At the end of the trainin process it is possible to plot the losses and get the prediction for the test set:
 ```
+
+ts.save('tmp')  ## save the timeseries object
+ts.load( RNN,'tmp',load_last=True) ## load the timeseries object using the weights of the last training step
+
 ts.losses.plot()
-res = ts.inference_on_set(batch_size = 100,num_workers = 4)
+res = ts.inference_on_set(set='test',batch_size=100,num_workers=4)
 res.head() ##it contains something like
-ts.save('tmp')
 
 
-    lag   	time	            signal	   signal_low	signal_median	signal_high
-	1	2006-02-15 03:20:01	-2.009074e-07	-2.868327	-0.397901	1.843728
-	1	2006-02-15 03:30:01	-2.009074e-07	-2.953841	-0.386479	1.855667
-	1	2006-02-15 03:40:01	-2.009074e-07	-3.026580	-0.369668	1.869150
-	1	2006-02-15 03:50:01	-2.009074e-07	-3.085882	-0.355927	1.880708
-	1	2006-02-15 04:00:01	-2.009074e-07	-3.142889	-0.356409	1.887087
+
+	lag	time	signal	signal_low	signal_median	signal_high	prediction_time
+0	1	2006-02-15 03:20:01	-2.009074e-07	-8.994338	-0.003175	0.997296	2006-02-15 03:10:01
+1	1	2006-02-15 03:30:01	-2.009074e-07	-8.994338	-0.003175	0.992540	2006-02-15 03:20:01
+2	1	2006-02-15 03:40:01	-2.009074e-07	-8.994338	-0.003175	1.019817	2006-02-15 03:30:01
+3	1	2006-02-15 03:50:01	-2.009074e-07	-8.994338	-0.003175	0.987681	2006-02-15 03:40:01
+4	1	2006-02-15 04:00:01	-2.009074e-07	-8.994338	-0.003175	1.006510	2006-02-15 03:50:01
 ```
 Where signal is the target variable (same name). If a quantile loss has been selected the model generares three signals `_low, _median, _high`, if not the output the model is indicated with `_pred`. Lag indicates wich step the prediction is referred (eg. lag=1 is the frist output of the model along the sequence output). 
-It is possible to obtain the `prediction time` easily and plot a specific output prediction using:
 
 ```
-from datetime import timedelta
 import matplotlib.pyplot as plt
-
-res['prediction_time'] = res.apply(lambda x: x.time-timedelta(minutes=60*x.lag), axis=1) ##in this case the data are at 60 min frequency
-date = '2006-02-15 02:20:01'
-
-mask = res.prediction_time==date
+mask = res.prediction_time==4100
 plt.plot(res.lag[mask],res.signal[mask],label='real')
 plt.plot(res.lag[mask],res.signal_median[mask],label='median')
 plt.legend()
@@ -244,21 +244,17 @@ plt.legend()
 Another useful plot is the error plot per lag where it is possible to observe the increment of the error in correlation with the lag time:
 
 ```
+import numpy as np
 res['error'] =np.abs( res['signal']-res['signal_median'])
 res.groupby('lag').error.mean().plot()
 ```
 
 
 
-For loading the model in a second moment it is sufficient to run:
-```
-ts.load(RNN,'tmp',load_last=False)
-
-```
 This example can be found in the [first notebook](../notebooks/1 -monash_timeseries.ipynb). Another example can be found [here](../notebooks/3- public_timeseries.ipynb).
 
 # Categorical variables
-Most of the models implemented can deal with categorical variables. In particulare there are some variables that you don't need to computed. When declaring a `ts` obejct you can pass also the parameter `enrich_cat=['dow']` that will add to the dataframe (and to the dataloader) the day of the week. Since now you can automatically add `hourm dow, month and minute`. If there are other categorical variables pleas add it to the list while loading your data.
+Most of the models implemented can deal with categorical variables. In particulare there are some variables that you don't need to computed. When declaring a `ts` obejct you can pass also the parameter `enrich_cat=['dow']` that will add to the dataframe (and to the dataloader) the day of the week. Since now you can automatically add `hour, dow, month and minute`. If there are other categorical variables pleas add it to the list while loading your data.
 
 # Models
 A description of each model can be found in the class documentation [here](https://dsip.pages.fbk.eu/dsip_dlresearch/timeseries/). 
@@ -319,7 +315,8 @@ If you want to add a model:
 - optional: add in `bash_script/utils.py` the section to initializate and load the new model
 - add the modifier in `dsipts/data_structure/modifiers.py` if it is required
 
-
+# Testing
+See [here](../bash_examples/README.md) for the testing session.
 
 # TODO
 - add more sintetic data

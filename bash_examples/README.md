@@ -26,9 +26,9 @@ pip install --force dsipts --index-url https://dsipts:glpat-98SR11neR7hzxy__SueG
 # Configuration
 
 - copy the folder `all_six_datasets` inside a data folder (in what follows `/home/agobbi/Projects/ExpTS/data`).
-- place yoursel in `bash_examples`
+- place yourself in `bash_examples`
 - train the models
-- create the folders `csv` and `plots` in the `pathdir` in my case `/home/agobbi/Projects/ExpTS`
+- compare the models
 
 
 
@@ -49,7 +49,7 @@ The script used are:
 - **inference.py** for inference 
 - **compare.py** for comparing different models
 
-This structure is a convient way to deal with multiple experiments, feel free to adjust it as you prefere. There are some trick for extracting runtime the hydra choices (and use informative names for the models). This can be ugly to see but it easy to compare the same model with different parameters. If you want to use you own data with this schema you need to add your data processing pipeline in `lodad_data` and define your own timeseries object. For example in the follwing snippet we have 3 continuous variables: `Value, rain temp` that are assumed to be known also in the future while predicting `Value`. The month column will be created as categorical feature.
+This structure is a convient way to deal with multiple experiments, feel free to adjust it as you prefere. There are some tricks for extracting runtime the hydra choices (and use informative names for the models). This can be ugly to see but it easy to compare the same model with different parameters. If you want to use you own data with this schema you need to add your data processing pipeline in `lodad_data` and define your own timeseries object. For example in the follwing snippet we have 3 continuous variables: `Value, rain temp` that are assumed to be known also in the future while predicting `Value`. The month column will be created as categorical feature.
 
 ```
     ts.load_signal(data_ex,past_variables =['Value','rain','temp'],future_variables = ['rain','temp'],target_variables =['Value'],enrich_cat= ['month'])
@@ -190,9 +190,10 @@ model:
   
 ts:
   name: 'weather'
-  version: 1              # if you need to versioning a model
+  version: 1                     # if you need to versioning a model
   enrich: ['hour'] 
-  use_covariates: false   # if true all the columns of the dataset will be used as past features
+  use_covariates: false          # if true all the columns of the dataset will be used as past features
+  use_future_covariates: false   # if true all the columns of the dataset will be used as future known features
 
 
 ## for more information about the models please look at the documentation [here] (https://dsip.pages.fbk.eu/dsip_dl research/timeseries/)
@@ -208,6 +209,7 @@ model_configs:
   activation: torch.nn.PReLU  # activation between linear
   persistence_weight: 0.010   # in case of loss different from l1 or mse it is used to weight a penality score 
   loss_type: 'l1'             # loss
+  simple: false               # if true it uses the original implementation
 
 
 
@@ -225,7 +227,7 @@ Hydra allows us to train a specific model using if you are in a gpu environment
 ```
 python train.py  architecture=linear --config-dir=config_weather --config-name=config_gpu
 ```
-or, if you are in a slurm gpu cluster
+or, if you are in a slurm cluster
 
 ```
 python train.py  architecture=linear --config-dir=config_weather --config-name=config_slurm -m
