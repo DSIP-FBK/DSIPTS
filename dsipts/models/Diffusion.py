@@ -543,6 +543,7 @@ class SubNet(nn.Module):
         super().__init__()
 
         self.lin_eps_d_model = nn.Linear(output_channel, d_model)
+        self.lin_y_past_d_model = nn.Linear(output_channel, d_model)
 
         # layers for categorical: ATT + ResConn
         self.cat_attention = sub_nn.InterpretableMultiHead(d_model, d_head, n_head)
@@ -587,17 +588,18 @@ class SubNet(nn.Module):
         """
         # emb_eps_hat for further computations
         emb_eps_hat = self.lin_eps_d_model(eps_hat.float()) # -> [B, future_step, d_model]
+        emb_y_past = self.lin_y_past_d_model(y_past.float()) # -> [B, past_step, d_model]
 
         # emb_eps_hat updated according to changes of CATEGORICAL information
         # needed info about both past and future
         if (cat_past is not None and cat_future is not None): 
-            cat_attention = self.cat_attention(cat_future, cat_past, y_past.float()) # -> [B, future_step, d_model]
+            cat_attention = self.cat_attention(cat_future, cat_past, emb_y_past.float()) # -> [B, future_step, d_model]
             emb_eps_hat = self.cat_res_conn(cat_attention, emb_eps_hat.float())
 
         # emb_eps_hat updated according to changes of NUMERICAL information
         # needed info about both past and future
         if (num_past is not None and num_future is not None): 
-            num_attention = self.num_attention(num_future, num_past, y_past.float()) # -> [B, future_step, d_model]
+            num_attention = self.num_attention(num_future, num_past, emb_y_past.float()) # -> [B, future_step, d_model]
             emb_eps_hat = self.num_res_conn(num_attention, emb_eps_hat.float())
             
         # last residual connection on dimension = actual number of variables to be predicted
