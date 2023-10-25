@@ -220,13 +220,13 @@ class Diffusion(Base):
             # compute the output from that network using the sample with noises
             # output composed of: noise predicted and vector for variances
             if self.learn_var:
-                eps_pred, var_pred = sub_net(eps_hat, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
+                eps_pred, var_pred = sub_net(eps_hat, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 # variance range
                 var_range_A = self._extract_into_tensor(np.log(self.betas) , t, eps_pred.shape)
                 var_range_B = true_log_var_clipped
                 out_log_var = torch.exp(var_pred*var_range_A + (1-var_pred)*var_range_B)
             else:
-                eps_pred = sub_net(eps_hat, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
+                eps_pred = sub_net(eps_hat, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 out_log_var = true_log_var_clipped
 
             out_mean = self._extract_into_tensor(1/self.alphas, t, eps_pred.shape) * ( y_noised - self._extract_into_tensor(self.betas , t, eps_pred.shape) / self._extract_into_tensor(self.betas , t, eps_pred.shape) * eps_pred )
@@ -326,13 +326,13 @@ class Diffusion(Base):
             nonzero_mask = float((t != 0))  # no adding noise when t == 0
 
             if self.learn_var:
-                eps_pred, var_pred = sub_net(eps_hat, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
+                eps_pred, var_pred = sub_net(eps_hat, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 # variance range if it is learned (constant values, so out of the for cycle)
                 var_range_A = self._extract_into_tensor(np.log(self.betas) , t, eps_pred.shape)
                 var_range_B = true_log_var_clipped
                 out_log_var = torch.exp(var_pred*var_range_A + (1-var_pred)*var_range_B)
             else:
-                eps_pred = sub_net(eps_hat, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
+                eps_pred = sub_net(eps_hat, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 out_log_var = true_log_var_clipped
 
             # compute 
@@ -562,7 +562,7 @@ class SubNet(nn.Module):
 
 
 
-    def forward(self, eps_hat:torch.Tensor, 
+    def forward(self, eps_hat:torch.Tensor, y_past:torch.Tensor,
                 cat_past:torch.Tensor = None, cat_future:torch.Tensor = None, 
                 num_past:torch.Tensor = None, num_future:torch.Tensor = None)-> torch.Tensor:
         """'y_past' is used with 'y_noised' for a first computation. They are always needed.
@@ -593,13 +593,13 @@ class SubNet(nn.Module):
         # emb_eps_hat updated according to changes of CATEGORICAL information
         # needed info about both past and future
         if (cat_past is not None and cat_future is not None): 
-            cat_attention = self.cat_attention(cat_future, cat_past, emb_eps_hat.float()) # -> [B, future_step, d_model]
+            cat_attention = self.cat_attention(cat_future, cat_past, y_past.float()) # -> [B, future_step, d_model]
             emb_eps_hat = self.cat_res_conn(cat_attention, emb_eps_hat.float())
 
         # emb_eps_hat updated according to changes of NUMERICAL information
         # needed info about both past and future
         if (num_past is not None and num_future is not None): 
-            num_attention = self.num_attention(num_future, num_past, emb_eps_hat.float()) # -> [B, future_step, d_model]
+            num_attention = self.num_attention(num_future, num_past, y_past.float()) # -> [B, future_step, d_model]
             emb_eps_hat = self.num_res_conn(num_attention, emb_eps_hat.float())
             
         # last residual connection on dimension = actual number of variables to be predicted
