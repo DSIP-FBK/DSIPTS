@@ -37,6 +37,7 @@ class PatchTST(Base):
                  hidden_size:int=1048,
                  persistence_weight:float=0.0,
                  loss_type: str='l1',
+                 
                  quantiles:List[int]=[],
                  dropout_rate:float=0.1,
                  optim:Union[str,None]=None,

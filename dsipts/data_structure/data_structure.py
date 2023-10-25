@@ -96,7 +96,7 @@ class Categorical():
         
         self.classes_array = classes
         self.signal_array = signal
-
+        
     def plot(self)->None:
         """Plot the series
         """
@@ -131,6 +131,7 @@ class TimeSeries():
         self.name = name
         self.stacked = stacked
         self.verbose = True
+        self.group = None
     def __str__(self) -> str:
         return f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables} \n With {'no group' if self.group is None else self.group+' as group' }"
     def __repr__(self) -> str:
@@ -998,6 +999,8 @@ class TimeSeries():
             params = pickle.load(f)
             for p in params:
                 setattr(self,p, params[p])    
+        if 'verbose' in self.config['model_configs'].keys():
+            self.config['model_configs'].pop('verbose')
         self.model = model(**self.config['model_configs'],optim_config = self.config['optim_config'],scheduler_config =self.config['scheduler_config'],verbose=self.verbose )
         
         

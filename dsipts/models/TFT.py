@@ -5,6 +5,7 @@ from .base import  Base
 from .utils import QuantileLossMO
 from typing import List, Union
 from ..data_structure.utils import beauty_string
+from .utils import  get_scope
 
 class TFT(Base):
     handle_multivariate = True
