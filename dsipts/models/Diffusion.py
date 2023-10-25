@@ -585,7 +585,8 @@ class SubNet(nn.Module):
         Returns:
             torch.Tensor: predicted noise [B, future_step, num_var]. According to 'learn_var' param in initialization, the subnet returns another tensor of same size about the variance 
         """
-
+        import pdb
+        pdb.set_trace()
         # emb_eps_hat for further computations
         emb_eps_hat = self.lin_eps_d_model(eps_hat.float()) # -> [B, future_step, d_model]
 
@@ -608,7 +609,7 @@ class SubNet(nn.Module):
         eps_hat = self.eps_res_conn(eps_hat.float(), aux_eps_hat.float())
 
         if self.learn_var:
-            var_hat = self.var_res_conn(eps_hat.float(), eps_hat.float())
+            var_hat = self.var_res_conn(eps_hat.float(), aux_eps_hat.float())
             return eps_hat, var_hat
         else:
             return eps_hat
