@@ -212,10 +212,10 @@ class Diffusion(Base):
         for t in drawn_t:
             # LOADING THE SUBNET
             sub_net = self.sub_nets[t]
-            eps_hat = y_noised - y_noised_hat
 
             # Get y and noise it
             y_noised, true_mean, true_log_var_clipped = self.q_sample(x_start = y_to_be_pred, t = t)
+            eps_hat = y_noised - y_noised_hat
 
             # compute the output from that network using the sample with noises
             # output composed of: noise predicted and vector for variances
