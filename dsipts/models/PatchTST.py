@@ -4,9 +4,10 @@ import torch
 from .base import Base
 from typing import List,Union
 from ..data_structure.utils import beauty_string
+from .utils import  get_scope
 from .utils import  get_activation
 from .patchtst.layers import series_decomp, PatchTST_backbone
-from .utils import  get_scope
+
 
 
   
@@ -37,7 +38,6 @@ class PatchTST(Base):
                  hidden_size:int=1048,
                  persistence_weight:float=0.0,
                  loss_type: str='l1',
-                 
                  quantiles:List[int]=[],
                  dropout_rate:float=0.1,
                  optim:Union[str,None]=None,
@@ -94,18 +94,15 @@ class PatchTST(Base):
         else:
             self.loss = nn.L1Loss()
 
-    
-    
         self.embs = nn.ModuleList()
         emb_channels = 0
         for k in embs:
             self.embs.append(nn.Embedding(k+1,d_model))
             emb_channels = d_model
-            
+
         past_channels+=emb_channels
         
-        
-
+    
         # model
         self.decomposition = decomposition
         if self.decomposition:
@@ -156,9 +153,7 @@ class PatchTST(Base):
             tot.append(tmp_emb)
 
         x_seq = torch.cat(tot,axis=2)
-            
-            
-            
+
         if self.decomposition:
             res_init, trend_init = self.decomp_module(x_seq)
             res_init, trend_init = res_init.permute(0,2,1), trend_init.permute(0,2,1)  # x: [Batch, Channel, Input length]
@@ -167,10 +162,9 @@ class PatchTST(Base):
             x = res + trend
             x = x.permute(0,2,1)    # x: [Batch, Input length, Channel]
         else:
-            x = x.permute(0,2,1)    # x: [Batch, Channel, Input length]
+            x = x_seq.permute(0,2,1)# x: [Batch, Channel, Input length]
             x = self.model(x)
             x = x.permute(0,2,1)    # x: [Batch, Input length, Channel]
-        
         res = x.unsqueeze(3)
         
         idx_target = batch['idx_target'][0]
