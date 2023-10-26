@@ -12,7 +12,7 @@ ts:
 
 model_configs:
   d_model: 128
-  kernel_size: 25
+  kernel_size: 7
   decomposition: false
   n_layer: 3
   patch_len: 8
