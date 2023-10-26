@@ -81,11 +81,11 @@ class Diffusion(Base):
         self.sigma = sigma
 
         # >>>>>>>>>>>>> specific diffusion setup
+        self.s = 0.001
         if cosine_alpha:
             # COSINE_ALPHA Computation
             # offset variables to control betas and alphas
             # assert self.T < 500 # to avoid problems with extremes
-            self.s = 0.001
             aux_perc = 0.05
             avoid_comp_err_norm = self.T*(1+aux_perc)
             # alpha is the 'forgetting' schedule
