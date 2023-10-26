@@ -77,7 +77,7 @@ class Diffusion(Base):
         self.learn_var = learn_var
         self.T = diffusion_steps
         self.multinomial_step_weights = np.ones(diffusion_steps)
-        self.simultaneous_steps = int(diffusion_steps/5) # 1/5 of all sabunets trained every batch of every epoch
+        self.simultaneous_steps = min(int(diffusion_steps/5),1) # 1/5 of all sabunets trained every batch of every epoch
         self.sigma = sigma
 
         # >>>>>>>>>>>>> specific diffusion setup
