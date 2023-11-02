@@ -557,9 +557,9 @@ class SubNet(nn.Module):
 
         self.attention = sub_nn.InterpretableMultiHead(d_model, d_head, n_head)
 
-        hidden__size = int(d_model/3)
+        hidden_size = int(d_model/3)
         self.out_sequential = nn.Sequential(
-            nn.Linear(d_model, hidden__size),
+            nn.Linear(d_model, hidden_size),
             nn.ReLU(),
             nn.Linear(hidden_size, output_channel)
         )
