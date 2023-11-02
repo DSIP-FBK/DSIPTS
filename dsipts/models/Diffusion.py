@@ -152,10 +152,6 @@ class Diffusion(Base):
         idx_target = batch['idx_target'][0]
         y_past = num_past[:,:,idx_target]
 
-        # AUTOREGRESSIVE prediction of the future values of y using lstm(y_past) with embeddings
-        emb_y_past = self.lin_y_past_d_model(y_past)
-        y_noised_hat = self.lstm(emb_y_past)
-
         # LOADING EMBEDDING CATEGORICAL VARIABLES
         emb_cat_past, emb_cat_fut = self.cat_categorical_vars(batch)
         emb_cat_past = torch.mean(emb_cat_past, dim = 2)
@@ -213,23 +209,13 @@ class Diffusion(Base):
 
             # Get y and noise it
             y_noised, true_mean, true_log_var_clipped, actual_noise = self.q_sample(y_to_be_pred, t)
-            import pdb
-            pdb.set_trace()
-            eps_hat = y_noised - y_noised_hat
 
             # compute the output from that network using the sample with noises
             # output composed of: noise predicted and vector for variances
-            if self.learn_var:
-                eps_pred, var_pred = sub_net(eps_hat, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
-                # variance range
-                var_range_A = self._extract_into_tensor(np.log(self.betas) , t, eps_pred.shape)
-                var_range_B = true_log_var_clipped
-                out_log_var = torch.exp(var_pred*var_range_A + (1-var_pred)*var_range_B)
-            else:
-                eps_pred = sub_net(eps_hat, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
-                out_log_var = true_log_var_clipped
+            eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
+            out_log_var = true_log_var_clipped
 
-            out_mean = self._extract_into_tensor(1/self.alphas, t, eps_pred.shape) * ( y_noised - self._extract_into_tensor(self.betas , t, eps_pred.shape) / self._extract_into_tensor(self.betas , t, eps_pred.shape) * eps_pred )
+            out_mean = self._extract_into_tensor(np.sqrt(1/self.alphas), t, eps_pred.shape) * ( y_noised - self._extract_into_tensor(self.betas/np.sqrt(1-self.alpha_cum_prod) , t, eps_pred.shape) * eps_pred )
             
             # # At the first timestep return the decoder NLL,
             # # otherwise return KL(q(x_{t-1}|x_t,x_0) || p(x_{t-1}|x_t))
@@ -277,12 +263,7 @@ class Diffusion(Base):
         num_past = batch['x_num_past'].to(self.device)
         batch_size = num_past.shape[0]
         idx_target = batch['idx_target'][0]
-        y_past = num_past[:,:,idx_target]
-
-        # AUTOREGRESSIVE prediction of the future values of y using lstm(y_past) with embeddings
-        emb_y_past = self.lin_y_past_d_model(y_past)
-        y_noised_hat = self.lstm(emb_y_past)
-        
+        y_past = num_past[:,:,idx_target]        
 
         # LOADING EMBEDDING CATEGORICAL VARIABLES
         emb_cat_past, emb_cat_fut = self.cat_categorical_vars(batch)
@@ -317,34 +298,26 @@ class Diffusion(Base):
         else:
             aux_emb_num_past, aux_emb_num_fut = None, None
 
+        
         # DIFFUSION INFERENCE 
         y_noised = torch.randn((batch_size, self.future_steps, self.output_channels)).to(self.device)
         # pass the white noise in sub nets
         for t in range(self.T-1, -1, -1): # INVERSE cycle over all subnets, but not the last one
             sub_net = self.sub_nets[t] # load the subnet
-            eps_hat = y_noised - y_noised_hat
 
             ## CHECK THE NUMBER OF PARAMS
             #   model_parameters = filter(lambda p: p.requires_grad, model.parameters())
             #   params = sum([np.prod(p.size()) for p in model_parameters]) -> 13K
-            true_log_var_clipped = self._extract_into_tensor( self.posterior_log_variance_clipped, t, y_noised.shape )
-            nonzero_mask = float((t != 0))  # no adding noise when t == 0
+            true_log_var_clipped = self._extract_into_tensor( self.posterior_log_variance_clipped, t, y_noised.shape)
 
-            if self.learn_var:
-                eps_pred, var_pred = sub_net(eps_hat, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
-                # variance range if it is learned (constant values, so out of the for cycle)
-                var_range_A = self._extract_into_tensor(np.log(self.betas) , t, eps_pred.shape)
-                var_range_B = true_log_var_clipped
-                out_log_var = torch.exp(var_pred*var_range_A + (1-var_pred)*var_range_B)
-            else:
-                eps_pred = sub_net(eps_hat, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
-                out_log_var = true_log_var_clipped
-
-            # compute 
-            out_mean = self._extract_into_tensor(1/self.alphas , t, eps_pred.shape) * ( y_noised - self._extract_into_tensor(self.betas , t, eps_pred.shape) / self._extract_into_tensor(self.betas , t, eps_pred.shape) * eps_pred )
+            eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
+            post_sigma = self._extract_into_tensor(np.sqrt(self.posterior_variance), t, eps_pred.shape)
+            
             # Sample x_{t-1} from the model at the given timestep.
-            noise = torch.rand_like(out_mean).to(self.device)
-            y_noised = out_mean + nonzero_mask * torch.exp(0.5 * out_log_var) * noise
+            y_noised = self._extract_into_tensor(1/np.sqrt(self.alphas), t, y_noised.shape)*y_noised - self._extract_into_tensor(self.betas/(np.sqrt(self.alphas*self.betas)), t, eps_pred.shape)*eps_pred
+            if t>0 :
+                noise = torch.rand_like(y_noised).to(self.device)
+                y_noised = y_noised + post_sigma*noise
         
         out = y_noised.view(-1, self.future_steps, self.output_channels, 1)
         return out
@@ -548,85 +521,76 @@ class SubNet(nn.Module):
         """
         super().__init__()
 
-        self.lin_eps_d_model = nn.Linear(output_channel, d_model)
-        self.lin_y_past_d_model = nn.Linear(output_channel, d_model)
+        self.y_noised_linear = nn.Linear(output_channel, d_model)
+        self.y_past_linear = nn.Linear(output_channel, d_model)
 
-        # layers for categorical: ATT + ResConn
-        self.cat_attention = sub_nn.InterpretableMultiHead(d_model, d_head, n_head)
-        self.cat_res_conn = sub_nn.ResidualConnection(d_model, dropout_rate)
+        # # layers for categorical: ATT + ResConn
+        # self.cat_res_conn = sub_nn.ResidualConnection(d_model, dropout_rate)
 
-        # layers for numerical: ATT + ResConn
-        self.num_attention = sub_nn.InterpretableMultiHead(d_model, d_head, n_head)
-        self.num_res_conn = sub_nn.ResidualConnection(d_model, dropout_rate)
+        # # layers for numerical: ATT + ResConn
+        # self.num_attention = sub_nn.InterpretableMultiHead(d_model, d_head, n_head)
+        # self.num_res_conn = sub_nn.ResidualConnection(d_model, dropout_rate)
 
-        # layers for eps in dim=output_channel: ResConn
-        self.lin_eps_out = nn.Linear(d_model, output_channel)
-        self.eps_res_conn = sub_nn.ResidualConnection(output_channel, dropout_rate)
+        # # layers for eps in dim=output_channel: ResConn
+        # self.lin_eps_out = nn.Linear(d_model, output_channel)
+        # self.eps_res_conn = sub_nn.ResidualConnection(output_channel, dropout_rate)
 
-        self.learn_var = learn_var
-        if self.learn_var:
-            self.var_res_conn = sub_nn.ResidualConnection(output_channel, dropout_rate)
+        # self.learn_var = learn_var
+        # if self.learn_var:
+        #     self.var_res_conn = sub_nn.ResidualConnection(output_channel, dropout_rate)
+        self.past_sequential = nn.Sequential(
+            nn.Linear(d_model*3, d_model*2),
+            nn.ReLU(),
+            nn.Linear(d_model*2, d_model)
+        )
+        self.fut_sequential = nn.Sequential(
+            nn.Linear(d_model*3, d_model*2),
+            nn.ReLU(),
+            nn.Linear(d_model*2, d_model)
+        )
+
+        self.y_sequential = nn.Sequential(
+            nn.Linear(d_model*2, d_model),
+            nn.ReLU(),
+            nn.Linear(d_model, d_model)
+        )
+
+        self.attention = sub_nn.InterpretableMultiHead(d_model, d_head, n_head)
+
+        hidden__size = int(d_model/3)
+        self.out_sequential = nn.Sequential(
+            nn.Linear(d_model, hidden__size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, output_channel)
+        )
 
 
-
-    def forward(self, eps_hat:torch.Tensor, y_past:torch.Tensor,
-                cat_past:torch.Tensor = None, cat_future:torch.Tensor = None, 
-                num_past:torch.Tensor = None, num_future:torch.Tensor = None)-> torch.Tensor:
-        """'y_past' is used with 'y_noised' for a first computation. They are always needed.
-        Both 'y_past' and 'y_noised' are not embedded. Each subnet will have its own computation for that.  
-
-        'cat_past' and 'cat_future' to check categorical changes between context steps and ones to be predicted.
-        Not always needed. Used in pairs when available.   
-
-        'num_past' and 'num_future' to check numerical changes between context steps and ones to be predicted.
-        Not always needed. Used in pairs when available.
-
+    def forward(self, y_noised:torch.Tensor, y_past:torch.Tensor,
+                cat_past:torch.Tensor = None, cat_fut:torch.Tensor = None, 
+                num_past:torch.Tensor = None, num_fut:torch.Tensor = None)-> torch.Tensor:
+        """'DIFFUSION SUBNET
         Args:
             y_noised (torch.Tensor): [B, future_step, num_var]
-            y_noised_hat (torch.Tensor): [B, past_step, num_var]
+            y_past (torch.Tensor): [B, past_step, num_var]
             cat_past (torch.Tensor, optional): [B, past_step, d_model]. Defaults to None.
-            cat_future (torch.Tensor, optional): [B, future_step, d_model]. Defaults to None.
+            cat_fut (torch.Tensor, optional): [B, future_step, d_model]. Defaults to None.
             num_past (torch.Tensor, optional): [B, past_step, d_model]. Defaults to None.
-            num_future (torch.Tensor, optional): [B, future_step, d_model]. Defaults to None.
+            num_fut (torch.Tensor, optional): [B, future_step, d_model]. Defaults to None.
 
         Returns:
             torch.Tensor: predicted noise [B, future_step, num_var]. According to 'learn_var' param in initialization, the subnet returns another tensor of same size about the variance 
         """
-        # emb_eps_hat for further computations
-        emb_eps_hat = self.lin_eps_d_model(eps_hat.float()) # -> [B, future_step, d_model]
-        emb_y_past = self.lin_y_past_d_model(y_past.float()) # -> [B, past_step, d_model]
-
-        # emb_eps_hat updated according to changes of CATEGORICAL information
-        # needed info about both past and future
-        if (cat_past is not None and cat_future is not None): 
-            cat_attention = self.cat_attention(cat_future, cat_past, emb_y_past.float()) # -> [B, future_step, d_model]
-            emb_eps_hat = self.cat_res_conn(cat_attention, emb_eps_hat.float())
-
-        # emb_eps_hat updated according to changes of NUMERICAL information
-        # needed info about both past and future
-        if (num_past is not None and num_future is not None): 
-            num_attention = self.num_attention(num_future, num_past, emb_y_past.float()) # -> [B, future_step, d_model]
-            emb_eps_hat = self.num_res_conn(num_attention, emb_eps_hat.float())
-            
-        # last residual connection on dimension = actual number of variables to be predicted
-        # emb_eps_hat re-mapped to the starting dimension
-        aux_eps_hat = self.lin_eps_out(emb_eps_hat.float())
-        # Res Conn (last update of eps)
-        eps_hat = self.eps_res_conn(eps_hat.float(), aux_eps_hat.float())
-
-        if self.learn_var:
-            var_hat = self.var_res_conn(eps_hat.float(), aux_eps_hat.float())
-            return eps_hat, var_hat
-        else:
-            return eps_hat
+        emb_y_noised = self.y_noised_linear(y_noised)
+        emb_y_past = self.y_past_linear(y_past)
         
-
-### >>>>>>>>>>>>>  SUB NET 2
-class SubNet2(nn.Module):
-    def __init__(self, learn_var, output_channels, d_model):
-        pass
-
-    def forward(self, eps_hat:torch.Tensor, y_past:torch.Tensor,
-                cat_past:torch.Tensor = None, cat_future:torch.Tensor = None, 
-                num_past:torch.Tensor = None, num_future:torch.Tensor = None)-> torch.Tensor:
-                pass
+        # LIN FOR PAST
+        past_seq_input = torch.cat((emb_y_past, cat_past, num_past), dim=2)
+        past_seq = self.cat_sequential(past_seq_input) # -> [B, future_step, d_model]
+        # LIN FOR FUT
+        fut_seq_input = torch.cat((emb_y_noised, cat_fut, num_fut), dim=2)
+        fut_seq = self.num_sequential(fut_seq_input) # -> [B, future_step, d_model]
+        # ATTENTION
+        attention = self.attention(fut_seq, past_seq, emb_y_past)
+        # OUTPUT
+        out = self.out__sequential(attention)
+        return out
