@@ -444,16 +444,12 @@ class Diffusion(Base):
         )
     
     def gaussian_likelihood(self, x, mean, var):
-        import pdb
-        pdb.set_trace()
         term1 = 1.0 / torch.sqrt(2 * np.pi * var)
         term2 = torch.exp(-0.5 * ((x - mean)**2 / var))
         likelihood = term1 * term2
         return likelihood
 
     def gaussian_log_likelihood(self, x, mean, var):
-        import pdb
-        pdb.set_trace()
         term1 = -0.5 * ((x - mean) / torch.sqrt(var))**2
         term2 = -0.5 * torch.log(2 * torch.tensor(np.pi) * var)
         log_likelihood = term1 + term2
