@@ -212,7 +212,9 @@ class Diffusion(Base):
             sub_net = self.sub_nets[t]
 
             # Get y and noise it
-            y_noised, true_mean, true_log_var_clipped, actual noise = self.q_sample(y_to_be_pred, t)
+            y_noised, true_mean, true_log_var_clipped, actual_noise = self.q_sample(y_to_be_pred, t)
+            import pdb
+            pdb.set_trace()
             eps_hat = y_noised - y_noised_hat
 
             # compute the output from that network using the sample with noises
