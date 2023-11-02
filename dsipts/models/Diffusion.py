@@ -520,9 +520,6 @@ class SubNet(nn.Module):
             dropout_rate (float): 
         """
         super().__init__()
-
-        import pdb
-        pdb.set_trace()
         self.y_noised_linear = nn.Linear(output_channel, d_model)
         self.y_past_linear = nn.Linear(output_channel, d_model)
 
@@ -582,6 +579,9 @@ class SubNet(nn.Module):
         Returns:
             torch.Tensor: predicted noise [B, future_step, num_var]. According to 'learn_var' param in initialization, the subnet returns another tensor of same size about the variance 
         """
+
+        import pdb
+        pdb.set_trace()
         emb_y_noised = self.y_noised_linear(y_noised)
         emb_y_past = self.y_past_linear(y_past)
         
