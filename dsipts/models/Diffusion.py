@@ -90,7 +90,7 @@ class Diffusion(Base):
             # alpha is the 'forgetting' schedule
             f_cos_t = [(np.cos( (t/avoid_comp_err_norm +self.s)/(1+self.s) * np.pi/2 ))**2 for t in range(self.T)]
             self.alphas_cumprod = f_cos_t/f_cos_t[0] # scaled cumulative product of alphas 
-            self.alphas_cumprod = np.append(1-s, self.alphas_cumprod[1:]) # scaled cumulative product of alphas 
+            self.alphas_cumprod = np.append(1-self.s, self.alphas_cumprod[1:]) # scaled cumulative product of alphas 
             self.alphas_cumprod_prev = np.append(1.0, self.alphas_cumprod[:-1]) # auxiliar vector to get easily alphaBAT_t-1 
             self.alphas = self.alphas_cumprod * (self.alphas_cumprod_prev)**(-1)
             self.betas = np.append(self.s, 1-self.alphas[1:])
