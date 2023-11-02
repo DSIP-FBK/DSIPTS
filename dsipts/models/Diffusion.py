@@ -592,5 +592,5 @@ class SubNet(nn.Module):
         # ATTENTION
         attention = self.attention(fut_seq, past_seq, emb_y_past)
         # OUTPUT
-        out = self.out__sequential(attention)
+        out = self.out_sequential(attention)
         return out
