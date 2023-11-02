@@ -440,7 +440,7 @@ class Diffusion(Base):
         )
     
 
-    def gaussian_log_likelihood(x, mean, log_var):
+    def gaussian_log_likelihood(self, x, mean, log_var):
         term1 = -0.5 * ((x - mean) / std_dev)**2
         term2 = -0.5 * (torch.log(2 * torch.tensor(3.14159265359)) + log_var)
         log_likelihood = term1 + term2
