@@ -77,7 +77,7 @@ class Diffusion(Base):
         self.learn_var = learn_var
         self.T = diffusion_steps
         self.multinomial_step_weights = np.ones(diffusion_steps)
-        self.simultaneous_steps = min(int(diffusion_steps/5), 1) # 1/5 of all sabunets trained every batch of every epoch
+        self.simultaneous_steps = max(int(diffusion_steps/5), 1) # 1/5 of all sabunets trained every batch of every epoch
         self.sigma = sigma
 
         #* >>>>>>>>>>>>> specific diffusion setup
@@ -90,6 +90,7 @@ class Diffusion(Base):
             # alpha is the 'forgetting' schedule
             f_cos_t = [(np.cos( (t/avoid_comp_err_norm +self.s)/(1+self.s) * np.pi/2 ))**2 for t in range(self.T)]
             self.alphas_cumprod = f_cos_t/f_cos_t[0] # scaled cumulative product of alphas 
+            self.alphas_cumprod = np.append(1-s, self.alphas_cumprod[1:]) # scaled cumulative product of alphas 
             self.alphas_cumprod_prev = np.append(1.0, self.alphas_cumprod[:-1]) # auxiliar vector to get easily alphaBAT_t-1 
             self.alphas = self.alphas_cumprod * (self.alphas_cumprod_prev)**(-1)
             self.betas = np.append(self.s, 1-self.alphas[1:])
@@ -211,7 +212,7 @@ class Diffusion(Base):
             y_noised, true_mean, true_log_var_clipped, actual_noise = self.q_sample(y_to_be_pred, t)
             import pdb
             pdb.set_trace()
-            
+
             # compute the output from that network using the sample with noises
             # output composed of: noise predicted and vector for variances
             eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
