@@ -220,7 +220,8 @@ class Diffusion(Base):
             # # At the first timestep return the decoder NLL,
             # # otherwise return KL(q(x_{t-1}|x_t,x_0) || p(x_{t-1}|x_t))
             if t==0:
-                neg_log_likelihoods = self.gaussian_log_likelihood(y_to_be_pred, out_mean, 0.5 * out_log_var) # generated mean near the y to be predicted 
+                post_var =  self._extract_into_tensor(self.posterior_variance, t, y_to_be_pred.shape)
+                neg_log_likelihoods = self.gaussian_log_likelihood(y_to_be_pred, out_mean, post_var) # generated mean near the y to be predicted 
                 loss_output = torch.mean(neg_log_likelihoods)
             else:
                 # COMPUTE LOSS between TRUE eps and DRAWN eps_pred
@@ -440,9 +441,9 @@ class Diffusion(Base):
         )
     
 
-    def gaussian_log_likelihood(self, x, mean, log_var):
-        term1 = -0.5 * ((x - mean) / std_dev)**2
-        term2 = -0.5 * (torch.log(2 * torch.tensor(3.14159265359)) + log_var)
+    def gaussian_log_likelihood(self, x, mean, var):
+        term1 = -0.5 * ((x - mean) / np.sqrt(var))**2
+        term2 = -0.5 * torch.log(2 * torch.tensor(3.14159265359) * var)
         log_likelihood = term1 + term2
         return log_likelihood
 
