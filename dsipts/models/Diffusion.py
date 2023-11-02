@@ -39,14 +39,14 @@ class Diffusion(Base):
         super().__init__(**kwargs)
         self.save_hyperparameters(logger=False)
 
-        # >>>>>>>>>>>>> TORCH LIGHTNING
+
         self.persistence_weight = persistence_weight 
         self.loss_type = loss_type
         self.optim = optim
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
 
-        # OUTPUT HANDLING LOSSES, here used for inference
+        #* OUTPUT HANDLING LOSSES, here used for inference
         # For training, used losses are specified at the end of the file as functions
         # handling quantiles or not
         assert (len(quantiles) ==0) or (len(quantiles)==3), beauty_string('Only 3 quantiles are availables, otherwise set quantiles=[]','block',True)
@@ -54,7 +54,7 @@ class Diffusion(Base):
             self.mul = 1
             self.use_quantiles = False
             self.outLinear = nn.Linear(d_model, out_channels)
-            if self.loss_type == 'mse':
+            if self.loss_type == 'mse': # IT IS USED FOR LOSS ON NOISES
                 self.loss = nn.MSELoss()
             else:
                 self.loss = nn.L1Loss()
@@ -64,7 +64,7 @@ class Diffusion(Base):
             self.outLinear = nn.Linear(d_model, out_channels*len(quantiles))
             self.loss = QuantileLossMO(quantiles)
         
-        # >>>>>>>>>>>>> canonical data parameters
+        #* >>>>>>>>>>>>> canonical data parameters
         self.d_model = d_model
         self.dropout = dropout_rate
         self.past_steps = past_steps
@@ -73,19 +73,18 @@ class Diffusion(Base):
         self.future_channels = future_channels
         self.output_channels = out_channels
 
-        # >>>>>>>>>>>>> specific model parameters
+        #* >>>>>>>>>>>>> specific model parameters
         self.learn_var = learn_var
         self.T = diffusion_steps
         self.multinomial_step_weights = np.ones(diffusion_steps)
-        self.simultaneous_steps = min(int(diffusion_steps/5),1) # 1/5 of all sabunets trained every batch of every epoch
+        self.simultaneous_steps = min(int(diffusion_steps/5), 1) # 1/5 of all sabunets trained every batch of every epoch
         self.sigma = sigma
 
-        # >>>>>>>>>>>>> specific diffusion setup
+        #* >>>>>>>>>>>>> specific diffusion setup
         self.s = 0.001
         if cosine_alpha:
             # COSINE_ALPHA Computation
             # offset variables to control betas and alphas
-            # assert self.T < 500 # to avoid problems with extremes
             aux_perc = 0.05
             avoid_comp_err_norm = self.T*(1+aux_perc)
             # alpha is the 'forgetting' schedule
@@ -135,7 +134,6 @@ class Diffusion(Base):
     def forward(self, batch:dict) -> torch.Tensor:
         """forward method used to make subnet learn the noise added the the latent variable.
         
-
         Consequently, in inference the model will subtract the computed noise for each step.
 
         Args:
@@ -214,7 +212,7 @@ class Diffusion(Base):
             sub_net = self.sub_nets[t]
 
             # Get y and noise it
-            y_noised, true_mean, true_log_var_clipped = self.q_sample(x_start = y_to_be_pred, t = t)
+            y_noised, true_mean, true_log_var_clipped, actual noise = self.q_sample(x_start = y_to_be_pred, t = t)
             eps_hat = y_noised - y_noised_hat
 
             # compute the output from that network using the sample with noises
@@ -243,13 +241,18 @@ class Diffusion(Base):
                 kl = self.normal_kl(true_mean, true_log_var_clipped, out_mean, out_log_var)
                 kl = torch.mean(kl) / np.log(2.0)
                 loss_output = kl
+
             # loss_output = torch.where((t == 0), decoder_nll, kl)
+            t_loss = self.loss(eps_pred, actual_noise)
+
+            gamma = 0.001 # gamma parameter for a trade off between mse e kl
+            t_loss += gamma*loss_output
             
             # update the total loss
             if tot_loss==-1:
-                tot_loss = loss_output
+                tot_loss = t_loss
             else:
-                tot_loss += loss_output
+                tot_loss += t_loss
         return tot_loss
 
     # re-defined to extract directly the loss of the training step
@@ -352,7 +355,7 @@ class Diffusion(Base):
 
     # function to concat embedded categorical variables
     def cat_categorical_vars(self, batch:dict):
-        """Extracting 
+        """Extracting categorical context about past and future
 
         Args:
             batch (dict): Keys checked -> ['x_cat_past', 'x_cat_future']
@@ -405,7 +408,7 @@ class Diffusion(Base):
         return
     
     ### >>>>>>>>>>>>> AUXILIARY MODEL FUNCS
-    def q_sample(self, x_start: torch.Tensor, t: int, noise: torch.Tensor=None)-> List[torch.Tensor]:
+    def q_sample(self, x_start: torch.Tensor, t: int)-> List[torch.Tensor]:
         """Diffuse x_start for t diffusion steps.
 
         In other words, sample from q(x_t | x_0).
@@ -419,21 +422,22 @@ class Diffusion(Base):
         Args:
             x_start (torch.Tensor): values to be predicted
             t (int): diffusion step
-            noise (torch.Tensor, optional): custom noise, if None normal distributed. Defaults to None.
 
         Returns:
-            List[torch.Tensor, torch.Tensor, torch.Tensor]: q_sample, posterior mean and posterior log variance
+            List[torch.Tensor, torch.Tensor, torch.Tensor]: q_sample, posterior mean, posterior log variance and the actual noise
         """
-        
-        if noise is None:
-            noise = torch.randn_like(x_start)
-        assert noise.shape == x_start.shape
+        # noise from normal distribution
+        noise = torch.randn_like(x_start)
 
+        # direct diffusion at t-th step
         q_sample = self._extract_into_tensor(np.sqrt(self.alphas_cumprod), t, x_start.shape) * x_start + self._extract_into_tensor(np.sqrt(1 - self.alphas_cumprod), t, x_start.shape) * noise
+
+        # compute meean and variance
         q_mean = self._extract_into_tensor(self.posterior_mean_coef1, t, q_sample.shape) * x_start + self._extract_into_tensor(self.posterior_mean_coef2, t, q_sample.shape) * q_sample
         q_log_var_clipped = self._extract_into_tensor( self.posterior_log_variance_clipped, t, q_sample.shape )
+
         # return, the sample, its posterior mean and log_variance
-        return q_sample, q_mean, q_log_var_clipped
+        return q_sample, q_mean, q_log_var_clipped, noise
 
     def normal_kl(self, mean1, logvar1, mean2, logvar2):
         """
@@ -513,8 +517,8 @@ class Diffusion(Base):
         ten = torch.tensor(arr[timesteps])
         return ten.expand(broadcast_shape).to(self.device)
 
-### >>>>>>>>>>>>>  SUB NET
-class SubNet(nn.Module):
+### >>>>>>>>>>>>>  SUB NET 1
+class SubNet1(nn.Module):
     def __init__(self, learn_var:bool, output_channel:int, d_model:int, d_head:int, n_head:int, dropout_rate:float) -> None:
         """ -> SUBNET of the DIFFUSION MODEL (DDPM)
 
@@ -614,3 +618,13 @@ class SubNet(nn.Module):
         else:
             return eps_hat
         
+
+### >>>>>>>>>>>>>  SUB NET 2
+class SubNet2(nn.Module):
+    def __init__(self, learn_var, output_channels, d_model):
+        pass
+
+    def forward(self, eps_hat:torch.Tensor, y_past:torch.Tensor,
+                cat_past:torch.Tensor = None, cat_future:torch.Tensor = None, 
+                num_past:torch.Tensor = None, num_future:torch.Tensor = None)-> torch.Tensor:
+                pass
