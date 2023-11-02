@@ -520,7 +520,7 @@ class Diffusion(Base):
         return ten.expand(broadcast_shape).to(self.device)
 
 ### >>>>>>>>>>>>>  SUB NET 1
-class SubNet1(nn.Module):
+class SubNet(nn.Module):
     def __init__(self, learn_var:bool, output_channel:int, d_model:int, d_head:int, n_head:int, dropout_rate:float) -> None:
         """ -> SUBNET of the DIFFUSION MODEL (DDPM)
 
