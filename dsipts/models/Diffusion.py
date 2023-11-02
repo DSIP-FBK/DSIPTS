@@ -210,8 +210,6 @@ class Diffusion(Base):
 
             # Get y and noise it
             y_noised, true_mean, true_log_var_clipped, actual_noise = self.q_sample(y_to_be_pred, t)
-            import pdb
-            pdb.set_trace()
 
             # compute the output from that network using the sample with noises
             # output composed of: noise predicted and vector for variances
