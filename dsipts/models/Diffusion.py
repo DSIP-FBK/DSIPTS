@@ -521,6 +521,8 @@ class SubNet(nn.Module):
         """
         super().__init__()
 
+        import pdb
+        pdb.set_trace()
         self.y_noised_linear = nn.Linear(output_channel, d_model)
         self.y_past_linear = nn.Linear(output_channel, d_model)
 
