@@ -441,9 +441,8 @@ class Diffusion(Base):
         )
     
     def gaussian_likelihood(self, x, mean, var):
-        std_dev = torch.sqrt(var)
-        term1 = 1.0 / (torch.sqrt(2 * np.pi) * std_dev)
-        term2 = torch.exp(-0.5 * ((x - mean) / std_dev)**2)
+        term1 = 1.0 / torch.sqrt(2 * np.pi * var)
+        term2 = torch.exp(-0.5 * ((x - mean)**2 / var))
         likelihood = term1 * term2
         return likelihood
 
