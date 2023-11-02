@@ -230,7 +230,7 @@ class Diffusion(Base):
 
             t_loss = self.loss(eps_pred, actual_noise)
 
-            gamma = 0.001 # gamma parameter for a trade off between mse e kl_diveregence
+            gamma = 0.05 # gamma parameter for a trade off between mse e kl_diveregence
             t_loss += gamma*loss_output
             
             # update the total loss
@@ -442,8 +442,10 @@ class Diffusion(Base):
     
 
     def gaussian_log_likelihood(self, x, mean, var):
+        import pdb
+        pdb.set_trace()
         term1 = -0.5 * ((x - mean) / torch.sqrt(var))**2
-        term2 = -0.5 * torch.log(2 * torch.tensor(3.14159265359) * var)
+        term2 = -0.5 * torch.log(2 * torch.tensor(np.pi) * var)
         log_likelihood = term1 + term2
         return log_likelihood
 
