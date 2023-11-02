@@ -220,20 +220,16 @@ class Diffusion(Base):
             # # At the first timestep return the decoder NLL,
             # # otherwise return KL(q(x_{t-1}|x_t,x_0) || p(x_{t-1}|x_t))
             if t==0:
-                decoder_nll = -self.discretized_gaussian_log_likelihood(y_to_be_pred, means=out_mean, log_scales=0.5 * out_log_var)
-                assert decoder_nll.shape == y_to_be_pred.shape
-                decoder_nll = torch.mean(decoder_nll) / np.log(2.0)
-                loss_output = decoder_nll
+                neg_log_likelihoods = self.gaussian_log_likelihood(y_to_be_pred, out_mean, 0.5 * out_log_var) # generated mean near the y to be predicted 
+                loss_output = torch.mean(neg_log_likelihoods)
             else:
                 # COMPUTE LOSS between TRUE eps and DRAWN eps_pred
-                kl = self.normal_kl(true_mean, true_log_var_clipped, out_mean, out_log_var)
-                kl = torch.mean(kl) / np.log(2.0)
-                loss_output = kl
+                kl_divergence = self.normal_kl(true_mean, true_log_var_clipped, out_mean, out_log_var)
+                loss_output = torch.mean(kl_divergence)
 
-            # loss_output = torch.where((t == 0), decoder_nll, kl)
             t_loss = self.loss(eps_pred, actual_noise)
 
-            gamma = 0.001 # gamma parameter for a trade off between mse e kl
+            gamma = 0.001 # gamma parameter for a trade off between mse e kl_diveregence
             t_loss += gamma*loss_output
             
             # update the total loss
@@ -443,41 +439,12 @@ class Diffusion(Base):
             + ((mean1 - mean2) ** 2) * torch.exp(-logvar2)
         )
     
-    def discretized_gaussian_log_likelihood(self, x, *, means, log_scales):
-        """
-        Compute the log-likelihood of a Gaussian distribution discretizing to a
-        given image.
 
-        :param x: the target images. It is assumed that this was uint8 values,
-                rescaled to the range [-1, 1].
-        :param means: the Gaussian mean Tensor.
-        :param log_scales: the Gaussian log stddev Tensor.
-        :return: a tensor like x of log probabilities (in nats).
-        """
-        assert x.shape == means.shape == log_scales.shape
-        centered_x = x - means
-        inv_stdv = torch.exp(-log_scales)
-        plus_in = inv_stdv * (centered_x + 1.0 / 255.0)
-        cdf_plus = self.approx_standard_normal_cdf(plus_in)
-        min_in = inv_stdv * (centered_x - 1.0 / 255.0)
-        cdf_min = self.approx_standard_normal_cdf(min_in)
-        log_cdf_plus = torch.log(cdf_plus.clamp(min=1e-12))
-        log_one_minus_cdf_min = torch.log((1.0 - cdf_min).clamp(min=1e-12))
-        cdf_delta = cdf_plus - cdf_min
-        log_probs = torch.where(
-            x < -0.999,
-            log_cdf_plus,
-            torch.where(x > 0.999, log_one_minus_cdf_min, torch.log(cdf_delta.clamp(min=1e-12))),
-        )
-        assert log_probs.shape == x.shape
-        return log_probs
-    
-    def approx_standard_normal_cdf(self, x):
-        """
-        A fast approximation of the cumulative distribution function of the
-        standard normal.
-        """
-        return 0.5 * (1.0 + torch.tanh(np.sqrt(2.0 / np.pi) * (x + 0.044715 * torch.pow(x, 3))))
+    def gaussian_log_likelihood(x, mean, log_var):
+        term1 = -0.5 * ((x - mean) / std_dev)**2
+        term2 = -0.5 * (torch.log(2 * torch.tensor(3.14159265359)) + log_var)
+        log_likelihood = term1 + term2
+        return log_likelihood
 
     def _extract_into_tensor(self, arr, timesteps, broadcast_shape):
         """
