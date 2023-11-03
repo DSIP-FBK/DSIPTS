@@ -82,16 +82,15 @@ class Diffusion(Base):
         import pdb
         pdb.set_trace()
         #* >>>>>>>>>>>>> specific diffusion setup
-        self.s = 0.001
+        self.s = (100*self.T)**(-1)
         if cosine_alpha:
             # COSINE_ALPHA Computation
             # offset variables to control betas and alphas
             aux_perc = 0.05
             avoid_comp_err_norm = self.T*(1+aux_perc)
             # alpha is the 'forgetting' schedule
-            f_cos_t = [(np.cos( (t/avoid_comp_err_norm +self.s)/(1+self.s) * np.pi/2 ))**2 for t in range(self.T)]
-            self.alphas_cumprod = f_cos_t/f_cos_t[0] # scaled cumulative product of alphas 
-            self.alphas_cumprod = np.append(1-self.s, self.alphas_cumprod[1:]) # scaled cumulative product of alphas 
+            f_cos_t = [(np.cos( (t/avoid_comp_err_norm +self.s*2)/(1+self.s*2) * np.pi/2 ))**2 for t in range(self.T)]
+            self.alphas_cumprod = np.append(1-self.s, f_cos_t[1:]/f_cos_t[0]) # scaled cumulative product of alphas f_cos_t[1:]/f_cos_t[0]
             self.alphas_cumprod_prev = np.append(1.0, self.alphas_cumprod[:-1]) # auxiliar vector to get easily alphaBAT_t-1 
             self.alphas = self.alphas_cumprod * (self.alphas_cumprod_prev)**(-1)
             self.betas = np.append(self.s, 1-self.alphas[1:])
@@ -103,9 +102,9 @@ class Diffusion(Base):
             self.alphas_cumprod = np.cumprod(self.alphas)
             self.alphas_cumprod_prev = np.append(1.0, self.alphas_cumprod[:-1]) # auxiliar vector to get easily alphaBAT_t-1 
         # values for posterior distribution
-        self.posterior_mean_coef1 = np.append(1, self.betas[1:] * np.sqrt(self.alphas_cumprod_prev[1:]) / (1.0 - self.alphas_cumprod[1:]))
-        self.posterior_mean_coef2 = np.append(0, (1.0 - self.alphas_cumprod_prev[1:]) * np.sqrt(self.alphas[1:]) / (1.0 - self.alphas_cumprod[1:]))
-        self.posterior_variance = np.append([self.s,self.s], self.betas[2:] * (1.0 - self.alphas_cumprod_prev[2:]) / (1.0 - self.alphas_cumprod[2:]))
+        self.posterior_mean_coef1 = self.betas * np.sqrt(self.alphas_cumprod_prev) / (1.0 - self.alphas_cumprod)
+        self.posterior_mean_coef2 = (1.0 - self.alphas_cumprod_prev) * np.sqrt(self.alphas) / (1.0 - self.alphas_cumprod)
+        self.posterior_variance = np.append([self.s], self.betas[1:] * (1.0 - self.alphas_cumprod_prev[1:]) / (1.0 - self.alphas_cumprod[1:]))
         self.posterior_log_variance_clipped = np.log(self.posterior_variance)
 
         # >>>>>>>>>>>>> LAYERS    
@@ -133,7 +132,7 @@ class Diffusion(Base):
         ])
 
 
-    def forward(self, batch:dict) -> torch.Tensor:
+    def forward(self, batch:dict):
         """forward method used to make subnet learn the noise added the the latent variable.
         
         Consequently, in inference the model will subtract the computed noise for each step.
@@ -167,7 +166,7 @@ class Diffusion(Base):
         if self.aux_past_channels>0 and self.aux_fut_channels>0: # if we have more numerical variables about past
             # AUX means AUXILIARY variables
             aux_num_past = self.remove_var(num_past, idx_target, 2) # remove the target index on the second dimension
-            assert self.aux_past_channels == aux_num_past.size(2),  beauty_string(f"{self.aux_past_channels} LAYERS FOR PAST VARS AND {aux_num_past.shape(2)} VARS",'section',True) # to check if we are using the expected number of variables about past
+            assert self.aux_past_channels == aux_num_past.size(2),  beauty_string(f"{self.aux_past_channels} LAYERS FOR PAST VARS AND {aux_num_past.size(2)} VARS",'section',True) # to check if we are using the expected number of variables about past
             
             # past variables
             aux_emb_num_past = torch.Tensor().to(self.device)
@@ -198,9 +197,9 @@ class Diffusion(Base):
         # normalizing weights
         t_wei = self.multinomial_step_weights/np.sum(self.multinomial_step_weights)
         # extract times t
-        drawn_t = np.random.choice(values, size=self.simultaneous_steps, replace=False, p=t_wei)
+        drawn_t = np.random.choice(values, size=self.simultaneous_steps, replace=False, p=t_wei) # type: ignore
         # update weights
-        non_draw_val = np.delete(values, drawn_t)
+        non_draw_val = np.delete(values, drawn_t) # type: ignore
         self.multinomial_step_weights[non_draw_val] += 1
 
         # init negative loss for the first step
@@ -277,7 +276,7 @@ class Diffusion(Base):
         if self.aux_past_channels>0 and self.aux_fut_channels>0: # if we have more numerical variables about past
             # AUX means AUXILIARY variables
             aux_num_past = self.remove_var(num_past, idx_target, 2) # remove the target index on the second dimension
-            assert self.aux_past_channels == aux_num_past.size(2),  beauty_string(f"{self.aux_past_channels} LAYERS FOR PAST VARS AND {aux_num_past.shape(2)} VARS",'section',True) # to check if we are using the expected number of variables about past
+            assert self.aux_past_channels == aux_num_past.size(2),  beauty_string(f"{self.aux_past_channels} LAYERS FOR PAST VARS AND {aux_num_past.size(2)} VARS",'section',True) # to check if we are using the expected number of variables about past
             
             # past variables
             aux_emb_num_past = torch.Tensor().to(self.device)
@@ -411,7 +410,7 @@ class Diffusion(Base):
         q_log_var_clipped = self._extract_into_tensor( self.posterior_log_variance_clipped, t, q_sample.shape )
 
         # return, the sample, its posterior mean and log_variance
-        return q_sample, q_mean, q_log_var_clipped, noise
+        return [q_sample, q_mean, q_log_var_clipped, noise]
 
     def normal_kl(self, mean1, logvar1, mean2, logvar2):
         """
@@ -514,17 +513,20 @@ class SubNet(nn.Module):
         #     self.var_res_conn = sub_nn.ResidualConnection(output_channel, dropout_rate)
         self.past_sequential = nn.Sequential(
             nn.Linear(d_model*3, d_model*2),
+            # nn.Dropout(dropout_rate),
             nn.ReLU(),
             nn.Linear(d_model*2, d_model)
         )
         self.fut_sequential = nn.Sequential(
             nn.Linear(d_model*3, d_model*2),
+            # nn.Dropout(dropout_rate),
             nn.ReLU(),
             nn.Linear(d_model*2, d_model)
         )
 
         self.y_sequential = nn.Sequential(
             nn.Linear(d_model*2, d_model),
+            # nn.Dropout(dropout_rate),
             nn.ReLU(),
             nn.Linear(d_model, d_model)
         )
@@ -534,6 +536,7 @@ class SubNet(nn.Module):
         hidden_size = int(d_model/3)
         self.out_sequential = nn.Sequential(
             nn.Linear(d_model, hidden_size),
+            # nn.Dropout(dropout_rate),
             nn.ReLU(),
             nn.Linear(hidden_size, output_channel)
         )
@@ -558,10 +561,10 @@ class SubNet(nn.Module):
         emb_y_past = self.y_past_linear(y_past)
         
         # LIN FOR PAST
-        past_seq_input = torch.cat((emb_y_past, cat_past, num_past), dim=2)
+        past_seq_input = torch.cat((emb_y_past, cat_past, num_past), dim=2) # type: ignore
         past_seq = self.past_sequential(past_seq_input) # -> [B, future_step, d_model]
         # LIN FOR FUT
-        fut_seq_input = torch.cat((emb_y_noised, cat_fut, num_fut), dim=2)
+        fut_seq_input = torch.cat((emb_y_noised, cat_fut, num_fut), dim=2) # type: ignore
         fut_seq = self.fut_sequential(fut_seq_input) # -> [B, future_step, d_model]
         # ATTENTION
         attention = self.attention(fut_seq, past_seq, emb_y_past)
