@@ -79,8 +79,6 @@ class Diffusion(Base):
         self.simultaneous_steps = max(int(diffusion_steps/10), 1) # 1/5 of all sabunets trained every batch of every epoch
         self.sigma = sigma
         
-        import pdb
-        pdb.set_trace()
         #* >>>>>>>>>>>>> specific diffusion setup
         self.s = (100*self.T)**(-1)
         if cosine_alpha:
