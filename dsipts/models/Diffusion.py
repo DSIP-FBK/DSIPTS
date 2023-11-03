@@ -32,13 +32,12 @@ class Diffusion(Base):
                  loss_type: str='l1',
                  quantiles:List[float]=[],
                  optim:Union[str,None]=None,
-                 optim_config:dict=None,
-                 scheduler_config:dict=None,
+                 optim_config:Union[dict,None]=None,
+                 scheduler_config:Union[dict,None]=None,
                  **kwargs)->None:
         
         super().__init__(**kwargs)
         self.save_hyperparameters(logger=False)
-
 
         self.persistence_weight = persistence_weight 
         self.loss_type = loss_type
@@ -79,7 +78,9 @@ class Diffusion(Base):
         self.multinomial_step_weights = np.ones(diffusion_steps)
         self.simultaneous_steps = max(int(diffusion_steps/10), 1) # 1/5 of all sabunets trained every batch of every epoch
         self.sigma = sigma
-
+        
+        import pdb
+        pdb.set_trace()
         #* >>>>>>>>>>>>> specific diffusion setup
         self.s = 0.001
         if cosine_alpha:
@@ -539,8 +540,8 @@ class SubNet(nn.Module):
 
 
     def forward(self, y_noised:torch.Tensor, y_past:torch.Tensor,
-                cat_past:torch.Tensor = None, cat_fut:torch.Tensor = None, 
-                num_past:torch.Tensor = None, num_fut:torch.Tensor = None)-> torch.Tensor:
+                cat_past:Union[torch.Tensor,None] = None, cat_fut:Union[torch.Tensor,None] = None, 
+                num_past:Union[torch.Tensor,None] = None, num_fut:Union[torch.Tensor,None] = None)-> torch.Tensor:
         """'DIFFUSION SUBNET
         Args:
             y_noised (torch.Tensor): [B, future_step, num_var]
