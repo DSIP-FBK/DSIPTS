@@ -211,16 +211,22 @@ class Diffusion(Base):
 
             # compute the output from that network using the sample with noises
             # output composed of: noise predicted and vector for variances
-            eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
-            out_log_var = true_log_var_clipped
+            if self.learn_var:
+                eps_pred, var_aux_out = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
+                pre_var_t = self._extract_into_tensor(np.sqrt(self.betas), t, eps_pred.shape)
+                post_var_t = self._extract_into_tensor(np.sqrt(self.posterior_variance), t, eps_pred.shape)
+                out_log_var = max(self.s, var_aux_out*pre_var_t + (1-var_aux_out)*post_var_t)
+            else:
+                eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
+                out_log_var = true_log_var_clipped
 
             out_mean = self._extract_into_tensor(np.sqrt(1/self.alphas), t, eps_pred.shape) * ( y_noised - self._extract_into_tensor(self.betas/np.sqrt(1-self.alphas_cumprod) , t, eps_pred.shape) * eps_pred )
             
             # # At the first timestep return the decoder NLL,
             # # otherwise return KL(q(x_{t-1}|x_t,x_0) || p(x_{t-1}|x_t))
             if t==0:
-                post_var =  self._extract_into_tensor(self.posterior_variance, t, y_to_be_pred.shape)
-                neg_log_likelihoods = -self.gaussian_likelihood(y_to_be_pred, out_mean, post_var) # generated mean near the y to be predicted 
+                # post_var =  self._extract_into_tensor(self.posterior_variance, t, y_to_be_pred.shape)
+                neg_log_likelihoods = -self.gaussian_likelihood(y_to_be_pred, out_mean, out_log_var) # generated mean near the y to be predicted 
                 loss_output = torch.mean(neg_log_likelihoods)
             else:
                 # COMPUTE LOSS between TRUE eps and DRAWN eps_pred
@@ -304,11 +310,15 @@ class Diffusion(Base):
             ## CHECK THE NUMBER OF PARAMS
             #   model_parameters = filter(lambda p: p.requires_grad, model.parameters())
             #   params = sum([np.prod(p.size()) for p in model_parameters]) -> 13K
-            true_log_var_clipped = self._extract_into_tensor( self.posterior_log_variance_clipped, t, y_noised.shape)
-
-            eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
-            post_sigma = self._extract_into_tensor(np.sqrt(self.posterior_variance), t, eps_pred.shape)
-            
+            if self.learn_var:
+                eps_pred, var_aux_out = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
+                pre_var_t = self._extract_into_tensor(np.sqrt(self.betas), t, eps_pred.shape)
+                post_var_t = self._extract_into_tensor(np.sqrt(self.posterior_variance), t, eps_pred.shape)
+                post_sigma = max(self.s, var_aux_out*pre_var_t + (1-var_aux_out)*post_var_t)
+            else:
+                eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
+                post_sigma = self._extract_into_tensor(np.sqrt(self.posterior_variance), t, eps_pred.shape)
+                
             # Sample x_{t-1} from the model at the given timestep.
             y_noised = self._extract_into_tensor(1/np.sqrt(self.alphas), t, y_noised.shape)*y_noised - self._extract_into_tensor(self.betas/(np.sqrt(self.alphas*self.betas)), t, eps_pred.shape)*eps_pred
             if t>0 :
@@ -492,57 +502,60 @@ class SubNet(nn.Module):
             dropout_rate (float): 
         """
         super().__init__()
+        self.learn_var = learn_var
+
         self.y_noised_linear = nn.Linear(output_channel, d_model)
         self.y_past_linear = nn.Linear(output_channel, d_model)
 
-        # # layers for categorical: ATT + ResConn
-        # self.cat_res_conn = sub_nn.ResidualConnection(d_model, dropout_rate)
-
-        # # layers for numerical: ATT + ResConn
-        # self.num_attention = sub_nn.InterpretableMultiHead(d_model, d_head, n_head)
-        # self.num_res_conn = sub_nn.ResidualConnection(d_model, dropout_rate)
-
-        # # layers for eps in dim=output_channel: ResConn
-        # self.lin_eps_out = nn.Linear(d_model, output_channel)
-        # self.eps_res_conn = sub_nn.ResidualConnection(output_channel, dropout_rate)
-
-        # self.learn_var = learn_var
-        # if self.learn_var:
-        #     self.var_res_conn = sub_nn.ResidualConnection(output_channel, dropout_rate)
         self.past_sequential = nn.Sequential(
             nn.Linear(d_model*3, d_model*2),
-            # nn.Dropout(dropout_rate),
+            nn.Dropout(dropout_rate),
             nn.ReLU(),
             nn.Linear(d_model*2, d_model)
         )
+        
         self.fut_sequential = nn.Sequential(
             nn.Linear(d_model*3, d_model*2),
-            # nn.Dropout(dropout_rate),
+            nn.Dropout(dropout_rate),
             nn.ReLU(),
             nn.Linear(d_model*2, d_model)
         )
 
         self.y_sequential = nn.Sequential(
             nn.Linear(d_model*2, d_model),
-            # nn.Dropout(dropout_rate),
+            nn.Dropout(dropout_rate),
             nn.ReLU(),
             nn.Linear(d_model, d_model)
         )
 
         self.attention = sub_nn.InterpretableMultiHead(d_model, d_head, n_head)
 
+        # if learn_var == True, we want to predict an additional variable for he variance
+        # just an intermediate dimension for linears
         hidden_size = int(d_model/3)
-        self.out_sequential = nn.Sequential(
+        self.mean_out_sequential = nn.Sequential(
             nn.Linear(d_model, hidden_size),
-            # nn.Dropout(dropout_rate),
+            nn.Dropout(dropout_rate),
             nn.ReLU(),
+            nn.Linear(hidden_size, output_channel)
+        )
+
+        self.var_out_sequential = nn.Sequential(
+            nn.Linear(output_channel, hidden_size),
+            nn.Linear(hidden_size, d_model),
+            nn.Dropout(dropout_rate),
+            nn.ReLU(),
+            nn.Linear(d_model, d_model),
+            nn.Dropout(dropout_rate),
+            nn.ReLU(),
+            nn.Linear(d_model, hidden_size),
             nn.Linear(hidden_size, output_channel)
         )
 
 
     def forward(self, y_noised:torch.Tensor, y_past:torch.Tensor,
                 cat_past:Union[torch.Tensor,None] = None, cat_fut:Union[torch.Tensor,None] = None, 
-                num_past:Union[torch.Tensor,None] = None, num_fut:Union[torch.Tensor,None] = None)-> torch.Tensor:
+                num_past:Union[torch.Tensor,None] = None, num_fut:Union[torch.Tensor,None] = None):
         """'DIFFUSION SUBNET
         Args:
             y_noised (torch.Tensor): [B, future_step, num_var]
@@ -567,5 +580,11 @@ class SubNet(nn.Module):
         # ATTENTION
         attention = self.attention(fut_seq, past_seq, emb_y_past)
         # OUTPUT
-        out = self.out_sequential(attention)
-        return out
+        mean_out = self.mean_out_sequential(attention)
+        # if LEARN_VAR
+        if self.learn_var:
+            var_out = mean_out.detach()
+            var_out = self.var_out_sequential(var_out)
+            return mean_out, var_out
+
+        return mean_out
