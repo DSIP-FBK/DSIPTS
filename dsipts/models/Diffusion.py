@@ -211,9 +211,6 @@ class Diffusion(Base):
 
             # compute the output from that network using the sample with noises
             # output composed of: noise predicted and vector for variances
-            
-            import pdb
-            pdb.set_trace()
             if self.learn_var:
                 eps_pred, var_aux_out = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 pre_var_t = self._extract_into_tensor(np.sqrt(self.betas), t, eps_pred.shape)
