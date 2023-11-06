@@ -218,10 +218,10 @@ class Diffusion(Base):
                 eps_pred, var_aux_out = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 pre_var_t = self._extract_into_tensor(np.sqrt(self.betas), t, eps_pred.shape)
                 post_var_t = self._extract_into_tensor(np.sqrt(self.posterior_variance), t, eps_pred.shape)
-                out_log_var = max(self.s, var_aux_out*pre_var_t + (1-var_aux_out)*post_var_t)
+                post_sigma = torch.exp(var_aux_out*torch.log(pre_var_t) + (1-var_aux_out)*torch.log(post_var_t))
             else:
                 eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
-                out_log_var = true_log_var_clipped
+                post_sigma = self._extract_into_tensor(np.sqrt(self.posterior_variance), t, eps_pred.shape)
 
             out_mean = self._extract_into_tensor(np.sqrt(1/self.alphas), t, eps_pred.shape) * ( y_noised - self._extract_into_tensor(self.betas/np.sqrt(1-self.alphas_cumprod) , t, eps_pred.shape) * eps_pred )
             
@@ -229,11 +229,11 @@ class Diffusion(Base):
             # # otherwise return KL(q(x_{t-1}|x_t,x_0) || p(x_{t-1}|x_t))
             if t==0:
                 # post_var =  self._extract_into_tensor(self.posterior_variance, t, y_to_be_pred.shape)
-                neg_log_likelihoods = -self.gaussian_likelihood(y_to_be_pred, out_mean, out_log_var) # generated mean near the y to be predicted 
+                neg_log_likelihoods = -self.gaussian_likelihood(y_to_be_pred, out_mean, post_sigma) # generated mean near the y to be predicted 
                 loss_output = torch.mean(neg_log_likelihoods)
             else:
                 # COMPUTE LOSS between TRUE eps and DRAWN eps_pred
-                kl_divergence = self.normal_kl(true_mean, true_log_var_clipped, out_mean, out_log_var)
+                kl_divergence = self.normal_kl(true_mean, true_log_var_clipped, out_mean, post_sigma)
                 loss_output = torch.mean(kl_divergence)
 
             t_loss = self.loss(eps_pred, actual_noise)
@@ -319,7 +319,7 @@ class Diffusion(Base):
                 eps_pred, var_aux_out = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 pre_var_t = self._extract_into_tensor(np.sqrt(self.betas), t, eps_pred.shape)
                 post_var_t = self._extract_into_tensor(np.sqrt(self.posterior_variance), t, eps_pred.shape)
-                post_sigma = max(self.s, var_aux_out*pre_var_t + (1-var_aux_out)*post_var_t)
+                post_sigma = torch.exp(var_aux_out*torch.log(pre_var_t) + (1-var_aux_out)*torch.log(post_var_t))
             else:
                 eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 post_sigma = self._extract_into_tensor(np.sqrt(self.posterior_variance), t, eps_pred.shape)
