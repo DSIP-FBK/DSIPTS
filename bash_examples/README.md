@@ -518,3 +518,4 @@ The test are performed using the scripts `train.py, train_stacked.py` and `compa
 - reduce test time 
 - add pre-commit hook for code checking (`ruff check --ignore E501,E722 .`)
 - add pre-commit hook testing
+- clean code and standardize documentation

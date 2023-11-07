@@ -271,6 +271,9 @@ It is possible to use one of the following architectures:
 - **TFT** [paper](https://arxiv.org/abs/1912.09363)
 - **VQVAE** adaptation of [vqvae for images](https://nbviewer.org/github/zalandoresearch/pytorch-vq-vae/blob/master/vq-vae.ipynb) decribed in this [paper](https://arxiv.org/abs/1711.00937) paired with [GPT](https://github.com/karpathy/minGPT) transformer.
 - **VVA** like VQVAE but the tokenization step is performed using a clustering standard procedure.
+- **DilatedConv** dilated convolutional RNN: the transfer of knowledge between past and future is performed reusing the final hidden status of the RNN of the encoder as initial hidden status of the decoder.
+- **DilatedConvED** dilated convolutional RNN with an encoder/decoder structure.
+- **Diffusion** custom [diffusion process] (https://arxiv.org/abs/2102.09672) using the attention mechanism in the subnets.
 
 
 
@@ -302,9 +305,8 @@ If yon need to generate the documentation after some modification just run:
 ```
 ./make_doc.sh    
 ```
-and add the new files to the git repo.
 
-For user only: see ci file and enable [public pages](https://roneo.org/en/gitlab-public-pages-private-repo/)
+For user only: be sure that the the CI file has pages enabled, see [public pages](https://roneo.org/en/gitlab-public-pages-private-repo/)
 
 # Adding new models
 If you want to add a model:
