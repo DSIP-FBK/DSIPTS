@@ -87,7 +87,7 @@ class Block(nn.Module):
         
         
 
-class DilatedConvVAE(Base):
+class DilatedConvED(Base):
     handle_multivariate = True
     handle_future_covariates = True
     handle_categorical_variables = True

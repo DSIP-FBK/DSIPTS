@@ -1,10 +1,10 @@
 # @package _global_
 
 model:
-  type: 'dilated_conv_vae'
+  type: 'dilated_conv_ed'
   retrain: true
 ts:
-  name: 'dilated_conv_vae'
+  name: 'dilated_conv_ed'
   version: 1
   enrich: ['hour']
   use_covariates: true

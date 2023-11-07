@@ -171,9 +171,21 @@ class ResidualConnection(nn.Module):
         self.glu = GLU(d_model)
         self.norm = nn.LayerNorm(d_model)
     
-    def forward(self, x: torch.Tensor, res_conn: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, res_conn: torch.Tensor, using_norm:bool = True) -> torch.Tensor:
+        """Res Connection using normalizing computatiion on 'x' and strict 'res_conn' 
+
+        Args:
+            x (torch.Tensor): GLU(dropout(x))
+            res_conn (torch.Tensor): tensor summed to x before normalization
+            using_norm (bool, optional): _description_. Defaults to True.
+
+        Returns:
+            torch.Tensor: 
+        """
         x = self.glu(self.dropout(x))
-        out = self.norm(res_conn + x)
+        out = res_conn + x
+        if using_norm:
+            out = self.norm(out)
         return out
 
 class InterpretableMultiHead(nn.Module):

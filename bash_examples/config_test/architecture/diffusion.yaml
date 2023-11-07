@@ -1,0 +1,29 @@
+model:
+  type: 'diffusion'
+  retrain: true
+ts:
+  name: 'test'
+  version: 1
+  enrich: ['hour']
+  use_covariates: false
+
+model_configs:
+  d_model: 12
+  learn_var: True
+  cosine_alpha: True
+  diffusion_steps: 12
+  beta: 0.03
+  sigma: 1
+  n_layers_RNN: 4
+  d_head: 12
+  n_head: 1
+  dropout_rate: 0.2
+  activation: 'torch.nn.GELU'
+  subnet: 1
+  optim: torch.optim.Adam
+  persistence_weight: 0.010
+  loss_type: 'l1'
+
+train_config:
+  batch_size: 64 
+  max_epochs: 5

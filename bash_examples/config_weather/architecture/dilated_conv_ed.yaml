@@ -1,7 +1,7 @@
 # @package _global_
 
 model:
-  type: 'dilated_conv_vae'
+  type: 'dilated_conv_ed'
   retrain: true
 ts:
   name: 'test'
