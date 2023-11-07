@@ -11,15 +11,15 @@ ts:
 
 
 model_configs:
-  d_model: 64
+  d_model: 128
   kernel_size: 7
   decomposition: false
-  n_layer: 3
+  n_layer: 6
   patch_len: 8
   n_head: 16
   stride: 8 #non overlapping?
   dropout_rate: 0.2
-  hidden_size: 128
+  hidden_size: 256
   optim: torch.optim.Adam
   activation: torch.nn.GELU
   persistence_weight: 1
@@ -28,5 +28,5 @@ model_configs:
 
 train_config:
   batch_size: 64
-  max_epochs: 300
+  max_epochs: 800
             
