@@ -17,4 +17,4 @@ from .data_structure.utils import beauty_string
 from .models.Autoformer import Autoformer
 from .models.PatchTST import PatchTST
 from .models.Diffusion import Diffusion
-from .models.DilatedConvVAE import DilatedConvVAE
+from .models.DilatedConvED import DilatedConvED
