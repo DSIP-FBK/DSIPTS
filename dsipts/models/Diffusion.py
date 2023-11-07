@@ -134,7 +134,7 @@ class Diffusion(Base):
         else:
             aux_num_available = self.aux_past_channels>0 and self.aux_fut_channels>0
             self.sub_nets = nn.ModuleList([
-                SubNet2(learn_var, self.seq_len, aux_num_available, out_channels, d_model, activation, dropout_rate) for _ in range(diffusion_steps)
+                SubNet2(learn_var, past_steps, future_steps, aux_num_available, out_channels, d_model, activation, dropout_rate) for _ in range(diffusion_steps)
             ])
 
 
@@ -593,10 +593,11 @@ class SubNet1(nn.Module):
         return eps_out
     
 class SubNet2(nn.Module):
-    def __init__(self, learn_var:bool, seq_len, aux_num_available, output_channel:int, d_model:int, activation:str, dropout_rate:float):
+    def __init__(self, learn_var:bool, past_steps, future_steps, aux_num_available, output_channel:int, d_model:int, activation:str, dropout_rate:float):
         super().__init__()
         self.learn_var = learn_var
-        in_size = seq_len * (2 + int(aux_num_available)) * d_model
+        in_size = (past_steps + future_steps) * (2 + int(aux_num_available)) * d_model
+        out_size = output_channel * future_steps
 
         activation_fun = eval(activation)
 
@@ -613,7 +614,7 @@ class SubNet2(nn.Module):
             activation_fun(),
             nn.Linear(d_model, hidden_size),
             nn.Dropout(dropout_rate),
-            nn.Linear(hidden_size, output_channel)
+            nn.Linear(hidden_size, out_size)
         )
         
         self.var_out_sequential = nn.Sequential(
@@ -625,14 +626,14 @@ class SubNet2(nn.Module):
             activation_fun(),
             nn.Linear(d_model, hidden_size),
             nn.Dropout(dropout_rate),
-            nn.Linear(hidden_size, output_channel)
+            nn.Linear(hidden_size, out_size)
         )
 
     def forward(self, y_noised:torch.Tensor, y_past:torch.Tensor,
                 cat_past:Union[torch.Tensor,None] = None, cat_fut:Union[torch.Tensor,None] = None, 
                 num_past:Union[torch.Tensor,None] = None, num_fut:Union[torch.Tensor,None] = None):
         
-        B = y_noised.shape[0]
+        B, fut_step, n_var = y_noised.shape
         emb_y_noised = self.y_noised_linear(y_noised.float()).view(B, -1)
         emb_y_past = self.y_past_linear(y_past).view(B, -1)
 
@@ -641,9 +642,9 @@ class SubNet2(nn.Module):
             if ten is not None:
                 full_concat = torch.cat((full_concat, ten.view(B, -1)), dim = 1)
 
-        eps_out = self.eps_out_sequential(full_concat)
+        eps_out = self.eps_out_sequential(full_concat).view(B, fut_step, n_var)
         if self.learn_var:
-            var_out = self.var_out_sequential(full_concat)
+            var_out = self.var_out_sequential(full_concat).view(B, fut_step, n_var)
             return eps_out, var_out
         return eps_out
 
