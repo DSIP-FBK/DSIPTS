@@ -580,7 +580,7 @@ class SubNet(nn.Module):
         # if LEARN_VAR
         if self.learn_var:
             var_out = mean_out.detach()
-            var_out = self.var_out_sequential(var_out + emb_y_noised)
+            var_out = self.var_out_sequential(var_out)
             return mean_out, var_out
 
         return mean_out
