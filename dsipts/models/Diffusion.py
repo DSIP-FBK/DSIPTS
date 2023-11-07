@@ -10,11 +10,11 @@ from ..data_structure.utils import beauty_string
 class Diffusion(Base):
     def __init__(self, 
                  d_model: int,
-                 out_channels:int,
-                 past_steps:int,
+                 out_channels: int,
+                 past_steps: int,
                  future_steps: int, 
-                 past_channels:int,
-                 future_channels:int,
+                 past_channels: int,
+                 future_channels: int,
                  embs: list[int],
 
                  learn_var:bool, 
@@ -23,10 +23,11 @@ class Diffusion(Base):
                  beta: float,
                  sigma: float,
                  #for subnet
-                 n_layers_RNN:int,
-                 d_head:int,
-                 n_head:int,
+                 n_layers_RNN: int,
+                 d_head: int,
+                 n_head: int,
                  dropout_rate: float,
+                 activation: str,
 
                  persistence_weight:float=0.0,
                  loss_type: str='l1',
@@ -126,7 +127,7 @@ class Diffusion(Base):
 
         # diffusion sub nets, one subnet for each step
         self.sub_nets = nn.ModuleList([
-            SubNet(learn_var, out_channels, d_model, d_head, n_head, dropout_rate) for _ in range(diffusion_steps)
+            SubNet(learn_var, out_channels, d_model, d_head, n_head, activation, dropout_rate) for _ in range(diffusion_steps)
         ])
 
 
@@ -323,7 +324,7 @@ class Diffusion(Base):
             y_noised = self._extract_into_tensor(1/np.sqrt(self.alphas), t, y_noised.shape)*y_noised - self._extract_into_tensor(self.betas/(np.sqrt(self.alphas*self.betas)), t, eps_pred.shape)*eps_pred
             if t>0 :
                 noise = torch.rand_like(y_noised).to(self.device)
-                y_noised = y_noised + post_sigma*noise
+                y_noised = y_noised + torch.sqrt(post_sigma)*noise
         
         out = y_noised.view(-1, self.future_steps, self.output_channels, 1)
         return out
@@ -476,7 +477,7 @@ class Diffusion(Base):
 
 ### >>>>>>>>>>>>>  SUB NET 1
 class SubNet(nn.Module):
-    def __init__(self, learn_var:bool, output_channel:int, d_model:int, d_head:int, n_head:int, dropout_rate:float) -> None:
+    def __init__(self, learn_var:bool, output_channel:int, d_model:int, d_head:int, n_head:int, activation:str, dropout_rate:float) -> None:
         """ -> SUBNET of the DIFFUSION MODEL (DDPM)
 
         It starts with an autoregressive LSTM Network computation of epsilon, then subtracted to 'y_noised' tensor. This is always possible!
@@ -503,28 +504,26 @@ class SubNet(nn.Module):
         """
         super().__init__()
         self.learn_var = learn_var
+        activation_fun = eval(activation)
 
         self.y_noised_linear = nn.Linear(output_channel, d_model)
         self.y_past_linear = nn.Linear(output_channel, d_model)
 
         self.past_sequential = nn.Sequential(
             nn.Linear(d_model*3, d_model*2),
-            nn.Dropout(dropout_rate),
-            nn.ReLU(),
+            activation_fun,
             nn.Linear(d_model*2, d_model)
         )
         
         self.fut_sequential = nn.Sequential(
             nn.Linear(d_model*3, d_model*2),
-            nn.Dropout(dropout_rate),
-            nn.ReLU(),
+            activation_fun,
             nn.Linear(d_model*2, d_model)
         )
 
         self.y_sequential = nn.Sequential(
             nn.Linear(d_model*2, d_model),
-            nn.Dropout(dropout_rate),
-            nn.ReLU(),
+            activation_fun,
             nn.Linear(d_model, d_model)
         )
 
@@ -535,19 +534,16 @@ class SubNet(nn.Module):
         hidden_size = int(d_model/3)
         self.mean_out_sequential = nn.Sequential(
             nn.Linear(d_model, hidden_size),
-            nn.Dropout(dropout_rate),
-            nn.ReLU(),
+            activation_fun,
             nn.Linear(hidden_size, output_channel)
         )
 
         self.var_out_sequential = nn.Sequential(
             nn.Linear(output_channel, hidden_size),
             nn.Linear(hidden_size, d_model),
-            nn.Dropout(dropout_rate),
-            nn.ReLU(),
+            activation_fun,
             nn.Linear(d_model, d_model),
-            nn.Dropout(dropout_rate),
-            nn.ReLU(),
+            activation_fun,
             nn.Linear(d_model, hidden_size),
             nn.Linear(hidden_size, output_channel)
         )
@@ -584,7 +580,7 @@ class SubNet(nn.Module):
         # if LEARN_VAR
         if self.learn_var:
             var_out = mean_out.detach()
-            var_out = self.var_out_sequential(var_out)
+            var_out = self.var_out_sequential(var_out + emb_y_noised)
             return mean_out, var_out
 
         return mean_out
