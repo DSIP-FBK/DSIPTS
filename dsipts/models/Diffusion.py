@@ -511,19 +511,19 @@ class SubNet(nn.Module):
 
         self.past_sequential = nn.Sequential(
             nn.Linear(d_model*3, d_model*2),
-            activation_fun,
+            activation_fun(),
             nn.Linear(d_model*2, d_model)
         )
         
         self.fut_sequential = nn.Sequential(
             nn.Linear(d_model*3, d_model*2),
-            activation_fun,
+            activation_fun(),
             nn.Linear(d_model*2, d_model)
         )
 
         self.y_sequential = nn.Sequential(
             nn.Linear(d_model*2, d_model),
-            activation_fun,
+            activation_fun(),
             nn.Linear(d_model, d_model)
         )
 
@@ -534,16 +534,16 @@ class SubNet(nn.Module):
         hidden_size = int(d_model/3)
         self.mean_out_sequential = nn.Sequential(
             nn.Linear(d_model, hidden_size),
-            activation_fun,
+            activation_fun(),
             nn.Linear(hidden_size, output_channel)
         )
 
         self.var_out_sequential = nn.Sequential(
             nn.Linear(output_channel, hidden_size),
             nn.Linear(hidden_size, d_model),
-            activation_fun,
+            activation_fun(),
             nn.Linear(d_model, d_model),
-            activation_fun,
+            activation_fun(),
             nn.Linear(d_model, hidden_size),
             nn.Linear(hidden_size, output_channel)
         )
