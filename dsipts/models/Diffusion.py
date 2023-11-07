@@ -610,8 +610,6 @@ class SubNet2(nn.Module):
             nn.Dropout(dropout_rate),
             nn.Linear(hidden_size, d_model),
             activation_fun(),
-            nn.Linear(d_model, d_model),
-            activation_fun(),
             nn.Linear(d_model, hidden_size),
             nn.Dropout(dropout_rate),
             nn.Linear(hidden_size, out_size)
@@ -621,8 +619,6 @@ class SubNet2(nn.Module):
             nn.Linear(in_size, hidden_size),
             nn.Dropout(dropout_rate),
             nn.Linear(hidden_size, d_model),
-            activation_fun(),
-            nn.Linear(d_model, d_model),
             activation_fun(),
             nn.Linear(d_model, hidden_size),
             nn.Dropout(dropout_rate),
