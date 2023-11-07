@@ -21,6 +21,7 @@ model_configs:
   n_head: 8
   dropout_rate: 0.2
   activation: 'torch.nn.GELU'
+  subnet: 1
   optim: torch.optim.Adam
   persistence_weight: 0.010
   loss_type: 'l1'

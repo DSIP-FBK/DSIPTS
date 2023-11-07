@@ -28,6 +28,7 @@ class Diffusion(Base):
                  n_head: int,
                  dropout_rate: float,
                  activation: str,
+                 subnet:int,
 
                  persistence_weight:float=0.0,
                  loss_type: str='l1',
@@ -126,9 +127,15 @@ class Diffusion(Base):
         self.lstm = sub_nn.LSTM_Model(self.output_channels, d_model, future_steps, n_layers_RNN, dropout_rate)
 
         # diffusion sub nets, one subnet for each step
-        self.sub_nets = nn.ModuleList([
-            SubNet(learn_var, out_channels, d_model, d_head, n_head, activation, dropout_rate) for _ in range(diffusion_steps)
-        ])
+        if subnet == 1:
+            self.sub_nets = nn.ModuleList([
+                SubNet1(learn_var, out_channels, d_model, d_head, n_head, activation, dropout_rate) for _ in range(diffusion_steps)
+            ])
+        else:
+            aux_num_available = self.aux_past_channels>0 and self.aux_fut_channels>0
+            self.sub_nets = nn.ModuleList([
+                SubNet2(learn_var, self.seq_len, aux_num_available, out_channels, d_model, activation, dropout_rate) for _ in range(diffusion_steps)
+            ])
 
 
     def forward(self, batch:dict):
@@ -476,7 +483,7 @@ class Diffusion(Base):
         return ten.expand(broadcast_shape).to(self.device)
 
 ### >>>>>>>>>>>>>  SUB NET 1
-class SubNet(nn.Module):
+class SubNet1(nn.Module):
     def __init__(self, learn_var:bool, output_channel:int, d_model:int, d_head:int, n_head:int, activation:str, dropout_rate:float) -> None:
         """ -> SUBNET of the DIFFUSION MODEL (DDPM)
 
@@ -532,7 +539,7 @@ class SubNet(nn.Module):
         # if learn_var == True, we want to predict an additional variable for he variance
         # just an intermediate dimension for linears
         hidden_size = int(d_model/3)
-        self.mean_out_sequential = nn.Sequential(
+        self.eps_out_sequential = nn.Sequential(
             nn.Linear(d_model, hidden_size),
             activation_fun(),
             nn.Linear(hidden_size, output_channel)
@@ -576,11 +583,69 @@ class SubNet(nn.Module):
         # ATTENTION
         attention = self.attention(fut_seq, past_seq, emb_y_past)
         # OUTPUT
-        mean_out = self.mean_out_sequential(attention)
+        eps_out = self.eps_out_sequential(attention)
         # if LEARN_VAR
         if self.learn_var:
-            var_out = mean_out.detach()
+            var_out = eps_out.detach()
             var_out = self.var_out_sequential(var_out)
-            return mean_out, var_out
+            return eps_out, var_out
 
-        return mean_out
+        return eps_out
+    
+class SubNet2(nn.Module):
+    def __init__(self, learn_var:bool, seq_len, aux_num_available, output_channel:int, d_model:int, activation:str, dropout_rate:float):
+        super().__init__()
+        self.learn_var = learn_var
+        in_size = seq_len * (2 + int(aux_num_available)) * d_model
+
+        activation_fun = eval(activation)
+
+        self.y_noised_linear = nn.Linear(output_channel, d_model)
+        self.y_past_linear = nn.Linear(output_channel, d_model)
+
+        hidden_size = int( (output_channel + d_model)/2 )
+        self.eps_out_sequential = nn.Sequential(
+            nn.Linear(in_size, hidden_size),
+            nn.Dropout(dropout_rate),
+            nn.Linear(hidden_size, d_model),
+            activation_fun(),
+            nn.Linear(d_model, d_model),
+            activation_fun(),
+            nn.Linear(d_model, hidden_size),
+            nn.Dropout(dropout_rate),
+            nn.Linear(hidden_size, output_channel)
+        )
+        
+        self.var_out_sequential = nn.Sequential(
+            nn.Linear(in_size, hidden_size),
+            nn.Dropout(dropout_rate),
+            nn.Linear(hidden_size, d_model),
+            activation_fun(),
+            nn.Linear(d_model, d_model),
+            activation_fun(),
+            nn.Linear(d_model, hidden_size),
+            nn.Dropout(dropout_rate),
+            nn.Linear(hidden_size, output_channel)
+        )
+
+    def forward(self, y_noised:torch.Tensor, y_past:torch.Tensor,
+                cat_past:Union[torch.Tensor,None] = None, cat_fut:Union[torch.Tensor,None] = None, 
+                num_past:Union[torch.Tensor,None] = None, num_fut:Union[torch.Tensor,None] = None):
+        
+        B = y_noised.shape[0]
+        emb_y_noised = self.y_noised_linear(y_noised.float()).view(B, -1)
+        emb_y_past = self.y_past_linear(y_past).view(B, -1)
+
+        full_concat = torch.cat((emb_y_noised, emb_y_past), dim=1)
+        for ten in [cat_past, num_past, cat_fut, num_fut]:
+            if ten is not None:
+                full_concat = torch.cat((full_concat, ten.view(B, -1)), dim = 1)
+
+        eps_out = self.eps_out_sequential(full_concat)
+        if self.learn_var:
+            var_out = self.var_out_sequential(full_concat)
+            return eps_out, var_out
+        return eps_out
+
+        
+
