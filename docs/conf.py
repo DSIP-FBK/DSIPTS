@@ -26,7 +26,7 @@ extensions = [
    'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
-   #  'm2r2'
+    'sphinx_mdinclude',
     
 ]
 
