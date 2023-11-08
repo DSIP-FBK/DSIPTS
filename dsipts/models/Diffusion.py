@@ -226,7 +226,7 @@ class Diffusion(Base):
                 post_sigma = torch.exp(var_aux_out*torch.log(pre_var_t) + (1-var_aux_out)*torch.log(post_var_t))
             else:
                 eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
-                post_sigma = self._extract_into_tensor(np.sqrt(self.posterior_variance), t, eps_pred.shape)
+                post_sigma = self._extract_into_tensor(self.posterior_variance, t, eps_pred.shape)
 
             out_mean = self._extract_into_tensor(np.sqrt(1/self.alphas), t, eps_pred.shape) * ( y_noised - self._extract_into_tensor(self.betas/np.sqrt(1-self.alphas_cumprod) , t, eps_pred.shape) * eps_pred )
             
@@ -325,7 +325,7 @@ class Diffusion(Base):
                 post_sigma = torch.exp(var_aux_out*torch.log(pre_var_t) + (1-var_aux_out)*torch.log(post_var_t))
             else:
                 eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
-                post_sigma = self._extract_into_tensor(np.sqrt(self.posterior_variance), t, eps_pred.shape)
+                post_sigma = self._extract_into_tensor(self.posterior_variance, t, eps_pred.shape)
                 
             # Sample x_{t-1} from the model at the given timestep.
             y_noised = self._extract_into_tensor(1/np.sqrt(self.alphas), t, y_noised.shape)*y_noised - self._extract_into_tensor(self.betas/(np.sqrt(self.alphas*self.betas)), t, eps_pred.shape)*eps_pred
