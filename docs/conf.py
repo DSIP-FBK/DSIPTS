@@ -8,7 +8,9 @@
 
 import sys
 import os
-
+import sphinx_pdj_theme
+html_theme = 'sphinx_pdj_theme'
+html_theme_path = [sphinx_pdj_theme.get_html_theme_path()]
 sys.path.insert(0, os.path.abspath('..'))
 
 
@@ -36,7 +38,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_rtd_theme'
+#html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 autoclass_content = 'both'
 source_suffix = ['.rst', '.md']

@@ -1,4 +1,4 @@
-pandas
+pandas==2.1.2
 numpy== 1.26.1
 matplotlib==3.7.0
 omegaconf==2.3.0
@@ -9,15 +9,15 @@ scikit-learn
 beautifulsoup4==4.12.0
 html5lib
 html-table-parser-python3==0.3.1
-Omegaconf
+Omegaconf==2.3.0
 plotly
 plotly-express
 kaleido
 sphinx==6.2.1
-sphinx-rtd-theme
+sphinx-pdj-theme
 hydra-core
 einops
-m2r2
+m2r2==0.3.1
 pytest
 numba==0.58.1
 torch
@@ -30,6 +30,5 @@ torchmetrics==0.11.3
 tqdm
 pandocfilters
 sphinxcontrib-serializinghtml
-nbconvert
+nbconvert==6.5.4
 mistune==0.8.4
-pandoc
