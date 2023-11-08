@@ -17,7 +17,7 @@ sphinx
 sphinx-rtd-theme
 hydra-core
 einops
-#m2r2
+m2r2
 pytest
 numba==0.58.1
 torch
@@ -30,5 +30,6 @@ torchmetrics==0.11.3
 tqdm
 pandocfilters
 sphinxcontrib-serializinghtml
-nbconvert==7.2.1
-mistune==2.0.4
+nbconvert
+mistune
+pandoc
