@@ -31,5 +31,5 @@ tqdm
 pandocfilters
 sphinxcontrib-serializinghtml
 nbconvert
-mistune
+mistune==0.8.4
 pandoc
