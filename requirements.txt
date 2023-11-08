@@ -13,7 +13,7 @@ Omegaconf
 plotly
 plotly-express
 kaleido
-sphinx
+sphinx==6.2.1
 sphinx-rtd-theme
 hydra-core
 einops
