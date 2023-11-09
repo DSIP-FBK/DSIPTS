@@ -15,7 +15,7 @@ model_configs:
   cosine_alpha: True
   diffusion_steps: 150
   beta: 0.03
-  sigma: 1
+  gamma: 0.01
   n_layers_RNN: 4
   d_head: 128
   n_head: 8

@@ -21,7 +21,7 @@ class Diffusion(Base):
                  cosine_alpha: bool,
                  diffusion_steps: int,
                  beta: float,
-                 sigma: float,
+                 gamma:float,
                  #for subnet
                  n_layers_RNN: int,
                  d_head: int,
@@ -29,6 +29,7 @@ class Diffusion(Base):
                  dropout_rate: float,
                  activation: str,
                  subnet:int,
+                 perc_subnet_learning_for_step:float,
 
                  persistence_weight:float=0.0,
                  loss_type: str='l1',
@@ -37,37 +38,62 @@ class Diffusion(Base):
                  optim_config:Union[dict,None]=None,
                  scheduler_config:Union[dict,None]=None,
                  **kwargs)->None:
+        """Denoising Diffusion Probabilistic Model
+
+        Args:
+            d_model (int): 
+            out_channels (int): number of target variables
+            past_steps (int): size of past window
+            future_steps (int): size of future window to be predicted
+            past_channels (int): number of variables available for the past context
+            future_channels (int): number of variables known in the future, available for forecasting
+            embs (list[int]): categorical variables dimensions for embeddings
+            learn_var (bool): Flag to make the model train the posterior variance (if True) or use the variance of posterior distribution 
+            cosine_alpha (bool): Flag for the generation of alphas and betas
+            diffusion_steps (int): number of noising steps for the initial sample
+            beta (float): starting variable to generate the diffusion perturbations. Ignored if cosine_alpha == True
+            gamma (float): trade_off variable to balance loss over noise prediction and NegativeLikelihood/KL_Divergence.
+            n_layers_RNN (int): param for subnet
+            d_head (int): param for subnet
+            n_head (int): param for subnet
+            dropout_rate (float): param for subnet
+            activation (str): param for subnet
+            subnet (int): =1 for attention subnet, =2 for linear subnet. Others can be added(wait for Black Friday for discounts)
+            perc_subnet_learning_for_step (float): percentage to choose how many subnet has to be trained for every batch. Decrease this value if the loss blows up.
+            persistence_weight (float, optional): Defaults to 0.0.
+            loss_type (str, optional): Defaults to 'l1'.
+            quantiles (List[float], optional): Only [] accepted. Defaults to [].
+            optim (Union[str,None], optional): Defaults to None.
+            optim_config (Union[dict,None], optional): Defaults to None.
+            scheduler_config (Union[dict,None], optional): Defaults to None.
+        """
         
         super().__init__(**kwargs)
         self.save_hyperparameters(logger=False)
 
+        self.dropout = dropout_rate
         self.persistence_weight = persistence_weight 
         self.loss_type = loss_type
         self.optim = optim
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
 
-        #* OUTPUT HANDLING LOSSES, here used for inference
-        # For training, used losses are specified at the end of the file as functions
-        # handling quantiles or not
-        assert (len(quantiles) ==0) or (len(quantiles)==3), beauty_string('Only 3 quantiles are availables, otherwise set quantiles=[]','block',True)
-        if len(quantiles)==0:
-            self.mul = 1
-            self.use_quantiles = False
-            self.outLinear = nn.Linear(d_model, out_channels)
-            if self.loss_type == 'mse': # IT IS USED FOR LOSS ON NOISES
-                self.loss = nn.MSELoss()
-            else:
-                self.loss = nn.L1Loss()
+        #* HANDLING LOSSES 
+        # using 'loss_type' and 'quantiles'
+        # Here we fix the loss the loss between actual noise and predicted noise
+        # Avoid quantile loss!
+        assert len(quantiles) ==0
+        self.mul = 1
+        self.use_quantiles = False
+        self.outLinear = nn.Linear(d_model, out_channels)
+        if self.loss_type == 'mse':
+            self.loss = nn.MSELoss()
         else:
-            self.mul = len(quantiles)
-            self.use_quantiles = True
-            self.outLinear = nn.Linear(d_model, out_channels*len(quantiles))
-            self.loss = QuantileLossMO(quantiles)
+            self.loss = nn.L1Loss()
         
         #* >>>>>>>>>>>>> canonical data parameters
+        # dimension of the model, number of variables and sequence length info
         self.d_model = d_model
-        self.dropout = dropout_rate
         self.past_steps = past_steps
         self.future_steps = future_steps
         self.past_channels = past_channels
@@ -75,45 +101,46 @@ class Diffusion(Base):
         self.output_channels = out_channels
 
         #* >>>>>>>>>>>>> specific model parameters
-        self.learn_var = learn_var
-        self.T = diffusion_steps
-        self.multinomial_step_weights = np.ones(diffusion_steps)
-        self.simultaneous_steps = max(int(diffusion_steps/10), 1) # 1/5 of all sabunets trained every batch of every epoch
-        self.sigma = sigma
-        
+        self.learn_var = learn_var # if we want to learn also the variance, instead of using the standard posterior variance of Diffusion NN
+        self.T = diffusion_steps # number of noising steps
+        self.multinomial_step_weights = np.ones(diffusion_steps) # distribution weigths to avoid less trained subnet 
+        self.simultaneous_steps = max(int(diffusion_steps*perc_subnet_learning_for_step), 1) # % of all subnets trained every batch of every epoch
+        self.gamma = gamma # trade off for noise loss and distribution loss 
+
         #* >>>>>>>>>>>>> specific diffusion setup
-        self.s = (100*self.T)**(-1)
+        self.s = (100*self.T)**(-1)  # offset variable to avoid problems with computations near 0
+        # betas and cumulative products of alphas are the main values for the diffusion model
+        # according to the flag below we can choose how to generate them
         if cosine_alpha:
-            # COSINE_ALPHA Computation
-            # offset variables to control betas and alphas
+            # COSINE ALPHA Computation
             aux_perc = 0.05
-            avoid_comp_err_norm = self.T*(1+aux_perc)
-            # alpha is the 'forgetting' schedule
+            avoid_comp_err_norm = self.T*(1+aux_perc) # enlarging self.T to avoid errors in computations using cos^2
+            # the t-th cumulative product of alphas is the 'forgetting' schedule of the inital sample after t diffusion step
+            # in this procedure we use the function below to produce all the cumulative products of alphas
             f_cos_t = [(np.cos( (t/avoid_comp_err_norm +self.s*2)/(1+self.s*2) * np.pi/2 ))**2 for t in range(self.T)]
             self.alphas_cumprod = np.append(1-self.s, f_cos_t[1:]/f_cos_t[0]) # scaled cumulative product of alphas f_cos_t[1:]/f_cos_t[0]
             self.alphas_cumprod_prev = np.append(1.0, self.alphas_cumprod[:-1]) # auxiliar vector to get easily alphaBAT_t-1 
             self.alphas = self.alphas_cumprod * (self.alphas_cumprod_prev)**(-1)
             self.betas = np.append(self.s, 1-self.alphas[1:])
         else:
-            # STANDARD ALPHA
+            # STANDARD ALPHA Computation
             # beta is considered constant in [0,1) for all time steps. Good values near 0.03
             self.betas = np.array([beta]*self.T) 
             self.alphas = 1 - self.betas
             self.alphas_cumprod = np.cumprod(self.alphas)
-            self.alphas_cumprod_prev = np.append(1.0, self.alphas_cumprod[:-1]) # auxiliar vector to get easily alphaBAT_t-1 
-        # values for posterior distribution
+            self.alphas_cumprod_prev = np.append(1.0, self.alphas_cumprod[:-1]) # auxiliar vector to get easily alphaBAT_t-1
+
+        # values for posterior distribution, id est the target distribution of each subnet
         self.posterior_mean_coef1 = self.betas * np.sqrt(self.alphas_cumprod_prev) / (1.0 - self.alphas_cumprod)
         self.posterior_mean_coef2 = (1.0 - self.alphas_cumprod_prev) * np.sqrt(self.alphas) / (1.0 - self.alphas_cumprod)
         self.posterior_variance = np.append([self.s], self.betas[1:] * (1.0 - self.alphas_cumprod_prev[1:]) / (1.0 - self.alphas_cumprod[1:]))
         self.posterior_log_variance_clipped = np.log(self.posterior_variance)
 
-        # >>>>>>>>>>>>> LAYERS    
-        # the target variables will be embedded inside the subnet, while other context variables
-        # for target variable(s)
-        self.target_linear = nn.Linear(out_channels, d_model)
+        #* >>>>>>>>>>>>> LAYERS
         # for other numerical variables in the past
-        self.aux_past_channels = past_channels - out_channels # past umerical variables without target one(s)
+        self.aux_past_channels = past_channels - out_channels
         self.linear_aux_past = nn.ModuleList([nn.Linear(1, d_model) for _ in range(self.aux_past_channels)])
+
         # for numerical variables in the future
         self.aux_fut_channels = future_channels
         self.linear_aux_fut = nn.ModuleList([nn.Linear(1, d_model) for _ in range(self.aux_fut_channels)])
@@ -121,10 +148,6 @@ class Diffusion(Base):
         # embedding categorical for both past and future (ASSUMING BOTH AVAILABLE OR NO ONE)
         self.seq_len = past_steps + future_steps
         self.emb_cat_var = sub_nn.embedding_cat_variables(self.seq_len, future_steps, d_model, embs, self.device)
-
-        # layers for autoregressive eps prediction: LSTM
-        self.lin_y_past_d_model = nn.Linear(self.output_channels, d_model)
-        self.lstm = sub_nn.LSTM_Model(self.output_channels, d_model, future_steps, n_layers_RNN, dropout_rate)
 
         # diffusion sub nets, one subnet for each step
         if subnet == 1:
@@ -137,22 +160,18 @@ class Diffusion(Base):
                 SubNet2(learn_var, past_steps, future_steps, aux_num_available, out_channels, d_model, activation, dropout_rate) for _ in range(diffusion_steps)
             ])
 
-
-    def forward(self, batch:dict):
-        """forward method used to make subnet learn the noise added the the latent variable.
-        
-        Consequently, in inference the model will subtract the computed noise for each step.
+    def forward(self, batch:dict)-> float:
+        """training process of the diffusion network
 
         Args:
-            batch (dict): Keys checked ['x_num_past, 'idx_target', 'x_num_future', 'x_cat_past', 'x_cat_future', 'y']
+            batch (dict): variables loaded
 
         Returns:
-            torch.Tensor: loss to be subtracted element-wise to the input target tensor 
+            float: total loss about the prediction of the noises over all subnets extracted
         """
 
         # LOADING TARGET VARIABLES
         y_to_be_pred = batch['y'].to(self.device)
-        batch_size = y_to_be_pred.shape[0]
 
         # LOADING AUTOREGRESSIVE CONTEXT OF TARGET VARIABLES
         num_past = batch['x_num_past'].to(self.device)
@@ -192,15 +211,16 @@ class Diffusion(Base):
         else:
             aux_emb_num_past, aux_emb_num_fut = None, None
 
-        ### DIFFUSION
+        ### actual DIFFUSION process ----------------------------------------------
 
         ##* CHOOSE THE t SUBNET
-        # extract a t, indicating which network will be used
         # We have T subnets: [0, 1, ..., T-1].
         values = list(range(self.T))
+        
+        ## Probabilistic way to choose the subnet properly
         # avoid exploding step_weights with usages
-        self.improving_weight_during_training()
-        # normalizing weights
+        self.improving_weight_during_training() 
+        # normalizing weights for a more stable subnet training
         t_wei = self.multinomial_step_weights/np.sum(self.multinomial_step_weights)
         # extract times t
         drawn_t = np.random.choice(values, size=self.simultaneous_steps, replace=False, p=t_wei) # type: ignore
@@ -213,9 +233,8 @@ class Diffusion(Base):
         for t in drawn_t:
             # LOADING THE SUBNET
             sub_net = self.sub_nets[t]
-
             # Get y and noise it
-            y_noised, true_mean, true_log_var_clipped, actual_noise = self.q_sample(y_to_be_pred, t)
+            y_noised, true_mean, true_var, actual_noise = self.q_sample(y_to_be_pred, t)
 
             # compute the output from that network using the sample with noises
             # output composed of: noise predicted and vector for variances
@@ -228,40 +247,40 @@ class Diffusion(Base):
                 eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 post_sigma = self._extract_into_tensor(self.posterior_variance, t, eps_pred.shape)
 
+            # posterior mean assuming the predicted noise is the actual one
             out_mean = self._extract_into_tensor(np.sqrt(1/self.alphas), t, eps_pred.shape) * ( y_noised - self._extract_into_tensor(self.betas/np.sqrt(1-self.alphas_cumprod) , t, eps_pred.shape) * eps_pred )
             
-            # # At the first timestep return the decoder NLL,
+            # # At the first timestep return the negative likelihood,
             # # otherwise return KL(q(x_{t-1}|x_t,x_0) || p(x_{t-1}|x_t))
             if t==0:
                 # post_var =  self._extract_into_tensor(self.posterior_variance, t, y_to_be_pred.shape)
                 neg_log_likelihoods = -self.gaussian_likelihood(y_to_be_pred, out_mean, post_sigma) # generated mean near the y to be predicted 
-                loss_output = torch.mean(neg_log_likelihoods)
+                distribution_loss = torch.mean(neg_log_likelihoods)
             else:
                 # COMPUTE LOSS between TRUE eps and DRAWN eps_pred
-                kl_divergence = self.normal_kl(true_mean, true_log_var_clipped, out_mean, post_sigma)
-                loss_output = torch.mean(kl_divergence)
+                kl_divergence = self.normal_kl(true_mean, true_var, out_mean, post_sigma)
+                distribution_loss = torch.mean(kl_divergence)
 
-            t_loss = self.loss(eps_pred, actual_noise)
+            # always compute the loss about the straight prediction of the noise
+            noise_loss = self.loss(eps_pred, actual_noise)
 
-            gamma = 0.05 # gamma parameter for a trade off between mse e kl_diveregence
-            t_loss += gamma*loss_output
+            noise_loss += self.gamma*distribution_loss # add, scaled according to gamma, the distribution_loss
             
             # update the total loss
             if tot_loss==-1:
-                tot_loss = t_loss
+                tot_loss = noise_loss
             else:
-                tot_loss += t_loss
+                tot_loss += noise_loss
         return tot_loss
 
-    # re-defined to extract directly the loss of the training step
-    # training step has its proper loss computed during forward!
     def training_step(self, batch, batch_idx):
+        # the training loss is already computed in the forward method
         loss_eps = self(batch)
         return loss_eps
     
     
     def inference(self, batch:dict) -> torch.Tensor:
-        """Inference process to generate future y
+        """Inference process to forecast future y
 
         Args:
             batch (dict): Keys checked ['x_num_past, 'idx_target', 'x_num_future', 'x_cat_past', 'x_cat_future']
