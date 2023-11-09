@@ -575,6 +575,8 @@ class SubNet1(nn.Module):
         emb_y_past = self.y_past_linear(y_past)
         
         # LIN FOR PAST
+        import pdb
+        pdb.set_trace()
         past_seq_input = torch.cat((emb_y_past, cat_past, num_past), dim=2) # type: ignore
         past_seq = self.past_sequential(past_seq_input) # -> [B, future_step, d_model]
         # LIN FOR FUT
