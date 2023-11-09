@@ -129,12 +129,11 @@ class Diffusion(Base):
         # diffusion sub nets, one subnet for each step
         if subnet == 1:
             self.sub_nets = nn.ModuleList([
-                SubNet1(learn_var, out_channels, d_model, d_head, n_head, activation, dropout_rate) for _ in range(diffusion_steps)
+                SubNet1(learn_var, out_channels, d_model, d_head, n_head, activation, dropout_rate,aux_past=self.aux_past_channels>0, aux_future=future_channels>0) for _ in range(diffusion_steps)
             ])
         else:
-            aux_num_available = self.aux_past_channels>0 and self.aux_fut_channels>0
             self.sub_nets = nn.ModuleList([
-                SubNet2(learn_var, past_steps, future_steps, aux_num_available, out_channels, d_model, activation, dropout_rate) for _ in range(diffusion_steps)
+                SubNet2(learn_var, past_steps, future_steps, out_channels, d_model, activation, dropout_rate,aux_past=self.aux_past_channels>0, aux_future=future_channels>0) for _ in range(diffusion_steps)
             ])
 
 
@@ -287,7 +286,7 @@ class Diffusion(Base):
         # because in the model we use auxiliar numerical variables 
         # only if we have both them in the past and in the future
 
-        if self.aux_past_channels>0 and self.aux_fut_channels>0: # if we have more numerical variables about past
+        if self.aux_past_channels>0 : # if we have more numerical variables about past
             # AUX means AUXILIARY variables
             aux_num_past = self.remove_var(num_past, idx_target, 2) # remove the target index on the second dimension
             assert self.aux_past_channels == aux_num_past.size(2),  beauty_string(f"{self.aux_past_channels} LAYERS FOR PAST VARS AND {aux_num_past.size(2)} VARS",'section',True) # to check if we are using the expected number of variables about past
@@ -298,7 +297,10 @@ class Diffusion(Base):
                 aux_emb_past = layer(aux_num_past[:,:,[i]]).unsqueeze(2)
                 aux_emb_num_past = torch.cat((aux_emb_num_past, aux_emb_past), dim=2)
             aux_emb_num_past = torch.mean(aux_emb_num_past, dim = 2)
+        else:
+            aux_emb_num_past=None
             
+        if self.aux_fut_channels>0:
             # future_variables
             aux_num_fut = batch['x_num_future'].to(self.device)
             assert self.aux_fut_channels == aux_num_fut.size(2), beauty_string(f"{self.aux_fut_channels} LAYERS FOR PAST VARS AND {aux_num_fut.size(2)} VARS",'section',True)  # to check if we are using the expected number of variables about fut
@@ -308,7 +310,7 @@ class Diffusion(Base):
                 aux_emb_num_fut = torch.cat((aux_emb_num_fut, aux_emb_fut), dim=2)
             aux_emb_num_fut = torch.mean(aux_emb_num_fut, dim = 2)
         else:
-            aux_emb_num_past, aux_emb_num_fut = None, None
+            aux_emb_num_fut = None
 
         
         # DIFFUSION INFERENCE 
@@ -486,7 +488,7 @@ class Diffusion(Base):
 
 ### >>>>>>>>>>>>>  SUB NET 1
 class SubNet1(nn.Module):
-    def __init__(self, learn_var:bool, output_channel:int, d_model:int, d_head:int, n_head:int, activation:str, dropout_rate:float) -> None:
+    def __init__(self, learn_var:bool, output_channel:int, d_model:int, d_head:int, n_head:int, activation:str, dropout_rate:float, aux_past:bool, aux_future:bool) -> None:
         """ -> SUBNET of the DIFFUSION MODEL (DDPM)
 
         It starts with an autoregressive LSTM Network computation of epsilon, then subtracted to 'y_noised' tensor. This is always possible!
@@ -519,13 +521,13 @@ class SubNet1(nn.Module):
         self.y_past_linear = nn.Linear(output_channel, d_model)
 
         self.past_sequential = nn.Sequential(
-            nn.Linear(d_model*3, d_model*2),
+            nn.Linear(d_model*3 if aux_past else d_model*2, d_model*2),
             activation_fun(),
             nn.Linear(d_model*2, d_model)
         )
         
         self.fut_sequential = nn.Sequential(
-            nn.Linear(d_model*3, d_model*2),
+            nn.Linear(d_model*3 if aux_future else d_model*2, d_model*2),
             activation_fun(),
             nn.Linear(d_model*2, d_model)
         )
@@ -577,18 +579,14 @@ class SubNet1(nn.Module):
         emb_y_past = self.y_past_linear(y_past)
         
         # LIN FOR PAST
-        tmp = [emb_y_past]
-        if cat_past is not None:
-           tmp.append(cat_past) 
+        tmp = [emb_y_past,cat_past]
         if num_past is not None:
             tmp.append(num_past) 
             
         past_seq_input = torch.cat(tmp, dim=2) # type: ignore
         past_seq = self.past_sequential(past_seq_input) # -> [B, future_step, d_model]
         
-        tmp = [emb_y_noised]
-        if cat_fut is not None:
-           tmp.append(cat_fut) 
+        tmp = [emb_y_noised,cat_fut]
         if num_fut is not None:
             tmp.append(num_fut) 
         # LIN FOR FUT
@@ -607,10 +605,10 @@ class SubNet1(nn.Module):
         return eps_out
     
 class SubNet2(nn.Module):
-    def __init__(self, learn_var:bool, past_steps, future_steps, aux_num_available, output_channel:int, d_model:int, activation:str, dropout_rate:float):
+    def __init__(self, learn_var:bool, past_steps, future_steps, output_channel:int, d_model:int, activation:str, dropout_rate:float, aux_past:bool, aux_future:bool):
         super().__init__()
         self.learn_var = learn_var
-        in_size = (past_steps + future_steps) * (2 + int(aux_num_available)) * d_model
+        in_size = (past_steps + future_steps) * (1 + int(aux_past)+ int(aux_future)) * d_model
         out_size = output_channel * future_steps
 
         activation_fun = eval(activation)
