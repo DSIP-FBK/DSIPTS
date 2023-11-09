@@ -590,7 +590,7 @@ class SubNet1(nn.Module):
         if num_fut is not None:
             tmp.append(num_fut) 
         # LIN FOR FUT
-        fut_seq_input = torch.cat((emb_y_noised, cat_fut, num_fut), dim=2) # type: ignore
+        fut_seq_input = torch.cat(tmp, dim=2) # type: ignore
         fut_seq = self.fut_sequential(fut_seq_input) # -> [B, future_step, d_model]
         # ATTENTION
         attention = self.attention(fut_seq, past_seq, emb_y_past)
