@@ -1,6 +1,9 @@
+# @package _global_
+
 model:
   type: 'diffusion'
   retrain: true
+
 ts:
   name: 'test'
   version: 1
