@@ -169,7 +169,7 @@ class Diffusion(Base):
         # because in the model we use auxiliar numerical variables 
         # only if we have both them in the past and in the future
 
-        if self.aux_past_channels>0 and self.aux_fut_channels>0: # if we have more numerical variables about past
+        if self.aux_past_channels>0:  # if we have more numerical variables about past
             # AUX means AUXILIARY variables
             aux_num_past = self.remove_var(num_past, idx_target, 2) # remove the target index on the second dimension
             assert self.aux_past_channels == aux_num_past.size(2),  beauty_string(f"{self.aux_past_channels} LAYERS FOR PAST VARS AND {aux_num_past.size(2)} VARS",'section',True) # to check if we are using the expected number of variables about past
@@ -180,7 +180,9 @@ class Diffusion(Base):
                 aux_emb_past = layer(aux_num_past[:,:,[i]]).unsqueeze(2)
                 aux_emb_num_past = torch.cat((aux_emb_num_past, aux_emb_past), dim=2)
             aux_emb_num_past = torch.mean(aux_emb_num_past, dim = 2)
-            
+        else:
+            aux_emb_num_past = None
+        if self.aux_fut_channels>0:
             # future_variables
             aux_num_fut = batch['x_num_future'].to(self.device)
             assert self.aux_fut_channels == aux_num_fut.size(2), beauty_string(f"{self.aux_fut_channels} LAYERS FOR PAST VARS AND {aux_num_fut.size(2)} VARS",'section',True)  # to check if we are using the expected number of variables about fut
@@ -190,7 +192,7 @@ class Diffusion(Base):
                 aux_emb_num_fut = torch.cat((aux_emb_num_fut, aux_emb_fut), dim=2)
             aux_emb_num_fut = torch.mean(aux_emb_num_fut, dim = 2)
         else:
-            aux_emb_num_past, aux_emb_num_fut = None, None
+            aux_emb_num_fut = None
 
         ### DIFFUSION
 
@@ -575,10 +577,20 @@ class SubNet1(nn.Module):
         emb_y_past = self.y_past_linear(y_past)
         
         # LIN FOR PAST
-        import pdb
-        pdb.set_trace()
-        past_seq_input = torch.cat((emb_y_past, cat_past, num_past), dim=2) # type: ignore
+        tmp = [emb_y_past]
+        if cat_past is not None:
+           tmp.append(cat_past) 
+        if num_past is not None:
+            tmp.append(num_past) 
+            
+        past_seq_input = torch.cat(tmp, dim=2) # type: ignore
         past_seq = self.past_sequential(past_seq_input) # -> [B, future_step, d_model]
+        
+        tmp = [emb_y_noised]
+        if cat_fut is not None:
+           tmp.append(cat_fut) 
+        if num_fut is not None:
+            tmp.append(num_fut) 
         # LIN FOR FUT
         fut_seq_input = torch.cat((emb_y_noised, cat_fut, num_fut), dim=2) # type: ignore
         fut_seq = self.fut_sequential(fut_seq_input) # -> [B, future_step, d_model]
