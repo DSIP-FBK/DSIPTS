@@ -1,3 +1,5 @@
+# @package _global_
+
 model:
   type: 'diffusion'
   retrain: true
@@ -5,7 +7,7 @@ ts:
   name: 'test'
   version: 1
   enrich: ['hour']
-  use_covariates: false
+  use_covariates: true
 
 model_configs:
   d_model: 128
