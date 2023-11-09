@@ -2,11 +2,11 @@
 
 This library allows to:
 
-- (1) load timeseries in a convenient format
-- (2) create tool timeseries with controlled categorical features (additive and multiplicative)
-- (3) load public timeseries
-- (4) train a predictive model using different PyTorch architectures
-- (5) define more complex structures using Modifiers (e.g. combining unsupervised learning + deep learning)
+-  load timeseries in a convenient format
+-  create tool timeseries with controlled categorical features (additive and multiplicative)
+-  load public timeseries
+-  train a predictive model using different PyTorch architectures
+-  define more complex structures using Modifiers (e.g. combining unsupervised learning + deep learning)
 
 ## Background
 
@@ -37,6 +37,8 @@ The output of a new model must be $[B,L,C,1]$ in case of single prediction or $[
 Try to reuse some of the common keyworks while building your model. After the initialization of the model you can use whatever variable you want but during the initialization please use the following conventions.
 This frist block maybe is common between several architectures:
 
+---
+
 - **past_steps** = int. THIS IS CRUCIAL and self explanatory
 - **future_steps** = int. THIS IS CRUCIAL and self explanatory
 - **past_channels** = len(ts.num_var). THIS IS CRUCIAL and self explanatory
@@ -45,25 +47,32 @@ This frist block maybe is common between several architectures:
 - **out_channels** = len(ts.target_variables). THIS IS CRUCIAL and self explanatory
 - **cat_emb_dim** = int. Dimension of embedded categorical variables, the choice here is to use a constant value and let the user chose if concatenate or sum the variables
 - **sum_emb** = boolean. If true the contribution of each categorical variable is summed
-- **quantiles**=[0.1,0.5,0.9]. Quantiles for quantile loss
+- **quantiles** =[0.1,0.5,0.9]. Quantiles for quantile loss
 - **kind** =str. If there are some similar architectures with small differences maybe is better to use the same code specifying some properties (e.g. GRU vs LSTM)
-- **activation**= str ('torch.nn.ReLU' default). activation function between layers (see  [pytorch activation functions](https://pytorch.org/docs/stable/nn.html#non-linear-activations-weighted-sum-nonlinearity))
-- **optim**= str ('torch.optim.Adam' default). optimization function see [pytorch optimization functions](https://pytorch.org/docs/stable/optim.html)
-- **dropout_rate**=float. dropout rate
-- **use_bn**=boolean . Use or not batch normalization
-- **persistence_weight**= float . Penalization weight for persistent predictions
-- **loss_type**= str . There are some other metrics implemented, see the [metric section](#metrics) for details
-- **remove_last**= boolean. It is possible to subctract the last observation and let the network learn the difference respect to the last value.
+- **activation** = str ('torch.nn.ReLU' default). activation function between layers (see  [pytorch activation functions](https://pytorch.org/docs/stable/nn.html#non-linear-activations-weighted-sum-nonlinearity))
+- **optim** = str ('torch.optim.Adam' default). optimization function see [pytorch optimization functions](https://pytorch.org/docs/stable/optim.html)
+- **dropout_rate** =float. dropout rate
+- **use_bn** =boolean . Use or not batch normalization
+- **persistence_weight** = float . Penalization weight for persistent predictions
+- **loss_type** = str . There are some other metrics implemented, see the [metric section](#metrics) for details
+- **remove_last** = boolean. It is possible to subctract the last observation and let the network learn the difference respect to the last value.
 
+---
 some are more specific for RNN-CONV architectures:
 
+---
 - **hidden_RNN** = int. If there are some RNN use this and the following
 - **num_layers_RNN** = int.
 - **kernel_size** = int. If there are some convolutional layers
 
+---
+
 linear:
+
 - **hidden_size** = int. Usually the hidden dimension, for some architecture maybe you can pass the list of the dimensions
 - **kind** =str. Type of linear approach
+
+---
 
 or attention based models:
 
@@ -72,7 +81,7 @@ or attention based models:
 - **dropout_rate** = float. dropout
 - **n_layer_encoder** = int. encoder layers
 - **n_layer_decoder** = int. decoder layers
-
+---
 
 ## How to
 

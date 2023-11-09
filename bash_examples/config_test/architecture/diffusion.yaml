@@ -5,12 +5,12 @@ ts:
   name: 'test'
   version: 1
   enrich: ['hour']
-  use_covariates: false
+  use_covariates: true
 
 model_configs:
   d_model: 12
-  learn_var: True
-  cosine_alpha: True
+  learn_var: true
+  cosine_alpha: true
   diffusion_steps: 12
   beta: 0.03
   sigma: 1
