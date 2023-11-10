@@ -2,7 +2,8 @@ import numpy as np
 import plotly.express as px
 import pandas as pd
 from typing import List
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import * 
 from torch.utils.data import DataLoader
 from pytorch_lightning.callbacks import ModelCheckpoint
 import pytorch_lightning as pl
@@ -506,7 +507,8 @@ class TimeSeries():
                         starting_point:Union[None, dict]=None,
                         skip_step:int=1,
                         normalize_per_group: bool=False,
-                        check_consecutive: bool=True
+                        check_consecutive: bool=True,
+                        scaler: str='StandardScaler()' 
                         )->List[DataLoader]:
         """Split the data and create the datasets.
 
@@ -525,7 +527,7 @@ class TimeSeries():
             skip_step (int, optional):  see `create_data_loader`. Defaults to 1.
             normalize_per_group (boolean, optional): if true and self.group is not None, the variables are scaled respect to the groups. Default False
             check_consecutive (boolean, optional): if false it skips the check on the consecutive ranges. Default True
-
+            scaler: instance of a sklearn.preprocessing scaler. Default 'StandardScaler()'
         Returns:
             List[DataLoader,DataLoader,DataLoadtrainer]: three dataloader used for training or inference
         """
@@ -583,7 +585,7 @@ class TimeSeries():
             if self.group is None or normalize_per_group is False:
                 self.normalize_per_group = False
                 for c in self.num_var:
-                    self.scaler_num[c] =  StandardScaler()
+                    self.scaler_num[c] =  eval(scaler)
                     self.scaler_num[c].fit(train[c].values.reshape(-1,1))
                 for c in self.cat_var:                               
                     self.scaler_cat[c] =  LabelEncoder()
@@ -596,7 +598,7 @@ class TimeSeries():
                     tmp = train[train[self.group]==group]
 
                     for c in self.num_var:
-                        self.scaler_num[f'{c}_{group}'] =  StandardScaler()
+                        self.scaler_num[f'{c}_{group}'] =  eval(scaler)
                         self.scaler_num[f'{c}_{group}'].fit(tmp[c].values.reshape(-1,1))
                     for c in self.cat_var:
                         if c!=self.group:                               

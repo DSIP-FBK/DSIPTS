@@ -1,6 +1,6 @@
 dataset:
   dataset: 'weather'  
-  path: '/home/agobbi/Projects/ExpTS/data'
+  path: '/storage3/DSIP/agobbi/Projects/ExpTS/data'
 
 scheduler_config:
   gamma: 0.75
@@ -35,14 +35,14 @@ split_params:
 
 
 train_config:
-  dirpath: "/home/agobbi/Projects/ExpTS/weather" 
+  dirpath: "/storage3/DSIP/agobbi/Projects/ExpTS/weather" 
   num_workers: 0
   auto_lr_find: true
   devices: [0]                   
   seed: 42    
 
 inference:
-  output_path: "/home/agobbi/Projects/ExpTS/weather" 
+  output_path: "/storage3/DSIP/agobbi/Projects/ExpTS/weather" 
   load_last: true
   batch_size: 200 
   num_workers: 4

@@ -104,6 +104,7 @@ split_params:
   skip_step: 1
   past_steps: model_configs@past_steps          #this is a convinient what to reuse previous information, thx omegaconf
   future_steps: model_configs@future_steps
+  scaler: 'StandardScaler()'                    # or sklearn.preprocessing.StandardScaler() or other preprocessing functions
 
 train_config:
   dirpath: "/home/agobbi/Projects/ExpTS"

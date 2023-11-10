@@ -33,7 +33,7 @@ split_params:
   skip_step: 1
   past_steps: model_configs@past_steps 
   future_steps: model_configs@future_steps
-
+  scaler: 'StandardScaler()' ## or sklearn.preprocessing.StandardScaler()
 train_config:
   dirpath: null
   num_workers: 4
