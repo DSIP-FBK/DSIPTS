@@ -597,10 +597,17 @@ class SubNet1(nn.Module):
         emb_y_past = self.y_past_linear(y_past)
         
         # LIN FOR PAST
-        past_seq_input = torch.cat((emb_y_past, cat_past, num_past), dim=2) # type: ignore
+        past = [emb_y_past, cat_past]
+        if self.aux_past_channels>0:
+            past.append(num_fut)
+        past_seq_input = torch.cat(past, dim=2) # type: ignore
         past_seq = self.past_sequential(past_seq_input) # -> [B, future_step, d_model]
+
         # LIN FOR FUT
-        fut_seq_input = torch.cat((emb_y_noised, cat_fut, num_fut), dim=2) # type: ignore
+        fut = [emb_y_noised, cat_fut]
+        if self.aux_fut_channels>0:
+            fut.append(num_fut)
+        fut_seq_input = torch.cat(fut, dim=2) # type: ignore
         fut_seq = self.fut_sequential(fut_seq_input) # -> [B, future_step, d_model]
         # ATTENTION
         attention = self.attention(fut_seq, past_seq, emb_y_past)
