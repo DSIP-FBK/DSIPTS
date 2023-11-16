@@ -114,6 +114,7 @@ class DilatedConvED(Base):
                  dropout_rate:float=0.1,
                  use_bn:bool=False,
                  use_cumsum:bool=True,
+                 use_bilinear:bool=False,
                  n_classes:int=0,
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
@@ -171,6 +172,8 @@ class DilatedConvED(Base):
         self.use_cumsum = use_cumsum
         self.kind = kind
         self.out_channels = out_channels
+        self.use_bilinear= use_bilinear
+
         if n_classes==0:
             self.is_classification = False
             if len(quantiles)>0:
@@ -271,8 +274,26 @@ class DilatedConvED(Base):
                                             activation(),
                                             nn.Linear(hidden_RNN//4,1))
         
-        
-
+        if use_bilinear:
+            self.bilinear = torch.nn.Bilinear((hidden_RNN//2*2)*num_layers_RNN,(hidden_RNN//2*2)*num_layers_RNN,hidden_RNN*2)
+            self.final_linear_decoder = nn.Sequential(
+                                                activation(),
+                                                Permute() if use_bn else nn.Identity() ,
+                                                nn.BatchNorm1d(hidden_RNN*2) if use_bn else nn.Dropout(dropout_rate) ,
+                                                Permute() if use_bn else nn.Identity() ,
+                                                nn.Linear(hidden_RNN*2,hidden_RNN),
+                                                activation(),
+                                                Permute() if use_bn else nn.Identity() ,
+                                                nn.BatchNorm1d(hidden_RNN) if use_bn else nn.Dropout(dropout_rate) ,
+                                                Permute() if use_bn else nn.Identity() ,
+                                                nn.Linear(hidden_RNN,hidden_RNN//2),
+                                                activation(),
+                                                Permute() if use_bn else nn.Identity() ,
+                                                nn.BatchNorm1d(hidden_RNN//2) if use_bn else nn.Dropout(dropout_rate) ,
+                                                Permute() if use_bn else nn.Identity() ,
+                                                nn.Linear(hidden_RNN//2,hidden_RNN//4),
+                                                activation(),
+                                                nn.Linear(hidden_RNN//4,1))
         
 
 
@@ -353,10 +374,13 @@ class DilatedConvED(Base):
         past = hidden_past.permute(1,0,2).reshape(BS,-1) #BSx2NxC --> BSx2CN
         future = out_future.repeat(1,1,N)
 
-        if self.use_cumsum:
-            final = torch.cumsum(future,axis=1).permute(0,2,1)+past.unsqueeze(2).repeat(1,1,self.future_steps)
+        if self.use_bilinear:
+            final = self.bilinear(future,past.unsqueeze(2).repeat(1,1,self.future_steps).permute(0,2,1)).permute(0,2,1)
         else:
-            final = future.permute(0,2,1)+past.unsqueeze(2).repeat(1,1,self.future_steps)
+            if self.use_cumsum:
+                final = torch.cumsum(future,axis=1).permute(0,2,1)+past.unsqueeze(2).repeat(1,1,self.future_steps)
+            else:
+                final = future.permute(0,2,1)+past.unsqueeze(2).repeat(1,1,self.future_steps)
             
         res= self.final_linear_decoder(final.permute(0,2,1)).reshape(BS,self.future_steps,self.out_channels,self.mul)
             

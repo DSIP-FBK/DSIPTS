@@ -105,7 +105,6 @@ class Base(pl.LightningModule):
             optimizer = optim.Adam(self.parameters(),  **self.optim_config)
             self.initialize = True
         else:
-            ##this is strange, pytorch lighening call twice this if autotune is true
             if self.initialize is False:
                 self.optim = eval(self.optim)
             beauty_string(self.optim,'',self.verbose)
@@ -160,7 +159,6 @@ class Base(pl.LightningModule):
         self.log("train_loss", loss.item(),sync_dist=True)
         self.count_epoch+=1
         self.train_loss_epoch = loss.item()
-        #logging.info(f'Epoch: {self.count_epoch}, train loss: {loss.item():.4f}')
 
     def compute_loss(self,batch,y_hat):
         """
