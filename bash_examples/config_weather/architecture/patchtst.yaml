@@ -16,17 +16,17 @@ model_configs:
   decomposition: false
   n_layer: 6
   patch_len: 8
-  n_head: 16
+  n_head: 8
   stride: 8 #non overlapping?
   dropout_rate: 0.2
-  hidden_size: 256
+  hidden_size: 128
   optim: torch.optim.Adam
-  activation: torch.nn.GELU
+  activation: torch.nn.ReLU
   persistence_weight: 1
   loss_type: 'mse'
   remove_last: false
 
 train_config:
-  batch_size: 64
-  max_epochs: 800
+  batch_size: 32
+  max_epochs: 200
             
