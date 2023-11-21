@@ -302,7 +302,7 @@ class Diffusion(Base):
         # because in the model we use auxiliar numerical variables 
         # only if we have both them in the past and in the future
 
-        if self.aux_past_channels>0 and self.aux_fut_channels>0: # if we have more numerical variables about past
+        if self.aux_past_channels>0  # if we have more numerical variables about past
             # AUX means AUXILIARY variables
             aux_num_past = self.remove_var(num_past, idx_target, 2) # remove the target index on the second dimension
             assert self.aux_past_channels == aux_num_past.size(2),  beauty_string(f"{self.aux_past_channels} LAYERS FOR PAST VARS AND {aux_num_past.size(2)} VARS",'section',True) # to check if we are using the expected number of variables about past
@@ -313,7 +313,10 @@ class Diffusion(Base):
                 aux_emb_past = layer(aux_num_past[:,:,[i]]).unsqueeze(2)
                 aux_emb_num_past = torch.cat((aux_emb_num_past, aux_emb_past), dim=2)
             aux_emb_num_past = torch.mean(aux_emb_num_past, dim = 2)
-            
+        else:
+            aux_emb_num_past= None
+
+        if  self.aux_fut_channels>0:
             # future_variables
             aux_num_fut = batch['x_num_future'].to(self.device)
             assert self.aux_fut_channels == aux_num_fut.size(2), beauty_string(f"{self.aux_fut_channels} LAYERS FOR PAST VARS AND {aux_num_fut.size(2)} VARS",'section',True)  # to check if we are using the expected number of variables about fut
@@ -323,7 +326,7 @@ class Diffusion(Base):
                 aux_emb_num_fut = torch.cat((aux_emb_num_fut, aux_emb_fut), dim=2)
             aux_emb_num_fut = torch.mean(aux_emb_num_fut, dim = 2)
         else:
-            aux_emb_num_past, aux_emb_num_fut = None, None
+            aux_emb_num_fut = None
 
         
         # DIFFUSION INFERENCE 
