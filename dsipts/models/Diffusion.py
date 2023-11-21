@@ -601,8 +601,7 @@ class SubNet1(nn.Module):
         past = [emb_y_past, cat_past]
         if self.aux_past_channels>0:
             past.append(num_past)
-        import pdb
-        pdb.set_trace()
+   
         past_seq_input = torch.cat(past, dim=2) # type: ignore
         past_seq = self.past_sequential(past_seq_input) # -> [B, future_step, d_model]
 
