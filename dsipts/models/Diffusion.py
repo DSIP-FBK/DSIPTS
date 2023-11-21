@@ -302,7 +302,7 @@ class Diffusion(Base):
         # because in the model we use auxiliar numerical variables 
         # only if we have both them in the past and in the future
 
-        if self.aux_past_channels>0  # if we have more numerical variables about past
+        if self.aux_past_channels>0:  # if we have more numerical variables about past
             # AUX means AUXILIARY variables
             aux_num_past = self.remove_var(num_past, idx_target, 2) # remove the target index on the second dimension
             assert self.aux_past_channels == aux_num_past.size(2),  beauty_string(f"{self.aux_past_channels} LAYERS FOR PAST VARS AND {aux_num_past.size(2)} VARS",'section',True) # to check if we are using the expected number of variables about past
