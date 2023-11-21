@@ -7,17 +7,17 @@ ts:
   name: 'test'
   version: 1
   enrich: ['hour']
-  use_covariates: true
+  use_covariates: false
 
 model_configs:
-  d_model: 128
+  d_model: 64
   learn_var: True
   cosine_alpha: True
   diffusion_steps: 150
   beta: 0.03
   gamma: 0.01
   n_layers_RNN: 4
-  d_head: 128
+  d_head: 64
   n_head: 8
   dropout_rate: 0.2
   activation: 'torch.nn.GELU'
