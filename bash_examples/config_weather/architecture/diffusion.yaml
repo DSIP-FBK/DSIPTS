@@ -13,11 +13,11 @@ model_configs:
   d_model: 64
   learn_var: True
   cosine_alpha: True
-  diffusion_steps: 150
+  diffusion_steps: 50
   beta: 0.03
   gamma: 0.01
   n_layers_RNN: 4
-  d_head: 64
+  d_head: 32
   n_head: 8
   dropout_rate: 0.2
   activation: 'torch.nn.GELU'
