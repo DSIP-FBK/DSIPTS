@@ -28,5 +28,5 @@ model_configs:
   loss_type: 'l1'
 
 train_config:
-  batch_size: 32 
+  batch_size: 100 
   max_epochs: 200
