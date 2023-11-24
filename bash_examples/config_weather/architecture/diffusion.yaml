@@ -20,7 +20,7 @@ model_configs:
   d_head: 64
   n_head: 8
   dropout_rate: 0.2
-  activation: 'torch.nn.GELU'
+  activation: 'torch.nn.ELU'
   subnet: 1
   optim: torch.optim.Adam
   perc_subnet_learning_for_step: 0.1
