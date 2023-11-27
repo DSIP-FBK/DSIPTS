@@ -722,11 +722,13 @@ class SubNet3(nn.Module):
                 num_past:Union[torch.Tensor,None] = None, num_fut:Union[torch.Tensor,None] = None):
 
         # Autoregressive
+        import pdb
+        pdb.set_trace()
         emb_y_past = self.y_d_model(y_past)
         pred_y_fut = self.rnn(emb_y_past)
         #re-embedding future
         emb_pred_y_fut = self.y_d_model(pred_y_fut)
-        emb_y_noised = self.y_d_model(y_noised)
+        emb_y_noised = self.y_d_model(y_noised.float())
 
         eps_pred = self.eps_pred_grn(emb_pred_y_fut - emb_y_noised)
 
