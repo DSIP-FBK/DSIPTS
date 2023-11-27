@@ -695,7 +695,7 @@ class SubNet3(nn.Module):
         self.eps_pred_grn = sub_nn.GRN(d_model, dropout)
 
         #categorical
-        self.cat_MHA = sub_nn.InterpretableMultiHead(d_model, d_head_n_head)
+        self.cat_MHA = sub_nn.InterpretableMultiHead(d_model, d_head, n_head)
         self.cat_grn = sub_nn.GRN(d_model, dropout)
         self.cat_res_conn = sub_nn.ResidualConnection(d_model, dropout)
 
