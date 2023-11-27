@@ -749,7 +749,7 @@ class SubNet3(nn.Module):
         eps_pred = self.eps_out_linear(eps_pred)
 
         if self.learn_var:
-            emb_eps_pred = self.emb_eps_pred(eps_pred.setach())
+            emb_eps_pred = self.emb_eps_pred(eps_pred.detach())
             emb_eps_pred = self.var_att(emb_y_noised.detach(), emb_pred_y_fut.detach(), emb_eps_pred)
             emb_var_pred = self.var_grn(emb_eps_pred)
             var_pred = self.var_out(emb_var_pred)
