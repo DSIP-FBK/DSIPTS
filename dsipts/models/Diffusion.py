@@ -154,11 +154,17 @@ class Diffusion(Base):
             self.sub_nets = nn.ModuleList([
                 SubNet1(self.aux_past_channels, self.aux_fut_channels, learn_var, out_channels, d_model, d_head, n_head, activation, dropout_rate) for _ in range(diffusion_steps)
             ])
-        else:
+        elif subnet == 2:
             aux_num_available = self.aux_past_channels>0 and self.aux_fut_channels>0
             self.sub_nets = nn.ModuleList([
                 SubNet2(self.aux_past_channels, self.aux_fut_channels, learn_var, past_steps, future_steps, out_channels, d_model, activation, dropout_rate) for _ in range(diffusion_steps)
             ])
+        elif subnet ==3 :
+            aux_num_available = self.aux_past_channels>0 and self.aux_fut_channels>0
+            self.sub_nets = nn.ModuleList([
+                SubNet3(learn_var, aux_num_available, out_channels, d_model, future_steps, num_layers, d_head, n_head, dropout_rate) for _ in range(diffusion_steps)
+            ])
+
 
     def forward(self, batch:dict)-> float:
         """training process of the diffusion network
@@ -677,7 +683,7 @@ class SubNet2(nn.Module):
         return eps_out
 
 class SubNet3(nn.Module):
-    def __init__(self, learn_var, flag_aux_past_num, flag_aux_fut_num, num_var, d_model, pred_step, num_layers, d_head, n_head, dropout):
+    def __init__(self, learn_var, flag_aux_num, num_var, d_model, pred_step, num_layers, d_head, n_head, dropout):
         super().__init__()
         self.learn_var = learn_var
         
@@ -692,7 +698,7 @@ class SubNet3(nn.Module):
         self.cat_res_conn = sub_nn.ResidualConnection(d_model, dropout)
 
         #numerical
-        if flag_aux_past_num + flag_aux_fut_num >0:
+        if flag_aux_num:
             self.num_MHA = sub_nn.InterpretableMultiHead(d_model, d_head_n_head)
             self.num_grn = sub_nn.GRN(d_model, dropout)
             self.num_res_conn = sub_nn.ResidualConnection(d_model, dropout)
