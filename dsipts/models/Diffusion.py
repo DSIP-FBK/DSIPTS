@@ -164,6 +164,8 @@ class Diffusion(Base):
             self.sub_nets = nn.ModuleList([
                 SubNet3(learn_var, aux_num_available, out_channels, d_model, future_steps, num_layers, d_head, n_head, dropout_rate) for _ in range(diffusion_steps)
             ])
+        else:
+            raise ValueError("Wrong number for Subnet. Not yet implemented!.")
 
 
     def forward(self, batch:dict)-> float:
