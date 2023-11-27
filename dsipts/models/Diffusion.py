@@ -711,7 +711,7 @@ class SubNet3(nn.Module):
 
         if learn_var:
             self.emb_eps_pred = nn.Linear(num_var, d_model)
-            self.var_att = sub_nn.InterpretableMultiHead(d_model, d_head_n_head)
+            self.var_att = sub_nn.InterpretableMultiHead(d_model, d_head, n_head)
             self.var_grn = sub_nn.GRN(d_model, dropout)
             self.var_out = nn.Linear(d_model, num_var)
 
