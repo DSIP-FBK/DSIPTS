@@ -134,7 +134,7 @@ class Diffusion(Base):
         self.posterior_mean_coef1 = self.betas * np.sqrt(self.alphas_cumprod_prev) / (1.0 - self.alphas_cumprod)
         self.posterior_mean_coef2 = (1.0 - self.alphas_cumprod_prev) * np.sqrt(self.alphas) / (1.0 - self.alphas_cumprod)
         self.posterior_variance = np.append([self.s], self.betas[1:] * (1.0 - self.alphas_cumprod_prev[1:]) / (1.0 - self.alphas_cumprod[1:]))
-        self.posterior_log_variance_clipped = np.log(self.posterior_variance)
+        self.posterior_log_variance = np.log(self.posterior_variance)
 
         #* >>>>>>>>>>>>> LAYERS
         # for other numerical variables in the past
@@ -242,7 +242,7 @@ class Diffusion(Base):
             # LOADING THE SUBNET
             sub_net = self.sub_nets[t]
             # Get y and noise it
-            y_noised, true_mean, true_var, actual_noise = self.q_sample(y_to_be_pred, t)
+            y_noised, true_mean, true_log_var, actual_noise = self.q_sample(y_to_be_pred, t)
 
             # compute the output from that network using the sample with noises
             # output composed of: noise predicted and vector for variances
@@ -250,7 +250,7 @@ class Diffusion(Base):
                 eps_pred, var_aux_out = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 pre_var_t = self._extract_into_tensor(np.sqrt(self.betas), t, eps_pred.shape)
                 post_var_t = self._extract_into_tensor(np.sqrt(self.posterior_variance), t, eps_pred.shape)
-                post_sigma = torch.exp(var_aux_out*torch.log(pre_var_t) + (1-var_aux_out)*torch.log(post_var_t))
+                post_sigma = torch.exp(var_aux_out*torch.log(pre_var_t) + (1-var_aux_out)*torch.log(post_var_t)) # variance, not log_var
             else:
                 eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 post_sigma = self._extract_into_tensor(self.posterior_variance, t, eps_pred.shape)
@@ -262,11 +262,11 @@ class Diffusion(Base):
             # # otherwise return KL(q(x_{t-1}|x_t,x_0) || p(x_{t-1}|x_t))
             if t==0:
                 # post_var =  self._extract_into_tensor(self.posterior_variance, t, y_to_be_pred.shape)
-                neg_log_likelihoods = -self.gaussian_likelihood(y_to_be_pred, out_mean, post_sigma)
-                distribution_loss = torch.mean(neg_log_likelihoods)
+                neg_likelihoods = -self.gaussian_likelihood(y_to_be_pred, out_mean, post_sigma) # (values predicted, mean of values predicted, variance)
+                distribution_loss = torch.mean(neg_likelihoods)
             else:
                 # COMPUTE LOSS between TRUE eps and DRAWN eps_pred
-                kl_divergence = self.normal_kl(true_mean, true_var, out_mean, post_sigma)
+                kl_divergence = self.normal_kl(true_mean, true_log_var, out_mean, torch.log(post_sigma)) # (true mean, true log var, mean of values predicted, log var predicted)
                 distribution_loss = torch.mean(kl_divergence)
 
             # always compute the loss about the straight prediction of the noise
@@ -450,10 +450,10 @@ class Diffusion(Base):
 
         # compute meean and variance
         q_mean = self._extract_into_tensor(self.posterior_mean_coef1, t, q_sample.shape) * x_start + self._extract_into_tensor(self.posterior_mean_coef2, t, q_sample.shape) * q_sample
-        q_log_var_clipped = self._extract_into_tensor( self.posterior_log_variance_clipped, t, q_sample.shape )
+        q_log_var = self._extract_into_tensor( self.posterior_log_variance, t, q_sample.shape )
 
         # return, the sample, its posterior mean and log_variance
-        return [q_sample, q_mean, q_log_var_clipped, noise]
+        return [q_sample, q_mean, q_log_var, noise]
 
     def normal_kl(self, mean1, logvar1, mean2, logvar2):
         """
@@ -756,12 +756,3 @@ class SubNet3(nn.Module):
             return eps_pred, var_pred
         return eps_pred
             
-
-
-
-
-
-
-
-
-
