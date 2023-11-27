@@ -701,7 +701,7 @@ class SubNet3(nn.Module):
 
         #numerical
         if flag_aux_num:
-            self.num_MHA = sub_nn.InterpretableMultiHead(d_model, d_head_n_head)
+            self.num_MHA = sub_nn.InterpretableMultiHead(d_model, d_head, n_head)
             self.num_grn = sub_nn.GRN(d_model, dropout)
             self.num_res_conn = sub_nn.ResidualConnection(d_model, dropout)
         
