@@ -676,5 +676,84 @@ class SubNet2(nn.Module):
             return eps_out, var_out
         return eps_out
 
+class SubNet3(nn.Module):
+    def __init__(self, learn_var, flag_aux_past_num, flag_aux_fut_num, num_var, d_model, pred_step, num_layers, d_head, n_head, dropout):
+        super().__init__()
+        self.learn_var = learn_var
         
+        # Autoregressive with RNN (y NOT embedded as inpute)
+        self.y_d_model = nn.Linear(num_var, d_model)
+        self.rnn = sub_nn.LSTM_Model(num_var, d_model, pred_step, num_layers, dropout)
+        self.eps_pred_grn = sub_nn.GRN(d_model, dropout)
+
+        #categorical
+        self.cat_MHA = sub_nn.InterpretableMultiHead(d_model, d_head_n_head)
+        self.cat_grn = sub_nn.GRN(d_model, dropout)
+        self.cat_res_conn = sub_nn.ResidualConnection(d_model, dropout)
+
+        #numerical
+        if flag_aux_past_num + flag_aux_fut_num >0:
+            self.num_MHA = sub_nn.InterpretableMultiHead(d_model, d_head_n_head)
+            self.num_grn = sub_nn.GRN(d_model, dropout)
+            self.num_res_conn = sub_nn.ResidualConnection(d_model, dropout)
+        
+        # EPS PREDICTION
+        self.eps_final_grn = sub_nn.GRN(d_model, dropout)
+        self.eps_out_linear = nn.Linear(d_model, num_var)
+
+        if learn_var:
+            self.emb_eps_pred = nn.Linear(num_var, d_model)
+            self.var_att = sub_nn.InterpretableMultiHead(d_model, d_head_n_head)
+            self.var_grn = sub_nn.GRN(d_model, dropout)
+            self.var_out = nn.Linear(d_model, num_var)
+
+
+
+    def forward(self, y_noised:torch.Tensor, y_past:torch.Tensor, 
+                cat_past:torch.Tensor, cat_fut:torch.Tensor, 
+                num_past:Union[torch.Tensor,None] = None, num_fut:Union[torch.Tensor,None] = None):
+
+        # Autoregressive
+        emb_y_past = self.y_d_model(y_past)
+        pred_y_fut = self.rnn(emb_y_past)
+        #re-embedding future
+        emb_pred_y_fut = self.y_d_model(pred_y_fut)
+        emb_y_noised = self.y_d_model(y_noised)
+
+        eps_pred = self.eps_pred_grn(emb_pred_y_fut - emb_y_noised)
+
+        # Categorical contribute
+        cat_att = self.cat_MHA(cat_fut, cat_past, emb_y_past)
+        cat_att = self.cat_grn(cat_att)
+        eps_pres = self.cat_res_conn(cat_att, eps_pred, using_norm=False)
+
+        # Numerical contribute
+        if [num_past, num_fut] is not [None, None]:
+            if num_past is None:
+                num_past = torch.ones_like(cat_past)
+            if num_fut is None:
+                num_fut = torch.ones_like(cat_fut)
+            num_att = self.num_MHA(num_fut, cat_past, emb_y_past)
+            num_att = self.num_grn(num_att)
+            eps_pred = self.cat_res_conn(num_att, eps_pred, using_norm=False)
+
+        eps_pred = self.eps_final_grn(eps_pred)
+        eps_pred = self.eps_out_linear(eps_pred)
+
+        if self.learn_var:
+            emb_eps_pred = self.emb_eps_pred(eps_pred.setach())
+            emb_eps_pred = self.var_att(emb_y_noised.detach(), emb_pred_y_fut.detach(), emb_eps_pred)
+            emb_var_pred = self.var_grn(emb_eps_pred)
+            var_pred = self.var_out(emb_var_pred)
+            return eps_pred, var_pred
+        return eps_pred
+            
+
+
+
+
+
+
+
+
 
