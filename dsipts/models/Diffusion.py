@@ -702,7 +702,7 @@ class SubNet2(nn.Module):
         emb_y_past = self.y_past_linear(y_past).view(B, -1)
 
         # concat auroregressive variables and categorical ones that are always available
-        full_concat = torch.cat((emb_y_noised, emb_y_past, cat_past, cat_fut), dim=1)
+        full_concat = torch.cat((emb_y_noised, emb_y_past, cat_past.view(B, -1), cat_fut.view(B, -1)), dim=1)
         # concat numerical vars when available
         if num_past is not None:
             assert self.aux_past_channels>0 # check with flag in subnet init
