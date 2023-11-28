@@ -21,7 +21,7 @@ class Diffusion(Base):
                  cosine_alpha: bool,
                  diffusion_steps: int,
                  beta: float,
-                 gamma_loss:float,
+                 gamma:float,
 
                  #for subnet
                  n_layers_RNN: int,
@@ -53,7 +53,7 @@ class Diffusion(Base):
             cosine_alpha (bool): Flag for the generation of alphas and betas
             diffusion_steps (int): number of noising steps for the initial sample
             beta (float): starting variable to generate the diffusion perturbations. Ignored if cosine_alpha == True
-            gamma_loss (float): trade_off variable to balance loss over noise prediction and NegativeLikelihood/KL_Divergence.
+            gamma (float): trade_off variable to balance loss over noise prediction and NegativeLikelihood/KL_Divergence.
             n_layers_RNN (int): param for subnet
             d_head (int): param for subnet
             n_head (int): param for subnet
@@ -85,7 +85,7 @@ class Diffusion(Base):
         # Losses for distribution are defined as functions below.
         
         # trade off for noise loss and distribution loss 
-        self.gamma = gamma_loss
+        self.gamma = gamma
 
         assert len(quantiles) ==0
         self.mul = 1
