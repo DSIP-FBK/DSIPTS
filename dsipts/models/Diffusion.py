@@ -21,7 +21,7 @@ class Diffusion(Base):
                  cosine_alpha: bool,
                  diffusion_steps: int,
                  beta: float,
-                 gamma_loss:float,
+                 gamma:float,
 
                  #for subnet
                  n_layers_RNN: int,
@@ -53,7 +53,7 @@ class Diffusion(Base):
             cosine_alpha (bool): Flag for the generation of alphas and betas
             diffusion_steps (int): number of noising steps for the initial sample
             beta (float): starting variable to generate the diffusion perturbations. Ignored if cosine_alpha == True
-            gamma_loss (float): trade_off variable to balance loss over noise prediction and NegativeLikelihood/KL_Divergence.
+            gamma (float): trade_off variable to balance loss over noise prediction and NegativeLikelihood/KL_Divergence.
             n_layers_RNN (int): param for subnet
             d_head (int): param for subnet
             n_head (int): param for subnet
@@ -85,7 +85,7 @@ class Diffusion(Base):
         # Losses for distribution are defined as functions below.
         
         # trade off for noise loss and distribution loss 
-        self.gamma = gamma_loss
+        self.gamma = gamma
 
         assert len(quantiles) ==0
         self.mul = 1
@@ -178,12 +178,12 @@ class Diffusion(Base):
                 SubNet1(self.aux_past_channels, self.aux_fut_channels, learn_var, out_channels, d_model, d_head, n_head, activation, dropout_rate) for _ in range(diffusion_steps)
             ])
         elif subnet == 2:
-            aux_num_available = self.aux_past_channels>0 and self.aux_fut_channels>0
+            #* fixing # 
             self.sub_nets = nn.ModuleList([
                 SubNet2(self.aux_past_channels, self.aux_fut_channels, learn_var, past_steps, future_steps, out_channels, d_model, activation, dropout_rate) for _ in range(diffusion_steps)
             ])
         elif subnet ==3 :
-            aux_num_available = self.aux_past_channels>0 and self.aux_fut_channels>0
+            aux_num_available = self.aux_past_channels>0 or self.aux_fut_channels>0 # if we have numerical vars, use it
             self.sub_nets = nn.ModuleList([
                 SubNet3(learn_var, aux_num_available, out_channels, d_model, future_steps, n_layers_RNN, d_head, n_head, dropout_rate) for _ in range(diffusion_steps)
             ])
@@ -662,6 +662,7 @@ class SubNet2(nn.Module):
         self.aux_past_channels = aux_past_ch
         self.aux_fut_channels = aux_fut_ch
         self.learn_var = learn_var
+        # in_size changes wrt numerical vars
         in_size = ( past_steps*(2+bool(aux_past_ch)) + future_steps*(2 + bool(aux_fut_ch)) ) * d_model
         out_size = output_channel * future_steps
 
@@ -693,21 +694,26 @@ class SubNet2(nn.Module):
         )
 
     def forward(self, y_noised:torch.Tensor, y_past:torch.Tensor,
-                cat_past:Union[torch.Tensor,None] = None, cat_fut:Union[torch.Tensor,None] = None, 
+                cat_past:torch.Tensor, cat_fut:torch.Tensor, 
                 num_past:Union[torch.Tensor,None] = None, num_fut:Union[torch.Tensor,None] = None):
         
         B, fut_step, n_var = y_noised.shape
         emb_y_noised = self.y_noised_linear(y_noised.float()).view(B, -1)
         emb_y_past = self.y_past_linear(y_past).view(B, -1)
 
-        full_concat = torch.cat((emb_y_noised, emb_y_past), dim=1)
-        for ten in [cat_past, num_past, cat_fut, num_fut]:
-            if ten is not None:
-                full_concat = torch.cat((full_concat, ten.view(B, -1)), dim = 1)
+        # concat auroregressive variables and categorical ones that are always available
+        full_concat = torch.cat((emb_y_noised, emb_y_past, cat_past, cat_fut), dim=1)
+        # concat numerical vars when available
+        if num_past is not None:
+            assert self.aux_past_channels>0 # check with flag in subnet init
+            full_concat = torch.cat((full_concat, num_past.view(B, -1)), dim = 1)
+        if num_fut is not None:
+            assert self.aux_fut_channels>0 # check with flag in subnet init
+            full_concat = torch.cat((full_concat, num_fut.view(B, -1)), dim = 1)
 
         eps_out = self.eps_out_sequential(full_concat).view(B, fut_step, n_var)
         if self.learn_var:
-            var_out = self.var_out_sequential(full_concat).view(B, fut_step, n_var)
+            var_out = self.var_out_sequential(full_concat.detach()).view(B, fut_step, n_var)
             return eps_out, var_out
         return eps_out
 
