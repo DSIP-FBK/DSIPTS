@@ -16,6 +16,7 @@ class Diffusion(Base):
                  past_channels: int,
                  future_channels: int,
                  embs: list[int],
+
                  learn_var:bool, 
                  cosine_alpha: bool,
                  diffusion_steps: int,
@@ -29,6 +30,7 @@ class Diffusion(Base):
                  activation: str,
                  subnet:int,
                  perc_subnet_learning_for_step:float,
+
                  persistence_weight:float=0.0,
                  loss_type: str='l1',
                  quantiles:List[float]=[],
@@ -132,7 +134,7 @@ class Diffusion(Base):
         self.posterior_mean_coef1 = self.betas * np.sqrt(self.alphas_cumprod_prev) / (1.0 - self.alphas_cumprod)
         self.posterior_mean_coef2 = (1.0 - self.alphas_cumprod_prev) * np.sqrt(self.alphas) / (1.0 - self.alphas_cumprod)
         self.posterior_variance = np.append([self.s], self.betas[1:] * (1.0 - self.alphas_cumprod_prev[1:]) / (1.0 - self.alphas_cumprod[1:]))
-        self.posterior_log_variance_clipped = np.log(self.posterior_variance)
+        self.posterior_log_variance = np.log(self.posterior_variance)
 
         #* >>>>>>>>>>>>> LAYERS
         # for other numerical variables in the past
@@ -152,11 +154,19 @@ class Diffusion(Base):
             self.sub_nets = nn.ModuleList([
                 SubNet1(self.aux_past_channels, self.aux_fut_channels, learn_var, out_channels, d_model, d_head, n_head, activation, dropout_rate) for _ in range(diffusion_steps)
             ])
-        else:
+        elif subnet == 2:
             aux_num_available = self.aux_past_channels>0 and self.aux_fut_channels>0
             self.sub_nets = nn.ModuleList([
                 SubNet2(self.aux_past_channels, self.aux_fut_channels, learn_var, past_steps, future_steps, out_channels, d_model, activation, dropout_rate) for _ in range(diffusion_steps)
             ])
+        elif subnet ==3 :
+            aux_num_available = self.aux_past_channels>0 and self.aux_fut_channels>0
+            self.sub_nets = nn.ModuleList([
+                SubNet3(learn_var, aux_num_available, out_channels, d_model, future_steps, n_layers_RNN, d_head, n_head, dropout_rate) for _ in range(diffusion_steps)
+            ])
+        else:
+            raise ValueError("Wrong number for Subnet. Not yet implemented!.")
+
 
     def forward(self, batch:dict)-> float:
         """training process of the diffusion network
@@ -232,7 +242,7 @@ class Diffusion(Base):
             # LOADING THE SUBNET
             sub_net = self.sub_nets[t]
             # Get y and noise it
-            y_noised, true_mean, true_var, actual_noise = self.q_sample(y_to_be_pred, t)
+            y_noised, true_mean, true_log_var, actual_noise = self.q_sample(y_to_be_pred, t)
 
             # compute the output from that network using the sample with noises
             # output composed of: noise predicted and vector for variances
@@ -240,7 +250,7 @@ class Diffusion(Base):
                 eps_pred, var_aux_out = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 pre_var_t = self._extract_into_tensor(np.sqrt(self.betas), t, eps_pred.shape)
                 post_var_t = self._extract_into_tensor(np.sqrt(self.posterior_variance), t, eps_pred.shape)
-                post_sigma = torch.exp(var_aux_out*torch.log(pre_var_t) + (1-var_aux_out)*torch.log(post_var_t))
+                post_sigma = torch.exp(var_aux_out*torch.log(pre_var_t) + (1-var_aux_out)*torch.log(post_var_t)) # variance, not log_var
             else:
                 eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 post_sigma = self._extract_into_tensor(self.posterior_variance, t, eps_pred.shape)
@@ -252,11 +262,11 @@ class Diffusion(Base):
             # # otherwise return KL(q(x_{t-1}|x_t,x_0) || p(x_{t-1}|x_t))
             if t==0:
                 # post_var =  self._extract_into_tensor(self.posterior_variance, t, y_to_be_pred.shape)
-                neg_log_likelihoods = -self.gaussian_likelihood(y_to_be_pred, out_mean, post_sigma)
-                distribution_loss = torch.mean(neg_log_likelihoods)
+                neg_likelihoods = -self.gaussian_likelihood(y_to_be_pred, out_mean, post_sigma) # (values predicted, mean of values predicted, variance)
+                distribution_loss = torch.mean(neg_likelihoods)
             else:
                 # COMPUTE LOSS between TRUE eps and DRAWN eps_pred
-                kl_divergence = self.normal_kl(true_mean, true_var, out_mean, post_sigma)
+                kl_divergence = self.normal_kl(true_mean, true_log_var, out_mean, torch.log(post_sigma)) # (true mean, true log var, mean of values predicted, log var predicted)
                 distribution_loss = torch.mean(kl_divergence)
 
             # always compute the loss about the straight prediction of the noise
@@ -302,7 +312,7 @@ class Diffusion(Base):
         # because in the model we use auxiliar numerical variables 
         # only if we have both them in the past and in the future
 
-        if self.aux_past_channels>0:  # if we have more numerical variables about past
+        if self.aux_past_channels>0: # if we have more numerical variables about past
             # AUX means AUXILIARY variables
             aux_num_past = self.remove_var(num_past, idx_target, 2) # remove the target index on the second dimension
             assert self.aux_past_channels == aux_num_past.size(2),  beauty_string(f"{self.aux_past_channels} LAYERS FOR PAST VARS AND {aux_num_past.size(2)} VARS",'section',True) # to check if we are using the expected number of variables about past
@@ -314,9 +324,8 @@ class Diffusion(Base):
                 aux_emb_num_past = torch.cat((aux_emb_num_past, aux_emb_past), dim=2)
             aux_emb_num_past = torch.mean(aux_emb_num_past, dim = 2)
         else:
-            aux_emb_num_past= None
-
-        if  self.aux_fut_channels>0:
+            aux_emb_num_past = None
+        if self.aux_fut_channels>0: 
             # future_variables
             aux_num_fut = batch['x_num_future'].to(self.device)
             assert self.aux_fut_channels == aux_num_fut.size(2), beauty_string(f"{self.aux_fut_channels} LAYERS FOR PAST VARS AND {aux_num_fut.size(2)} VARS",'section',True)  # to check if we are using the expected number of variables about fut
@@ -326,7 +335,7 @@ class Diffusion(Base):
                 aux_emb_num_fut = torch.cat((aux_emb_num_fut, aux_emb_fut), dim=2)
             aux_emb_num_fut = torch.mean(aux_emb_num_fut, dim = 2)
         else:
-            aux_emb_num_fut = None
+             aux_emb_num_fut = None
 
         
         # DIFFUSION INFERENCE 
@@ -443,10 +452,10 @@ class Diffusion(Base):
 
         # compute meean and variance
         q_mean = self._extract_into_tensor(self.posterior_mean_coef1, t, q_sample.shape) * x_start + self._extract_into_tensor(self.posterior_mean_coef2, t, q_sample.shape) * q_sample
-        q_log_var_clipped = self._extract_into_tensor( self.posterior_log_variance_clipped, t, q_sample.shape )
+        q_log_var = self._extract_into_tensor( self.posterior_log_variance, t, q_sample.shape )
 
         # return, the sample, its posterior mean and log_variance
-        return [q_sample, q_mean, q_log_var_clipped, noise]
+        return [q_sample, q_mean, q_log_var, noise]
 
     def normal_kl(self, mean1, logvar1, mean2, logvar2):
         """
@@ -601,7 +610,6 @@ class SubNet1(nn.Module):
         past = [emb_y_past, cat_past]
         if self.aux_past_channels>0:
             past.append(num_past)
-   
         past_seq_input = torch.cat(past, dim=2) # type: ignore
         past_seq = self.past_sequential(past_seq_input) # -> [B, future_step, d_model]
 
@@ -643,7 +651,9 @@ class SubNet2(nn.Module):
             nn.Dropout(dropout_rate),
             nn.Linear(hidden_size, d_model),
             activation_fun(),
-            nn.Linear(d_model, hidden_size),
+            nn.Dropout(dropout_rate),
+            nn.Linear(hidden_size, d_model),
+            activation_fun(),
             nn.Dropout(dropout_rate),
             nn.Linear(hidden_size, out_size)
         )
@@ -653,7 +663,6 @@ class SubNet2(nn.Module):
             nn.Dropout(dropout_rate),
             nn.Linear(hidden_size, d_model),
             activation_fun(),
-            nn.Linear(d_model, hidden_size),
             nn.Dropout(dropout_rate),
             nn.Linear(hidden_size, out_size)
         )
@@ -677,4 +686,75 @@ class SubNet2(nn.Module):
             return eps_out, var_out
         return eps_out
 
+class SubNet3(nn.Module):
+    def __init__(self, learn_var, flag_aux_num, num_var, d_model, pred_step, num_layers, d_head, n_head, dropout):
+        super().__init__()
+        self.learn_var = learn_var
         
+        # Autoregressive with RNN (y NOT embedded as inpute)
+        self.y_d_model = nn.Linear(num_var, d_model)
+        self.rnn = sub_nn.LSTM_Model(num_var, d_model, pred_step, num_layers, dropout)
+        self.eps_pred_grn = sub_nn.GRN(d_model, dropout)
+
+        #categorical
+        self.cat_MHA = sub_nn.InterpretableMultiHead(d_model, d_head, n_head)
+        self.cat_grn = sub_nn.GRN(d_model, dropout)
+        self.cat_res_conn = sub_nn.ResidualConnection(d_model, dropout)
+
+        #numerical
+        if flag_aux_num:
+            self.num_MHA = sub_nn.InterpretableMultiHead(d_model, d_head, n_head)
+            self.num_grn = sub_nn.GRN(d_model, dropout)
+            self.num_res_conn = sub_nn.ResidualConnection(d_model, dropout)
+        
+        # EPS PREDICTION
+        self.eps_final_grn = sub_nn.GRN(d_model, dropout)
+        self.eps_out_linear = nn.Linear(d_model, num_var)
+
+        if learn_var:
+            self.emb_eps_pred = nn.Linear(num_var, d_model)
+            self.var_att = sub_nn.InterpretableMultiHead(d_model, d_head, n_head)
+            self.var_grn = sub_nn.GRN(d_model, dropout)
+            self.var_out = nn.Linear(d_model, num_var)
+
+
+
+    def forward(self, y_noised:torch.Tensor, y_past:torch.Tensor, 
+                cat_past:torch.Tensor, cat_fut:torch.Tensor, 
+                num_past:Union[torch.Tensor,None] = None, num_fut:Union[torch.Tensor,None] = None):
+
+        # Autoregressive
+        emb_y_past = self.y_d_model(y_past)
+        pred_y_fut = self.rnn(emb_y_past)
+        #re-embedding future
+        emb_pred_y_fut = self.y_d_model(pred_y_fut)
+        emb_y_noised = self.y_d_model(y_noised.float())
+
+        eps_pred = self.eps_pred_grn(emb_pred_y_fut - emb_y_noised)
+
+        # Categorical contribute
+        cat_att = self.cat_MHA(cat_fut, cat_past, emb_y_past)
+        cat_att = self.cat_grn(cat_att)
+        eps_pres = self.cat_res_conn(cat_att, eps_pred, using_norm=False)
+
+        # Numerical contribute
+        if [num_past, num_fut] is not [None, None]:
+            if num_past is None:
+                num_past = torch.ones_like(cat_past)
+            if num_fut is None:
+                num_fut = torch.ones_like(cat_fut)
+            num_att = self.num_MHA(num_fut, cat_past, emb_y_past)
+            num_att = self.num_grn(num_att)
+            eps_pred = self.cat_res_conn(num_att, eps_pred, using_norm=False)
+
+        eps_pred = self.eps_final_grn(eps_pred)
+        eps_pred = self.eps_out_linear(eps_pred)
+
+        if self.learn_var:
+            emb_eps_pred = self.emb_eps_pred(eps_pred.detach())
+            emb_eps_pred = self.var_att(emb_y_noised.detach(), emb_pred_y_fut.detach(), emb_eps_pred)
+            emb_var_pred = self.var_grn(emb_eps_pred)
+            var_pred = self.var_out(emb_var_pred)
+            return eps_pred, var_pred
+        return eps_pred
+            

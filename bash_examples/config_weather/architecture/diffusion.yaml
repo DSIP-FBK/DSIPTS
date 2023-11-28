@@ -11,7 +11,7 @@ ts:
 
 model_configs:
   d_model: 64
-  learn_var: False
+  learn_var: True
   cosine_alpha: True
   diffusion_steps: 100
   beta: 0.03
@@ -19,8 +19,8 @@ model_configs:
   n_layers_RNN: 4
   d_head: 64
   n_head: 8
-  dropout_rate: 0.2
-  activation: 'torch.nn.ELU'
+  dropout_rate: 0.0
+  activation: 'torch.nn.GELU'
   subnet: 1
   optim: torch.optim.Adam
   perc_subnet_learning_for_step: 0.1
