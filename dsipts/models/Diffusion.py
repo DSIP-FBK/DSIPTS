@@ -636,7 +636,7 @@ class SubNet2(nn.Module):
         self.aux_past_channels = aux_past_ch
         self.aux_fut_channels = aux_fut_ch
         self.learn_var = learn_var
-        in_size = ( past_steps*(2+aux_past_ch) + future_steps*(2 + aux_fut_ch))  * d_model ##Ask AM if correct removing bool
+        in_size = ( past_steps*(2+bool(aux_past_ch)) + future_steps*(2 + bool(aux_fut_ch)))  * d_model ##Ask AM if correct removing
         out_size = output_channel * future_steps
 
         activation_fun = eval(activation)
@@ -651,7 +651,7 @@ class SubNet2(nn.Module):
             nn.Linear(hidden_size, d_model),
             activation_fun(),
             nn.Dropout(dropout_rate),
-            nn.Linear(hidden_size, d_model),
+            nn.Linear(d_model, hidden_size),
             activation_fun(),
             nn.Dropout(dropout_rate),
             nn.Linear(hidden_size, out_size)
@@ -660,7 +660,7 @@ class SubNet2(nn.Module):
         self.var_out_sequential = nn.Sequential(
             nn.Linear(in_size, hidden_size),
             nn.Dropout(dropout_rate),
-            nn.Linear(hidden_size, d_model),
+            nn.Linear(hidden_size, hidden_size),
             activation_fun(),
             nn.Dropout(dropout_rate),
             nn.Linear(hidden_size, out_size)
@@ -674,14 +674,14 @@ class SubNet2(nn.Module):
         emb_y_noised = self.y_noised_linear(y_noised.float()).view(B, -1)
         emb_y_past = self.y_past_linear(y_past).view(B, -1)
 
-        full_concat = torch.cat((emb_y_noised, emb_y_past), dim=1)
-        for ten in [cat_past, num_past, cat_fut, num_fut]:
+        full_concat = torch.cat((emb_y_noised, emb_y_past,cat_past.view(B, -1),cat_fut.view(B, -1)), dim=1)
+        for ten in [num_past,num_fut]:
             if ten is not None:
                 full_concat = torch.cat((full_concat, ten.view(B, -1)), dim = 1)
 
         eps_out = self.eps_out_sequential(full_concat).view(B, fut_step, n_var)
         if self.learn_var:
-            var_out = self.var_out_sequential(full_concat).view(B, fut_step, n_var)
+            var_out = self.var_out_sequential(full_concat.detach()).view(B, fut_step, n_var)
             return eps_out, var_out
         return eps_out
 
