@@ -178,7 +178,6 @@ class Diffusion(Base):
                 SubNet1(self.aux_past_channels, self.aux_fut_channels, learn_var, out_channels, d_model, d_head, n_head, activation, dropout_rate) for _ in range(diffusion_steps)
             ])
         elif subnet == 2:
-            #* fixing # 
             self.sub_nets = nn.ModuleList([
                 SubNet2(self.aux_past_channels, self.aux_fut_channels, learn_var, past_steps, future_steps, out_channels, d_model, activation, dropout_rate) for _ in range(diffusion_steps)
             ])
@@ -748,8 +747,6 @@ class SubNet3(nn.Module):
             self.var_grn = sub_nn.GRN(d_model, dropout)
             self.var_out = nn.Linear(d_model, num_var)
 
-
-
     def forward(self, y_noised:torch.Tensor, y_past:torch.Tensor, 
                 cat_past:torch.Tensor, cat_fut:torch.Tensor, 
                 num_past:Union[torch.Tensor,None] = None, num_fut:Union[torch.Tensor,None] = None):
@@ -766,7 +763,7 @@ class SubNet3(nn.Module):
         # Categorical contribute
         cat_att = self.cat_MHA(cat_fut, cat_past, emb_y_past)
         cat_att = self.cat_grn(cat_att)
-        eps_pres = self.cat_res_conn(cat_att, eps_pred, using_norm=False)
+        eps_pred = self.cat_res_conn(cat_att, eps_pred, using_norm=False)
 
         # Numerical contribute
         if [num_past, num_fut] is not [None, None]:
