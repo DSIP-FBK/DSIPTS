@@ -155,12 +155,11 @@ class Diffusion(Base):
                 SubNet1(self.aux_past_channels, self.aux_fut_channels, learn_var, out_channels, d_model, d_head, n_head, activation, dropout_rate) for _ in range(diffusion_steps)
             ])
         elif subnet == 2:
-            aux_num_available = self.aux_past_channels>0 and self.aux_fut_channels>0
             self.sub_nets = nn.ModuleList([
                 SubNet2(self.aux_past_channels, self.aux_fut_channels, learn_var, past_steps, future_steps, out_channels, d_model, activation, dropout_rate) for _ in range(diffusion_steps)
             ])
         elif subnet ==3 :
-            aux_num_available = self.aux_past_channels>0 and self.aux_fut_channels>0
+            aux_num_available = self.aux_past_channels>0 or self.aux_fut_channels>0  ## check with AM and -->or
             self.sub_nets = nn.ModuleList([
                 SubNet3(learn_var, aux_num_available, out_channels, d_model, future_steps, n_layers_RNN, d_head, n_head, dropout_rate) for _ in range(diffusion_steps)
             ])
@@ -637,7 +636,7 @@ class SubNet2(nn.Module):
         self.aux_past_channels = aux_past_ch
         self.aux_fut_channels = aux_fut_ch
         self.learn_var = learn_var
-        in_size = ( past_steps*(2+bool(aux_past_ch)) + future_steps*(2 + bool(aux_fut_ch)) ) * d_model
+        in_size = ( past_steps*(2+aux_past_ch) + future_steps*(2 + aux_fut_ch))  * d_model ##Ask AM if correct removing bool
         out_size = output_channel * future_steps
 
         activation_fun = eval(activation)
@@ -735,7 +734,7 @@ class SubNet3(nn.Module):
         # Categorical contribute
         cat_att = self.cat_MHA(cat_fut, cat_past, emb_y_past)
         cat_att = self.cat_grn(cat_att)
-        eps_pres = self.cat_res_conn(cat_att, eps_pred, using_norm=False)
+        eps_pred = self.cat_res_conn(cat_att, eps_pred, using_norm=False)  ##check with AM
 
         # Numerical contribute
         if [num_past, num_fut] is not [None, None]:
