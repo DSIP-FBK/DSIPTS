@@ -160,8 +160,7 @@ class Diffusion(Base):
             ])
         elif subnet ==3 :
             aux_num_available = self.aux_past_channels>0 or self.aux_fut_channels>0  ## check with AM and -->or
-            import pdb
-            pdb.set_trace()
+
             self.sub_nets = nn.ModuleList([
                 SubNet3(learn_var, aux_num_available, out_channels, d_model, future_steps, n_layers_RNN, d_head, n_head, dropout_rate) for _ in range(diffusion_steps)
             ])
@@ -739,6 +738,8 @@ class SubNet3(nn.Module):
         eps_pred = self.cat_res_conn(cat_att, eps_pred, using_norm=False)  ##check with AM
 
         # Numerical contribute
+        import pdb
+        pdb.set_trace()
         if [num_past, num_fut] is not [None, None]:
             if num_past is None:
                 num_past = torch.ones_like(cat_past)
