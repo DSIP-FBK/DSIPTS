@@ -160,6 +160,8 @@ class Diffusion(Base):
             ])
         elif subnet ==3 :
             aux_num_available = self.aux_past_channels>0 or self.aux_fut_channels>0  ## check with AM and -->or
+            import pdb
+            pdb.set_trace()
             self.sub_nets = nn.ModuleList([
                 SubNet3(learn_var, aux_num_available, out_channels, d_model, future_steps, n_layers_RNN, d_head, n_head, dropout_rate) for _ in range(diffusion_steps)
             ])
