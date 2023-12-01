@@ -690,6 +690,7 @@ class SubNet3(nn.Module):
     def __init__(self, learn_var, flag_aux_num, num_var, d_model, pred_step, num_layers, d_head, n_head, dropout):
         super().__init__()
         self.learn_var = learn_var
+        self.flag_aux_num = flag_aux_num
         
         # Autoregressive with RNN (y NOT embedded as inpute)
         self.y_d_model = nn.Linear(num_var, d_model)
@@ -706,7 +707,7 @@ class SubNet3(nn.Module):
             self.num_MHA = sub_nn.InterpretableMultiHead(d_model, d_head, n_head)
             self.num_grn = sub_nn.GRN(d_model, dropout)
             self.num_res_conn = sub_nn.ResidualConnection(d_model, dropout)
-        
+
         # EPS PREDICTION
         self.eps_final_grn = sub_nn.GRN(d_model, dropout)
         self.eps_out_linear = nn.Linear(d_model, num_var)
@@ -738,9 +739,7 @@ class SubNet3(nn.Module):
         eps_pred = self.cat_res_conn(cat_att, eps_pred, using_norm=False)  ##check with AM
 
         # Numerical contribute
-        import pdb
-        pdb.set_trace()
-        if [num_past, num_fut] is not [None, None]:
+        if self.flag_aux_num:
             if num_past is None:
                 num_past = torch.ones_like(cat_past)
             if num_fut is None:
