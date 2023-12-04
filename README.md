@@ -288,9 +288,8 @@ It is possible to use one of the following architectures:
 
 ## Metrics
 In some cases the persistence model is hard to beat and even the more complex model can fall in the persistence trap that propagates the last seen values. 
-For this reason a set of metrics can be used trying to avoid the model to get stuck in the trap. For instance:
-
-TODO WRITE
+For this reason a set of metrics can be used trying to avoid the model to get stuck in the trap. In particular we implemented: MSE, L1, sinkhorn divergence, dilated
+loss, quantile loss, MDA and a couple of experimental losses for minimizing the variance or penalizing the persistency. See the base model definition in `dsipts/models/base.py` for more details.
 
 
 
