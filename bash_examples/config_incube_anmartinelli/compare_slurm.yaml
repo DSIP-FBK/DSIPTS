@@ -3,7 +3,7 @@ models: 'config_incube_anmartinelli'
 dirpath: "/storage/DSIP/edison/TsExp/data/incube"
 set: 'test'
 name: 'prova'
-rescaling: true
+rescaling: False
 batch_size: 128
 
 defaults:

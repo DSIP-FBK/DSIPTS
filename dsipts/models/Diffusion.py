@@ -272,7 +272,7 @@ class Diffusion(Base):
                 eps_pred, var_aux_out = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 pre_var_t = self._extract_into_tensor(np.sqrt(self.betas), t, eps_pred.shape)
                 post_var_t = self._extract_into_tensor(np.sqrt(self.posterior_variance), t, eps_pred.shape)
-                post_sigma = torch.exp(var_aux_out*torch.log(pre_var_t) + (1-var_aux_out)*torch.log(post_var_t)) # variance, not log_var
+                post_sigma = torch.exp( var_aux_out*torch.log(pre_var_t) + (1-var_aux_out)*torch.log(post_var_t) ) # variance, not log_var
             else:
                 eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 post_sigma = self._extract_into_tensor(self.posterior_variance, t, eps_pred.shape)
@@ -285,6 +285,7 @@ class Diffusion(Base):
                 # post_var =  self._extract_into_tensor(self.posterior_variance, t, y_to_be_pred.shape)
                 neg_likelihoods = -self.gaussian_likelihood(y_to_be_pred, out_mean, post_sigma) # (values predicted, mean of values predicted, variance)
                 distribution_loss = torch.mean(neg_likelihoods)
+
             # # otherwise return KL( q(x_{t-1}|x_t, x_0) || p(x_{t-1}|x_t) )
             else:
                 # COMPUTE LOSS between TRUE eps and DRAWN eps_pred
@@ -483,29 +484,20 @@ class Diffusion(Base):
 
     def normal_kl(self, mean1, logvar1, mean2, logvar2):
         """
-        Compute the KL divergence between two gaussians.
+        Compute the KL divergence between two gaussians. Also called relative entropy.
+        KL divergence of P from Q is the expected excess surprise from using Q as a model when the actual distribution is P.
+        KL(P||Q) = P*log(P/Q) or -P*log(Q/P)
+
+        # In the context of machine learning, KL(P||Q) is often called the 'information gain' 
+        # achieved if P would be used instead of Q which is currently used.
 
         Shapes are automatically broadcasted, so batches can be compared to
         scalars, among other use cases.
         """
-        tensor = None
-        for obj in (mean1, logvar1, mean2, logvar2):
-            if isinstance(obj, torch.Tensor):
-                tensor = obj
-                break
-        assert tensor is not None, "at least one argument must be a Tensor"
-
-        # Force variances to be Tensors. Broadcasting helps convert scalars to
-        # Tensors, but it does not work for th.exp().
-        logvar1, logvar2 = [
-            x if isinstance(x, torch.Tensor) else torch.tensor(x).to(tensor)
-            for x in (logvar1, logvar2)
-        ]
-
+        # -1/2 + log(sigma2/sigma1) + sigma1^2/2sigma2^2 + (mu1-mu2)^2/2sigma2^2
         return 0.5 * (
             -1.0
-            + logvar2
-            - logvar1
+            + logvar2 - logvar1
             + torch.exp(logvar1 - logvar2)
             + ((mean1 - mean2) ** 2) * torch.exp(-logvar2)
         )
@@ -720,6 +712,7 @@ class SubNet3(nn.Module):
     def __init__(self, learn_var, flag_aux_num, num_var, d_model, pred_step, num_layers, d_head, n_head, dropout):
         super().__init__()
         self.learn_var = learn_var
+        self.flag_aux_num = flag_aux_num
         
         # Autoregressive with RNN (y NOT embedded as inpute)
         self.y_d_model = nn.Linear(num_var, d_model)
@@ -766,7 +759,7 @@ class SubNet3(nn.Module):
         eps_pred = self.cat_res_conn(cat_att, eps_pred, using_norm=False)
 
         # Numerical contribute
-        if [num_past, num_fut] is not [None, None]:
+        if self.flag_aux_num:
             if num_past is None:
                 num_past = torch.ones_like(cat_past)
             if num_fut is None:
