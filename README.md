@@ -282,7 +282,7 @@ It is possible to use one of the following architectures:
 - **VVA** like VQVAE but the tokenization step is performed using a clustering standard procedure.
 - **DilatedConv** dilated convolutional RNN: the transfer of knowledge between past and future is performed reusing the final hidden status of the RNN of the encoder as initial hidden status of the decoder.
 - **DilatedConvED** dilated convolutional RNN with an encoder/decoder structure.
-- **Diffusion** custom [diffusion process] (https://arxiv.org/abs/2102.09672) using the attention mechanism in the subnets.
+- **Diffusion** custom [diffusion process](https://arxiv.org/abs/2102.09672) using the attention mechanism in the subnets.
 
 
 

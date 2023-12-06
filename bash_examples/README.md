@@ -445,7 +445,7 @@ df.groupby('trial_id').apply(unroll).reset_index()
 
 
 ## Results
-[Here](notebooks/4- results .ipynb) you can find some plots comparing different models.
+[Here](../notebooks/4- results .ipynb) you can find some plots comparing different models.
 
 ## Tips
 - The folder `weights` can become very big. Try to remove all useless experiments.
