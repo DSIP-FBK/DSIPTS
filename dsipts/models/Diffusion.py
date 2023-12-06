@@ -383,9 +383,9 @@ class Diffusion(Base):
                 
             # Sample x_{t-1} from the model at the given timestep.
             y_noised = self._extract_into_tensor(1/np.sqrt(self.alphas), t, y_noised.shape)*y_noised - self._extract_into_tensor(self.betas/(np.sqrt(self.alphas*self.betas)), t, eps_pred.shape)*eps_pred
-            if t>0 :
-                noise = torch.rand_like(y_noised).to(self.device)
-                y_noised = y_noised + torch.sqrt(post_sigma)*noise
+            # if t>0 :
+            #     noise = torch.rand_like(y_noised).to(self.device)
+            #     y_noised = y_noised + torch.sqrt(post_sigma)*noise
         
         out = y_noised.view(-1, self.future_steps, self.output_channels, 1)
         return out
