@@ -10,16 +10,16 @@ ts:
   use_covariates: false
 
 model_configs:
-  d_model: 128
+  d_model: 32
   learn_var: True
   cosine_alpha: True
-  diffusion_steps: 60
+  diffusion_steps: 35
   beta: 0.03
-  gamma: 0.005
-  n_layers_RNN: 4
-  d_head: 64
+  gamma: 0.5
+  n_layers_RNN: 6
+  d_head: 16
   n_head: 5
-  dropout_rate: 0.0
+  dropout_rate: 0.5
   activation: 'torch.nn.GELU'
   subnet: 3
   perc_subnet_learning_for_step: 0.15
