@@ -388,8 +388,8 @@ class Diffusion(Base):
                 eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 post_sigma = self._extract_into_tensor(self.posterior_variance, t, eps_pred.shape)
 
-            import pdb
-            pdb.set_trace()
+            # import pdb
+            # pdb.set_trace()
                 
             # Sample x_{t-1} from the model at the given timestep.
             # y_noised = self._extract_into_tensor(1/np.sqrt(self.alphas), t, y_noised.shape)*( y_noised - self._extract_into_tensor(np.sqrt(self.betas), t, eps_pred.shape)*eps_pred )
