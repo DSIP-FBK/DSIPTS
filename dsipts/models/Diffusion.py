@@ -297,8 +297,8 @@ class Diffusion(Base):
 
             if tot_loss == -1:
                 beauty_string(f'NOISE LOSS: {noise_loss.item()}','info',True)
-                beauty_string(f'ACTUAL NOISE: {actual_noise}','info',True)
-                beauty_string(f'PREDICTED NOISE: {eps_pred}','info',True)
+                beauty_string(f'ACTUAL NOISE: {actual_noise[0].min()}, {actual_noise[0].max()}','info',True)
+                beauty_string(f'PREDICTED NOISE: {eps_pred[0].min()}, {eps_pred[0].max()}','info',True)
 
             noise_loss += self.gamma*distribution_loss # add, scaled according to gamma, the distribution_loss
 
