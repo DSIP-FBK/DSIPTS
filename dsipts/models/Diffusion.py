@@ -295,10 +295,10 @@ class Diffusion(Base):
             # always compute the loss about the straight prediction of the noise
             noise_loss = self.loss(eps_pred, actual_noise)
 
-            if tot_loss == -1:
-                beauty_string(f'NOISE LOSS: {noise_loss.item()}','info',True)
-                beauty_string(f'ACTUAL NOISE: {actual_noise[0].min()}, {actual_noise[0].max()}, {actual_noise[0].mean()}, {actual_noise[0].var()}','info',True)
-                beauty_string(f'PREDICTED NOISE: {eps_pred[0].min()}, {eps_pred[0].max()}, {eps_pred[0].mean()}, {eps_pred[0].var()}','info',True)
+            # if tot_loss == -1:
+            #     beauty_string(f'NOISE LOSS: {noise_loss.item()}','info',True)
+            #     beauty_string(f'ACTUAL NOISE: {actual_noise[0].min()}, {actual_noise[0].max()}, {actual_noise[0].mean()}, {actual_noise[0].var()}','info',True)
+            #     beauty_string(f'PREDICTED NOISE: {eps_pred[0].min()}, {eps_pred[0].max()}, {eps_pred[0].mean()}, {eps_pred[0].var()}','info',True)
 
             noise_loss += self.gamma*distribution_loss # add, scaled according to gamma, the distribution_loss
 
@@ -387,9 +387,13 @@ class Diffusion(Base):
             else:
                 eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 post_sigma = self._extract_into_tensor(self.posterior_variance, t, eps_pred.shape)
+
+            import pdb
+            pdb.set_trace()
                 
             # Sample x_{t-1} from the model at the given timestep.
             y_noised = self._extract_into_tensor(1/np.sqrt(self.alphas), t, y_noised.shape)*( y_noised - self._extract_into_tensor(np.sqrt(self.betas), t, eps_pred.shape)*eps_pred )
+
             if t>0 :
                 noise = torch.rand_like(y_noised).to(self.device)
                 y_noised = y_noised + torch.sqrt(post_sigma)*noise
