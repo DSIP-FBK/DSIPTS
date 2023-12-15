@@ -7,7 +7,7 @@ scheduler_config:
   step_size: 50
 
 optim_config:
-  lr: 0.005
+  lr: 0.0005
   weight_decay: 0.0
 
 model_configs:
