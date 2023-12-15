@@ -768,13 +768,13 @@ class SubNet3(nn.Module):
             num_att = self.num_grn(num_att)
             eps_pred = self.cat_res_conn(num_att, eps_pred, using_norm=False)
 
-        eps_pred = self.eps_final_grn(eps_pred)
+        eps_pred = self.eps_final_grn(eps_pred, False)
         eps_pred = self.eps_out_linear(eps_pred)
 
         if self.learn_var:
             emb_eps_pred = self.emb_eps_pred(eps_pred.detach())
             emb_eps_pred = self.var_att(emb_y_noised.detach(), emb_pred_y_fut.detach(), emb_eps_pred)
-            emb_var_pred = self.var_grn(emb_eps_pred)
+            emb_var_pred = self.var_grn(emb_eps_pred, False)
             var_pred = self.var_out(emb_var_pred)
             return eps_pred, var_pred
         return eps_pred

@@ -8,6 +8,7 @@ ts:
   version: 1
   enrich: ['dow','hour']
   use_covariates: false
+  silly: True
 
 model_configs:
   d_model: 32
