@@ -28,7 +28,7 @@ def load_data(conf):
     data_ex.Value = np.log(1+500*data_ex.Value)-2
     data_ex.rain = data_ex.rain.interpolate(limit=1)   
     data_ex.temp = data_ex.temp.interpolate(limit=1)
-    data_ex = data_ex.iloc[0:2000]
+    # data_ex = data_ex.iloc[0:2000]
 
     ts = TimeSeries(conf.ts.name)
     ts.load_signal(data_ex,past_variables =['Value','rain','temp'],future_variables = ['rain','temp'],target_variables =['Value'],enrich_cat= conf.ts.enrich,silly_model=conf.ts.get('silly',False))
