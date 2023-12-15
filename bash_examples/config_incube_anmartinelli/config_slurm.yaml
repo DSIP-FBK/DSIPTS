@@ -7,7 +7,7 @@ scheduler_config:
   step_size: 50
 
 optim_config:
-  lr: 0.0005
+  lr: 0.005
   weight_decay: 0.0
 
 model_configs:
@@ -36,7 +36,6 @@ train_config:
   dirpath: '/storage/DSIP/edison/TsExp/data/incube'
   num_workers: 0
   auto_lr_find: false
-  lr: 0.001
   devices: [0]                   
 
 inference:
