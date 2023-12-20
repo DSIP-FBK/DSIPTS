@@ -4,7 +4,7 @@ dataset:
 
 scheduler_config:
   gamma: 0.1
-  step_size: 100
+  step_size: 100000
 
 optim_config:
   lr: 0.00005
