@@ -282,7 +282,7 @@ class Diffusion(Base):
             # # At the first timestep return the negative likelihood,
             if t==0:
                 # post_var =  self._extract_into_tensor(self.posterior_variance, t, y_to_be_pred.shape)
-                neg_likelihoods = -self.gaussian_likelihood(y_to_be_pred, out_mean, post_sigma) # (values predicted, mean of values predicted, variance)
+                neg_likelihoods = -self.gaussian_likelihood(y_to_be_pred, true_mean, post_sigma) #! (values predicted, mean of values predicted, variance)
                 distribution_loss = torch.mean(neg_likelihoods)
 
             # # otherwise return KL( q(x_{t-1}|x_t, x_0) || p(x_{t-1}|x_t) )
@@ -490,7 +490,7 @@ class Diffusion(Base):
         q_mean = self._extract_into_tensor(self.posterior_mean_coef1, t, q_sample.shape) * x_start + self._extract_into_tensor(self.posterior_mean_coef2, t, q_sample.shape) * q_sample
         q_log_var = self._extract_into_tensor( self.posterior_log_variance, t, q_sample.shape )
 
-        # return, the sample, its posterior mean and log_variance
+        # return, the sample, its posterior mean and log_variance, the noise used
         return [q_sample, q_mean, q_log_var, noise]
 
     def normal_kl(self, mean1, logvar1, mean2, logvar2):
@@ -538,7 +538,7 @@ class Diffusion(Base):
         ten = torch.tensor(arr[timesteps])
         return ten.expand(broadcast_shape).to(self.device)
 
-### >>>>>>>>>>>>>  SUB NET 1
+### >>>>>>>>>>>>>  SUB NET 
 class SubNet1(nn.Module):
     def __init__(self, aux_past_ch, aux_fut_ch, learn_var:bool, output_channel:int, d_model:int, d_head:int, n_head:int, activation:str, dropout_rate:float) -> None:
         """ -> SUBNET of the DIFFUSION MODEL (DDPM)
