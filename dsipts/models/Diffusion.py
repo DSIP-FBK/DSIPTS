@@ -3,7 +3,6 @@ import torch.nn as nn
 import numpy as np
 from .tft import sub_nn
 from .base import  Base
-from .utils import  QuantileLossMO
 from typing import List, Union
 from ..data_structure.utils import beauty_string
 
@@ -295,7 +294,14 @@ class Diffusion(Base):
             # always compute the loss about the straight prediction of the noise
             noise_loss = self.loss(eps_pred, actual_noise)
 
+            # if tot_loss == -1:
+            #     beauty_string(f'NOISE LOSS: {noise_loss.item()}','info',True)
+            #     beauty_string(f'ACTUAL NOISE: {actual_noise[0].min()}, {actual_noise[0].max()}, {actual_noise[0].mean()}, {actual_noise[0].var()}','info',True)
+            #     beauty_string(f'PREDICTED NOISE: {eps_pred[0].min()}, {eps_pred[0].max()}, {eps_pred[0].mean()}, {eps_pred[0].var()}','info',True)
+
             noise_loss += self.gamma*distribution_loss # add, scaled according to gamma, the distribution_loss
+
+
             
             # update the total loss
             if tot_loss==-1:
@@ -380,12 +386,17 @@ class Diffusion(Base):
             else:
                 eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 post_sigma = self._extract_into_tensor(self.posterior_variance, t, eps_pred.shape)
-                
+
+            # import pdb
+            # pdb.set_trace()
+            
             # Sample x_{t-1} from the model at the given timestep.
-            y_noised = self._extract_into_tensor(1/np.sqrt(self.alphas), t, y_noised.shape)*( y_noised - self._extract_into_tensor(np.sqrt(self.betas), t, eps_pred.shape)*eps_pred )
-            # if t>0 :
-            #     noise = torch.rand_like(y_noised).to(self.device)
-            #     y_noised = y_noised + torch.sqrt(post_sigma)*noise
+            # y_noised = self._extract_into_tensor(1/np.sqrt(self.alphas), t, y_noised.shape)*( y_noised - self._extract_into_tensor(np.sqrt(self.betas), t, eps_pred.shape)*eps_pred )
+            y_noised = 1/torch.sqrt(1-post_sigma)*(y_noised - torch.sqrt(post_sigma)*eps_pred)
+
+            if t>0 :
+                noise = torch.rand_like(y_noised).to(self.device)
+                y_noised = y_noised + torch.sqrt(post_sigma)*noise
         
         out = y_noised.view(-1, self.future_steps, self.output_channels, 1)
         return out
@@ -751,11 +762,11 @@ class SubNet3(nn.Module):
         emb_pred_y_fut = self.y_d_model(pred_y_fut)
         emb_y_noised = self.y_d_model(y_noised.float())
 
-        eps_pred = self.eps_pred_grn(emb_pred_y_fut - emb_y_noised)
+        eps_pred = self.eps_pred_grn(emb_pred_y_fut - emb_y_noised, using_norm=False)
 
         # Categorical contribute
         cat_att = self.cat_MHA(cat_fut, cat_past, emb_y_past)
-        cat_att = self.cat_grn(cat_att)
+        cat_att = self.cat_grn(cat_att, using_norm=False)
         eps_pred = self.cat_res_conn(cat_att, eps_pred, using_norm=False)
 
         # Numerical contribute
@@ -765,16 +776,16 @@ class SubNet3(nn.Module):
             if num_fut is None:
                 num_fut = torch.ones_like(cat_fut)
             num_att = self.num_MHA(num_fut, cat_past, emb_y_past)
-            num_att = self.num_grn(num_att)
+            num_att = self.num_grn(num_att, using_norm=False)
             eps_pred = self.cat_res_conn(num_att, eps_pred, using_norm=False)
 
-        eps_pred = self.eps_final_grn(eps_pred)
+        eps_pred = self.eps_final_grn(eps_pred, using_norm=False)
         eps_pred = self.eps_out_linear(eps_pred)
 
         if self.learn_var:
             emb_eps_pred = self.emb_eps_pred(eps_pred.detach())
             emb_eps_pred = self.var_att(emb_y_noised.detach(), emb_pred_y_fut.detach(), emb_eps_pred)
-            emb_var_pred = self.var_grn(emb_eps_pred)
+            emb_var_pred = self.var_grn(emb_eps_pred, using_norm=False)
             var_pred = self.var_out(emb_var_pred)
             return eps_pred, var_pred
         return eps_pred
