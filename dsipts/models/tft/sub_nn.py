@@ -149,10 +149,10 @@ class GRN(nn.Module):
         self.linear2 = nn.Linear(d_model, d_model)
         self.res_conn = ResidualConnection(d_model, dropout_rate)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, using_norm:bool = True) -> torch.Tensor:
         eta1 = self.elu(self.linear1(x))
         eta2 = self.linear2(eta1)
-        out = self.res_conn(eta2, x)
+        out = self.res_conn(eta2, x, using_norm)
         return out
     
 class ResidualConnection(nn.Module):
@@ -172,7 +172,7 @@ class ResidualConnection(nn.Module):
         self.norm = nn.LayerNorm(d_model)
     
     def forward(self, x: torch.Tensor, res_conn: torch.Tensor, using_norm:bool = True) -> torch.Tensor:
-        """Res Connection using normalizing computatiion on 'x' and strict 'res_conn' 
+        """Res Cionnection using normalizing computatiion on 'x' and strict 'res_conn' 
 
         Args:
             x (torch.Tensor): GLU(dropout(x))

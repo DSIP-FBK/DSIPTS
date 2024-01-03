@@ -37,9 +37,10 @@ pip install --force dsipts --index-url https://dsipts:glpat-98SR11neR7hzxy__SueG
 In you environment install hydra and the joblib launcher for the paralellization tasks:
 ```
 pip install hydra-core
+pip install hydra-optuna-sweeper       ## if you need optuna
 pip install hydra-joblib-launcher      ## if you have a big gpu
 pip install hydra-submitit-launcher    ## if you are in a slurm envirionment
-pip install hydra-optuna-sweeper       ## if you need optuna
+
 ```
 
 
