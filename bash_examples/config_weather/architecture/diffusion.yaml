@@ -13,17 +13,17 @@ model_configs:
   d_model: 64
   learn_var: True
   cosine_alpha: True
-  diffusion_steps: 50
+  diffusion_steps: 30
   beta: 0.03
-  gamma: 0.01
-  n_layers_RNN: 4
+  gamma: 0.1
+  n_layers_RNN: 6
   d_head: 32
   n_head: 8
-  dropout_rate: 0.0
+  dropout_rate: 0.5
   activation: 'torch.nn.GELU'
   subnet: 3
   optim: torch.optim.Adam
-  perc_subnet_learning_for_step: 0.1
+  perc_subnet_learning_for_step: 0.15
   persistence_weight: 0.010
   loss_type: 'l1'
 
