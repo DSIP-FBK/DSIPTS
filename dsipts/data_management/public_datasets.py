@@ -55,9 +55,9 @@ def build_venice(path:str,url='https://www.comune.venezia.it/it/content/archivio
             remove_str(table,'Data')
             remove_float(table,'Ora solare')
             table['time'] = table['Data'] +' '+ table['Ora solare'] 
-        else:
-            import pdb
-            pdb.set_trace()
+        # else:
+        #     import pdb
+        #     pdb.set_trace()
        
         for c in columns:
             if 'Salute' in c:

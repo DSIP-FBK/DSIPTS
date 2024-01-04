@@ -1,6 +1,6 @@
 dataset:
-  dataset: 'incube'  
-  path: '/storage/DSIP/edison/TsExp/data/incube'
+  dataset: 'venice'  
+  path: '/storage/DSIP/edison/TsExp/data/'
 
 scheduler_config:
   gamma: 0.7
