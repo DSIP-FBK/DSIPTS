@@ -1,10 +1,10 @@
 #models: ['config_used/attention.yaml','config_used/persistent.yaml','config_used/linear.yaml','config_used/dlinear.yaml','config_used/nlinear.yaml','config_used/lstm.yaml','config_used/gru.yaml']
 models: 'config_incube_anmartinelli'
 dirpath: "/storage/DSIP/edison/TsExp/data/incube"
-set: 'train'
+set: 'test'
 name: 'prova'
 rescaling: true
-batch_size: 64
+batch_size: 128
 
 defaults:
   - _self_
