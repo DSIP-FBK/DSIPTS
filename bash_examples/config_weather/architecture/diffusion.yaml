@@ -10,12 +10,12 @@ ts:
   use_covariates: true
 
 model_configs:
-  d_model: 64
+  d_model: 128
   learn_var: True
   cosine_alpha: True
-  diffusion_steps: 30
+  diffusion_steps: 35
   beta: 0.03
-  gamma: 0.1
+  gamma: 0.5
   n_layers_RNN: 6
   d_head: 32
   n_head: 8
