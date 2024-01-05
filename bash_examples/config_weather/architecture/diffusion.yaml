@@ -7,7 +7,7 @@ ts:
   name: 'test'
   version: 1
   enrich: ['hour']
-  use_covariates: true
+  use_covariates: false
 
 model_configs:
   d_model: 128
@@ -20,7 +20,7 @@ model_configs:
   d_head: 32
   n_head: 8
   dropout_rate: 0.5
-  activation: 'torch.nn.GELU'
+  activation: 'torch.nn.ReLU'
   subnet: 3
   optim: torch.optim.Adam
   perc_subnet_learning_for_step: 0.15
