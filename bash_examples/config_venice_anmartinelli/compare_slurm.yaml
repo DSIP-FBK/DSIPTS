@@ -4,7 +4,7 @@ dirpath: "/storage/DSIP/edison/TsExp/data/"
 set: 'test'
 name: 'venice'
 rescaling: true
-batch_size: 128
+batch_size: 64
 
 defaults:
   - _self_

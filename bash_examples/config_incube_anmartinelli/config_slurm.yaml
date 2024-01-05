@@ -1,6 +1,6 @@
 dataset:
   dataset: 'incube'  
-  path: '/storage/DSIP/edison/TsExp/data/incube'
+  path: '/storage/DSIP/edison/TsExp/data/'
 
 scheduler_config:
   gamma: 0.7
@@ -41,7 +41,7 @@ train_config:
 inference:
   output_path: '/storage/DSIP/edison/TsExp/data/incube'
   load_last: true
-  batch_size: 200 
+  batch_size: 128
   num_workers: 4
   set: "validation"
   rescaling: true
