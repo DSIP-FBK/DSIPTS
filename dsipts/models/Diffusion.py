@@ -285,7 +285,6 @@ class Diffusion(Base):
             if t==0:
                 # post_var =  self._extract_into_tensor(self.posterior_variance, t, y_to_be_pred.shape)
                 neg_likelihoods = -self.gaussian_likelihood(y_to_be_pred, out_mean, post_sigma) #! (values to be predicted, mean of values predicted, variance)
-                import pdb; pdb.set_trace()
                 distribution_loss = torch.mean(neg_likelihoods)
 
             # # otherwise return KL( q(x_{t-1}|x_t, x_0) || p(x_{t-1}|x_t) )
@@ -388,9 +387,6 @@ class Diffusion(Base):
                 eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
                 post_sigma = self._extract_into_tensor(self.posterior_variance, t, eps_pred.shape)
 
-            # import pdb
-            # pdb.set_trace()
-            
             # Sample x_{t-1} from the model at the given timestep.
             # y_noised = self._extract_into_tensor(1/np.sqrt(self.alphas), t, y_noised.shape)*( y_noised - self._extract_into_tensor(np.sqrt(self.betas), t, eps_pred.shape)*eps_pred )
             y_noised = 1/torch.sqrt(1-post_sigma)*(y_noised - torch.sqrt(post_sigma)*eps_pred)

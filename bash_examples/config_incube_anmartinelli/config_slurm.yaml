@@ -33,13 +33,13 @@ split_params:
   future_steps: model_configs@future_steps
 
 train_config:
-  dirpath: '/storage/DSIP/edison/TsExp/data/incube'
+  dirpath: '/storage/DSIP/edison/TsExp/'
   num_workers: 0
   auto_lr_find: false
   devices: [0]                   
 
 inference:
-  output_path: '/storage/DSIP/edison/TsExp/data/incube'
+  output_path: '/storage/DSIP/edison/TsExp/'
   load_last: true
   batch_size: 128
   num_workers: 4
