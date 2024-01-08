@@ -1,10 +1,10 @@
 dataset:
   dataset: 'venice'  
-  path: '/home/andrea/TsEXP/data/'
+  path: '/home/andrea/TsEXP/data'
 
 scheduler_config:
-  gamma: 0.1
-  step_size: 100000
+  gamma: 0.75
+  step_size: 2500
 
 optim_config:
   lr: 0.00005

@@ -94,8 +94,6 @@ def read_public_dataset(path:str,dataset:str)->Tuple[pd.DataFrame,List[str]]:
         Tuple[pd.DataFrame,List[str]]: The target variable is *y* and the time index is *time* and the list of the covariates
     """
     
-    
-
     if os.path.isdir(path):
         pass
     else:
@@ -133,8 +131,8 @@ def read_public_dataset(path:str,dataset:str)->Tuple[pd.DataFrame,List[str]]:
     elif dataset=='weather':
         dataset = pd.read_csv(os.path.join(path,'all_six_datasets/weather/weather.csv'),sep=',',na_values=-9999) 
     elif dataset=='venice':
-        if os.path.isfile(os.path.join(path,'venice.csv')):
-            dataset = pd.read_csv(os.path.join(path,'venice.csv')) 
+        if os.path.isfile(os.path.join(path,'venice/venice.csv')):
+            dataset = pd.read_csv(os.path.join(path,'venice/venice.csv')) 
         else:
             logging.info('I WILL TRY TO DOWNLOAD IT, if there are errors please have a look to `build_venice` function')
             build_venice(path,url='https://www.comune.venezia.it/it/content/archivio-storico-livello-marea-venezia-1')

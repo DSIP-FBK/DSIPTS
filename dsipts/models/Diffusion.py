@@ -252,6 +252,8 @@ class Diffusion(Base):
         t_wei = self.multinomial_step_weights/np.sum(self.multinomial_step_weights)
         # extract times t
         drawn_t = np.random.choice(values, size=self.simultaneous_steps, replace=False, p=t_wei) # type: ignore
+        
+        if 0 not in drawn_t: drawn_t = np.append(drawn_t, 0)
         # update weights
         non_draw_val = np.delete(values, drawn_t) # type: ignore
         self.multinomial_step_weights[non_draw_val] += 1 # increase weights of non-extracted subnet
@@ -282,7 +284,8 @@ class Diffusion(Base):
             # # At the first timestep return the negative likelihood,
             if t==0:
                 # post_var =  self._extract_into_tensor(self.posterior_variance, t, y_to_be_pred.shape)
-                neg_likelihoods = -self.gaussian_likelihood(y_to_be_pred, true_mean, post_sigma) #! (values predicted, mean of values predicted, variance)
+                neg_likelihoods = -self.gaussian_likelihood(y_to_be_pred, out_mean, post_sigma) #! (values to be predicted, mean of values predicted, variance)
+                import pdb; pdb.set_trace()
                 distribution_loss = torch.mean(neg_likelihoods)
 
             # # otherwise return KL( q(x_{t-1}|x_t, x_0) || p(x_{t-1}|x_t) )
@@ -301,8 +304,6 @@ class Diffusion(Base):
 
             noise_loss += self.gamma*distribution_loss # add, scaled according to gamma, the distribution_loss
 
-
-            
             # update the total loss
             if tot_loss==-1:
                 tot_loss = noise_loss
