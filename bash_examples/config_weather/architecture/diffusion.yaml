@@ -13,13 +13,13 @@ model_configs:
   d_model: 128
   learn_var: True
   cosine_alpha: True
-  diffusion_steps: 35
+  diffusion_steps: 45
   beta: 0.03
   gamma: 0.5
-  n_layers_RNN: 6
-  d_head: 32
-  n_head: 8
-  dropout_rate: 0.5
+  n_layers_RNN: 16
+  d_head: 64
+  n_head: 10
+  dropout_rate: 0.25
   activation: 'torch.nn.ReLU'
   subnet: 3
   optim: torch.optim.Adam
