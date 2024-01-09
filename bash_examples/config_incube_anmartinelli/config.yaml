@@ -1,6 +1,6 @@
 dataset:
   dataset: 'incube'  
-  path: '/home/andrea/TsEXP/data/incube'
+  path: '/home/andrea/TsEXP/data/'
 
 scheduler_config:
   gamma: 0.1
@@ -18,10 +18,11 @@ model_configs:
   future_channels : null #dataset dependent
   embs: null #dataset dependent
   out_channels: null #dataset dependent
+  loss_type: null
 
 split_params:
-  perc_train: 0.9
-  perc_valid: 0.05
+  perc_train: 0.8
+  perc_valid: 0.1
   range_train: null
   range_validation: null 
   range_test: null
@@ -30,7 +31,6 @@ split_params:
   skip_step: 1
   past_steps: model_configs@past_steps 
   future_steps: model_configs@future_steps
-
 
 train_config:
   dirpath: "/home/andrea/TsEXP/" 
@@ -41,7 +41,7 @@ train_config:
 inference:
   output_path: "/home/andrea/TsEXP/" 
   load_last: true
-  batch_size: 200 
+  batch_size: 128 
   num_workers: 4
   set: "validation"
   rescaling: true
