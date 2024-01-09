@@ -7,7 +7,7 @@ import pandas as pd
 
 def load_data(conf):
     id = 27350178
-    data = pd.read_csv(os.path.join(conf.dataset.path,'data_consumption.csv'))
+    data = pd.read_csv(os.path.join(conf.dataset.path,'incube/data_consumption.csv'))
     data.Time = pd.to_datetime(data.Time, utc=True)
     data.sort_values(by='Time',inplace=True)
     data_ex = data[data.PlantId==id]
@@ -19,7 +19,7 @@ def load_data(conf):
     data_ex.drop(columns='time',inplace=True)
     data_ex = data_ex.resample('1h').mean().reset_index()
 
-    meteo = pd.read_csv(os.path.join(conf.dataset.path,'meteo.csv'))
+    meteo = pd.read_csv(os.path.join(conf.dataset.path,'incube/meteo.csv'))
     meteo.Time = pd.to_datetime(meteo.Time, utc=True)
     meteo.rename(columns={'Time':'time'},inplace=True)
     data_ex = pd.merge(data_ex,meteo,how='left')
