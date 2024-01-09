@@ -272,7 +272,7 @@ class DilatedConvED(Base):
                                             Permute() if use_bn else nn.Identity() ,
                                             nn.Linear(hidden_RNN//2,hidden_RNN//4),
                                             activation(),
-                                            nn.Linear(hidden_RNN//4,1))
+                                            nn.Linear(hidden_RNN//4,self.mul))
         
         if use_bilinear:
             self.bilinear = torch.nn.Bilinear((hidden_RNN//2*2)*num_layers_RNN,(hidden_RNN//2*2)*num_layers_RNN,hidden_RNN*2)
@@ -293,7 +293,7 @@ class DilatedConvED(Base):
                                                 Permute() if use_bn else nn.Identity() ,
                                                 nn.Linear(hidden_RNN//2,hidden_RNN//4),
                                                 activation(),
-                                                nn.Linear(hidden_RNN//4,1))
+                                                nn.Linear(hidden_RNN//4,self.mul))
         
 
 

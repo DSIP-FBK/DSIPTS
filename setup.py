@@ -4,7 +4,7 @@ with open("requirements.txt") as f:
 
 setup(
     name="dsipts",
-    version="0.0.4",
+    version="0.0.5",
     author="Andrea Gobbi",
     author_email="agobbi@fbk.eu",
     packages=find_packages(exclude=("tests",)),
