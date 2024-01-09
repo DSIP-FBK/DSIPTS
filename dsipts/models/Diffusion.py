@@ -314,8 +314,7 @@ class Diffusion(Base):
         # the training loss is already computed in the forward method
         loss_eps = self(batch)
         return loss_eps
-    
-    
+        
     def inference(self, batch:dict) -> torch.Tensor:
         """Inference process to forecast future y
 

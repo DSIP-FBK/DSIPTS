@@ -519,7 +519,7 @@ class TimeSeries():
         except Exception as _:
             beauty_string('Empty dataset','info', True)
             return None, None, None
-        
+
         if range_train is None:
             if self.group is None:
                 beauty_string(f'Split temporally using perc_train: {perc_train} and perc_valid:{perc_valid}','section',self.verbose)

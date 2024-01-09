@@ -34,7 +34,7 @@ split_params:
 
 train_config:
   dirpath: "/home/andrea/TsEXP/" 
-  num_workers: 0
+  num_workers: 16
   auto_lr_find: true
   devices: [0]                   
 
@@ -42,7 +42,7 @@ inference:
   output_path: "/home/andrea/TsEXP/" 
   load_last: true
   batch_size: 128 
-  num_workers: 4
+  num_workers: 16
   set: "validation"
   rescaling: true
 

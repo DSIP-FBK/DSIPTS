@@ -23,9 +23,9 @@ model_configs:
 split_params:
   perc_train: 0.8
   perc_valid: 0.1
-  range_train: null
-  range_validation: null
-  range_test: null
+  range_train: ['2010-01-01 00:00:00','2018-01-01 00:00:00']
+  range_validation: ['2018-01-01 00:00:00','2020-01-01 00:00:00'] 
+  range_test: ['2020-01-01 00:00:00','2022-01-01 00:00:00']
   shift: 0
   starting_point: null
   skip_step: 1
