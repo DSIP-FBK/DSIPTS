@@ -28,7 +28,7 @@ split_params:
   range_test: ['2021-01-01 00:00:00','2022-01-01 00:00:00']
   shift: 0
   starting_point: null
-  skip_step: 1
+  skip_step: 37
   past_steps: model_configs@past_steps 
   future_steps: model_configs@future_steps
 
