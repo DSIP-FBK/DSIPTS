@@ -132,16 +132,17 @@ class Diffusion(Base):
         # according to the flag below we can choose how to generate them!
         if cosine_alpha:
             # COSINE ALPHA Computation
-            aux_perc = 0.05
-            avoid_comp_err_norm = self.T*(1+aux_perc) # enlarging self.T to avoid errors in computations using cos^2
+            # aux_perc = 0.05
+            # avoid_comp_err_norm = self.T*(1+aux_perc) # enlarging self.T to avoid errors in computations using cos^2
             # the t-th cumulative product of alphas is the 'forgetting' schedule of the inital sample after t diffusion step
             # in this procedure we use the function below to produce all the cumulative products of alphas
-            f_cos_t = [(np.cos( (t/avoid_comp_err_norm +self.s*2)/(1+self.s*2) * np.pi/2 ))**2 for t in range(self.T)]
+            f_cos_t = [(np.cos( (t/self.T +self.s)/(1+self.s) * np.pi/2 ))**2 for t in range(self.T)]
 
             self.alphas_cumprod = np.append(1-self.s, f_cos_t[1:]/f_cos_t[0]) # computed as scaled cumulative product of alphas f_cos_t[1:]/f_cos_t[0]
             self.alphas_cumprod_prev = np.append(1.0, self.alphas_cumprod[:-1]) # auxiliar vector to use the same index to access alpha_cumprod_t and alpha_cumprod_{t-1} 
             self.alphas = self.alphas_cumprod * (self.alphas_cumprod_prev)**(-1)
-            self.betas = np.append(self.s, 1-self.alphas[1:])
+            self.betas = 1 - self.alphas
+
         else:
             # STANDARD ALPHA Computation
             # beta is considered constant in [0,1) for all time steps. Good values near 0.03
@@ -155,7 +156,7 @@ class Diffusion(Base):
         # All these values will be casted to tensors during computations using the function _extract_into_tensor
         self.posterior_mean_coef1 = self.betas * np.sqrt(self.alphas_cumprod_prev) / (1.0 - self.alphas_cumprod)
         self.posterior_mean_coef2 = (1.0 - self.alphas_cumprod_prev) * np.sqrt(self.alphas) / (1.0 - self.alphas_cumprod)
-        self.posterior_variance = np.append([self.s], self.betas[1:] * (1.0 - self.alphas_cumprod_prev[1:]) / (1.0 - self.alphas_cumprod[1:]))
+        self.posterior_variance = np.append(self.s, self.betas[1:] * (1.0 - self.alphas_cumprod_prev[1:]) / (1.0 - self.alphas_cumprod[1:]))
         self.posterior_log_variance = np.log(self.posterior_variance)
 
         #* >>>>>>>>>>>>> LAYERS
@@ -270,9 +271,12 @@ class Diffusion(Base):
             # compute the output from that network using the sample with noises
             # output composed of: noise predicted and, if learn_var=True, vector for variances
             if self.learn_var:
+                #predict the noise!
                 eps_pred, var_aux_out = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
-                pre_var_t = self._extract_into_tensor(np.sqrt(self.betas), t, eps_pred.shape)
-                post_var_t = self._extract_into_tensor(np.sqrt(self.posterior_variance), t, eps_pred.shape)
+
+                # compute posterior variance of NN (using interpolation)
+                pre_var_t = self._extract_into_tensor(self.betas, t, eps_pred.shape)
+                post_var_t = self._extract_into_tensor(self.posterior_variance, t, eps_pred.shape)
                 post_sigma = torch.exp( var_aux_out*torch.log(pre_var_t) + (1-var_aux_out)*torch.log(post_var_t) ) # variance, not log_var
             else:
                 eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
@@ -284,7 +288,7 @@ class Diffusion(Base):
             # # At the first timestep return the negative likelihood,
             if t==0:
                 # post_var =  self._extract_into_tensor(self.posterior_variance, t, y_to_be_pred.shape)
-                neg_likelihoods = -self.gaussian_likelihood(y_to_be_pred, out_mean, post_sigma) #! (values to be predicted, mean of values predicted, variance)
+                neg_likelihoods = -torch.log(self.gaussian_likelihood(y_to_be_pred, out_mean, post_sigma)) #! (values to be predicted, mean of values predicted, variance)
                 distribution_loss = torch.mean(neg_likelihoods)
 
             # # otherwise return KL( q(x_{t-1}|x_t, x_0) || p(x_{t-1}|x_t) )
@@ -368,7 +372,8 @@ class Diffusion(Base):
         else:
             aux_emb_num_fut = None # non available vars
         
-        # DIFFUSION INFERENCE 
+        # DIFFUSION INFERENCE
+        # import pdb; pdb.set_trace() # can use also torch.normal(0, 1, size=y_noised.shape)
         y_noised = torch.randn((batch_size, self.future_steps, self.output_channels)).to(self.device)
         # pass the white noise in sub nets
         for t in range(self.T-1, -1, -1): # INVERSE cycle over all subnets, but not the last one
@@ -379,8 +384,9 @@ class Diffusion(Base):
             #   params = sum([np.prod(p.size()) for p in model_parameters]) -> 13K
             if self.learn_var:
                 eps_pred, var_aux_out = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
-                pre_var_t = self._extract_into_tensor(np.sqrt(self.betas), t, eps_pred.shape)
-                post_var_t = self._extract_into_tensor(np.sqrt(self.posterior_variance), t, eps_pred.shape)
+                # interpolazion of variance
+                pre_var_t = self._extract_into_tensor(self.betas, t, eps_pred.shape)
+                post_var_t = self._extract_into_tensor(self.posterior_variance, t, eps_pred.shape)
                 post_sigma = torch.exp(var_aux_out*torch.log(pre_var_t) + (1-var_aux_out)*torch.log(post_var_t))
             else:
                 eps_pred = sub_net(y_noised, y_past, emb_cat_past, emb_cat_fut, aux_emb_num_past, aux_emb_num_fut)
@@ -390,9 +396,9 @@ class Diffusion(Base):
             # y_noised = self._extract_into_tensor(1/np.sqrt(self.alphas), t, y_noised.shape)*( y_noised - self._extract_into_tensor(np.sqrt(self.betas), t, eps_pred.shape)*eps_pred )
             y_noised = 1/torch.sqrt(1-post_sigma)*(y_noised - torch.sqrt(post_sigma)*eps_pred)
 
-            if t>0 :
-                noise = torch.rand_like(y_noised).to(self.device)
-                y_noised = y_noised + torch.sqrt(post_sigma)*noise
+            # if t>0 :
+            #     noise = torch.rand_like(y_noised).to(self.device)
+            #     y_noised = y_noised + torch.sqrt(post_sigma)*noise        
         
         out = y_noised.view(-1, self.future_steps, self.output_channels, 1)
         return out

@@ -2,7 +2,7 @@ models: 'config_venice_anmartinelli'
 dirpath: "/storage/DSIP/edison/TsExp/data"
 set: 'test'
 name: 'venice'
-rescaling: true
+rescaling: false
 batch_size: 64
 
 defaults:
