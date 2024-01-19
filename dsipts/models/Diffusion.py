@@ -283,7 +283,7 @@ class Diffusion(Base):
                 post_sigma = self._extract_into_tensor(self.posterior_variance, t, eps_pred.shape)
 
             # posterior mean assuming the predicted noise is the actual one
-            out_mean = self._extract_into_tensor(np.sqrt(1/self.alphas), t, eps_pred.shape) * ( y_noised - self._extract_into_tensor(self.betas/np.sqrt(1-self.alphas_cumprod) , t, eps_pred.shape) * eps_pred )
+            out_mean = self._extract_into_tensor(np.sqrt(1/self.alphas), t, eps_pred.shape) * ( y_noised - self._extract_into_tensor(self.betas/np.sqrt(1-self.alphas_cumprod), t, eps_pred.shape) * eps_pred )
             
             # # At the first timestep return the negative likelihood,
             if t==0:
