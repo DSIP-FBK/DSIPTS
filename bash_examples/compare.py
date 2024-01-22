@@ -116,9 +116,11 @@ def compare(conf:DictConfig)-> None:
     fig_losses.write_image(os.path.join(conf.dirpath,'plots',f'{conf.name}_{conf.set}_LOSSES.jpeg'),width=1000,scale=10)
     
     tot_losses.to_csv(os.path.join(conf.dirpath,'csv',f'{conf.name}_{conf.set}_LOSSES.csv'))
+    print("TOT_LOSSES saved")
     res.to_csv(os.path.join(conf.dirpath,'csv',f'{conf.name}_{conf.set}_errors.csv'))
+    print("RES saved")
     tot_predictions.to_csv(os.path.join(conf.dirpath,'csv',f'{conf.name}_{conf.set}_tot_predictions.csv'))
-
+    print("TOT_PREDICTIONS saved")
 
 
     
