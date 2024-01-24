@@ -10,10 +10,10 @@ ts:
   use_covariates: false
 
 model_configs:
-  d_model: 128
+  d_model: 32
   num_layers_RNN: 8
-  d_head: 64
-  n_head: 6 
+  d_head: 16
+  n_head: 4
   optim: torch.optim.Adam
   dropout_rate: 0.2
   persistence_weight: 0.010
@@ -21,5 +21,5 @@ model_configs:
 
 train_config:
   batch_size: 128
-  max_epochs: 500
+  max_epochs: 2000
             
