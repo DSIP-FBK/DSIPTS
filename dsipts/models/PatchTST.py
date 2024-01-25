@@ -1,3 +1,8 @@
+## Copyright https://github.com/yuqinie98/PatchTST/blob/main/LICENSE
+## Modified for notation alignmenet and batch structure
+## extended to what inside patchtst folder
+
+
 
 from torch import  nn
 import torch

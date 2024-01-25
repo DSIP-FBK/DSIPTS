@@ -1,4 +1,8 @@
 
+## Copyright 2022 DLinear Authors (https://github.com/cure-lab/LTSF-Linear/tree/main?tab=Apache-2.0-1-ov-file#readme)
+## Code modified for align the notation and the batch generation
+## extended to all present in informer, autoformer folder
+
 from torch import nn
 import torch
 from .base import  Base

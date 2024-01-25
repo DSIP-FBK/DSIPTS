@@ -1,3 +1,6 @@
+## Copiright https://github.com/PaddlePaddle/PaddleSpatial
+## Modified for notation alignmenet,  batch structure 
+## extended to what inside d3vae folder
 
 from torch import  nn,optim
 import torch

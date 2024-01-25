@@ -1,3 +1,8 @@
+## Copyright 2023 Yunhao Zhang and Junchi Yan (https://github.com/Thinklab-SJTU/Crossformer?tab=Apache-2.0-1-ov-file#readme)
+## Code modified for align the notation and the batch generation
+## extended to all present in crossformer folder
+
+
 
 from torch import  nn
 import torch

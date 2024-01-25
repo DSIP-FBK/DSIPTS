@@ -1,4 +1,8 @@
 
+## Copyright Copyright (c) 2020 Andrej Karpathy https://github.com/karpathy/minGPT?tab=MIT-1-ov-file#readme
+## Modified for notation alignmenet,  batch structure and adapted for timeseries
+## extended to what inside vva folder
+
 from torch import  nn
 import torch
 from torch.nn import functional as F
