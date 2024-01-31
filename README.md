@@ -1,3 +1,5 @@
+
+
 # DSIPTS: unified library for timeseries modelling
 
 This library allows to:
@@ -7,6 +9,10 @@ This library allows to:
 -  load public timeseries
 -  train a predictive model using different PyTorch architectures
 -  define more complex structures using Modifiers (e.g. combining unsupervised learning + deep learning)
+
+## Disclamer
+The original repository is located [here](https://gitlab.fbk.eu/dsip/dsip_dlresearch/timeseries) but there is a push mirror in gitlab containing only the versioned branches (e.g. v.1.0.0) and you can find it [here](https://github.com/DSIP-FBK/DSIPTS/). Depending on the evolution of the library we will decide if keep both or move definetively to github.
+
 
 ## Background
 
@@ -84,6 +90,7 @@ or attention based models:
 ---
 
 ## How to
+Clone the repo (gitlab or github)
 
 In a pre-generated environment install pytorch and pytorch-lightning (`pip install pytorch-lightning==1.9.4`) then go inside the lib folder and execute:
 
@@ -91,13 +98,7 @@ In a pre-generated environment install pytorch and pytorch-lightning (`pip insta
 ``
 python setup_local.py install --force
 ``
-
-Alternatively, you can install it from the package registry:
-
-```
-pip install --force dsipts --index-url https://dsipts:glpat-98SR11neR7hzxy__SueG@gitlab.fbk.eu/api/v4/projects/4571/packages/pypi/simple
-```
-In this case it will installed the last version submitted to the package registry. For testing pourpose please use the first method (in local). For using the latter method ask to `agobbi@fbk.eu`.
+In the gitlab repository it is possible to find the documentation (pages) and the package in the package registry. As soon as possible the CI/CD pipeline will update for working also in the github mirrored repository.
 
 
 ## Test 
