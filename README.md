@@ -261,7 +261,7 @@ res.groupby('lag').error.mean().plot()
 
 
 
-This example can be found in the [first notebook](/notebooks/1 -monash_timeseries.ipynb). Another example can be found [here](/notebooks/3- public_timeseries.ipynb).
+This example can be found in the [first notebook](/notebooks/1-monash_timeseries.ipynb). Another example can be found [here](/notebooks/3-public_timeseries.ipynb).
 
 # Categorical variables
 Most of the models implemented can deal with categorical variables. In particulare there are some variables that you don't need to computed. When declaring a `ts` obejct you can pass also the parameter `enrich_cat=['dow']` that will add to the dataframe (and to the dataloader) the day of the week. Since now you can automatically add `hour, dow, month and minute`. If there are other categorical variables pleas add it to the list while loading your data.
