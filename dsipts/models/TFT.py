@@ -11,8 +11,8 @@ class TFT(Base):
     handle_multivariate = True
     handle_future_covariates = True
     handle_categorical_variables = True
-    description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables)
-    beauty_string(description,'info',True)
+    handle_quantile_loss = True
+    description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables,handle_quantile_loss)
     
     def __init__(self, 
                  d_model: int,
@@ -122,6 +122,8 @@ class TFT(Base):
             else:
                 self.loss = nn.L1Loss()
         else:
+            assert len(quantiles)==3, beauty_string('ONLY 3 quantiles premitted','info',True)
+            
             self.mul = len(quantiles)
             self.use_quantiles = True
             self.outLinear = nn.Linear(d_model, out_channels*len(quantiles))

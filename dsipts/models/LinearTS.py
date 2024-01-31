@@ -51,8 +51,9 @@ class LinearTS(Base):
     handle_multivariate = True
     handle_future_covariates = True
     handle_categorical_variables = True
-    description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables)
-    beauty_string(description+'\n THE SIMPLE IMPLEMENTATION DOES NOT USE CATEGORICAL NOR FUTURE VARIABLES ','info',True)
+    handle_quantile_loss = True
+    description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables,handle_quantile_loss)
+    description+='\n THE SIMPLE IMPLEMENTATION DOES NOT USE CATEGORICAL NOR FUTURE VARIABLES'
     
     def __init__(self, 
                  past_steps:int,

@@ -18,8 +18,8 @@ class RNN(Base):
     handle_multivariate = True
     handle_future_covariates = True
     handle_categorical_variables = True
-    description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables)
-    beauty_string(description,'info',True)
+    handle_quantile_loss = True
+    
     
     
     def __init__(self, 
@@ -75,7 +75,7 @@ class RNN(Base):
             scheduler_config (dict, optional): configuration for stepLR scheduler. Defaults to None.
         """
         super().__init__(**kwargs)
-
+        
         if activation == 'torch.nn.SELU':
             beauty_string('SELU do not require BN','info',self.verbose)
             use_bn = False
@@ -100,6 +100,7 @@ class RNN(Base):
         if n_classes==0:
             self.is_classification = False
             if len(quantiles)>0:
+                assert len(quantiles)==3, beauty_string('ONLY 3 quantiles premitted','info',True)
                 self.use_quantiles = True
                 self.mul = len(quantiles)
                 self.loss = QuantileLossMO(quantiles)

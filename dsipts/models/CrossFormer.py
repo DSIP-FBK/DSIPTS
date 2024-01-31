@@ -26,8 +26,9 @@ class CrossFormer(Base):
     handle_multivariate = True
     handle_future_covariates = False
     handle_categorical_variables = False
-    description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables)
-    beauty_string(description,'info',True)
+    handle_quantile_loss = False
+
+    description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables,handle_quantile_loss)
     
     def __init__(self, 
                  past_steps:int,

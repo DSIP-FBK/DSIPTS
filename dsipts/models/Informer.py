@@ -12,7 +12,7 @@ from .informer.decoder import Decoder, DecoderLayer
 from .informer.attn import FullAttention, ProbAttention, AttentionLayer
 from .informer.embed import DataEmbedding
 from ..data_structure.utils import beauty_string
-from .utils import  get_scope
+from .utils import  get_scope,QuantileLossMO
   
     
   
@@ -20,8 +20,8 @@ class Informer(Base):
     handle_multivariate = True
     handle_future_covariates = True
     handle_categorical_variables = True
-    description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables)
-    beauty_string(description,'info',True)
+    handle_quantile_loss = True
+    description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables,handle_quantile_loss)
     
     
     def __init__(self, 
@@ -91,10 +91,18 @@ class Informer(Base):
         self.loss_type = loss_type
         self.remove_last = remove_last
         
-        if self.loss_type == 'mse':
-            self.loss = nn.MSELoss()
+        if len(quantiles)>0:
+            assert len(quantiles)==3, beauty_string('ONLY 3 quantiles premitted','info',True)
+            self.use_quantiles = True
+            self.mul = len(quantiles)
+            self.loss = QuantileLossMO(quantiles)
         else:
-            self.loss = nn.L1Loss()
+            self.use_quantiles = False
+            self.mul = 1
+            if self.loss_type == 'mse':
+                self.loss = nn.MSELoss()
+            else:
+                self.loss = nn.L1Loss()
         
         self.enc_embedding = DataEmbedding(past_channels, d_model, embs, dropout_rate)
         self.dec_embedding = DataEmbedding(future_channels, d_model, embs, dropout_rate)
@@ -137,7 +145,7 @@ class Informer(Base):
             norm_layer=torch.nn.LayerNorm(d_model)
         )
 
-        self.projection = nn.Linear(d_model, out_channels, bias=True)
+        self.projection = nn.Linear(d_model, out_channels*self.mul, bias=True)
         
                 
         
@@ -188,8 +196,8 @@ class Informer(Base):
         res = dec_out[:,-self.future_steps:,:].unsqueeze(3)
         if self.remove_last:
             res+=x_start.unsqueeze(1)
-        
-        return  res
+        BS = res.shape[0]
+        return  res.reshape(BS,self.future_steps,-1,self.mul)
        
        
        

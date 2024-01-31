@@ -8,7 +8,7 @@ import torch
 from .base import Base
 from typing import List,Union
 from ..data_structure.utils import beauty_string
-from .utils import  get_activation,get_scope
+from .utils import  get_activation,get_scope,QuantileLossMO
 from .autoformer.layers import AutoCorrelation, AutoCorrelationLayer, Encoder, Decoder,\
     EncoderLayer, DecoderLayer, my_Layernorm, series_decomp,PositionalEmbedding
 
@@ -18,8 +18,8 @@ class Autoformer(Base):
     handle_multivariate = True
     handle_future_covariates = True
     handle_categorical_variables = True
-    description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables)
-    beauty_string(description,'info',True)
+    handle_quantile_loss= True
+    description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables,handle_quantile_loss)
     
     def __init__(self, 
                  past_steps:int,
@@ -72,7 +72,7 @@ class Autoformer(Base):
             loss_type (str, optional): this model uses custom losses or l1 or mse.
                 Custom losses can be linear_penalization or exponential_penalization. 
                 Default l1,
-            quantiles (List[int], optional): NOT USED YET
+            quantiles (List[int], optional): quantiles (List[int], optional): we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
             dropout_rate (float, optional):  dropout rate in Dropout layers.
                 Defaults to 0.1.
             optim (str, optional): if not None it expects a pytorch optim method.
@@ -81,9 +81,11 @@ class Autoformer(Base):
                 Defaults to None.
             scheduler_config (dict, optional): configuration for stepLR scheduler.
                 Defaults to None.
+            
         """
         super().__init__(**kwargs)
-        
+        beauty_string(self.description,'info',True)
+
         if activation == 'torch.nn.SELU':
             beauty_string('SELU do not require BN','info',self.verbose)
         if isinstance(activation,str):
@@ -102,10 +104,18 @@ class Autoformer(Base):
         self.loss_type = loss_type
         self.persistence_weight = persistence_weight 
 
-        if self.loss_type == 'mse':
-            self.loss = nn.MSELoss()
+        if len(quantiles)>0:
+            assert len(quantiles)==3, beauty_string('ONLY 3 quantiles premitted','info',True)
+            self.use_quantiles = True
+            self.mul = len(quantiles)
+            self.loss = QuantileLossMO(quantiles)
         else:
-            self.loss = nn.L1Loss()
+            self.use_quantiles = False
+            self.mul = 1
+            if self.loss_type == 'mse':
+                self.loss = nn.MSELoss()
+            else:
+                self.loss = nn.L1Loss()
 
         
         self.seq_len = past_steps
@@ -178,7 +188,7 @@ class Autoformer(Base):
                 for _ in range(n_layer_decoder)
             ],
             norm_layer=my_Layernorm(d_model),
-            projection=nn.Linear(d_model, out_channels, bias=True)
+            projection=nn.Linear(d_model, out_channels*self.mul, bias=True)
         )
         self.pee = PositionalEmbedding(d_model=d_model)
         self.ped = PositionalEmbedding(d_model=d_model)
@@ -244,7 +254,8 @@ class Autoformer(Base):
         dec_out = self.final_layer(trend_part + seasonal_part)
 
     
-  
-        return dec_out[:, -self.pred_len:, :].unsqueeze(3)  # [B, L, D]
+        BS = dec_out.shape[0]
+        
+        return dec_out[:, -self.pred_len:, :].reshape(BS,self.pred_len,-1,self.mul)  # [B, L, D,MUL]
          
         
