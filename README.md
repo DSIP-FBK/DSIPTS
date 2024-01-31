@@ -211,6 +211,14 @@ config = dict(model_configs =dict(
 model_sum = RNN(**config['model_configs'],optim_config = config['optim_config'],scheduler_config =config['scheduler_config'] )
 ts.set_model(model_sum,config=config )
 ```
+Once the model is selected, it will display some information like follows:
+```
+Can   handle multivariate output 
+Can   handle future covariates
+Can   handle categorical covariates
+Can   handle Quantile loss function
+```
+This can help you knowing which models can be used for multioutput prediction and also if the quantile loss can be used and provide the confidence interval of the predictions.
 
 Notice that there are some free parameters: `cat_emb_dim` for example represent the dimension of the embedded categorical variable, `sum_embs` will sum all the categorical contribution otherwise it will concatenate them. It is possible to use a quantile loss, specify some parameters of the scheduler (StepLR) and optimizer parameters (Adam). 
 
