@@ -328,7 +328,7 @@ If you want to add a model:
 
 # Testing
 GITLAB: See [here](../bash_examples/README.md) for the testing session .
-GITLAB: See [here](../../bash_examples/README.md) for the testing session .
+GITLAB: See [here](/bash_examples/README.md) for the testing session .
 
 # TODO
 - add more sintetic data
