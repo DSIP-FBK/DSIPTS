@@ -327,7 +327,7 @@ If you want to add a model:
 - add the modifier in `dsipts/data_structure/modifiers.py` if it is required
 
 # Testing
-See [here](../bash_examples/README.md) for the testing session.
+See [here](bash_examples/README.md) for the testing session.
 
 # TODO
 - add more sintetic data
