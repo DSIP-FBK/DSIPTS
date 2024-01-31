@@ -40,6 +40,7 @@ def build_venice(path:str,url='https://www.comune.venezia.it/it/content/archivio
         
     def normalize(table):
         columns = table.columns
+        table = table[~table.isna().all(axis=1)]
         if 'Data_ora(solare)' in columns:
             table['time'] = table['Data_ora(solare)'] 
         
@@ -65,7 +66,11 @@ def build_venice(path:str,url='https://www.comune.venezia.it/it/content/archivio
                 if 'cm' in c:
                     table['y']/=100
         res = table[['time','y']].dropna()
-        res['time'] = pd.to_datetime(res['time'])
+        try:
+            res['time'] = pd.to_datetime(res['time'],format='mixed')
+        except:
+            import pdb
+            pdb.set_trace()
         return res
     tot= []
     for row in soup.find_all("table")[1].find('tbody').find_all('tr'):
@@ -76,6 +81,7 @@ def build_venice(path:str,url='https://www.comune.venezia.it/it/content/archivio
                     if 'orari' in x['href']:
                         tmp =  pd.read_csv('https://www.comune.venezia.it/'+x['href'],sep=';', parse_dates=True)
                         tot.append(normalize(tmp))
+              
     
     res = pd.concat(tot)
     res.sort_values(by='time',inplace=True)

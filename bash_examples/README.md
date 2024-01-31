@@ -321,7 +321,6 @@ A typical example of plot is displayed below and shows the MSE at different lags
 
 ![plot](figures/weather_test_MSE.jpeg)
 
-The loss plot is currenty broken on server, you can reproduce it form the notebook `4- results` (see the notebook section)
 
 
 # Testing

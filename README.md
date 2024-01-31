@@ -106,7 +106,7 @@ You can test your model using a tool timeseries
 
 ```
 ##import modules
-from dsipts import Categorical,TimeSeries, RNN, Attention
+from dsipts import Categorical,TimeSeries, RNN
 
 #############define some categorical features##########
 
@@ -145,7 +145,7 @@ ts.load_signal(dataset,past_variables =[list of past variables],target_variables
 Up to now, the automathic categorical features extracted can be: `'hour','dow','month','minute'`.
 If you want to use a public dataset there is a wrapper in the library for downloading some datasets using [Monash](https://forecastingdata.org/).
 ```
-from dsipts Monash
+from dsipts import Monash, get_freq, TimeSeries, RNN
 import pandas as pd
 m = Monash(filename='monash',baseUrl='https://forecastingdata.org/', rebuild=True)
 ```
@@ -154,7 +154,7 @@ After that `m.table` contains the table. Each dataset has an ID, you can downloa
 
 ```
 m.download_dataset(path='data',id=4656144,rebuild=True)
-m.save()##remember to save after each download in order to update the class for following uses.
+m.save('monash')##remember to save after each download in order to update the class for following uses.
 ```
 In the attribute `m.downloaded` you can see a dictionary with an association ID--> folder. Finally, you can get the data from the downloaded files:
 
@@ -246,7 +246,7 @@ Where signal is the target variable (same name). If a quantile loss has been sel
 
 ```
 import matplotlib.pyplot as plt
-mask = res.prediction_time==4100
+mask = res.prediction_time=='2006-02-14 12:30:01'   
 plt.plot(res.lag[mask],res.signal[mask],label='real')
 plt.plot(res.lag[mask],res.signal_median[mask],label='median')
 plt.legend()
