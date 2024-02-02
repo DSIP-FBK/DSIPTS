@@ -7,13 +7,13 @@ ts:
   name: 'test'
   version: 1
   enrich: ['dow','hour']
-  use_covariates: false
+  use_covariates: true
 
 model_configs:
-  d_model: 32
-  num_layers_RNN: 8
-  d_head: 16
-  n_head: 4
+  d_model: 16 # >65 tends to overfit
+  num_layers_RNN: 12 # 
+  d_head: 128 # if saller, tends to overfit
+  n_head: 12 # main param: more heads of medium size
   optim: torch.optim.Adam
   dropout_rate: 0.2
   persistence_weight: 0.010

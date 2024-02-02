@@ -7,19 +7,19 @@ ts:
   name: 'test'
   version: 1
   enrich: ['dow','hour']
-  use_covariates: false
+  use_covariates: True
   silly: False
 
 model_configs:
-  d_model: 32
-  learn_var: True
-  cosine_alpha: True
-  diffusion_steps: 70
-  beta: 0.03
-  gamma: 0.001
-  n_layers_RNN: 5
-  d_head: 16
-  n_head: 5
+  d_model: 64
+  learn_var: True # True is better
+  cosine_alpha: True # True is better
+  diffusion_steps: 80 # >70
+  beta: 0.03 # not used if learn_var=True; if not use beta >0.04 
+  gamma: 0.01 # <=0.1
+  n_layers_RNN: 5 # dataset dependent, 
+  d_head: 16 #  if saller, tends to overfit
+  n_head: 5 # main param: more heads of medium size
   dropout_rate: 0.3
   activation: 'torch.nn.GELU'
   subnet: 3
