@@ -348,5 +348,5 @@ See [here](/bash_examples/README.md) for the testing session.
 - fix dependencies
 - reduce test computational time required!
 - check D3VAE, it seems broken in some configurations
-- clean notebooks
+- clean notebooks (DONE)
 
