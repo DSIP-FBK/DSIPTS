@@ -10,8 +10,8 @@ ts:
   use_covariates: true
 
 model_configs:
-  d_model: 16
-  hidden_size: 64
+  hidden_size: 128
+  d_model: 32
   activation: 'torch.nn.GELU'
   num_added_encoder_head: 4
   num_added_decoder_head: 4
@@ -23,5 +23,5 @@ model_configs:
 
 train_config:
   batch_size: 128
-  max_epochs: 2000
+  max_epochs: 500
             
