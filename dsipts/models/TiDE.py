@@ -62,6 +62,7 @@ class TiDE(Base):
         self.optim = optim
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
+        self.loss_type = loss_type
 
         assert (len(quantiles)==0) or (len(quantiles)==3), beauty_string('Only 3 quantiles are availables, otherwise set quantiles=[]','block',True)
         if len(quantiles)==0:
