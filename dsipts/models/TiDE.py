@@ -289,10 +289,10 @@ class ResidualBlock(nn.Module):
         self.direct_linear = nn.Linear(in_size, out_size, bias = False)
 
         if activation_fun=='':
-            self.act = nn.ReLU(in_size)
+            self.act = nn.ReLU()
         else:
             activation = eval(activation_fun)
-            self.act = activation(in_size)
+            self.act = activation()
         self.lin = nn.Linear(in_size, out_size)
         self.dropout = nn.Dropout(dropout_rate)
 
