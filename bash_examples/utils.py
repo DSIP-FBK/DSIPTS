@@ -1,5 +1,5 @@
 
-from dsipts import RNN, LinearTS, Persistent, D3VAE, DilatedConv, TFT, Informer,VVA,VQVAEA,CrossFormer,Autoformer,PatchTST,Diffusion,beauty_string
+from dsipts import RNN, LinearTS, Persistent, D3VAE, DilatedConv, TFT, Informer,VVA,VQVAEA,CrossFormer,Autoformer,PatchTST,Diffusion,TiDE, beauty_string
 import numpy as np
 from sklearn.metrics import mean_squared_error
 import os
@@ -111,6 +111,9 @@ def select_model(conf, model_conf,ts):
                           scheduler_config =conf.scheduler_config,verbose=ts.verbose )  
     elif conf.model.type == 'diffusion':
         model =  Diffusion(**model_conf,   optim_config = conf.optim_config,
+                          scheduler_config =conf.scheduler_config,verbose=ts.verbose )  
+    elif conf.model.type == 'tide':
+        model =  TiDE(**model_conf,   optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config,verbose=ts.verbose )  
     else:
         model = None
