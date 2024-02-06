@@ -190,9 +190,6 @@ class TiDE(Base):
         # emb_cat_fut : [B, H, hidden_size]         always
         # aux_emb_num_fut : [B, H, hidden_size]     flag
 
-        import pdb
-        pdb.set_trace()
-
         # past_tilda
         if self.aux_past_channels>0:
             emb_past = torch.cat((emb_cat_past, aux_emb_num_past), dim = 2) # [B, L, 2R] #
