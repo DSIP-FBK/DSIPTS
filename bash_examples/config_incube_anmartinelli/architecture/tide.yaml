@@ -12,6 +12,7 @@ ts:
 model_configs:
   d_model: 16
   hidden_size: 64
+  activation: 'torch.nn.GELU'
   num_added_encoder_head: 4
   num_added_decoder_head: 4
   quantiles: [0.1, 0.5, 0.9]

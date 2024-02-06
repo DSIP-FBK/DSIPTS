@@ -22,7 +22,7 @@ class TiDE(Base):
                  num_added_encoder_head: int,
                  num_added_decoder_head: int,
                  dropout_rate: float,
-                 activation_fun: str='',
+                 activation: str='',
 
                  persistence_weight:float=0.0,
                  loss_type: str='l1',
@@ -106,27 +106,27 @@ class TiDE(Base):
         ## FEATURE PROJECTION
         # past
         if self.aux_past_channels>0:
-            self.feat_proj_past = ResidualBlock(2*hidden_size, d_model, dropout_rate, activation_fun)
+            self.feat_proj_past = ResidualBlock(2*hidden_size, d_model, dropout_rate, activation)
         else:
-            self.feat_proj_past = ResidualBlock(hidden_size, d_model, dropout_rate, activation_fun)
+            self.feat_proj_past = ResidualBlock(hidden_size, d_model, dropout_rate, activation)
         # future
         if self.aux_fut_channels>0:
-            self.feat_proj_fut = ResidualBlock(2*hidden_size, d_model, dropout_rate, activation_fun)
+            self.feat_proj_fut = ResidualBlock(2*hidden_size, d_model, dropout_rate, activation)
         else:
-            self.feat_proj_fut = ResidualBlock(hidden_size, d_model, dropout_rate, activation_fun)
+            self.feat_proj_fut = ResidualBlock(hidden_size, d_model, dropout_rate, activation)
 
         # # ENCODER
         self.enc_dim_input = past_steps*self.output_channels + (past_steps+future_steps)*d_model 
         self.enc_dim_output = future_steps*d_model
-        self.first_encoder = ResidualBlock(self.enc_dim_input, self.enc_dim_output, dropout_rate, activation_fun)
-        self.aux_encoder = nn.ModuleList([ResidualBlock(self.enc_dim_output, self.enc_dim_output, dropout_rate, activation_fun) for _ in range(1, num_added_encoder_head)])
+        self.first_encoder = ResidualBlock(self.enc_dim_input, self.enc_dim_output, dropout_rate, activation)
+        self.aux_encoder = nn.ModuleList([ResidualBlock(self.enc_dim_output, self.enc_dim_output, dropout_rate, activation) for _ in range(1, num_added_encoder_head)])
 
         # # DECODER
-        self.first_decoder = ResidualBlock(self.enc_dim_output, self.enc_dim_output, dropout_rate, activation_fun)
-        self.aux_decoder = nn.ModuleList([ResidualBlock(self.enc_dim_output, self.enc_dim_output, dropout_rate, activation_fun) for _ in range(1, num_added_decoder_head)])
+        self.first_decoder = ResidualBlock(self.enc_dim_output, self.enc_dim_output, dropout_rate, activation)
+        self.aux_decoder = nn.ModuleList([ResidualBlock(self.enc_dim_output, self.enc_dim_output, dropout_rate, activation) for _ in range(1, num_added_decoder_head)])
 
         ## TEMPORAL DECOER
-        self.temporal_decoder = ResidualBlock(2*d_model, out_channels*self.mul, dropout_rate, activation_fun)
+        self.temporal_decoder = ResidualBlock(2*d_model, out_channels*self.mul, dropout_rate, activation)
 
         self.linear_target = nn.Linear(past_steps*out_channels, future_steps*out_channels*self.mul)
 
