@@ -339,12 +339,12 @@ See [here](/bash_examples/README.md) for the testing session.
 
 # TODO
 - add more sintetic data
-- add TIDE and iTransformer
+- add TIDE (IN PROGRESS) and iTransformer
 - clean some old function
-- check all the code in the README 
-- check architecture description (which model can be used under certain assumption)
+- check all the code in the README (DONE)
+- check architecture description (which model can be used under certain assumption) (ALMOS DONE)
 - complete the classification part (loss function + inference step)
-- add mirror to git if possible 
+- add mirror to git if possible  (DONE)
 - fix dependencies
 - reduce test computational time required!
 - check D3VAE, it seems broken in some configurations
