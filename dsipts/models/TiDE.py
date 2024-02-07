@@ -32,26 +32,30 @@ class TiDE(Base):
                  scheduler_config:Union[dict,None]=None,
                  **kwargs)->None:
         """Long-term Forecasting with TiDE: Time-series Dense Encoder
+        https://arxiv.org/abs/2304.08424
+
+        This NN uses as subnet the ResidualBlocks, which is composed by skip connection and activation+dropout.
+        Every encoder and decoder head is composed by one Residual Block, like the temporal decoder and the feature projection for covariates.
 
         Args:
-            d_model (int): _description_
-            out_channels (int): _description_
-            past_steps (int): _description_
-            future_steps (int): _description_
-            past_channels (int): _description_
-            future_channels (int): _description_
-            embs (List[int]): _description_
-
-            num_decoder_head (int): _description_
-            num_encoder_head (int): _description_
-            dropout_rate (float): _description_
-            activation (str): _description_
-            persistence_weight (float, optional): _description_. Defaults to 0.0.
-            loss_type (str, optional): _description_. Defaults to 'l1'.
-            quantiles (List[float], optional): _description_. Defaults to [].
-            optim (Union[str,None], optional): _description_. Defaults to None.
-            optim_config (Union[dict,None], optional): _description_. Defaults to None.
-            scheduler_config (Union[dict,None], optional): _description_. Defaults to None.
+            out_channels (int): number of variables to be predicted
+            past_steps (int): Lookback window length
+            future_steps (int): Horizon window length
+            past_channels (int): number of past variables
+            future_channels (int): number of future auxiliary variables 
+            embs (List[int]): 
+            hidden_size (int): first embedding size of the model ('r' in the paper)
+            d_model (int): second embedding size (r^{tilda} in the model). Should be smaller than hidden_size
+            num_added_encoder_head (int): number of OTHERS heads for the encoder part in the NN. 1 is always used by default.
+            num_added_decoder_head (int): number of OTHERS heads for the decoder part in the NN. 1 is always used by default.
+            dropout_rate (float): 
+            activation (str, optional): activation function to be used in the Residual Block. E.g., 'nn.GELU'. Defaults to ''.
+            persistence_weight (float, optional): Defaults to 0.0.
+            loss_type (str, optional): Defaults to 'l1'.
+            quantiles (List[float], optional): Defaults to [].
+            optim (Union[str,None], optional): Defaults to None.
+            optim_config (Union[dict,None], optional): Defaults to None.
+            scheduler_config (Union[dict,None], optional): Defaults to None.
         """
         
         super().__init__(**kwargs)
@@ -77,21 +81,14 @@ class TiDE(Base):
             self.use_quantiles = True
             self.loss = QuantileLossMO(quantiles)
         
-        #* >>>>>>>>>>>>> canonical data parameters
-        # dimension of the model, number of variables and sequence length info
         self.hidden_size = hidden_size # r
-        self.d_model = d_model # r_tilda
-        self.past_steps = past_steps # lookback
-        self.future_steps = future_steps # horizon
+        self.d_model = d_model # r^tilda
+        self.past_steps = past_steps # lookback size
+        self.future_steps = future_steps # horizon size
         self.past_channels = past_channels # psat_vars
         self.future_channels = future_channels # fut_vars
         self.output_channels = out_channels # target_vars
 
-
-        # import pdb
-        # pdb.set_trace()
-
-        #* >>>>>>>>>>>>> EMB LAYERS
         # for other numerical variables in the past
         self.aux_past_channels = past_channels - out_channels
         self.linear_aux_past = nn.ModuleList([nn.Linear(1, self.hidden_size) for _ in range(self.aux_past_channels)])
@@ -129,6 +126,7 @@ class TiDE(Base):
         ## TEMPORAL DECOER
         self.temporal_decoder = ResidualBlock(2*d_model, out_channels*self.mul, dropout_rate, activation)
 
+        # linear for Y lookback
         self.linear_target = nn.Linear(past_steps*out_channels, future_steps*out_channels*self.mul)
 
 
@@ -181,30 +179,21 @@ class TiDE(Base):
         else:
             aux_emb_num_fut = None # non available vars
 
-        #### TIDE FORWARD (inference should be identical!!!) -----------------------------------
-
-        ## >> RECAP VARIABLES DIMENSIONS
-        # y_past : [B, L, out_channel]              always
-        # emb_cat_past : [B, L, hidden_size]        always
-        # aux_emb_num_past : [B, L, hidden_size]    flag
-        # emb_cat_fut : [B, H, hidden_size]         always
-        # aux_emb_num_fut : [B, H, hidden_size]     flag
-
-        # past_tilda
+        # past^tilda
         if self.aux_past_channels>0:
             emb_past = torch.cat((emb_cat_past, aux_emb_num_past), dim = 2) # [B, L, 2R] #
-            proj_past = self.feat_proj_past(emb_past, True) # [B, L, R_tilda] #
+            proj_past = self.feat_proj_past(emb_past, True) # [B, L, R^tilda] #
         else:
-            proj_past = self.feat_proj_past(emb_cat_past, True) # [B, L, R_tilda] #
+            proj_past = self.feat_proj_past(emb_cat_past, True) # [B, L, R^tilda] #
 
-        # fut_tilda
+        # fut^tilda
         if self.aux_fut_channels>0:
             emb_fut = torch.cat((emb_cat_fut, aux_emb_num_fut), dim = 2) # [B, H, 2R] #
-            proj_fut = self.feat_proj_fut(emb_fut, True) # [B, H, R_tilda] #
+            proj_fut = self.feat_proj_fut(emb_fut, True) # [B, H, R^tilda] #
         else:
-            proj_fut = self.feat_proj_fut(emb_cat_fut, True) # [B, H, R_tilda] #
+            proj_fut = self.feat_proj_fut(emb_cat_fut, True) # [B, H, R^tilda] #
             
-        concat = torch.cat((y_past.view(B, -1), proj_past.view(B, -1), proj_fut.view(B, -1)), dim = 1) # [B, L*self.mul + (L+H)*R_tilda] #
+        concat = torch.cat((y_past.view(B, -1), proj_past.view(B, -1), proj_fut.view(B, -1)), dim = 1) # [B, L*self.mul + (L+H)*R^tilda] #
         dense_enc = self.first_encoder(concat)
         for lay_enc in self.aux_encoder:
             dense_enc = lay_enc(dense_enc)

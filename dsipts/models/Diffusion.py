@@ -56,7 +56,7 @@ class Diffusion(Base):
             n_layers_RNN (int): param for subnet
             d_head (int): param for subnet
             n_head (int): param for subnet
-            dropout_rate (float): param for subnet
+            dropout_rate (float):
             activation (str): param for subnet
             subnet (int): =1 for attention subnet, =2 for linear subnet. Others can be added(wait for Black Friday for discounts)
             perc_subnet_learning_for_step (float): percentage to choose how many subnet has to be trained for every batch. Decrease this value if the loss blows up.
@@ -86,7 +86,7 @@ class Diffusion(Base):
         # trade off for noise loss and distribution loss 
         self.gamma = gamma
 
-        assert len(quantiles) ==0
+        assert len(quantiles)==0 # no quantile loss
         self.mul = 1
         self.use_quantiles = False
         if self.loss_type == 'mse':
