@@ -42,8 +42,6 @@ def compare(conf:DictConfig)-> None:
         
     for conf_tmp in files:
 
-        import pdb; pdb.set_trace()
-        
         beauty_string(f'Processing file: {conf_tmp}','block',VERBOSE)
         conf_tmp =  OmegaConf.load(conf_tmp) 
         
