@@ -173,7 +173,8 @@ class DilatedConvED(Base):
         self.kind = kind
         self.out_channels = out_channels
         self.use_bilinear= use_bilinear
-
+        import pdb
+        pdb.set_trace()
         if n_classes==0:
             self.is_classification = False
             if len(quantiles)>0:
@@ -266,14 +267,7 @@ class DilatedConvED(Base):
                                             Permute() if use_bn else nn.Identity() ,
                                             nn.BatchNorm1d(hidden_RNN) if use_bn else nn.Dropout(dropout_rate) ,
                                             Permute() if use_bn else nn.Identity() ,
-                                            nn.Linear(hidden_RNN,hidden_RNN//2),
-                                            activation(),
-                                            Permute() if use_bn else nn.Identity() ,
-                                            nn.BatchNorm1d(hidden_RNN//2) if use_bn else nn.Dropout(dropout_rate) ,
-                                            Permute() if use_bn else nn.Identity() ,
-                                            nn.Linear(hidden_RNN//2,hidden_RNN//4),
-                                            activation(),
-                                            nn.Linear(hidden_RNN//4,self.mul))
+                                            nn.Linear(hidden_RNN,self.mul))
         
         if use_bilinear:
             self.bilinear = torch.nn.Bilinear((hidden_RNN//2*2)*num_layers_RNN,(hidden_RNN//2*2)*num_layers_RNN,hidden_RNN*2)
@@ -287,14 +281,7 @@ class DilatedConvED(Base):
                                                 Permute() if use_bn else nn.Identity() ,
                                                 nn.BatchNorm1d(hidden_RNN) if use_bn else nn.Dropout(dropout_rate) ,
                                                 Permute() if use_bn else nn.Identity() ,
-                                                nn.Linear(hidden_RNN,hidden_RNN//2),
-                                                activation(),
-                                                Permute() if use_bn else nn.Identity() ,
-                                                nn.BatchNorm1d(hidden_RNN//2) if use_bn else nn.Dropout(dropout_rate) ,
-                                                Permute() if use_bn else nn.Identity() ,
-                                                nn.Linear(hidden_RNN//2,hidden_RNN//4),
-                                                activation(),
-                                                nn.Linear(hidden_RNN//4,self.mul))
+                                                nn.Linear(hidden_RNN ,self.mul))
         
 
 
