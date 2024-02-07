@@ -9,7 +9,7 @@ ts:
   enrich: ['dow','hour']
   use_covariates: True
   silly: False
-
+ 
 model_configs:
   d_model: 64
   learn_var: True # True is better

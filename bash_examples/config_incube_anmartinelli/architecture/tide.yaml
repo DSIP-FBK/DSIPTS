@@ -11,10 +11,10 @@ ts:
 
 model_configs:
   hidden_size: 128
-  d_model: 32
+  d_model: 64
   activation: 'torch.nn.GELU'
-  num_added_encoder_head: 4
-  num_added_decoder_head: 4
+  num_added_encoder_head: 8
+  num_added_decoder_head: 8
   quantiles: [0.1, 0.5, 0.9]
   optim: torch.optim.Adam
   dropout_rate: 0.2
