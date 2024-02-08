@@ -91,7 +91,9 @@ class Diffusion(Base):
         
         # trade off for noise loss and distribution loss 
         self.gamma = gamma
-
+        ## can not handle quantile
+        if len(quantiles)>0:
+            quantiles = []
         assert len(quantiles) ==0
         self.mul = 1
         self.use_quantiles = False
