@@ -19,8 +19,8 @@ class TiDE(Base):
                  # specific params
                  hidden_size:int,
                  d_model: int,
-                 num_added_encoder_head: int,
-                 num_added_decoder_head: int,
+                 n_add_enc: int,
+                 n_add_dec: int,
                  dropout_rate: float,
                  activation: str='',
 
@@ -46,8 +46,8 @@ class TiDE(Base):
             embs (List[int]): 
             hidden_size (int): first embedding size of the model ('r' in the paper)
             d_model (int): second embedding size (r^{tilda} in the model). Should be smaller than hidden_size
-            num_added_encoder_head (int): number of OTHERS heads for the encoder part in the NN. 1 is always used by default.
-            num_added_decoder_head (int): number of OTHERS heads for the decoder part in the NN. 1 is always used by default.
+            n_add_enc (int): number of OTHERS heads for the encoder part in the NN. 1 is always used by default.
+            n_add_dec (int): number of OTHERS heads for the decoder part in the NN. 1 is always used by default.
             dropout_rate (float): 
             activation (str, optional): activation function to be used in the Residual Block. E.g., 'nn.GELU'. Defaults to ''.
             persistence_weight (float, optional): Defaults to 0.0.
@@ -117,11 +117,11 @@ class TiDE(Base):
         self.enc_dim_input = past_steps*self.output_channels + (past_steps+future_steps)*d_model 
         self.enc_dim_output = future_steps*d_model
         self.first_encoder = ResidualBlock(self.enc_dim_input, self.enc_dim_output, dropout_rate, activation)
-        self.aux_encoder = nn.ModuleList([ResidualBlock(self.enc_dim_output, self.enc_dim_output, dropout_rate, activation) for _ in range(1, num_added_encoder_head)])
+        self.aux_encoder = nn.ModuleList([ResidualBlock(self.enc_dim_output, self.enc_dim_output, dropout_rate, activation) for _ in range(1, n_add_enc)])
 
         # # DECODER
         self.first_decoder = ResidualBlock(self.enc_dim_output, self.enc_dim_output, dropout_rate, activation)
-        self.aux_decoder = nn.ModuleList([ResidualBlock(self.enc_dim_output, self.enc_dim_output, dropout_rate, activation) for _ in range(1, num_added_decoder_head)])
+        self.aux_decoder = nn.ModuleList([ResidualBlock(self.enc_dim_output, self.enc_dim_output, dropout_rate, activation) for _ in range(1, n_add_dec)])
 
         ## TEMPORAL DECOER
         self.temporal_decoder = ResidualBlock(2*d_model, out_channels*self.mul, dropout_rate, activation)

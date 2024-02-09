@@ -299,12 +299,6 @@ class Diffusion(Base):
 
             # always compute the loss about the straight prediction of the noise
             noise_loss = self.loss(eps_pred, actual_noise)
-
-            # if tot_loss == -1:
-            #     beauty_string(f'NOISE LOSS: {noise_loss.item()}','info',True)
-            #     beauty_string(f'ACTUAL NOISE: {actual_noise[0].min()}, {actual_noise[0].max()}, {actual_noise[0].mean()}, {actual_noise[0].var()}','info',True)
-            #     beauty_string(f'PREDICTED NOISE: {eps_pred[0].min()}, {eps_pred[0].max()}, {eps_pred[0].mean()}, {eps_pred[0].var()}','info',True)
-
             noise_loss += self.gamma*distribution_loss # add, scaled according to gamma, the distribution_loss
 
             # update the total loss
@@ -464,6 +458,7 @@ class Diffusion(Base):
         return
     
     ### >>>>>>>>>>>>> AUXILIARY MODEL FUNCS
+
     def q_sample(self, x_start: torch.Tensor, t: int)-> List[torch.Tensor]:
         """Diffuse x_start for t diffusion steps.
 
@@ -521,6 +516,7 @@ class Diffusion(Base):
         likelihood = term1 * term2
         return likelihood
 
+    # no more used 
     def gaussian_log_likelihood(self, x, mean, var):
         term1 = -0.5 * ((x - mean) / torch.sqrt(var))**2
         term2 = -0.5 * torch.log(2 * torch.tensor(np.pi) * var)
