@@ -36,8 +36,8 @@ def train(conf: DictConfig) -> None:
 
     ##OCCHIO CHE tutti questi dataset hanno y come target! ###############################################
     
-    if conf.dataset.dataset == 'edison':
-        from load_data.load_data_edison import load_data
+    if conf.dataset.dataset == 'toy':
+        from load_data.load_data_toy import load_data
     elif conf.dataset.dataset == 'incube': 
         from load_data.load_data_incube import load_data
     elif conf.dataset.dataset == 'pollen': 
