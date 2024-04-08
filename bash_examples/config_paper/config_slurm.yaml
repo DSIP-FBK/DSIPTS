@@ -11,9 +11,9 @@ optim_config:
   weight_decay: 0.0001 #001
 
 model_configs:
-  past_steps: 64
-  future_steps: 64
-  quantiles: [0.1,0.5,0.9]
+  past_steps: 100
+  future_steps: 100
+  quantiles: []
   past_channels : null #dataset dependent
   future_channels : null #dataset dependent
   embs: null #dataset dependent
@@ -35,13 +35,13 @@ split_params:
 
 
 train_config:
-  dirpath: "/storage3/DSIP/agobbi/Projects/ExpTS/weather" 
+  dirpath: "/storage3/DSIP/agobbi/Projects/ExpTS/paper" 
   num_workers: 0
   auto_lr_find: true
   devices: [0]                   
 
 inference:
-  output_path: "/storage3/DSIP/agobbi/Projects/ExpTS/weather" 
+  output_path: "/storage3/DSIP/agobbi/Projects/ExpTS/paper" 
   load_last: true
   batch_size: 200 
   num_workers: 4
