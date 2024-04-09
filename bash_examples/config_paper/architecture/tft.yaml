@@ -11,9 +11,9 @@ ts:
 
 
 model_configs:
-  d_model: 8
-  d_head: 16
-  n_head: 4
+  d_model: 32
+  d_head: 32
+  n_head: 8
   num_layers_RNN: 8
   optim: torch.optim.Adam
   dropout_rate: 0.2
