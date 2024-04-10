@@ -1,0 +1,33 @@
+# @package _global_
+
+model:
+  type: 'dilated_conv_vae'
+  retrain: true
+ts:
+  name: 'test'
+  version: 1
+  enrich: ['hour']
+  use_covariates: true
+  use_future_covariates: 'false'
+
+
+model_configs:
+  cat_emb_dim: 32
+  hidden_RNN: 16
+  num_layers_RNN: 2
+  kernel_size: 3
+  kind: 'gru'
+  sum_emb: true
+  use_bn: false
+  dropout_rate: 0.25
+  optim: torch.optim.Adam
+  activation: torch.nn.GELU
+  persistence_weight: 0.010
+  loss_type: 'mse'
+  use_cumsum: false
+
+train_config:
+  batch_size: 64
+  max_epochs: 500
+  gradient_clip_val: null
+  gradient_clip_algorithm: 'norm'

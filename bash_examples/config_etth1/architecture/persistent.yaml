@@ -1,0 +1,19 @@
+# @package _global_
+
+model:
+  type: 'persistent'
+  retrain: true
+ts:
+  name: 'persistent'
+  version: 1
+  enrich: ['hour']
+  use_covariates: true
+
+
+split_params:
+  shift: 0
+
+train_config:
+  batch_size: 256
+  max_epochs: 0
+                             
