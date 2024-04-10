@@ -1,32 +1,31 @@
 # @package _global_
 
 model:
-  type: 'patchtst'
+  type: 'rnn'
   retrain: true
 ts:
-  name: 'test'
+  name: 'lstm'
   version: 1
   enrich: []
   use_covariates: true
 
 
 model_configs:
-  d_model: 16
+  cat_emb_dim: 128
+  hidden_RNN: 128
+  num_layers_RNN: 2
   kernel_size: 3
-  decomposition: true
-  n_layer: 8
-  patch_len: 8
-  n_head: 4
-  stride: 8 #non overlapping?
-  dropout_rate: 0.25
-  hidden_size: 32
+  kind: 'lstm'
+  sum_emb: true
+  use_bn: true  
   optim: torch.optim.Adam
   activation: torch.nn.PReLU
-  persistence_weight: 0.1
+  dropout_rate: 0.5
+  persistence_weight: 0.010
   loss_type: 'l1'
   remove_last: true
-
+  
 train_config:
-  batch_size: 50
-  max_epochs: 600
+  batch_size: 128
+  max_epochs: 1000
             

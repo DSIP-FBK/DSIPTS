@@ -1,7 +1,8 @@
 #models: ['config_used/attention.yaml','config_used/persistent.yaml','config_used/linear.yaml','config_used/dlinear.yaml','config_used/nlinear.yaml','config_used/lstm.yaml','config_used/gru.yaml']
-models: 'config_paper' 
+models: 'config_traffic' 
 #models: ['config_weather/config_used/crossformer_test_1.yaml']
-dirpath: "/storage3/DSIP/agobbi/Projects/ExpTS/paper"
+dirpath: "/storage3/DSIP/agobbi/Projects/ExpTS/traffic"
+
 set: 'test'
 name: 'prova'
 rescaling: true

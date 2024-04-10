@@ -1,19 +1,19 @@
 dataset:
-  dataset: 'toy'  
+  dataset: 'traffic'  
   path: '/storage3/DSIP/agobbi/Projects/ExpTS/data'
 
 scheduler_config:
   gamma: 0.75
-  step_size: 250
+  step_size: 2500
 
 optim_config:
   lr: 0.00005
   weight_decay: 0.0001 #001
 
 model_configs:
-  past_steps: 100
-  future_steps: 100
-  quantiles: []
+  past_steps: 64
+  future_steps: 64
+  quantiles: [] #[0.1,0.5,0.9]
   past_channels : null #dataset dependent
   future_channels : null #dataset dependent
   embs: null #dataset dependent
@@ -22,8 +22,8 @@ model_configs:
   persistence_weight: 1.0
 
 split_params:
-  perc_train: 0.8
-  perc_valid: 0.1
+  perc_train: 0.6
+  perc_valid: 0.2
   range_train: null
   range_validation: null
   range_test: null
@@ -35,17 +35,18 @@ split_params:
 
 
 train_config:
-  dirpath: "/storage3/DSIP/agobbi/Projects/ExpTS/paper" 
+  dirpath: "/storage3/DSIP/agobbi/Projects/ExpTS/traffic" 
   num_workers: 0
   auto_lr_find: true
   devices: [0]                   
+  seed: 42    
 
 inference:
-  output_path: "/storage3/DSIP/agobbi/Projects/ExpTS/paper" 
+  output_path: "/storage3/DSIP/agobbi/Projects/ExpTS/traffic" 
   load_last: true
   batch_size: 200 
   num_workers: 4
-  set: "validation"
+  set: "test"
   rescaling: true
 
 defaults:
@@ -56,7 +57,7 @@ defaults:
 hydra:
   launcher:
     submitit_folder: ${hydra.sweep.dir}/.submitit/%j
-    timeout_min: 9000
+    timeout_min: 8000
     partition: gpu-V100 #A40 #gpu-V100
     mem_gb: 6
     nodes: 1
