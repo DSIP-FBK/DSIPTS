@@ -124,7 +124,7 @@ def read_public_dataset(path:str,dataset:str)->Tuple[pd.DataFrame,List[str]]:
         dataset = pd.read_csv(os.path.join(path,'all_six_datasets/electricity/electricity.csv'),sep=',',na_values=-9999)
     elif dataset=='etth1':
         dataset = pd.read_csv(os.path.join(path,'all_six_datasets/ETT-small/ETTh1.csv'),sep=',',na_values=-9999)  
-    elif dataset=='etth1':
+    elif dataset=='etth2':
         dataset = pd.read_csv(os.path.join(path,'all_six_datasets/ETT-small/ETTh2.csv'),sep=',',na_values=-9999)
     elif dataset=='ettm1':
         dataset = pd.read_csv(os.path.join(path,'all_six_datasets/ETT-small/ETTm1.csv'),sep=',',na_values=-9999)
