@@ -32,9 +32,12 @@ class ITransformer(Base):
                  n_head: int,
                  n_layer_decoder: int,
                  use_norm: bool,
-                 dropout_rate: float,
-                 activation: str='',
                  class_strategy: str = 'projection', #projection/average/cls_token
+
+                 
+                 
+                 dropout_rate: float=0.1,
+                 activation: str='',
                  
                  persistence_weight:float=0.0,
                  loss_type: str='l1',
@@ -53,16 +56,19 @@ class ITransformer(Base):
             future_steps (int): Horizon window length
             past_channels (int): number of past variables
             future_channels (int): number of future auxiliary variables 
-            embs (List[int]): 
+            embs (List[int]): list of embeddings
             hidden_size (int): first embedding size of the model ('r' in the paper)
             d_model (int): second embedding size (r^{tilda} in the model). Should be smaller than hidden_size
-            n_add_enc (int): number of OTHERS heads for the encoder part in the NN. 1 is always used by default.
-            n_add_dec (int): number of OTHERS heads for the decoder part in the NN. 1 is always used by default.
+            n_head (int): number of heads
+            n_layer_decoder (int): number layers
             dropout_rate (float): 
-            activation (str, optional): activation function to be used in the Residual Block. E.g., 'nn.GELU'. Defaults to ''.
+            use_norm (bool): use normalization
+            class_strategy (str): strategy (see paper) projection/average/cls_token
+            
+            activation (str, optional): activation function to be used 'nn.GELU'.
             persistence_weight (float, optional): Defaults to 0.0.
             loss_type (str, optional): Defaults to 'l1'.
-            quantiles (List[float], optional): Defaults to [].
+            quantiles (List[float], optional): Defaults to []. NOT USED
             optim (Union[str,None], optional): Defaults to None.
             optim_config (Union[dict,None], optional): Defaults to None.
             scheduler_config (Union[dict,None], optional): Defaults to None.
