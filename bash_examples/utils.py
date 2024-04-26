@@ -1,5 +1,4 @@
-
-from dsipts import RNN, LinearTS, Persistent, D3VAE, DilatedConv, TFT, Informer,VVA,VQVAEA,CrossFormer,Autoformer,PatchTST,Diffusion,DilatedConvED,TIDE,beauty_string
+from dsipts import RNN, LinearTS, Persistent, D3VAE, DilatedConv, TFT, Informer,VVA,VQVAEA,CrossFormer,Autoformer,PatchTST,Diffusion,DilatedConvED,TIDE,ITransformer,beauty_string
 import numpy as np
 from sklearn.metrics import mean_squared_error
 import os
@@ -118,6 +117,9 @@ def select_model(conf, model_conf,ts):
     elif conf.model.type == 'tide':
         model =  TIDE(**model_conf,   optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config,verbose=ts.verbose )  
+    elif conf.model.type == 'itransformer':
+        model =  ITransformer(**model_conf,   optim_config = conf.optim_config,
+                          scheduler_config =conf.scheduler_config,verbose=ts.verbose )  
     else:
         model = None
         beauty_string(f"Not a valid model { conf.model.type}-{conf.ts.name}-{conf.ts.version}",'block',ts.verbose)
@@ -162,6 +164,8 @@ def load_model(ts,conf):
         ts.load(DilatedConvED,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
     elif conf.model.type == 'tide':
         ts.load(TIDE,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
+    elif conf.model.type == 'itrasnformer':
+        ts.load(ITransformer,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
     else:
         beauty_string('NO VALID MODEL FOUND','block',ts.verbose)
         loaded=False

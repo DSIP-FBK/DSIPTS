@@ -19,3 +19,4 @@ from .models.PatchTST import PatchTST
 from .models.Diffusion import Diffusion
 from .models.DilatedConvED import DilatedConvED
 from .models.TIDE import TIDE
+from .models.ITransformer import ITransformer
