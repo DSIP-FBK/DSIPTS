@@ -193,8 +193,8 @@ class ITransformer(Base):
 
 
         ##row 124 Transformer/experiments/exp_long_term_forecasting.py ma in realta' NON USATO!
-        x_dec = torch.zeros(x_enc.shape[0],self.pred_len,self.out_channels).float()
-        x_dec = torch.cat([batch['y'], x_dec], dim=1).float().to(self.device)
+        x_dec = torch.zeros(x_enc.shape[0],self.pred_len,self.out_channels).float().to(self.device)
+        x_dec = torch.cat([batch['y'].to(self.device), x_dec], dim=1).float()
 
         dec_out = self.forecast(x_enc, x_mark_enc, x_dec, x_mark_dec)
         idx_target = batch['idx_target'][0]
