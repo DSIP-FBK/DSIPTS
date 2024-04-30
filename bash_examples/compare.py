@@ -72,7 +72,7 @@ def compare(conf:DictConfig)-> None:
         
         except Exception as e:
             beauty_string(f'Can not load model {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} {e} ','',True)
-            beauty_string(f'ERROR:{traceback.format_exc()}')
+            beauty_string(f'ERROR:{traceback.format_exc()}','block',True)
             pass
 
     tot_losses = pd.concat(tot_losses,ignore_index=True)
