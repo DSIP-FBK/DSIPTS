@@ -55,20 +55,24 @@ def compare(conf:DictConfig)-> None:
 
         try:
             tmp,predictions, losses = inference(conf_tmp)
-            tmp['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
-            predictions['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
-            if losses is not None:
-                losses['epoch'] = list(range(losses.shape[0]))
-                losses = losses.melt(id_vars='epoch')
-                losses['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
-            else:
-                beauty_string(f'Can not load losses {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} maybe the train procedure is not completed','block',True)
-                beauty_string(f'ERROR:{traceback.format_exc()}','block',True)
+            if tmp is not None:
+                tmp['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
+                predictions['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
+                if losses is not None:
+                    losses['epoch'] = list(range(losses.shape[0]))
+                    losses = losses.melt(id_vars='epoch')
+                    losses['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
+                else:
+                    beauty_string(f'Can not load losses {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} maybe the train procedure is not completed','block',True)
+                    beauty_string(f'ERROR:{traceback.format_exc()}','block',True)
 
-            losses.value = np.log(losses.value)
-            res.append(tmp )
-            tot_losses.append(losses)
-            tot_predictions.append(predictions)
+                losses.value = np.log(losses.value)
+                res.append(tmp )
+                tot_losses.append(losses)
+                tot_predictions.append(predictions)
+            else:
+                beauty_string(f'Can not load model {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} check function inference and load_model','',True)
+
         
         except Exception as e:
             beauty_string(f'Can not load model {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} {e} ','',True)
