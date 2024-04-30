@@ -63,7 +63,7 @@ def compare(conf:DictConfig)-> None:
                 losses['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
             else:
                 beauty_string(f'Can not load losses {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} maybe the train procedure is not completed','block',True)
-                beauty_string(f'ERROR:{traceback.format_exc()}')
+                beauty_string(f'ERROR:{traceback.format_exc()}','block',True)
 
             losses.value = np.log(losses.value)
             res.append(tmp )
