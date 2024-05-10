@@ -156,9 +156,10 @@ class TIDE(Base):
 
         # LOADING EMBEDDING CATEGORICAL VARIABLES
         emb_cat_past, emb_cat_fut = self.cat_categorical_vars(batch)
+      
         emb_cat_past = torch.mean(emb_cat_past, dim = 2)
         emb_cat_fut = torch.mean(emb_cat_fut, dim = 2)
-
+      
         ### LOADING PAST AND FUTURE NUMERICAL VARIABLES
         # load in the model auxiliar numerical variables
 
@@ -231,16 +232,26 @@ class TIDE(Base):
         Returns:
             List[torch.Tensor, torch.Tensor]: cat_emb_past, cat_emb_fut
         """
+        cat_past = None
+        cat_fut = None
         # GET AVAILABLE CATEGORICAL CONTEXT
-        cat_past = batch['x_cat_past'].to(self.device)
-        cat_fut = batch['x_cat_future'].to(self.device)
+        if 'x_cat_past' in batch.keys():
+            cat_past = batch['x_cat_past'].to(self.device)
+        if 'x_cat_future' in batch.keys():
+            cat_fut = batch['x_cat_future'].to(self.device)
         # CONCAT THEM, according to self.emb_cat_var usage  
-        cat_full = torch.cat((cat_past, cat_fut), dim = 1)
-        # actual embedding
-        emb_cat_full = self.emb_cat_var(cat_full)
-        # split past and future categorical embedded variables
-        cat_emb_past = emb_cat_full[:,:self.past_steps,:,:]
-        cat_emb_fut = emb_cat_full[:,-self.future_steps:,:,:]
+        if cat_past is None:
+            emb_cat_full = self.emb_cat_var([])
+            # split past and future categorical embedded variables
+            cat_emb_past = emb_cat_full[:,:self.past_steps,:,:]
+            cat_emb_fut = emb_cat_full[:,-self.future_steps:,:,:]
+        else:
+            cat_full = torch.cat((cat_past, cat_fut), dim = 1)
+            # actual embedding
+            emb_cat_full = self.emb_cat_var(cat_full)
+            # split past and future categorical embedded variables
+            cat_emb_past = emb_cat_full[:,:self.past_steps,:,:]
+            cat_emb_fut = emb_cat_full[:,-self.future_steps:,:,:]
 
         return cat_emb_past, cat_emb_fut
 
