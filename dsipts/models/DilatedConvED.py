@@ -368,6 +368,8 @@ class DilatedConvED(Base):
             if self.use_cumsum:
                 final = torch.cumsum(future,axis=1).permute(0,2,1)+past.unsqueeze(2).repeat(1,1,self.future_steps)
             else:
+                import pdb
+                pdb.set_trace()
                 final = future.permute(0,2,1)+past.unsqueeze(2).repeat(1,1,self.future_steps)
             
         res= self.final_linear_decoder(final.permute(0,2,1)).reshape(BS,self.future_steps,self.out_channels,self.mul)
