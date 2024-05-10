@@ -40,6 +40,8 @@ def train(conf: DictConfig) -> None:
         from load_data.load_data_incube import load_data
     elif conf.dataset.dataset == 'pollen': 
         from load_data.load_data_pollen import load_data
+    elif conf.dataset.dataset == 'temps': 
+        from load_data.load_data_temps import load_data
     else:
         from load_data.load_data_public import load_data
     try:

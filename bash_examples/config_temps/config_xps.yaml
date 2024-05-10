@@ -1,0 +1,74 @@
+dataset:
+  dataset: 'temps'  
+  path: '/home/agobbi/Projects/ExpTS/data'
+
+scheduler_config:
+  gamma: 0.75
+  step_size: 2500
+
+optim_config:
+  lr: 0.00005
+  weight_decay: 0.0001 #001
+
+model_configs:
+  past_steps: 1095
+  future_steps: 120
+  quantiles: [] #[0.1,0.5,0.9]
+  past_channels : null #dataset dependent
+  future_channels : null #dataset dependent
+  embs: null #dataset dependent
+  out_channels: null #dataset dependent
+  loss_type: null
+  persistence_weight: 1.0
+
+split_params:
+  perc_train: 0.6
+  perc_valid: 0.2
+  range_train: null
+  range_validation: null
+  range_test: null
+  shift: 0
+  starting_point: null
+  skip_step: 1
+  past_steps: model_configs@past_steps 
+  future_steps: model_configs@future_steps
+
+
+train_config:
+  dirpath: "/home/agobbi/Projects/ExpTS/temps" 
+  num_workers: 0
+  auto_lr_find: true
+  devices: [0]                   
+  seed: 42    
+
+inference:
+  output_path: "/home/agobbi/Projects/ExpTS/temps" 
+  load_last: true
+  batch_size: 200 
+  num_workers: 4
+  set: "test"
+  rescaling: true
+
+defaults:
+  - _self_
+  - architecture: null 
+  - override hydra/launcher: joblib 
+
+hydra:
+  launcher:
+    n_jobs:  4
+    verbose: 1
+    pre_dispatch: 4
+    batch_size: 4
+    _target_: hydra_plugins.hydra_joblib_launcher.joblib_launcher.JoblibLauncher
+
+ 
+ 
+
+  output_subdir: null 
+  sweeper:
+    params:
+      architecture: glob(*) 
+
+
+#python train.py  --config-dir=config_etth1 --config-name=config_xps -m architecture=itransformer model_configs.loss_type=mse,exponential_penalization,linear_penalization,additive_iv,multiplicative_iv,global_iv,smape,high_order,dilated,mda

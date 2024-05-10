@@ -1,0 +1,26 @@
+# @package _global_
+
+model:
+  type: 'tft'
+  retrain: true
+ts:
+  name: 'weather'
+  version: 1
+  enrich: ['hour']
+  use_covariates: true
+
+
+model_configs:
+  d_model: 128
+  d_head: 64
+  n_head: 8
+  num_layers_RNN: 4
+  optim: torch.optim.Adam
+  dropout_rate: 0.25
+  persistence_weight: 1
+  loss_type: 'mse'
+
+train_config:
+  batch_size: 32
+  max_epochs: 800
+            
