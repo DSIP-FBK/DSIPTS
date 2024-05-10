@@ -241,17 +241,13 @@ class TIDE(Base):
             cat_fut = batch['x_cat_future'].to(self.device)
         # CONCAT THEM, according to self.emb_cat_var usage  
         if cat_past is None:
-            emb_cat_full = self.emb_cat_var([])
-            # split past and future categorical embedded variables
-            cat_emb_past = emb_cat_full[:,:self.past_steps,:,:]
-            cat_emb_fut = emb_cat_full[:,-self.future_steps:,:,:]
+            emb_cat_full = self.emb_cat_var(batch['x_num_past'].shape[0])
+
         else:
             cat_full = torch.cat((cat_past, cat_fut), dim = 1)
-            # actual embedding
             emb_cat_full = self.emb_cat_var(cat_full)
-            # split past and future categorical embedded variables
-            cat_emb_past = emb_cat_full[:,:self.past_steps,:,:]
-            cat_emb_fut = emb_cat_full[:,-self.future_steps:,:,:]
+        cat_emb_past = emb_cat_full[:,:self.past_steps,:,:]
+        cat_emb_fut = emb_cat_full[:,-self.future_steps:,:,:]
 
         return cat_emb_past, cat_emb_fut
 

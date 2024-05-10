@@ -208,13 +208,15 @@ class TFT(Base):
             cat_full = torch.cat((cat_past, cat_fut), dim = 1)
             # EMB CATEGORICAL VARIABLES AND THEN SPLIT IN PAST AND FUTURE
             emb_cat_full = self.emb_cat_var(cat_full)
-            cat_emb_past = emb_cat_full[:,:-self.future_steps,:,:]
-            cat_emb_fut = emb_cat_full[:,-self.future_steps:,:,:]
-            ## update summary
-            # past
-            summary_past = torch.cat((summary_past, cat_emb_past), dim=2)
-            # future
-            summary_fut = torch.cat((summary_fut, cat_emb_fut), dim=2)
+        else:
+            emb_cat_full = self.emb_cat_var(num_past.shape[0])
+        cat_emb_past = emb_cat_full[:,:-self.future_steps,:,:]
+        cat_emb_fut = emb_cat_full[:,-self.future_steps:,:,:]
+        ## update summary
+        # past
+        summary_past = torch.cat((summary_past, cat_emb_past), dim=2)
+        # future
+        summary_fut = torch.cat((summary_fut, cat_emb_fut), dim=2)
 
         # >>> PAST:
         summary_past = torch.mean(summary_past, dim=2)

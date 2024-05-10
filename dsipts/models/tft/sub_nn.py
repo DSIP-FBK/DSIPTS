@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from typing import Union
 
 class embedding_cat_variables(nn.Module):
     # at the moment cat_past and cat_fut together
@@ -22,7 +23,7 @@ class embedding_cat_variables(nn.Module):
             nn.Embedding(emb_dim, d_model) for emb_dim in self.cat_embeds
         ])
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: Union[torch.Tensor,int]) -> torch.Tensor:
         """All components of x are concatenated with 3 new variables for data augmentation, in the order:
         - pos_seq: assign at each step its time-position
         - pos_fut: assign at each step its future position. 0 if it is a past step
@@ -34,9 +35,9 @@ class embedding_cat_variables(nn.Module):
         Returns:
             torch.Tensor: [bs, seq_len, num_vars+3, n_embd] 
         """
-        if x is None: ## to check
+        if isinstance(x, int):
             no_emb = True
-            B = x.item()
+            B = x
         else:
             no_emb = False
             B, _, _ = x.shape
