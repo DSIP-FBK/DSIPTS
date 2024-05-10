@@ -349,7 +349,8 @@ class DilatedConvED(Base):
             tot = torch.cat(tmp,2)
             out_future, hidden_future = self.Decoder(self.conv_decoder(tot))  
         else:
-            out_future, hidden_future = self.Decoder(self.conv_decoder(out_past))  
+            out_future, hidden_future = self.Decoder(self.conv_decoder(out_past))
+            out_future = out_future[:,-1:,].repeat(1,self.future_steps,1) ##worakaround to check
         ##hidden state of the past --> initial state
 
         if self.kind=='lstm':
@@ -368,8 +369,6 @@ class DilatedConvED(Base):
             if self.use_cumsum:
                 final = torch.cumsum(future,axis=1).permute(0,2,1)+past.unsqueeze(2).repeat(1,1,self.future_steps)
             else:
-                import pdb
-                pdb.set_trace()
                 final = future.permute(0,2,1)+past.unsqueeze(2).repeat(1,1,self.future_steps)
             
         res= self.final_linear_decoder(final.permute(0,2,1)).reshape(BS,self.future_steps,self.out_channels,self.mul)
