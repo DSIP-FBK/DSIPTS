@@ -71,4 +71,4 @@ hydra:
       architecture: glob(*) 
 
 
-#python train.py  --config-dir=config_etth1 --config-name=config_xps -m architecture=itransformer model_configs.loss_type=mse,exponential_penalization,linear_penalization,additive_iv,multiplicative_iv,global_iv,smape,high_order,dilated,mda
+#python train.py  --config-dir=config_temps --config-name=config_xps -m architecture=itransformer,tft,dlinear,dilated_conv_ed,patchtst,tide,gru,linear,crossformer,informer model_configs.loss_type=mse
