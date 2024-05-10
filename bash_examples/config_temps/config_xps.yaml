@@ -72,3 +72,5 @@ hydra:
 
 
 #python train.py  --config-dir=config_temps --config-name=config_xps -m architecture=itransformer,tft,dlinear,dilated_conv_ed,patchtst,tide,gru,linear,crossformer,informer model_configs.loss_type=mse
+
+#python train.py  --config-dir=config_temps --config-name=config_xps architecture=tide model_configs.loss_type=mse

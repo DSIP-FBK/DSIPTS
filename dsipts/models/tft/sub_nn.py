@@ -34,7 +34,7 @@ class embedding_cat_variables(nn.Module):
         Returns:
             torch.Tensor: [bs, seq_len, num_vars+3, n_embd] 
         """
-        if (x is None) or len(x.shape)==0:
+        if x is None: ## to check
             no_emb = True
             B = x.item()
         else:
