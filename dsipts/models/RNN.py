@@ -242,7 +242,8 @@ class RNN(Base):
         if x_future is not None:
             tmp.append(x_future)
             
-
+        import pdb
+        pdb.set_trace()
         if len(tmp)>0:
             tot = torch.cat(tmp,2)
         else:

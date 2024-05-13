@@ -428,8 +428,16 @@ class Diffusion(Base):
             List[torch.Tensor, torch.Tensor]: cat_emb_past, cat_emb_fut
         """
         # GET AVAILABLE CATEGORICAL CONTEXT
-        cat_past = batch['x_cat_past'].to(self.device)
-        cat_fut = batch['x_cat_future'].to(self.device)
+        if 'x_cat_past' in batch.keys() and 'x_cat_future' in batch.keys(): # if we have both
+            # HERE WE ASSUME SAME NUMBER AND KIND OF VARIABLES IN PAST AND FUTURE
+            cat_past = batch['x_cat_past'].to(self.device)
+            cat_fut = batch['x_cat_future'].to(self.device)
+            cat_full = torch.cat((cat_past, cat_fut), dim = 1)
+            # EMB CATEGORICAL VARIABLES AND THEN SPLIT IN PAST AND FUTURE
+            emb_cat_full = self.emb_cat_var(cat_full,batch['x_num_past'].device)
+        else:
+            emb_cat_full = self.emb_cat_var(batch['x_num_past'].shape[0],batch['x_num_past'].device)
+
         # CONCAT THEM, according to self.emb_cat_var usage  
         cat_full = torch.cat((cat_past, cat_fut), dim = 1)
         # actual embedding

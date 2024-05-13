@@ -45,8 +45,7 @@ class embedding_cat_variables(nn.Module):
         pos_seq = self.get_pos_seq(bs=B).to(device)
         pos_fut = self.get_pos_fut(bs=B).to(device)
         is_fut = self.get_is_fut(bs=B).to(device)
-        import pdb
-        pdb.set_trace()
+
         if no_emb:
             cat_vars = torch.cat((pos_seq, pos_fut, is_fut), dim=2)
         else:
