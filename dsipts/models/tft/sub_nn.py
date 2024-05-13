@@ -23,7 +23,7 @@ class embedding_cat_variables(nn.Module):
             nn.Embedding(emb_dim, d_model) for emb_dim in self.cat_embeds
         ])
 
-    def forward(self, x: Union[torch.Tensor,int]) -> torch.Tensor:
+    def forward(self, x: Union[torch.Tensor,int],device:torch.device) -> torch.Tensor:
         """All components of x are concatenated with 3 new variables for data augmentation, in the order:
         - pos_seq: assign at each step its time-position
         - pos_fut: assign at each step its future position. 0 if it is a past step
@@ -42,9 +42,9 @@ class embedding_cat_variables(nn.Module):
             no_emb = False
             B, _, _ = x.shape
         
-        pos_seq = self.get_pos_seq(bs=B).to(self.device)
-        pos_fut = self.get_pos_fut(bs=B).to(self.device)
-        is_fut = self.get_is_fut(bs=B).to(self.device)
+        pos_seq = self.get_pos_seq(bs=B).to(device)
+        pos_fut = self.get_pos_fut(bs=B).to(device)
+        is_fut = self.get_is_fut(bs=B).to(device)
         import pdb
         pdb.set_trace()
         if no_emb:
