@@ -210,6 +210,7 @@ class TFT(Base):
             emb_cat_full = self.emb_cat_var(cat_full)
         else:
             emb_cat_full = self.emb_cat_var(num_past.shape[0])
+            
         cat_emb_past = emb_cat_full[:,:-self.future_steps,:,:]
         cat_emb_fut = emb_cat_full[:,-self.future_steps:,:,:]
         ## update summary
