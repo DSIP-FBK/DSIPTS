@@ -242,13 +242,11 @@ class RNN(Base):
         if x_future is not None:
             tmp.append(x_future)
             
-        import pdb
-        pdb.set_trace()
         if len(tmp)>0:
             tot = torch.cat(tmp,2)
         else:
             tot = out
-        out, _ = self.Decoder(self.conv_decoder(tot),hidden)  
+        out, _ = self.Decoder(self.conv_decoder(tot[:,-1:,:].repeat(1,self.future_steps,1)),hidden)  
         res = []
 
       
