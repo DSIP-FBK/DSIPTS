@@ -4,7 +4,7 @@ model:
   type: 'linear'
   retrain: true
 ts:
-  name: 'd'
+  name: 'test2'
   version: 1
   enrich: []
   use_covariates: true

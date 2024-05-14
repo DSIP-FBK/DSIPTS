@@ -4,7 +4,7 @@ model:
   type: 'patchtst'
   retrain: true
 ts:
-  name: 'weather'
+  name: 'prova2'
   version: 1
   enrich: ['hour']
   use_covariates: true
@@ -28,5 +28,5 @@ model_configs:
 
 train_config:
   batch_size: 32
-  max_epochs: 200
+  max_epochs: 2000
             

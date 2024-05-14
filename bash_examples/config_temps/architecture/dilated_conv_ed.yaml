@@ -4,7 +4,7 @@ model:
   type: 'dilated_conv_ed'
   retrain: true
 ts:
-  name: 'test'
+  name: 'test2'
   version: 1
   enrich: ['hour']
   use_covariates: true
@@ -13,8 +13,8 @@ ts:
 
 model_configs:
   cat_emb_dim: 32
-  hidden_RNN: 16
-  num_layers_RNN: 2
+  hidden_RNN: 8
+  num_layers_RNN: 1
   kernel_size: 3
   kind: 'gru'
   sum_emb: true

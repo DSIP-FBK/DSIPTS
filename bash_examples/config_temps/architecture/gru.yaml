@@ -4,7 +4,7 @@ model:
   type: 'rnn'
   retrain: true
 ts:
-  name: 'gru'
+  name: 'gru2'
   version: 1
   enrich: []
   use_covariates: true
@@ -13,7 +13,7 @@ ts:
 model_configs:
   cat_emb_dim: 128
   hidden_RNN: 128
-  num_layers_RNN: 2
+  num_layers_RNN: 4
   kernel_size: 3
   kind: 'gru'
   sum_emb: true
@@ -27,5 +27,5 @@ model_configs:
 
 train_config:
   batch_size: 128
-  max_epochs: 1000
+  max_epochs: 4000
             

@@ -4,16 +4,16 @@ model:
   type: 'itransformer'
   retrain: true
 ts:
-  name: 'test'
+  name: 'test2'
   version: 1
   enrich: []
   use_covariates: true
 
 
 model_configs:
-  d_model: 256
-  n_head: 7
-  hidden_size: 128
+  d_model: 32
+  n_head: 4
+  hidden_size: 64
   dropout_rate: 0.1
   n_layer_decoder: 2
   use_norm: True
