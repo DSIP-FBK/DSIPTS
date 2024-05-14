@@ -50,8 +50,7 @@ class embedding_cat_variables(nn.Module):
             cat_vars = torch.cat((pos_seq, pos_fut, is_fut), dim=2)
         else:
             cat_vars = torch.cat((x, pos_seq, pos_fut, is_fut), dim=2)
-        import pdb
-        pdb.set_trace()
+
         cat_n_embd = self.get_cat_n_embd(cat_vars)
         return cat_n_embd
 

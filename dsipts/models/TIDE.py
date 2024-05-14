@@ -242,7 +242,7 @@ class TIDE(Base):
             cat_fut = batch['x_cat_future'].to(self.device)
         # CONCAT THEM, according to self.emb_cat_var usage  
         if cat_past is None:
-            emb_cat_full = self.emb_cat_var(batch['x_num_past'].shape[0],batch['x_num_past'].device)
+            emb_cat_full = self.emb_cat_var(batch['x_num_past'].shape[0],self.device)
 
         else:
             cat_full = torch.cat((cat_past, cat_fut), dim = 1)
