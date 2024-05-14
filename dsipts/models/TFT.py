@@ -199,7 +199,8 @@ class TFT(Base):
                 aux_emb_num_fut = torch.cat((aux_emb_num_fut, aux_emb_fut), dim=2)
             ## update summary about future
             summary_fut = torch.cat((summary_fut, aux_emb_num_fut), dim=2)
-
+        import pdb
+        pdb.set_trace()
         ### CATEGORICAL VARIABLES 
         if 'x_cat_past' in batch.keys() and 'x_cat_future' in batch.keys(): # if we have both
             # HERE WE ASSUME SAME NUMBER AND KIND OF VARIABLES IN PAST AND FUTURE
