@@ -7,6 +7,7 @@ from pytorch_lightning import Callback
 import torch
 import os
 import logging
+from typing import Union
 def beauty_string(message:str,type:str,verbose:bool):
     
     size = 150
@@ -33,7 +34,7 @@ def beauty_string(message:str,type:str,verbose:bool):
 
 
 
-def extend_time_df(x:pd.DataFrame,freq:str,group:Union[str,None]=None,global_minmax:bool=False)-> pd.DataFrame:
+def extend_time_df(x:pd.DataFrame,freq:Union[str,int],group:Union[str,None]=None,global_minmax:bool=False)-> pd.DataFrame:
     """Utility for generating a full dataset and then merge the real data
 
     Args:
@@ -46,7 +47,10 @@ def extend_time_df(x:pd.DataFrame,freq:str,group:Union[str,None]=None,global_min
     """
 
     if group is None:
-        empty = pd.DataFrame({'time':pd.date_range(x.time.min(),x.time.max(),freq=freq)})
+        if isinstance(freq,str):
+            empty = pd.DataFrame({'time':pd.date_range(x.time.min(),x.time.max(),freq=freq)})
+        else:
+            empty = pd.DataFrame({'time':list(range(x.time.min(),x.time.max(),freq))})
     else:
         if global_minmax:
             _min = pd.DataFrame({group:x[group].unique(),'time':x.time.min()})
