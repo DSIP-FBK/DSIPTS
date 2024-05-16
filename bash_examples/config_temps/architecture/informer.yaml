@@ -4,18 +4,18 @@ model:
   type: 'informer'
   retrain: true
 ts:
-  name: 'test2'
+  name: 'test3'
   version: 1
   enrich: []
   use_covariates: true
 
 
 model_configs:
-  d_model: 64
-  hidden_size: 64
-  n_layer_encoder: 4
-  n_layer_decoder: 4
-  n_head: 4
+  d_model: 16
+  hidden_size: 16
+  n_layer_encoder: 2
+  n_layer_decoder: 2
+  n_head: 2
   dropout_rate: 0.5
   optim: torch.optim.Adam
   activation: torch.nn.ReLU
