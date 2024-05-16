@@ -1,0 +1,35 @@
+# @package _global_
+
+model:
+  type: 'autoformer'
+  retrain: true
+ts:
+  name: 'test'
+  version: 1
+  enrich: ['']
+  use_covariates: false
+
+
+
+model_configs:
+  d_model: 32
+  kernel_size: 3
+  n_layer_encoder: 2
+  n_layer_decoder: 2
+  label_len: 12
+  n_head: 4
+  dropout_rate: 0.25
+  factor: 5
+  hidden_size: 64
+  optim: torch.optim.Adam
+  activation: torch.nn.PReLU
+  persistence_weight: 0.010
+  loss_type: 'l1'
+
+train_config:
+  batch_size: 64
+  max_epochs: 200
+            
+split_params:
+  shift: ${model_configs.label_len}
+  keep_entire_seq_while_shifting: true
