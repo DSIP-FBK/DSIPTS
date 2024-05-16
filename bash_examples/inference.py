@@ -68,7 +68,6 @@ def inference(conf:DictConfig)->List[pd.DataFrame]:
             losses : containing the losses during the train
     """
 
-    
 
     if conf.dataset.dataset == 'incube': 
         from load_data.load_data_incube import load_data
