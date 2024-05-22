@@ -1,0 +1,26 @@
+# @package _global_
+
+model:
+  type: 'rnn'
+  retrain: true
+ts:
+  name: 'weather_xlstm'
+  version: 1
+  enrich: ['hour']
+  use_covariates: false
+
+model_configs:
+  cat_emb_dim: 16
+  hidden_RNN: 12
+  num_layers_RNN: 3
+  kernel_size: 5
+  kind: 'xlstm'
+  sum_emb: true
+  num_blocks: 2
+  bidirectional: True
+  lstm_type: slstm
+
+train_config:
+  batch_size: 256
+  max_epochs: 3
+            

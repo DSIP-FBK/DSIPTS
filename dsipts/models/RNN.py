@@ -6,6 +6,7 @@ from .utils import QuantileLossMO,Permute,get_activation
 from typing import List,Union
 from ..data_structure.utils import beauty_string
 from .utils import  get_scope
+from .xlstm.xLSTM import xLSTM
 
 class MyBN(nn.Module):
     def __init__(self,channels):
@@ -39,6 +40,9 @@ class RNN(Base):
                  remove_last = False,
                  dropout_rate:float=0.1,
                  use_bn:bool=False,
+                 num_blocks:int=4, 
+                 bidirectional:bool=True,
+                 lstm_type:str='lstm',
                  persistence_weight:float=0.0,
                  loss_type: str='l1',
                  quantiles:List[int]=[],
@@ -66,6 +70,9 @@ class RNN(Base):
             remove_last (bool, optional): if True the model learns the difference respect to the last seen point
             dropout_rate (float, optional): dropout rate in Dropout layers
             use_bn (bool, optional): if true BN layers will be added and dropouts will be removed
+            num_blocks (int, optional): number of xLSTM blocks (only for xlstm), default 4
+            bidirectional (bool, optional): if True the RNN are bidirectional, default True
+            lstm_type (str, optional): only for xLSTM (slstm or mlstm)
             persistence_weight (float):  weight controlling the divergence from persistence model. Default 0
             loss_type (str, optional): this model uses custom losses or l1 or mse. Custom losses can be linear_penalization or exponential_penalization. Default l1,
             quantiles (List[int], optional): we can use quantile loss il len(quantiles) = 0 (usually 0.1,0.5, 0.9) or L1loss in case len(quantiles)==0. Defaults to [].
@@ -166,6 +173,11 @@ class RNN(Base):
         elif self.kind=='gru':
             self.Encoder = nn.GRU(input_size= hidden_RNN//8,hidden_size=hidden_RNN,num_layers = num_layers_RNN,batch_first=True)
             self.Decoder = nn.GRU(input_size= hidden_RNN//8,hidden_size=hidden_RNN,num_layers = num_layers_RNN,batch_first=True)
+        elif self.kind=='xlstm':
+
+            self.Encoder = xLSTM(input_size= hidden_RNN//8,hidden_size=hidden_RNN,num_layers = num_layers_RNN,num_blocks=num_blocks,dropout=dropout_rate, bidirectional=bidirectional, lstm_type=lstm_type)
+            self.Decoder = xLSTM(input_size= hidden_RNN//8,hidden_size=hidden_RNN,num_layers = num_layers_RNN,num_blocks=num_blocks,dropout=dropout_rate, bidirectional=bidirectional, lstm_type=lstm_type)
+      
         else:
             beauty_string('Speciky kind= lstm or gru please','section',True)
         self.final_linear = nn.ModuleList()
@@ -224,7 +236,7 @@ class RNN(Base):
         if self.sum_emb and (len(self.embs)>0):
             tmp.append(tmp_emb)
         tot = torch.cat(tmp,2)
-            
+
         out, hidden = self.Encoder(self.conv_encoder(tot))      
 
         tmp = []

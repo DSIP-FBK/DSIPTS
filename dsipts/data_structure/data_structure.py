@@ -253,11 +253,11 @@ class TimeSeries():
             else:
                 differences = dataset[dataset[group]==dataset[group].unique()[0]].time.diff()[1:]
                 
-            
-            if isinstance(dataset.time.dtype, datetime):
+     
+            if isinstance(dataset.time[0], datetime):
                 freq = pd.to_timedelta(differences.min())   
             else:
-                if isinstance(dataset.time.dtype, int):
+                if isinstance(dataset.time[0], int):
                     freq = int(differences.min())
                 else:
                     raise TypeError("time must be integer or datetime")

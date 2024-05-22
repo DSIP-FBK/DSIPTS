@@ -47,11 +47,14 @@ def extend_time_df(x:pd.DataFrame,freq:Union[str,int],group:Union[str,None]=None
     """
 
     if group is None:
-        if isinstance(freq,str):
-            empty = pd.DataFrame({'time':pd.date_range(x.time.min(),x.time.max(),freq=freq)})
-        else:
+
+        if isinstance(freq,int):
             empty = pd.DataFrame({'time':list(range(x.time.min(),x.time.max(),freq))})
+        else:
+            empty = pd.DataFrame({'time':pd.date_range(x.time.min(),x.time.max(),freq=freq)})
+
     else:
+        
         if global_minmax:
             _min = pd.DataFrame({group:x[group].unique(),'time':x.time.min()})
             _max = pd.DataFrame({group:x[group].unique(),'time':x.time.max()})
@@ -61,7 +64,11 @@ def extend_time_df(x:pd.DataFrame,freq:Union[str,int],group:Union[str,None]=None
             _max = x.groupby(group).time.max().reset_index()
         empty = []
         for c in x[group].unique():
-            empty.append(pd.DataFrame({group:c,'time':pd.date_range(_min.time[_min[group]==c].values[0],_max.time[_max[group]==c].values[0],freq=freq)}))
+            if isinstance(freq,int):
+                empty.append(pd.DataFrame({group:c,'time':np.arange(_min.time[_min[group]==c].values[0],_max.time[_max[group]==c].values[0],freq)}))
+
+            else:
+                empty.append(pd.DataFrame({group:c,'time':pd.date_range(_min.time[_min[group]==c].values[0],_max.time[_max[group]==c].values[0],freq=freq)}))
             
         empty = pd.concat(empty,ignore_index=True)
     return empty
