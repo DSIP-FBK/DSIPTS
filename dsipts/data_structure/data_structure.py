@@ -257,7 +257,7 @@ class TimeSeries():
             if isinstance(dataset.time[0], datetime):
                 freq = pd.to_timedelta(differences.min())   
             else:
-                if isinstance(dataset.time[0], int):
+                if int(dataset.time[0])==dataset.time[0]: ##ONLY THINK THAT WORKS IN GENERAL
                     freq = int(differences.min())
                 else:
                     raise TypeError("time must be integer or datetime")
