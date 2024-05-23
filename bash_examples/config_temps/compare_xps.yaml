@@ -7,7 +7,7 @@ dirpath: "/home/agobbi/Projects/ExpTS/temps"
 set: 'test'
 name: 'prova'
 rescaling: true
-batch_size: 32
+batch_size: 16
 
 defaults:
   - _self_
