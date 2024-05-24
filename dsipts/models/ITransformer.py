@@ -15,7 +15,7 @@ class ITransformer(Base):
     handle_multivariate = True
     handle_future_covariates = False # or at least it seems...
     handle_categorical_variables = True #solo nel encoder
-    handle_quantile_loss = False #EASY to add
+    handle_quantile_loss = True # NOT EFFICIENTLY ADDED, TODO fix this
     description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables,handle_quantile_loss)
     
     def __init__(self, 
@@ -135,7 +135,7 @@ class ITransformer(Base):
             ],
             norm_layer=torch.nn.LayerNorm(d_model)
         )
-        self.projector = nn.Linear(d_model, future_steps, bias=True)
+        self.projector = nn.Linear(d_model, future_steps*self.mul, bias=True)
 
     def forecast(self, x_enc, x_mark_enc, x_dec, x_mark_dec):
         if self.use_norm:
@@ -162,9 +162,10 @@ class ITransformer(Base):
         dec_out = self.projector(enc_out).permute(0, 2, 1)[:, :, :N] # filter the covariates
 
         if self.use_norm:
+
             # De-Normalization from Non-stationary Transformer
-            dec_out = dec_out * (stdev[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
-            dec_out = dec_out + (means[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
+            dec_out = dec_out * (stdev[:, 0, :].unsqueeze(1).repeat(1, self.pred_len*self.mul, 1))
+            dec_out = dec_out + (means[:, 0, :].unsqueeze(1).repeat(1, self.pred_len*self.mul, 1))
 
 
         return dec_out
@@ -172,7 +173,7 @@ class ITransformer(Base):
     def forward(self, batch:dict)-> float:
 
         x_enc = batch['x_num_past'].to(self.device)
-        
+        BS = x_enc.shape[0]
         if 'x_cat_past' in batch.keys():
             x_mark_enc =  batch['x_cat_past'].to(self.device)
             tmp = []
@@ -198,6 +199,6 @@ class ITransformer(Base):
 
         dec_out = self.forecast(x_enc, x_mark_enc, x_dec, x_mark_dec)
         idx_target = batch['idx_target'][0]
-        return dec_out[:, :,idx_target].unsqueeze(3)
+        return dec_out[:, :,idx_target].reshape(BS,self.future_steps,self.out_channels,self.mul)
         
         #return dec_out[:, -self.pred_len:, :]  # [B, L, D]

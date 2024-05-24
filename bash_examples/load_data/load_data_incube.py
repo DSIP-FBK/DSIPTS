@@ -10,9 +10,9 @@ def load_data(conf):
     data = pd.read_csv(os.path.join(conf.dataset.path,'data_consumption.csv'))
     data.Time = pd.to_datetime(data.Time, utc=True)
     data.sort_values(by='Time',inplace=True)
-    data_ex = data[data.PlantId==id]
+    data_ex = data[data.PlantId==id].reset_index()
     data_ex.rename(columns={'Time':'time'},inplace=True)
-    data_ex.Value[data_ex.Value<0]=np.nan
+    data_ex.loc[data_ex.Value<0,'Value']=np.nan
 
     data_ex.drop_duplicates(inplace=True)
     data_ex.index = data_ex.time
