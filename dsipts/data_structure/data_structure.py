@@ -1034,4 +1034,4 @@ class TimeSeries():
         try:
             self.model = self.model.load_from_checkpoint(tmp_path,verbose=self.verbose)
         except Exception as e:
-            beauty_string(f'There is a problem loading the weights on file {tmp_path} {e}',True)
+            beauty_string(f'There is a problem loading the weights on file {tmp_path} {e}','section',self.verbose)
