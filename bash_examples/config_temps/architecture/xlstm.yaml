@@ -18,7 +18,7 @@ model_configs:
   kind: 'xlstm'
   sum_emb: true
   use_bn: true  
-  lstm_type: slstm'
+  lstm_type: slstm
   num_blocks: 4
   optim: torch.optim.Adam
   activation: torch.nn.PReLU
