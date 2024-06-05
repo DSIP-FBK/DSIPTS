@@ -278,7 +278,7 @@ Most of the models implemented can deal with categorical variables. In particula
 A description of each model can be found in the class documentation [here](https://dsip.pages.fbk.eu/dsip_dlresearch/timeseries/). 
 It is possible to use one of the following architectures:
 
-- **RNN** (GRU or LSTM) models
+- **RNN** (GRU, LSTM or xLSTM) models, (xLSTM)[https://arxiv.org/pdf/2405.04517] are taken from the [official repo](https://github.com/muditbhargava66/PyxLSTM) 
 - **Linear** models based on the [official repository](https://github.com/cure-lab/LTSF-Linear), [paper](https://arxiv.org/pdf/2205.13504.pdf). An alternative model (alinear) has been implemented that drop the autoregressive part and uses only covariates
 - **Crossformer** [official repository](https://github.com/cheerss/CrossFormer), [paper](https://openreview.net/forum?id=vSVLM2j9eie)
 - **Informer** [official repository](https://github.com/zhouhaoyi/Informer2020), [paper](https://arxiv.org/abs/2012.07436)
@@ -292,6 +292,8 @@ It is possible to use one of the following architectures:
 - **DilatedConv** dilated convolutional RNN: the transfer of knowledge between past and future is performed reusing the final hidden status of the RNN of the encoder as initial hidden status of the decoder.
 - **DilatedConvED** dilated convolutional RNN with an encoder/decoder structure.
 - **Diffusion** custom [diffusion process](https://arxiv.org/abs/2102.09672) using the attention mechanism in the subnets.
+- **ITransformer**  [paper](https://arxiv.org/abs/2310.06625), [official repo](https://github.com/thuml/iTransformer)
+
 
 
 

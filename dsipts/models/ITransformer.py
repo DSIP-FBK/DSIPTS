@@ -1,3 +1,7 @@
+## Copyright https://github.com/thuml/iTransformer?tab=MIT-1-ov-file#readme
+## Modified for notation alignmenet and batch structure
+## extended to what inside itransformer folder
+
 import torch
 import torch.nn as nn
 import numpy as np
@@ -10,6 +14,9 @@ from .utils import QuantileLossMO,Permute, get_activation
 from typing import List, Union
 from ..data_structure.utils import beauty_string
 from .utils import  get_scope
+
+
+
 
 class ITransformer(Base):
     handle_multivariate = True

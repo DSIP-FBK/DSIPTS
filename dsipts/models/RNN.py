@@ -42,7 +42,7 @@ class RNN(Base):
                  use_bn:bool=False,
                  num_blocks:int=4, 
                  bidirectional:bool=True,
-                 lstm_type:str='lstm',
+                 lstm_type:str='slstm',
                  persistence_weight:float=0.0,
                  loss_type: str='l1',
                  quantiles:List[int]=[],
