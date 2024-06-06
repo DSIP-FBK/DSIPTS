@@ -28,6 +28,6 @@ model_configs:
   remove_last: true
 
 train_config:
-  batch_size: 128
+  batch_size: 64
   max_epochs: 4000
             
