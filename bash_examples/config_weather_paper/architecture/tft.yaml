@@ -1,0 +1,27 @@
+# @package _global_
+
+model:
+  type: 'tft'
+  retrain: true
+ts:
+  name: 'weather'
+  version: 1
+  enrich: ['hour']
+  use_covariates: true
+
+
+model_configs:
+  d_model: 64
+  d_head: 128
+  n_head: 12
+  num_layers_RNN: 8
+  optim: torch.optim.Adam
+  dropout_rate: 0.2
+  persistence_weight: 1
+  loss_type: 'l1'
+
+train_config:
+  batch_size: 64
+  max_epochs: 800
+            
+#python train.py  --config-dir=config_weather_paper --config-name=config_slurm -m  model_configs.loss_type=exponential_penalization,l1 architecture=dilated_conv_ed
