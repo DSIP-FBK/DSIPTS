@@ -346,7 +346,7 @@ aim init #only the first time
 aim up
 ```
 and then open the url (http://127.0.0.1:43800)[http://127.0.0.1:43800]. It will show the model parameters, some metrics and the losses during the training procedure
-![plot](bash_examples/figures/aim.png)
+![plot](bash_examples/figures/aim1.png)
  but also some prediction (the first sample of the first batch of the validation set, every 10% of the maximum number of epochs.)
  ![plot](bash_examples/figures/aim2.png)
 
