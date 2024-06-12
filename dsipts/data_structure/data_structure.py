@@ -18,7 +18,8 @@ from ..models.base import Base
 from ..models.utils import weight_init_zeros,weight_init
 import logging 
 from .modifiers import *
- 
+from aim.pytorch_lightning import AimLogger
+import time
 
 
 pd.options.mode.chained_assignment = None 
@@ -633,7 +634,7 @@ class TimeSeries():
         
         beauty_string('Setting the model','block',self.verbose)
         beauty_string(model,'',self.verbose)
-              
+        
     def train_model(self,dirpath:str,
                     split_params:dict,
                     batch_size:int=100,
@@ -699,10 +700,8 @@ class TimeSeries():
         else:
             self.modifier = None
         train_dl = DataLoader(train, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
-        valid_dl = DataLoader(validation, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
+        valid_dl = DataLoader(validation, batch_size = batch_size , shuffle=False,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
    
-        train_dl = DataLoader(train, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
-        valid_dl = DataLoader(validation, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
         checkpoint_callback = ModelCheckpoint(dirpath=dirpath,
                                      monitor='val_loss',
                                       save_last = True,
@@ -712,13 +711,37 @@ class TimeSeries():
                                      filename='checkpoint')
         
         
-        logger = CSVLogger("logs", name=dirpath)
+        #logger = CSVLogger("logs", name=dirpath)
+        aim_logger = AimLogger(
+            experiment=self.name,
+            train_metric_prefix='train_',
+            val_metric_prefix='val_',
+        )
 
+        #https://stackoverflow.com/questions/49201236/check-the-total-number-of-parameters-in-a-pytorch-model
+        n_params = sum(dict((p.data_ptr(), p.numel()) for p in self.model.parameters()).values())
+
+        #https://discuss.pytorch.org/t/finding-model-size/130275
+        param_size = 0
+        for param in self.model.parameters():
+            param_size += param.nelement() * param.element_size()
+        buffer_size = 0
+        for buffer in self.model.buffers():
+            buffer_size += buffer.nelement() * buffer.element_size()
+
+        size_all_mb = (param_size + buffer_size) / 1024**2
+
+        aim_logger.experiment.track(n_params,name='N-parameters')
+        aim_logger.experiment.track(size_all_mb,name='dim-model-MB')
+
+        #aim_logger.experiment.track(self.config,name=None)
+        aim_logger._run['hyperparameters'] = self.config
         mc = MetricsCallback(dirpath)
         ## TODO se ci sono 2 o piu gpu MetricsCallback non funziona (secondo me fa una istanza per ogni dataparallel che lancia e poi non riesce a recuperare info)
         pl.seed_everything(seed, workers=True)
+        self.model.max_epochs = max_epochs
         trainer = pl.Trainer(default_root_dir=dirpath,
-                             logger = logger,
+                             logger = aim_logger,
                              max_epochs=max_epochs,
                              callbacks=[checkpoint_callback,mc],
                              auto_lr_find=auto_lr_find, 
@@ -729,6 +752,7 @@ class TimeSeries():
                              precision=precision,
                              gradient_clip_val=gradient_clip_val,
                              gradient_clip_algorithm=gradient_clip_algorithm)#,devices=1)
+        tot_seconds = time.time()
 
         if auto_lr_find:
             trainer.tune(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)
@@ -772,6 +796,12 @@ class TimeSeries():
         self.is_trained = True
         
         beauty_string('END of the training process','block',self.verbose)
+
+        aim_logger.experiment.track((time.time()-tot_seconds),name='seconds-training')
+        aim_logger.experiment.track(val_loss,name='val-loss-end-train')
+
+        
+        
         return val_loss 
     
     def inference_on_set(self,batch_size:int=100,

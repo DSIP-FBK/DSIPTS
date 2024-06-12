@@ -13,3 +13,5 @@ plotly
 scikit-learn==1.5.0
 numba==0.59.1
 einops
+matplotlib==3.9.0
+aim==3.20.1

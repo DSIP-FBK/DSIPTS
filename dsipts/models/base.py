@@ -7,7 +7,9 @@ from abc import  abstractmethod
 from .utils import SinkhornDistance, SoftDTWBatch,PathDTWBatch,pairwise_distances
 from ..data_structure.utils import beauty_string
 from .utils import  get_scope
-
+import numpy as np
+from aim import Image
+import matplotlib.pyplot as plt
 def standardize_momentum(x,order):
     mean = torch.mean(x,1).unsqueeze(1).repeat(1,x.shape[1],1)
     num = torch.pow(x-mean,order).mean(axis=1)
@@ -136,6 +138,26 @@ class Base(pl.LightningModule):
         :meta private:
         """
         y_hat = self(batch)
+        if batch_idx==0:
+            if self.use_quantiles:
+                idx = 1
+            else:
+                idx = 0
+            #track the predictions! 
+
+            if self.count_epoch%int(max(self.trainer.max_epochs/100,1))==0:
+
+                for i in range(batch['y'].shape[2]):
+                    real =  batch['y'][0,:,i].detach().numpy()
+                    pred =  y_hat[0,:,i,idx].detach().numpy()
+                    fig, ax = plt.subplots(figsize=(7,5))  
+                    ax.plot(real,'o-',label='real')
+                    ax.plot(pred,'o-',label='pred')
+                    ax.legend()
+                    ax.set_title(f'Channel {i} first element first batch validation {int(100*self.count_epoch/self.trainer.max_epochs)}%')
+                    self.logger.experiment.track(Image(fig), name='cm_training_end')
+                    #self.log(f"example_{i}", np.stack([real, pred]).T,sync_dist=True)
+
         return self.compute_loss(batch,y_hat)
 
 
@@ -159,7 +181,8 @@ class Base(pl.LightningModule):
 
         loss = sum(outs['loss'] for outs in outs) / len(outs)
         self.log("train_loss", loss.item(),sync_dist=True)
-        self.count_epoch+=1
+        self.count_epoch+=1    
+
         self.train_loss_epoch = loss.item()
 
     def compute_loss(self,batch,y_hat):

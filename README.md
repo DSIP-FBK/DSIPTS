@@ -339,16 +339,29 @@ If you want to add a model:
 # Testing
 See [here](/bash_examples/README.md) for the testing session.
 
+# Logging
+From version 1.1.0, Aim is used for logging all the experiments and metrics. It is quite easy to install and to use. Just go inside the main folder (`bash_exaples`) and run:
+```
+aim init #only the first time
+aim up
+```
+and then open the url (http://127.0.0.1:43800)[http://127.0.0.1:43800]. It will show the model parameters, some metrics and the losses during the training procedure
+![plot](bash_examples/figures/aim.png)
+ but also some prediction (the first sample of the first batch of the validation set, every 10% of the maximum number of epochs.)
+ ![plot](bash_examples/figures/aim2.png)
+
+
 # TODO
 - add more sintetic data
-- add TIDE (IN PROGRESS) and iTransformer
+- add TIDE and iTransformer (DONE)
 - clean some old function
 - check all the code in the README (DONE)
-- check architecture description (which model can be used under certain assumption) (ALMOS DONE)
+- check architecture description (which model can be used under certain assumption) (ALMOST DONE)
 - complete the classification part (loss function + inference step)
 - add mirror to git if possible  (DONE)
-- fix dependencies
+- fix dependencies (SHOULD BE OK)
 - reduce test computational time required!
 - check D3VAE, it seems broken in some configurations
 - clean notebooks (DONE)
+- add hybrid models https://www.sciencedirect.com/science/article/pii/S138912862400118X
 
