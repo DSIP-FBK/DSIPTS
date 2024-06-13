@@ -2,6 +2,7 @@ pytorch-lightning==1.9.4
 torchmetrics
 lightning_utilities
 pandas==2.2.2
+numpy==1.26.4
 omegaconf
 hydra-core
 hydra-joblib-launcher
