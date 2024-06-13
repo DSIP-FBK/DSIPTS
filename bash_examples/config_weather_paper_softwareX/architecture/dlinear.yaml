@@ -1,0 +1,24 @@
+# @package _global_
+
+model:
+  type: 'linear'
+  retrain: true
+ts:
+  name: 'weather_d'
+  version: 1
+  enrich: ['hour']
+  use_covariates: true
+
+model_configs:
+  cat_emb_dim: 64
+  kernel_size: 3
+  sum_emb: true
+  hidden_size: 128
+  kind: 'dlinear'
+  optim: torch.optim.SGD
+  activation: torch.nn.LeakyReLU
+  simple: true
+train_config:
+  batch_size: 64
+  max_epochs: 500
+                   

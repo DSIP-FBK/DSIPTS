@@ -1,0 +1,29 @@
+# @package _global_
+
+model:
+  type: 'tide'
+  retrain: true
+ts:
+  name: 'weather'
+  version: 1
+  enrich: ['hour']
+  use_covariates: true
+
+model_configs:
+  hidden_size: 32
+  d_model: 32
+  activation: 'torch.nn.GELU'
+  n_add_enc: 8
+  n_add_dec: 8
+  quantiles: []
+  optim: torch.optim.Adam
+  dropout_rate: 0.2
+  persistence_weight: 1
+  loss_type: 'l1'
+
+train_config:
+  batch_size: 32
+  max_epochs: 500
+
+
+
