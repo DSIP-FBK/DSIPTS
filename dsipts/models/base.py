@@ -148,8 +148,8 @@ class Base(pl.LightningModule):
             if self.count_epoch%int(max(self.trainer.max_epochs/100,1))==0:
 
                 for i in range(batch['y'].shape[2]):
-                    real =  batch['y'][0,:,i].detach().numpy()
-                    pred =  y_hat[0,:,i,idx].detach().numpy()
+                    real =  batch['y'][0,:,i].cpu().detach().numpy()
+                    pred =  y_hat[0,:,i,idx].cpu().detach().numpy()
                     fig, ax = plt.subplots(figsize=(7,5))  
                     ax.plot(real,'o-',label='real')
                     ax.plot(pred,'o-',label='pred')
