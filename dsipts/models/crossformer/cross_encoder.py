@@ -31,6 +31,8 @@ class SegMerging(nn.Module):
         seg_to_merge = []
         for i in range(self.win_size):
             seg_to_merge.append(x[:, :, i::self.win_size, :])
+        import pdb
+        pdb.set_trace()
         x = torch.cat(seg_to_merge, -1)  # [B, ts_d, seg_num/win_size, win_size*d_model]
 
         x = self.norm(x)

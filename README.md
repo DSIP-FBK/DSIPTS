@@ -96,7 +96,7 @@ In a pre-generated environment install pytorch and pytorch-lightning (`pip insta
 
 
 ``
-python setup_local.py install --force
+python setup.py install --force
 ``
 In the gitlab repository it is possible to find the documentation (pages) and the package in the package registry. As soon as possible the CI/CD pipeline will update for working also in the github mirrored repository.
 
@@ -351,17 +351,5 @@ and then open the url (http://127.0.0.1:43800)[http://127.0.0.1:43800]. It will 
  ![plot](bash_examples/figures/aim2.png)
 
 
-# TODO
-- add more sintetic data
-- add TIDE and iTransformer (DONE)
-- clean some old function
-- check all the code in the README (DONE)
-- check architecture description (which model can be used under certain assumption) (ALMOST DONE)
-- complete the classification part (loss function + inference step)
-- add mirror to git if possible  (DONE)
-- fix dependencies (SHOULD BE OK)
-- reduce test computational time required!
-- check D3VAE, it seems broken in some configurations
-- clean notebooks (DONE)
-- add hybrid models https://www.sciencedirect.com/science/article/pii/S138912862400118X
+
 

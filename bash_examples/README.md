@@ -13,14 +13,15 @@ This particular repo is structured for working with the six datasets (that are 9
 In a pre-generated environment install pytorch and pytorch-lightning (`pip install pytorch-lightning==1.9.4`) then go inside the lib folder and execute:
 
 ```
-python setup_local.py install --force
+python setup.py install --force
 ```
 
 Alternatively, you can install it from the package registry:
 
 ```
-pip install --force dsipts --index-url https://dsipts:glpat-98SR11neR7hzxy__SueG@gitlab.fbk.eu/api/v4/projects/4571/packages/pypi/simple
+pip install --force dsipts --index-url TOKEN
 ```
+where token changes frequently (ask to agobbi@fbk.eu). We will find a cleaner solution for this.
 
 
 # Configuration
@@ -516,7 +517,19 @@ All the models are trained on the same dataset (weather) for few epochs and with
 The test are performed using the scripts `train.py, train_stacked.py` and `compare.py` testing the trainin procedure, the coparaison procedure, the optuna fine tuning step and the training of a stacked model. The whole procedure can take a lot of time, we are working to decrease the waiting time preserving the integrity of the tests.
 
 ## TODO
-- reduce test time 
-- add pre-commit hook for code checking (`ruff check --ignore E501,E722 .`)
-- add pre-commit hook testing
-- clean code and standardize documentation
+[ ] reduce test time 
+[ ] add pre-commit hook for code checking (`ruff check --ignore E501,E722 .`)
+[ ] add pre-commit hook testing
+[ ] clean code and standardize documentation
+[ ] add more sintetic data
+[x] add TIDE and iTransformer 
+[ ] clean some old function
+[ ] check all the code in the README 
+[ ] check architecture description (which model can be used under certain assumption) 
+[ ] complete the classification part (loss function + inference step)
+[x] add mirror to git if possible  
+[x] fix dependencies 
+[x] check D3VAE, it seems broken in some configurations
+[ ] add hybrid models https://www.sciencedirect.com/science/article/pii/S138912862400118X
+[ ] add SOFTS https://github.com/Secilia-Cxy/SOFTS/blob/main/models/SOFTS.py
+ 

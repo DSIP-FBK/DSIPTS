@@ -2,7 +2,8 @@
 
 model:
   type: 'rnn'
-  
+  retrain: true
+
 ts:
   name: 'weather_gru'
   version: 1

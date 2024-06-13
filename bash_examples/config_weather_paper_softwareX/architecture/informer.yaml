@@ -28,5 +28,5 @@ train_config:
   max_epochs: 100
             
 split_params:
-  shift:  ${model_configs.label_len}
+  shift:  ${model_configs.future_steps}
   keep_entire_seq_while_shifting: true

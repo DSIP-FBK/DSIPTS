@@ -81,7 +81,7 @@ class Informer(Base):
    
         super().__init__(**kwargs)
         self.save_hyperparameters(logger=False)
-
+        beauty_string("BE SURE TO SETUP split_params:  shift:  ${model_configs.future_steps} BECAUSE IT IS REQUIRED",'info',True)
         self.future_steps = future_steps
         self.use_quantiles = False
         self.optim = optim
