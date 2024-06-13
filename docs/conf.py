@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath('..'))
 project = 'dsipts'
 copyright = '2023, Andrea Gobbi'
 author = 'Andrea Gobbi'
-release = '0.0.2'
+release = '1.1.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
