@@ -24,8 +24,8 @@ class SegMerging(nn.Module):
         """
         batch_size, ts_d, seg_num, d_model = x.shape
         pad_num = seg_num % self.win_size
-        import pdb
-        pdb.set_trace()
+        #import pdb
+        #pdb.set_trace()
         if pad_num != 0: 
             pad_num = self.win_size - pad_num
             x = torch.cat((x, x[:, :, -pad_num:, :]), dim = -2)
