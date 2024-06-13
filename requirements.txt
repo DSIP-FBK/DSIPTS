@@ -1,9 +1,11 @@
 pytorch-lightning==1.9.4
+torchmetrics
+lightning_utilities
 pandas==2.2.2
-omegaconf==2.3.0
-hydra-core==1.3.2
-hydra-joblib-launcher==1.2.0
-hydra-optuna-sweeper==1.2.0
+omegaconf
+hydra-core
+hydra-joblib-launcher
+hydra-optuna-sweeper
 beautifulsoup4==4.12.0
 html5lib
 html-table-parser-python3==0.3.1
@@ -17,3 +19,4 @@ matplotlib
 aim==3.20.1
 starlette==0.37.2
 pydantic==2.7.4
+scipy
