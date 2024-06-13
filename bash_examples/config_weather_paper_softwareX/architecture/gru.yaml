@@ -15,6 +15,7 @@ model_configs:
   num_layers_RNN: 4
   kernel_size: 5
   kind: 'gru'
+  loss_type: 'l1'
   sum_emb: true
 
 

@@ -18,6 +18,7 @@ model_configs:
   optim: torch.optim.SGD
   activation: torch.nn.LeakyReLU
   simple: true
+  loss_type: 'l1'
 train_config:
   batch_size: 64
   max_epochs: 500
