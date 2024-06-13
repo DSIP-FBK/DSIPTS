@@ -17,7 +17,7 @@ model_configs:
   n_head: 4
   dropout_rate: 0.5
   win_size: 4
-  seg_len: 6
+  seg_len: 3
   factor: 1
   optim: torch.optim.Adam
   persistence_weight: 0.010
