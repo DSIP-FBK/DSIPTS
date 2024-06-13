@@ -25,6 +25,6 @@ model_configs:
 
 train_config:
   batch_size: 128
-  max_epochs: 500
+  max_epochs: 100
             
 #python train.py  --config-dir=config_weather_paper --config-name=config_xps -m architecture=itransformer model_configs.loss_type=mse,linear_penalization,mda,exponential_penalization,additive_iv,global_iv,triplet,high_order model_configs.persistence_weight=1,10

@@ -27,7 +27,7 @@ model_configs:
   
 train_config:
   batch_size: 32
-  max_epochs: 500
+  max_epochs: 100
             
 split_params:
   shift: ${model_configs.label_len}

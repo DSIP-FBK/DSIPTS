@@ -22,6 +22,6 @@ model_configs:
 
 train_config:
   batch_size: 64
-  max_epochs: 500
+  max_epochs: 100
             
 #python train.py  --config-dir=config_weather_paper --config-name=config_slurm -m  model_configs.loss_type=exponential_penalization,l1 architecture=dilated_conv_ed
