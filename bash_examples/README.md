@@ -516,20 +516,3 @@ pytest tests/test_all.py --folder /home/agobbi/Projects/ExpTS/test --data_dir /h
 All the models are trained on the same dataset (weather) for few epochs and with a small number of total parameters. If the `folder` parameter is missing the routine will create a temporary folder called  `TESTDSIPTS_tmp_TESTDSIPTS` containing the weights and the outputs. 
 The test are performed using the scripts `train.py, train_stacked.py` and `compare.py` testing the trainin procedure, the coparaison procedure, the optuna fine tuning step and the training of a stacked model. The whole procedure can take a lot of time, we are working to decrease the waiting time preserving the integrity of the tests.
 
-## TODO
-[ ] reduce test time 
-[ ] add pre-commit hook for code checking (`ruff check --ignore E501,E722 .`)
-[ ] add pre-commit hook testing
-[ ] clean code and standardize documentation
-[ ] add more sintetic data
-[x] add TIDE and iTransformer 
-[ ] clean some old function
-[ ] check all the code in the README 
-[ ] check architecture description (which model can be used under certain assumption) 
-[ ] complete the classification part (loss function + inference step)
-[x] add mirror to git if possible  
-[x] fix dependencies 
-[x] check D3VAE, it seems broken in some configurations
-[ ] add hybrid models https://www.sciencedirect.com/science/article/pii/S138912862400118X
-[ ] add SOFTS https://github.com/Secilia-Cxy/SOFTS/blob/main/models/SOFTS.py
- 

@@ -351,5 +351,21 @@ and then open the url (http://127.0.0.1:43800)[http://127.0.0.1:43800]. It will 
  ![plot](bash_examples/figures/aim2.png)
 
 
-
+## TODO
+[ ] reduce test time 
+[ ] add pre-commit hook for code checking (`ruff check --ignore E501,E722 .`)
+[ ] add pre-commit hook testing
+[ ] clean code and standardize documentation
+[ ] add more sintetic data
+[x] add TIDE and iTransformer 
+[ ] clean some old function
+[ ] check all the code in the README 
+[ ] check architecture description (which model can be used under certain assumption) 
+[ ] complete the classification part (loss function + inference step)
+[x] add mirror to git if possible  
+[x] fix dependencies 
+[x] check D3VAE, it seems broken in some configurations
+[ ] add hybrid models https://www.sciencedirect.com/science/article/pii/S138912862400118X
+[ ] add SOFTS https://github.com/Secilia-Cxy/SOFTS/blob/main/models/SOFTS.py
+ 
 
