@@ -5,7 +5,7 @@ model:
   retrain: true
 
 ts:
-  name: 'test'
+  name: ${dataset.dataset}
   version: 1
   enrich: ['hour']
   use_covariates: true
