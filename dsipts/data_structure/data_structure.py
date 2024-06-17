@@ -734,7 +734,8 @@ class TimeSeries():
 
         aim_logger.experiment.track(n_params,name='N-parameters')
         aim_logger.experiment.track(size_all_mb,name='dim-model-MB')
-
+        aim_logger.experiment.track(len(train_dl.dataset),name='len-train')
+        aim_logger.experiment.track(len(valid_dl.dataset),name='len-valid')
         #aim_logger.experiment.track(self.config,name=None)
         tmp = self.config.copy()
         tmp['model_name'] = self.model.name
