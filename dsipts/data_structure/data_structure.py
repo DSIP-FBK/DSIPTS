@@ -736,8 +736,10 @@ class TimeSeries():
         aim_logger.experiment.track(size_all_mb,name='dim-model-MB')
 
         #aim_logger.experiment.track(self.config,name=None)
-        aim_logger._run['hyperparameters'] = self.config
-        aim_logger._run['hyperparameters']['model_name'] = self.model.name
+        tmp = self.config.copy()
+        tmp['model_name'] = self.model.name
+        aim_logger._run['hyperparameters'] = tmp
+
         mc = MetricsCallback(dirpath)
         ## TODO se ci sono 2 o piu gpu MetricsCallback non funziona (secondo me fa una istanza per ogni dataparallel che lancia e poi non riesce a recuperare info)
         pl.seed_everything(seed, workers=True)
