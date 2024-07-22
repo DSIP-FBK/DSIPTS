@@ -28,3 +28,5 @@ train_config:
   max_epochs: 600
             
 #python train.py  --config-dir=config_weather_paper --config-name=config_xps -m architecture=itransformer model_configs.loss_type=mse,linear_penalization,mda,exponential_penalization,additive_iv,global_iv,triplet,high_order model_configs.persistence_weight=1,10
+
+#python train.py  --config-dir=config_weather_paper --config-name=config_xps -m architecture=itransformer ts.name=test_etth1 dataset.dataset=etth1 model_configs.loss_type=mse,linear_penalization,mda,exponential_penalization,additive_iv,global_iv,triplet,high_order model_configs.persistence_weight=1,10

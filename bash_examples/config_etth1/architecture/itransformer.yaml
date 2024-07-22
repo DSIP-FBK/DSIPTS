@@ -6,16 +6,16 @@ model:
 ts:
   name: 'test'
   version: 1
-  enrich: []
+  enrich: ['hour']
   use_covariates: true
 
 
 model_configs:
-  d_model: 256
-  n_head: 7
-  hidden_size: 128
+  d_model: 128
+  n_head: 4
+  hidden_size: 64
   dropout_rate: 0.1
-  n_layer_decoder: 2
+  n_layer_decoder: 3
   use_norm: True
   optim: torch.optim.Adam
   persistence_weight: 0.010
@@ -27,3 +27,6 @@ train_config:
   batch_size: 128
   max_epochs: 600
             
+#python train.py  --config-dir=config_weather_paper --config-name=config_xps -m architecture=itransformer model_configs.loss_type=mse,linear_penalization,mda,exponential_penalization,additive_iv,global_iv,triplet,high_order model_configs.persistence_weight=1,10
+
+#python train.py  --config-dir=config_weather_paper --config-name=config_xps -m architecture=itransformer ts.name=test_etth1 dataset.dataset=etth1 model_configs.loss_type=mse,linear_penalization,mda,exponential_penalization,additive_iv,global_iv,triplet,high_order model_configs.persistence_weight=1,10
