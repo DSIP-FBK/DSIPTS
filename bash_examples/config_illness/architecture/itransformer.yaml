@@ -7,7 +7,7 @@ ts:
   name: 'test'
   version: 1
   enrich: ['hour']
-  use_covariates: false ##too big
+  use_covariates: true
 
 
 model_configs:

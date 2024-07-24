@@ -101,7 +101,7 @@ python setup.py install --force
 In the gitlab repository it is possible to find the documentation (pages) and the package in the package registry. As soon as possible the CI/CD pipeline will update for working also in the github mirrored repository.
 
 ## AIM
-DSIPTS uses AIM for tracking losses, parameters and other useful information. The first time you use DSIOTS you may need to initialize aim executing:
+DSIPTS uses AIM for tracking losses, parameters and other useful information. The first time you use DSIPTS you may need to initialize aim executing:
 ```
 aim init
 ```
