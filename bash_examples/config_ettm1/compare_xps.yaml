@@ -1,0 +1,25 @@
+#models: ['config_used/attention.yaml','config_used/persistent.yaml','config_used/linear.yaml','config_used/dlinear.yaml','config_used/nlinear.yaml','config_used/lstm.yaml','config_used/gru.yaml']
+models: 'config_ettm1' 
+#models: ['config_weather/config_used/crossformer_test_1.yaml']
+#models: ['config_etth1/config_used/itransformer_test_1_loss_type=msepersistence_weight=0.1.yaml']
+dirpath: "/home/agobbi/Projects/ExpTS/ettm1"
+
+set: 'test'
+name: 'prova'
+rescaling: true
+batch_size: 32
+
+defaults:
+  - _self_
+  - architecture: null 
+  - override hydra/launcher: joblib 
+
+hydra:
+  launcher:
+    n_jobs:  4
+    verbose: 1
+    pre_dispatch: 4
+    batch_size: 4
+    _target_: hydra_plugins.hydra_joblib_launcher.joblib_launcher.JoblibLauncher
+
+ 
