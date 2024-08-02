@@ -6,6 +6,7 @@ from torch.optim.lr_scheduler import StepLR
 from abc import  abstractmethod
 from .utils import SinkhornDistance, SoftDTWBatch,PathDTWBatch,pairwise_distances
 from ..data_structure.utils import beauty_string
+from .samformer.utils import SAM
 from .utils import  get_scope
 import numpy as np
 from aim import Image
@@ -61,6 +62,7 @@ class Base(pl.LightningModule):
         self.train_loss_epoch = -100.0
         self.verbose = verbose
         self.name = self.__class__.__name__
+        
         beauty_string(self.description,'info',True)
     @abstractmethod
     def forward(self, batch:dict)-> torch.tensor:
@@ -110,9 +112,19 @@ class Base(pl.LightningModule):
             self.initialize = True
         else:
             if self.initialize is False:
-                self.optim = eval(self.optim)
+                if self.optim=='SAM':
+                    self.has_sam_optim = True
+                    self.automatic_optimization = False
+
+                else:
+                    self.optim = eval(self.optim)
+                    self.automatic_optimization = True
+
             beauty_string(self.optim,'',self.verbose)
-            optimizer = self.optim(self.parameters(),  **self.optim_config)
+            if self.has_sam_optim:
+                optimizer = SAM(self.parameters(), base_optimizer=torch.optim.Adam, **self.optim_config)
+            else:
+                optimizer = self.optim(self.parameters(),  **self.optim_config)
             self.initialize = True
         self.lr = self.optim_config['lr']
         if self.scheduler_config is not None:
@@ -129,7 +141,21 @@ class Base(pl.LightningModule):
         :meta private:
         """
         y_hat = self(batch)
-        return self.compute_loss(batch,y_hat)
+        loss = self.compute_loss(batch,y_hat)
+        if self.has_sam_optim:
+
+            opt = self.optimizers()
+            self.manual_backward(loss)
+            opt.first_step(zero_grad=True)
+
+            y_hat = self(batch)
+            loss = self.compute_loss(batch, y_hat)
+
+            self.manual_backward(loss,retain_graph=True)
+            opt.second_step(zero_grad=True)
+        
+        return loss
+
     
     def validation_step(self, batch, batch_idx):
         """
@@ -143,9 +169,9 @@ class Base(pl.LightningModule):
                 idx = 1
             else:
                 idx = 0
-            #track the predictions! 
+            #track the predictions! We can do better than this but maybe it is better to firstly update pytorch-lightening 
 
-            if self.count_epoch%int(max(self.trainer.max_epochs/100,1))==0:
+            if self.count_epoch%int(max(self.trainer.max_epochs/100,1))==1:
 
                 for i in range(batch['y'].shape[2]):
                     real =  batch['y'][0,:,i].cpu().detach().numpy()
