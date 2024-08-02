@@ -14,10 +14,10 @@ import matplotlib.pyplot as plt
 def standardize_momentum(x,order):
     mean = torch.mean(x,1).unsqueeze(1).repeat(1,x.shape[1],1)
     num = torch.pow(x-mean,order).mean(axis=1)
-    den = torch.sqrt(torch.pow(x-mean,2).mean(axis=1)+1e-8)
-    den = torch.pow(den,order)
-    
-    return num/den
+    #den = torch.sqrt(torch.pow(x-mean,2).mean(axis=1)+1e-8)
+    #den = torch.pow(den,order)
+
+    return num#/den
 
 
 def dilate_loss(outputs, targets, alpha, gamma, device):
@@ -283,7 +283,8 @@ class Base(pl.LightningModule):
             for i in range(2,5):
                 mom_real = standardize_momentum( batch['y'],i)
                 mom_pred = standardize_momentum(x,i)
-                mom_loss = torch.abs(mom_real-mom_pred).mean()
+                
+                mom_loss = torch.abs(mom_real-mom_pred).mean()/mom_real.mean()
                 loss+=self.persistence_weight*mom_loss
             
         elif self.loss_type=='dilated':

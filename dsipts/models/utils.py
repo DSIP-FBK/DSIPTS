@@ -129,7 +129,7 @@ class QuantileLossMO(nn.Module):
 
             loss = torch.mean(torch.sum(torch.cat(losses, dim=1), dim=1))
             tot_loss+=loss
-        return tot_loss
+        return tot_loss/preds.shape[2]/len(self.quantiles)
 
 
 

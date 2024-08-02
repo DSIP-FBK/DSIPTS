@@ -374,4 +374,8 @@ and then open the url (http://127.0.0.1:43800)[http://127.0.0.1:43800]. It will 
 [ ] add hybrid models https://www.sciencedirect.com/science/article/pii/S138912862400118X
 [ ] add SOFTS https://github.com/Secilia-Cxy/SOFTS/blob/main/models/SOFTS.py
  
-
+## UPDATES TRACK
+1.1.1 --> added [SAM optimizer](https://arxiv.org/pdf/2402.10198) need to write also the architecture
+```
+ python train.py  --config-dir=config_test --config-name=config architecture=itransformer dataset.path=/home/agobbi/Projects/ExpTS/data train_config.dirpath=tmp inference=tmp model_configs.optim=SAM +optim_config.rho=0.5
+ ```
