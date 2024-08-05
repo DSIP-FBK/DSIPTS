@@ -118,6 +118,7 @@ class Base(pl.LightningModule):
 
                 else:
                     self.optim = eval(self.optim)
+                    self.has_sam_optim = False
                     self.automatic_optimization = True
 
             beauty_string(self.optim,'',self.verbose)
