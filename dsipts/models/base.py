@@ -285,7 +285,7 @@ class Base(pl.LightningModule):
                 mom_real = standardize_momentum( batch['y'],i)
                 mom_pred = standardize_momentum(x,i)
                 
-                mom_loss = torch.abs(mom_real-mom_pred).mean()/mom_real.mean()
+                mom_loss = torch.abs(mom_real-mom_pred).mean()
                 loss+=self.persistence_weight*mom_loss
             
         elif self.loss_type=='dilated':
