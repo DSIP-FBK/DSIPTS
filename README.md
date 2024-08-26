@@ -373,7 +373,8 @@ and then open the url (http://127.0.0.1:43800)[http://127.0.0.1:43800]. It will 
 [x] check D3VAE, it seems broken in some configurations
 [ ] add hybrid models https://www.sciencedirect.com/science/article/pii/S138912862400118X
 [ ] add SOFTS https://github.com/Secilia-Cxy/SOFTS/blob/main/models/SOFTS.py
- 
+[ ] add SAM optimizer (WIP i think it will be easier to update pytorchlightnening but it need some rework)
+[ ] add SAMformer
 ## UPDATES TRACK
 1.1.1 --> added [SAM optimizer](https://arxiv.org/pdf/2402.10198) need to write also the architecture
 ```
