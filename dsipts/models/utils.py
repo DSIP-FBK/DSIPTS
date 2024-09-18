@@ -125,7 +125,7 @@ class QuantileLossMO(nn.Module):
             for i, q in enumerate(self.quantiles):
                 errors = target[:,:,j] - preds[:,:,j, i]
                 
-                losses.append(torch.max((q-1) * errors,q * errors))
+                losses.append(torch.abs(torch.max((q-1) * errors,q * errors)))
 
             loss = torch.mean(torch.sum(torch.cat(losses, dim=1), dim=1))
             tot_loss+=loss
