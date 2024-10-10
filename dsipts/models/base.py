@@ -276,7 +276,7 @@ class Base(pl.LightningModule):
             loss = torch.mean(2*torch.abs(x-batch['y']) / (torch.abs(x)+torch.abs(batch['y'])))
             
         elif self.loss_type=='triplet':
-            loss_fn = torch.nn.TripletMarginLoss(margin=0.1, p=1.0,swap=False)
+            loss_fn = torch.nn.TripletMarginLoss(margin=0.01, p=1.0,swap=False)
             loss = initial_loss +  self.persistence_weight*loss_fn(x, batch['y'], y_persistence)
                 
         elif self.loss_type=='high_order':
