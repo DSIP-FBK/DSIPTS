@@ -234,10 +234,10 @@ class Base(pl.LightningModule):
             x = y_hat[:,:,:,0]
         else:
             x = y_hat[:,:,:,1]
-        
 
-        if self.loss_type == 'linear_penalization':
-            persistence_error = self.persistence_weight*(2.0-10.0*torch.clamp( torch.abs((y_persistence-x)/(0.001+torch.abs(y_persistence))),min=0.0,max=0.1))
+        
+        if self.loss_type == 'linear_penalization': 
+            persistence_error = (2.0-10.0*torch.clamp( torch.abs((y_persistence-x)/(0.001+torch.abs(y_persistence))),min=0.0,max=max(0.05,0.1*(1+np.log10(self.persistence_weight)  ))))
             loss = torch.mean(torch.abs(x- batch['y'])*persistence_error)
         
         if self.loss_type == 'mda':
