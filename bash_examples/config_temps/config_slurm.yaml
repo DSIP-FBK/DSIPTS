@@ -11,8 +11,8 @@ optim_config:
   weight_decay: 0.0001 #001
 
 model_configs:
-  past_steps: 1095
-  future_steps: 120
+  past_steps: 6
+  future_steps: 3
   quantiles: [] #[0.1,0.5,0.9]
   past_channels : null #dataset dependent
   future_channels : null #dataset dependent
@@ -58,7 +58,7 @@ hydra:
   launcher:
     submitit_folder: ${hydra.sweep.dir}/.submitit/%j
     timeout_min: 8000
-    partition: gpu-K80 #A40 #gpu-V100
+    partition: gpu-A40 #A40 #gpu-V100
     mem_gb: 6
     nodes: 1
     gres: gpu:1

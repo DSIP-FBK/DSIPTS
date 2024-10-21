@@ -4,14 +4,14 @@ model:
   type: 'itransformer'
   retrain: true
 ts:
-  name: 'test3'
+  name: 'anomalie'
   version: 1
   enrich: []
-  use_covariates: true
+  use_covariates: false
 
 
 model_configs:
-  d_model: 32
+  d_model: 16
   n_head: 4
   hidden_size: 64
   dropout_rate: 0.25
@@ -24,6 +24,6 @@ model_configs:
   class_strategy: 'average' #projection/average/cls_token
 
 train_config:
-  batch_size: 128
+  batch_size: 32
   max_epochs: 600
             
