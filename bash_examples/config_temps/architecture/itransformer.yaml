@@ -11,8 +11,8 @@ ts:
 
 
 model_configs:
-  d_model: 16
-  n_head: 4
+  d_model: 64
+  n_head: 8
   hidden_size: 64
   dropout_rate: 0.25
   n_layer_decoder: 2
