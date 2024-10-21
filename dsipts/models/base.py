@@ -256,6 +256,8 @@ class Base(pl.LightningModule):
 
             
         elif self.loss_type == 'additive_iv':
+            import pdb
+            pdb.set_trace()
             std = torch.sqrt(torch.var(batch['y'], dim=(1))+ 1e-8) ##--> BSxChannel
             x_std = torch.sqrt(torch.var(x, dim=(1))+ 1e-8)
             loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten() + self.persistence_weight*torch.abs(x_std-std).mean(axis=1).flatten())
