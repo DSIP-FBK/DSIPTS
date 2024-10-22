@@ -241,9 +241,8 @@ class Base(pl.LightningModule):
             loss = torch.mean(torch.abs(x- batch['y'])*persistence_error)
         
         if self.loss_type == 'mda':
-            import pdb
-            pdb.set_trace()
-            mda =  (1-torch.mean( torch.sign(torch.diff(x,axis=1))*torch.sign(torch.diff(batch['y'],axis=1)).flatten()))
+ 
+            mda =  (1-torch.mean( torch.sign(torch.diff(x,axis=1))*torch.sign(torch.diff(batch['y'],axis=1))))
             loss =  torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten()) + self.persistence_weight*mda
             
             
@@ -266,9 +265,9 @@ class Base(pl.LightningModule):
             std = torch.sqrt(torch.var(batch['y'], dim=(1))+ 1e-8) ##--> BSxChannel
             x_std = torch.sqrt(torch.var(x, dim=(1))+ 1e-8)
             if self.persistence_weight>0:
-                loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten()*torch.abs(x_std-std).mean(axis=1).flatten())   
+                loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1)*torch.abs(x_std-std))   
             else:
-                loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten())   
+                loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1))   
         elif self.loss_type=='global_iv':
             std_real = torch.sqrt(torch.var(batch['y'], dim=(0,1)))
             std_predict = torch.sqrt(torch.var(x, dim=(0,1)))
