@@ -268,6 +268,8 @@ class Base(pl.LightningModule):
             else:
                 loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten())   
         elif self.loss_type=='global_iv':
+            import pdb
+            pdb.set_trace()
             std_real = torch.sqrt(torch.var(batch['y'], dim=(0,1)))
             std_predict = torch.sqrt(torch.var(x, dim=(0,1)))
             loss = initial_loss +  self.persistence_weight*torch.abs(std_real-std_predict)

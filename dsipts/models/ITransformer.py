@@ -41,8 +41,7 @@ class ITransformer(Base):
                  use_norm: bool,
                  class_strategy: str = 'projection', #projection/average/cls_token
 
-                 
-                 
+                         
                  dropout_rate: float=0.1,
                  activation: str='',
                  
