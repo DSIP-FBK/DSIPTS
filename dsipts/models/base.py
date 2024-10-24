@@ -291,7 +291,12 @@ class Base(pl.LightningModule):
             
         elif self.loss_type=='dilated':
             #BxLxCxMUL
-            alpha = 0.5
+            if self.persistence_weight==0.1:
+                alpha = 0.25
+            if self.persistence_weight==1:
+                alpha = 0.5
+            else:
+                alpha  =0.75
             gamma = 0.01
             loss = 0
             ##no multichannel here
