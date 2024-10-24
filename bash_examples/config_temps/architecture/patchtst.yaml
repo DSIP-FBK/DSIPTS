@@ -6,20 +6,20 @@ model:
 ts:
   name: 'prova2'
   version: 1
-  enrich: ['hour']
+  enrich: []
   use_covariates: true
 
 
 model_configs:
-  d_model: 128
-  kernel_size: 7
+  d_model: 32
+  kernel_size: 3
   decomposition: false
-  n_layer: 6
-  patch_len: 8
-  n_head: 8
-  stride: 8 #non overlapping?
+  n_layer: 3
+  patch_len: 2
+  n_head: 2
+  stride: 1 #non overlapping?
   dropout_rate: 0.2
-  hidden_size: 128
+  hidden_size: 16
   optim: torch.optim.Adam
   activation: torch.nn.ReLU
   persistence_weight: 1
