@@ -305,6 +305,13 @@ class Base(pl.LightningModule):
                 
                 loss+= dilate_loss( batch['y'][:,:,i:i+1],x[:,:,i:i+1], alpha, gamma, y_hat.device)
             
+        elif self.loss_type=='huber':
+            loss = torch.nn.HuberLoss(reduction='mean', delta=self.persistence_weight/10)   
+            if self.use_quantiles is False:
+                x = y_hat[:,:,:,0]
+            else:
+                x = y_hat[:,:,:,1]
+            loss = loss(y_hat, batch['y'])
             
         else:
             loss = initial_loss
