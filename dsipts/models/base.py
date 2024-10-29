@@ -307,13 +307,13 @@ class Base(pl.LightningModule):
             
         elif self.loss_type=='huber':
             loss = torch.nn.HuberLoss(reduction='mean', delta=self.persistence_weight/10)   
-            import pdb
-            pdb.set_trace()
+            
             if self.use_quantiles is False:
                 x = y_hat[:,:,:,0]
             else:
                 x = y_hat[:,:,:,1]
-            loss = loss(y_hat, batch['y'])
+            BS = x.shape[0]
+            loss = loss(y_hat.reshape(BS,-1), batch['y'].reshape(BS,-1))
             
         else:
             loss = initial_loss
