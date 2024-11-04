@@ -11,16 +11,16 @@ ts:
 
 
 model_configs:
-  d_model: 32
-  n_head: 16
-  hidden_size: 32
+  d_model: 16
+  n_head: 4
+  hidden_size: 16
   dropout_rate: 0.5
   n_layer_decoder: 4
   use_norm: True
   optim: torch.optim.Adam
   persistence_weight: 0.010
   loss_type: 'l1'
-  activation: torch.nn.ReLU
+  activation: torch.nn.GELU
   class_strategy: 'average' #projection/average/cls_token
 
 train_config:

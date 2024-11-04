@@ -11,7 +11,7 @@ ts:
 
 
 model_configs:
-  d_model: 32
+  d_model: 8
   kernel_size: 3
   decomposition: false
   n_layer: 3
@@ -21,7 +21,7 @@ model_configs:
   dropout_rate: 0.2
   hidden_size: 16
   optim: torch.optim.Adam
-  activation: torch.nn.ReLU
+  activation: torch.nn.GELU
   persistence_weight: 1
   loss_type: 'mse'
   remove_last: false
