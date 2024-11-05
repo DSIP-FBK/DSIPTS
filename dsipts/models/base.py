@@ -241,7 +241,8 @@ class Base(pl.LightningModule):
             loss = torch.mean(torch.abs(x- batch['y'])*persistence_error)
         
         if self.loss_type == 'mda':
- 
+            import pdb
+            pdb.set_trace()
             mda =  (1-torch.mean( torch.sign(torch.diff(x,axis=1))*torch.sign(torch.diff(batch['y'],axis=1))))
             loss =  torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten()) + self.persistence_weight*mda
             
