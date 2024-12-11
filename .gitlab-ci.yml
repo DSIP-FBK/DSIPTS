@@ -16,3 +16,5 @@ pages:
   artifacts:
     paths:
     - public
+include:
+  - template: Jobs/Secret-Detection.gitlab-ci.yml
