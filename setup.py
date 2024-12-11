@@ -17,7 +17,6 @@ setup(
 """Custom clean command to tidy up the project root."""
 CLEAN_FILES = ['build', 'dist', 'egg-info']
 
-
 here = os.getcwd()
 
 for dir in os.listdir(here):
