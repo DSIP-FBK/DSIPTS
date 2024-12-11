@@ -8,7 +8,7 @@ run:
 pages:
   script:
     - pip install -r requirements.txt
-    - pip install --force dsipts --index-url https://dsipts:glpat-eaSrCcyXHP3FYLMa9Yhs@gitlab.fbk.eu/api/v4/projects/4571/packages/pypi/simple
+    - pip install --force dsipts --index-url ${DISIP_URL}
     - ./make_doc.sh
     - mkdir .public
     - cp -r docs/_build/html/* .public
