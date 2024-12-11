@@ -227,7 +227,6 @@ class Base(pl.LightningModule):
         idx_target = batch['idx_target'][0]
         x_start = x[:,-1,idx_target].unsqueeze(1)
         y_persistence = x_start.repeat(1,self.future_steps,1)
-        #y_persistence =  batch['y'].to(self.device).mean(axis=1).unsqueeze(1).repeat(1,self.future_steps,1) ##quello che fa meno errori e' la media
         
         ##generally you want to work without quantile loss
         if self.use_quantiles is False:
@@ -244,7 +243,7 @@ class Base(pl.LightningModule):
             #import pdb
             #pdb.set_trace()
             mda =  (1-torch.mean( torch.sign(torch.diff(x,axis=1))*torch.sign(torch.diff(batch['y'],axis=1))))
-            loss =  torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten()) + self.persistence_weight*mda/10
+            loss =  torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten()) + self.persistence_weight*mda#/10
             
             
         
@@ -292,12 +291,13 @@ class Base(pl.LightningModule):
             
         elif self.loss_type=='dilated':
             #BxLxCxMUL
-            if self.persistence_weight==0.1:
-                alpha = 0.25
-            if self.persistence_weight==1:
-                alpha = 0.5
-            else:
-                alpha  =0.75
+            #if self.persistence_weight==0.1:
+            #    alpha = 0.25
+            #if self.persistence_weight==1:
+            #    alpha = 0.5
+            #else:
+            #    alpha  =0.75
+            alpha = self.persistence_weight 
             gamma = 0.01
             loss = 0
             ##no multichannel here
@@ -307,8 +307,8 @@ class Base(pl.LightningModule):
                 loss+= dilate_loss( batch['y'][:,:,i:i+1],x[:,:,i:i+1], alpha, gamma, y_hat.device)
             
         elif self.loss_type=='huber':
-            loss = torch.nn.HuberLoss(reduction='mean', delta=self.persistence_weight/10)   
-            
+            #loss = torch.nn.HuberLoss(reduction='mean', delta=self.persistence_weight/10)   
+            loss = torch.nn.HuberLoss(reduction='mean', delta=self.persistence_weight)   
             if self.use_quantiles is False:
                 x = y_hat[:,:,:,0]
             else:
