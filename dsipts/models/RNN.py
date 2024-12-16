@@ -174,7 +174,6 @@ class RNN(Base):
             self.Encoder = nn.GRU(input_size= hidden_RNN//8,hidden_size=hidden_RNN,num_layers = num_layers_RNN,batch_first=True)
             self.Decoder = nn.GRU(input_size= hidden_RNN//8,hidden_size=hidden_RNN,num_layers = num_layers_RNN,batch_first=True)
         elif self.kind=='xlstm':
-
             self.Encoder = xLSTM(input_size= hidden_RNN//8,hidden_size=hidden_RNN,num_layers = num_layers_RNN,num_blocks=num_blocks,dropout=dropout_rate, bidirectional=bidirectional, lstm_type=lstm_type)
             self.Decoder = xLSTM(input_size= hidden_RNN//8,hidden_size=hidden_RNN,num_layers = num_layers_RNN,num_blocks=num_blocks,dropout=dropout_rate, bidirectional=bidirectional, lstm_type=lstm_type)
       

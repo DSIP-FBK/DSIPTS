@@ -299,9 +299,8 @@ It is possible to use one of the following architectures:
 - **DilatedConvED** dilated convolutional RNN with an encoder/decoder structure.
 - **Diffusion** custom [diffusion process](https://arxiv.org/abs/2102.09672) using the attention mechanism in the subnets.
 - **ITransformer**  [paper](https://arxiv.org/abs/2310.06625), [official repo](https://github.com/thuml/iTransformer)
-
-
-
+- **TIDE**  [paper](https://arxiv.org/abs/2304.08424)
+- **Samformer**  [paper](https://arxiv.org/pdf/2402.10198) [official repo](https://github.com/romilbert/samformer/tree/main?tab=MIT-1-ov-)
 
 ## Metrics
 In some cases the persistence model is hard to beat and even the more complex model can fall in the persistence trap that propagates the last seen values. 
