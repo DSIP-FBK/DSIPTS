@@ -102,7 +102,7 @@ class Base(pl.LightningModule):
         
         :meta private:
         """
-        
+        self.has_sam_optim = False
         if self.optim_config is None:
             self.optim_config = {'lr': 5e-05}
 
@@ -110,6 +110,7 @@ class Base(pl.LightningModule):
         if self.optim is None:
             optimizer = optim.Adam(self.parameters(),  **self.optim_config)
             self.initialize = True
+            
         else:
             if self.initialize is False:
                 if self.optim=='SAM':
@@ -243,7 +244,7 @@ class Base(pl.LightningModule):
             #import pdb
             #pdb.set_trace()
             mda =  (1-torch.mean( torch.sign(torch.diff(x,axis=1))*torch.sign(torch.diff(batch['y'],axis=1))))
-            loss =  torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten()) + self.persistence_weight*mda#/10
+            loss =  self.persistence_weight*mda/10
             
             
         
@@ -259,7 +260,7 @@ class Base(pl.LightningModule):
         elif self.loss_type == 'additive_iv':
             std = torch.sqrt(torch.var(batch['y'], dim=(1))+ 1e-8) ##--> BSxChannel
             x_std = torch.sqrt(torch.var(x, dim=(1))+ 1e-8)
-            loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten() + self.persistence_weight*torch.abs(x_std-std).flatten())
+            loss = torch.mean( self.persistence_weight*torch.abs(x_std-std).flatten())
             
         elif self.loss_type == 'multiplicative_iv':
             std = torch.sqrt(torch.var(batch['y'], dim=(1))+ 1e-8) ##--> BSxChannel
@@ -291,12 +292,12 @@ class Base(pl.LightningModule):
             
         elif self.loss_type=='dilated':
             #BxLxCxMUL
-            #if self.persistence_weight==0.1:
-            #    alpha = 0.25
-            #if self.persistence_weight==1:
-            #    alpha = 0.5
-            #else:
-            #    alpha  =0.75
+            if self.persistence_weight==0.1:
+                alpha = 0.25
+            if self.persistence_weight==1:
+                alpha = 0.5
+            else:
+                alpha  =0.75
             alpha = self.persistence_weight 
             gamma = 0.01
             loss = 0
@@ -307,8 +308,8 @@ class Base(pl.LightningModule):
                 loss+= dilate_loss( batch['y'][:,:,i:i+1],x[:,:,i:i+1], alpha, gamma, y_hat.device)
             
         elif self.loss_type=='huber':
-            #loss = torch.nn.HuberLoss(reduction='mean', delta=self.persistence_weight/10)   
-            loss = torch.nn.HuberLoss(reduction='mean', delta=self.persistence_weight)   
+            loss = torch.nn.HuberLoss(reduction='mean', delta=self.persistence_weight/10)   
+            #loss = torch.nn.HuberLoss(reduction='mean', delta=self.persistence_weight)   
             if self.use_quantiles is False:
                 x = y_hat[:,:,:,0]
             else:

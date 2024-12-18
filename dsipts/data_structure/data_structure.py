@@ -349,7 +349,7 @@ class TimeSeries():
             starting_point (Union[None,dict], optional): a dictionary indicating if a sample must be considered. It is checked for the first lag in the future (useful in the case your model has to predict only starting from hour 12). Defaults to None.
             skip_step (int, optional): list of the categortial variables (same for past and future). Usual there is a skip of one between two saples but for debugging  or training time purposes you can skip some samples. Defaults to 1.
         Returns:
-            MyDataset: class thath extends torch.utils.data.Dataset (see utils)
+            MyDataset: class that extends torch.utils.data.Dataset (see utils)
                 keys of a batch:
                 y : the target variable(s)
                 x_num_past: the numerical past variables
