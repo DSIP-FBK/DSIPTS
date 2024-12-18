@@ -256,7 +256,6 @@ class Base(pl.LightningModule):
             sinkhorn = SinkhornDistance(eps=0.1, max_iter=100, reduction='mean')
             loss = sinkhorn.compute(x,batch['y'])
 
-            
         elif self.loss_type == 'additive_iv':
             std = torch.sqrt(torch.var(batch['y'], dim=(1))+ 1e-8) ##--> BSxChannel
             x_std = torch.sqrt(torch.var(x, dim=(1))+ 1e-8)
