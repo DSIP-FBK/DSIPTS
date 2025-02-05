@@ -155,8 +155,6 @@ class Base(pl.LightningModule):
 
             self.manual_backward(loss,retain_graph=True)
             opt.second_step(zero_grad=True)
-        import pdb
-        pdb.set_trace()
         return loss
 
     
