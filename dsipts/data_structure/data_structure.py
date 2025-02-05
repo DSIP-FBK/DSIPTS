@@ -707,6 +707,7 @@ class TimeSeries():
                                       save_last = True,
                                       every_n_epochs =1,
                                       verbose = self.verbose,
+                                      save_on_train_epoch_end = True,
                                       save_top_k = 1,
                                      filename='checkpoint')
         
