@@ -142,8 +142,7 @@ class SAM(Optimizer):
         closure = torch.enable_grad()(
             closure
         )  # the closure should do a full forward-backward pass
-        import pdb
-        pdb.set_trace()
+
         self.first_step(zero_grad=True)
         closure()
         self.second_step()
