@@ -162,9 +162,7 @@ class Base(pl.LightningModule):
             #self.trainer.fit_loop.epoch_loop.manual_optimization.optim_step_progress.increment("optimizer")
 
         return loss
-    def on_train_batch_end(self):
-        import pdb
-        pdb.set_trace()
+
     
     def validation_step(self, batch, batch_idx):
         """
