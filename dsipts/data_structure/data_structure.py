@@ -752,7 +752,6 @@ class TimeSeries():
                              auto_lr_find=auto_lr_find, 
                              accelerator=accelerator,
                              devices=devices,
-                             automatic_optimization=False,  
                              strategy=strategy,
                              enable_progress_bar=False,
                              precision=precision,

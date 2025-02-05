@@ -156,6 +156,9 @@ class Base(pl.LightningModule):
 
             self.manual_backward(loss,retain_graph=True)
             opt.second_step(zero_grad=True)
+            self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
+            self.log("global_step", self.trainer.global_step, on_step=True)  # Correct way to log
+
             #import pdb
             #pdb.set_trace()
             #        self.trainer.global_step += 1  
