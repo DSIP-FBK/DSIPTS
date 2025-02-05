@@ -33,7 +33,6 @@ split_params:
   past_steps: model_configs@past_steps 
   future_steps: model_configs@future_steps
 
-
 train_config:
   dirpath: "/home/agobbi/Projects/ExpTS/etth1" 
   num_workers: 0
