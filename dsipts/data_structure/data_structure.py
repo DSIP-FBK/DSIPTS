@@ -769,8 +769,6 @@ class TimeSeries():
         trainer.fit(self.model, train_dl,valid_dl)
         self.checkpoint_file_best = checkpoint_callback.best_model_path
         self.checkpoint_file_last = checkpoint_callback.last_model_path 
-        import pdb
-        pdb.set_trace()
         if self.checkpoint_file_last=='':
             beauty_string('There is a bug on saving last model I will try to fix it','info',self.verbose)
             self.checkpoint_file_last = checkpoint_callback.best_model_path.replace('checkpoint','last')
