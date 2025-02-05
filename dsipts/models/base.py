@@ -115,7 +115,7 @@ class Base(pl.LightningModule):
             if self.initialize is False:
                 if self.optim=='SAM':
                     self.has_sam_optim = True
-                    self.automatic_optimization = True
+                    self.automatic_optimization = False
 
                 else:
                     self.optim = eval(self.optim)
@@ -144,20 +144,19 @@ class Base(pl.LightningModule):
         """
         y_hat = self(batch)
         loss = self.compute_loss(batch,y_hat)
-        import pdb
-        pdb.set_trace()
         if self.has_sam_optim:
-            pass
+
             opt = self.optimizers()
-            self.manual_backward(loss)
+            self.manual_backward(loss,opt)
             opt.first_step(zero_grad=True)
 
             y_hat = self(batch)
             loss = self.compute_loss(batch, y_hat)
 
-            self.manual_backward(loss,retain_graph=True)
+            self.manual_backward(loss,opt,retain_graph=True)
             opt.second_step(zero_grad=True)
-
+            import pdb
+            pdb.set_trace()
             #        self.trainer.global_step += 1  
 
             #self.trainer.fit_loop.epoch_loop.manual_optimization.optim_step_progress.increment("optimizer")
