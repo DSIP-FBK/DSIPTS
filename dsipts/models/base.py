@@ -115,7 +115,7 @@ class Base(pl.LightningModule):
             if self.initialize is False:
                 if self.optim=='SAM':
                     self.has_sam_optim = True
-                    self.automatic_optimization = False
+                    self.automatic_optimization = True
 
                 else:
                     self.optim = eval(self.optim)
@@ -145,7 +145,7 @@ class Base(pl.LightningModule):
         y_hat = self(batch)
         loss = self.compute_loss(batch,y_hat)
         if self.has_sam_optim:
-
+            pass
             opt = self.optimizers()
             self.manual_backward(loss)
             opt.first_step(zero_grad=True)
