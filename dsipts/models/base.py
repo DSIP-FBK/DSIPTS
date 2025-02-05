@@ -153,13 +153,13 @@ class Base(pl.LightningModule):
             
             def closure():
                 loss = self.compute_loss(batch,y_hat)
-                #self.manual_backward(loss)
-                loss.backward()
+                self.manual_backward(loss)
+                #loss.backward()
                 return loss
 
             loss = self.compute_loss(batch,y_hat)
-            #self.manual_backward(loss)
-            loss.backward()
+            self.manual_backward(loss)
+            #loss.backward()
             opt.step(closure)
             opt.zero_grad()
             #opt.first_step(zero_grad=True)
