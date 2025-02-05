@@ -155,9 +155,11 @@ class Base(pl.LightningModule):
 
             self.manual_backward(loss,retain_graph=True)
             opt.second_step(zero_grad=True)
-            import pdb
-            pdb.set_trace()
-            self.trainer.fit_loop.epoch_loop.manual_optimization.optim_step_progress.increment("optimizer")
+            #import pdb
+            #pdb.set_trace()
+            self.trainer.fit_loop.epoch_loop._batches_that_stepped +=1 
+
+            #self.trainer.fit_loop.epoch_loop.manual_optimization.optim_step_progress.increment("optimizer")
 
         return loss
 
