@@ -144,6 +144,8 @@ class Base(pl.LightningModule):
         """
         y_hat = self(batch)
         loss = self.compute_loss(batch,y_hat)
+        import pdb
+        pdb.set_trace()
         if self.has_sam_optim:
             pass
             opt = self.optimizers()
@@ -155,8 +157,7 @@ class Base(pl.LightningModule):
 
             self.manual_backward(loss,retain_graph=True)
             opt.second_step(zero_grad=True)
-            import pdb
-            pdb.set_trace()
+
             #        self.trainer.global_step += 1  
 
             #self.trainer.fit_loop.epoch_loop.manual_optimization.optim_step_progress.increment("optimizer")
