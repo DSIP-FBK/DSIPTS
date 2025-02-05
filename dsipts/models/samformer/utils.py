@@ -134,7 +134,7 @@ class SAM(Optimizer):
         if zero_grad:
             self.zero_grad()
 
-    @torch.no_grad()
+    #@torch.no_grad()
     def step(self, closure=None):
         assert (
             closure is not None
