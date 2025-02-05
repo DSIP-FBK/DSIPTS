@@ -145,8 +145,8 @@ class Base(pl.LightningModule):
         y_hat = self(batch)
         loss = self.compute_loss(batch,y_hat)
         if self.has_sam_optim:
-            #import pdb
-            #pdb.set_trace()
+            import pdb
+            pdb.set_trace()
             opt = self.optimizers()
             self.manual_backward(loss)
             opt.first_step(zero_grad=True)
