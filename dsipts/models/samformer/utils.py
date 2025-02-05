@@ -134,7 +134,7 @@ class SAM(Optimizer):
         if zero_grad:
             self.zero_grad()
 
-    #@torch.no_grad()
+    @torch.no_grad()
     def step(self, closure=None):
         assert (
             closure is not None
@@ -142,7 +142,8 @@ class SAM(Optimizer):
         closure = torch.enable_grad()(
             closure
         )  # the closure should do a full forward-backward pass
-
+        import pdb
+        pdb.set_trace()
         self.first_step(zero_grad=True)
         closure()
         self.second_step()
