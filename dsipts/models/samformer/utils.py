@@ -145,7 +145,7 @@ class SAM(Optimizer):
 
         self.first_step(zero_grad=True)
         closure()
-        self.second_step(zero_grad=True)
+        self.second_step()
 
     def _grad_norm(self):
         shared_device = self.param_groups[0]["params"][

@@ -144,14 +144,22 @@ class Base(pl.LightningModule):
         :meta private:
         """
         y_hat = self(batch)
-        loss = self.compute_loss(batch,y_hat)
+        #loss = self.compute_loss(batch,y_hat)
         #import pdb
         #pdb.set_trace()
         if self.has_sam_optim:
 
             opt = self.optimizers()
+            
+            def closure():
+                loss = self.compute_loss(batch,y_hat)
+                self.manual_backward(loss)
+                return loss
+
+            loss = self.compute_loss(batch,y_hat)
             self.manual_backward(loss)
-            opt.step()
+            opt.step(closure)
+            opt.zero_grad()
             #opt.first_step(zero_grad=True)
 
             #y_hat = self(batch)
@@ -162,10 +170,7 @@ class Base(pl.LightningModule):
             #self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
             #self.log("global_step",  self.my_step, on_step=True)  # Correct way to log
 
-            #import pdb
-            #pdb.set_trace()
-            #        self.trainer.global_step += 1  
-
+   
             #self.trainer.fit_loop.epoch_loop.manual_optimization.optim_step_progress.increment("optimizer")
 
         return loss
