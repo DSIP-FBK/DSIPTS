@@ -159,7 +159,8 @@ class Base(pl.LightningModule):
                 return loss
 
             loss = opt.step(closure)
-        
+            import pdb
+            pdb.set_trace()
             
             #opt.first_step(zero_grad=True)
 
