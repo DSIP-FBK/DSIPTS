@@ -85,7 +85,6 @@ class RevIN(nn.Module):
         return x
     
 
-
 class SAM(torch.optim.Optimizer):
     def __init__(self, params, base_optimizer, rho=0.05, adaptive=False, **kwargs):
         assert rho >= 0.0, f"Invalid rho, should be non-negative: {rho}"
@@ -104,37 +103,40 @@ class SAM(torch.optim.Optimizer):
             scale = group["rho"] / (grad_norm + 1e-12)
 
             for p in group["params"]:
-                if p.grad is None: continue
+                if p.grad is None:
+                    continue
                 self.state[p]["old_p"] = p.data.clone()
                 e_w = (torch.pow(p, 2) if group["adaptive"] else 1.0) * p.grad * scale.to(p)
-                p.add_(e_w)  # climb to the local maximum "w + e(w)"
+                p.add_(e_w)  # Perturb weights in the gradient direction
 
-        if zero_grad: self.zero_grad()
+        if zero_grad:
+            self.zero_grad()
 
     @torch.no_grad()
     def second_step(self, zero_grad=False):
         for group in self.param_groups:
             for p in group["params"]:
-                if p.grad is None: continue
-                p.data = self.state[p]["old_p"]  # get back to "w" from "w + e(w)"
+                if p.grad is None:
+                    continue
+                p.data = self.state[p]["old_p"]  # Restore original weights
 
-        self.base_optimizer.step()  # do the actual "sharpness-aware" update
+        self.base_optimizer.step()  # Apply the sharpness-aware update
 
-        if zero_grad: self.zero_grad()
+        if zero_grad:
+            self.zero_grad()
 
-    #@torch.no_grad()
+    @torch.no_grad()
     def step(self, closure=None):
         assert closure is not None, "Sharpness Aware Minimization requires closure, but it was not provided"
-        closure = torch.enable_grad()(closure)  # the closure should do a full forward-backward pass
 
-        #self.first_step(zero_grad=True)
-        #closure()
-        #self.second_step()
         with torch.enable_grad():
-            closure()  # Ensure closure runs under autograd tracking
+            closure()  # First forward-backward pass
+
         self.first_step(zero_grad=True)
+
         with torch.enable_grad():
             closure()  # Second forward-backward pass
+
         self.second_step()
 
     def _grad_norm(self):
