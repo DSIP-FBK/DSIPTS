@@ -143,7 +143,7 @@ class Base(pl.LightningModule):
         
         :meta private:
         """
-        y_hat = self(batch)
+        
         #loss = self.compute_loss(batch,y_hat)
         #import pdb
         #pdb.set_trace()
@@ -173,7 +173,9 @@ class Base(pl.LightningModule):
 
    
             #self.trainer.fit_loop.epoch_loop.manual_optimization.optim_step_progress.increment("optimizer")
-
+        else:
+            y_hat = self(batch)
+            loss = self.compute_loss(batch,y_hat)
         return loss
 
     
