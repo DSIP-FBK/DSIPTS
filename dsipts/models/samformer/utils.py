@@ -138,16 +138,13 @@ class SAM(torch.optim.Optimizer):
         self.second_step()
 
     def _grad_norm(self):
-        shared_device = self.param_groups[0]["params"][0].device  # put everything on the same device, in case of model parallelism
-        norm = torch.norm(
-                    torch.stack([
-                        ((torch.abs(p) if group["adaptive"] else 1.0) * p.grad).norm(p=2).to(shared_device)
-                        for group in self.param_groups for p in group["params"]
-                        if p.grad is not None
-                    ]),
-                    p=2
-               )
-        return norm
+        shared_device = self.param_groups[0]["params"][0].device
+        grads = [
+            ((torch.abs(p) if group["adaptive"] else 1.0) * p.grad).norm(p=2).to(shared_device)
+            for group in self.param_groups for p in group["params"]
+            if p.grad is not None
+        ]
+        return torch.norm(torch.stack(grads), p=2) if grads else torch.tensor(0.0, device=shared_device)
 
     def load_state_dict(self, state_dict):
         super().load_state_dict(state_dict)
