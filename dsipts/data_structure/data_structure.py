@@ -789,11 +789,10 @@ class TimeSeries():
         if isinstance(self.losses,dict):
             self.losses = pd.DataFrame()
             
-        import pdb;pdb.set_trace()
         try:
-            self.model = self.model.load_from_checkpoint(self.checkpoint_file_last)
+            self.model = self.model.load_from_checkpoint(self.checkpoint_file_lastm,weights_only=True)
         except Exception as _:
-            beauty_string(f'There is a problem loading the weights on file {self.checkpoint_file_last}','section',self.verbose)
+            beauty_string(f'There is a problem loading the weights on file MAYBE CHANGED HOW WEIGHTS ARE LOADED {self.checkpoint_file_last}','section',self.verbose)
 
         try:
             val_loss = self.losses.val_loss.values[-1]
@@ -1054,7 +1053,6 @@ class TimeSeries():
             else:
                 directory = dirpath
 
-            import pdb;pdb.set_trace()
             if load_last:
                 
                 try:
