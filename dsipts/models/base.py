@@ -148,7 +148,7 @@ class Base(pl.LightningModule):
         #import pdb
         #pdb.set_trace()
         if self.has_sam_optim:
-
+            
             opt = self.optimizers()
             
             def closure():
@@ -156,7 +156,8 @@ class Base(pl.LightningModule):
                 #self.manual_backward(loss)
                 loss.backward()
                 return loss
-
+            import pdb
+            pdb.set_trace()
             loss = self.compute_loss(batch,y_hat)
             #self.manual_backward(loss,retain_graph=True)
             loss.backward(retain_graph=True)
