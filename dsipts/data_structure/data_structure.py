@@ -788,6 +788,8 @@ class TimeSeries():
                 os.remove(os.path.join(os.path.join(dirpath,f)))
         if isinstance(self.losses,dict):
             self.losses = pd.DataFrame()
+            
+        import pdb;pdb.set_trace()
         try:
             self.model = self.model.load_from_checkpoint(self.checkpoint_file_last)
         except Exception as _:
