@@ -127,8 +127,14 @@ class SAM(torch.optim.Optimizer):
         assert closure is not None, "Sharpness Aware Minimization requires closure, but it was not provided"
         closure = torch.enable_grad()(closure)  # the closure should do a full forward-backward pass
 
+        #self.first_step(zero_grad=True)
+        #closure()
+        #self.second_step()
+        with torch.enable_grad():
+            closure()  # Ensure closure runs under autograd tracking
         self.first_step(zero_grad=True)
-        closure()
+        with torch.enable_grad():
+            closure()  # Second forward-backward pass
         self.second_step()
 
     def _grad_norm(self):
@@ -145,4 +151,5 @@ class SAM(torch.optim.Optimizer):
 
     def load_state_dict(self, state_dict):
         super().load_state_dict(state_dict)
-        self.base_optimizer.param_groups = self.param_groups
+        if hasattr(self, "base_optimizer"):  # Ensure base optimizer exists
+            self.base_optimizer.load_state_dict(state_dict["base_optimizer"])
