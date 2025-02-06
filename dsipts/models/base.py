@@ -155,12 +155,14 @@ class Base(pl.LightningModule):
                 opt.zero_grad()
                 y_hat = self(batch)
                 loss = self.compute_loss(batch,y_hat)
-                loss = self.manual_backward(loss)
+                self.manual_backward(loss)
                 return loss
 
-            loss = opt.step(closure)
+            opt.step(closure)
+            y_hat = self(batch)
+            loss = self.compute_loss(batch,y_hat)
             import pdb
-            pdb.set_trace()
+            pdb.set_trace
             
             #opt.first_step(zero_grad=True)
 
