@@ -153,14 +153,14 @@ class Base(pl.LightningModule):
             
             def closure():
                 loss = self.compute_loss(batch,y_hat)
-                self.manual_backward(loss,retain_graph=True)
+                self.manual_backward(loss)
                 #loss.backward(retain_graph=True)
                 return loss
             
             import pdb
             pdb.set_trace()
             loss = self.compute_loss(batch,y_hat)
-            self.manual_backward(loss,retain_graph=True)
+            self.manual_backward(loss)
             #loss.backward(retain_graph=True)
             opt.step(closure)
             opt.zero_grad()

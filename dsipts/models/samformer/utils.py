@@ -86,12 +86,7 @@ class RevIN(nn.Module):
     
 
 
-class SAM(Optimizer):
-    """
-    SAM: Sharpness-Aware Minimization for Efficiently Improving Generalization https://arxiv.org/abs/2010.01412
-    https://github.com/davda54/sam
-    """
-
+class SAM(torch.optim.Optimizer):
     def __init__(self, params, base_optimizer, rho=0.05, adaptive=False, **kwargs):
         assert rho >= 0.0, f"Invalid rho, should be non-negative: {rho}"
 
@@ -125,13 +120,13 @@ class SAM(Optimizer):
 
         self.base_optimizer.step()  # do the actual "sharpness-aware" update
 
-        if zero_grad: 
-            self.zero_grad()
+        if zero_grad: self.zero_grad()
 
     @torch.no_grad()
     def step(self, closure=None):
         assert closure is not None, "Sharpness Aware Minimization requires closure, but it was not provided"
         closure = torch.enable_grad()(closure)  # the closure should do a full forward-backward pass
+
         self.first_step(zero_grad=True)
         closure()
         self.second_step()
