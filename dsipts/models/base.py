@@ -155,7 +155,7 @@ class Base(pl.LightningModule):
                 opt.zero_grad()
                 y_hat = self(batch)
                 loss = self.compute_loss(batch,y_hat)
-                self.manual_backward(loss)
+                loss = self.manual_backward(loss)
                 return loss
 
             loss = opt.step(closure)
