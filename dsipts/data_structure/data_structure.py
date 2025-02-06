@@ -1051,8 +1051,8 @@ class TimeSeries():
                 directory = self.dirpath
             else:
                 directory = dirpath
-        
-        
+
+            import pdb;pdb.set_trace()
             if load_last:
                 
                 try:
