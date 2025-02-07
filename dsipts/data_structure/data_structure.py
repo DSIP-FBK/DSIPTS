@@ -788,10 +788,9 @@ class TimeSeries():
                 os.remove(os.path.join(os.path.join(dirpath,f)))
         if isinstance(self.losses,dict):
             self.losses = pd.DataFrame()
-        import pdb
-        pdb.set_trace()
+
         try:
-            self.model = self.model.load_from_checkpoint(self.checkpoint_file_lastm,weights_only=True)
+            self.model = self.model.load_from_checkpoint(self.checkpoint_file_last)
         except Exception as _:
             beauty_string(f'There is a problem loading the weights on file MAYBE CHANGED HOW WEIGHTS ARE LOADED {self.checkpoint_file_last}','section',self.verbose)
 
@@ -1045,6 +1044,8 @@ class TimeSeries():
             self.config['model_configs'].pop('verbose')
         self.model = model(**self.config['model_configs'],optim_config = self.config['optim_config'],scheduler_config =self.config['scheduler_config'],verbose=self.verbose )
         
+        import pdb
+        pdb.set_trace()
         
         if weight_path is not None:
             tmp_path = weight_path
