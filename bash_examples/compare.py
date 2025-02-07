@@ -43,8 +43,8 @@ def compare(conf:DictConfig)-> None:
         pdb.set_trace()
         
     for conf_tmp in files:
-        if conf_tmp.endswith('yaml')==False:
-            pass
+        if conf_tmp.endswith('yaml') is False:
+            continue
         beauty_string(f'Processing file: {conf_tmp}','block',VERBOSE)
         conf_tmp =  OmegaConf.load(conf_tmp) 
         

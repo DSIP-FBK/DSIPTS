@@ -1044,8 +1044,6 @@ class TimeSeries():
             self.config['model_configs'].pop('verbose')
         self.model = model(**self.config['model_configs'],optim_config = self.config['optim_config'],scheduler_config =self.config['scheduler_config'],verbose=self.verbose )
         
-        import pdb
-        pdb.set_trace()
         
         if weight_path is not None:
             tmp_path = weight_path
