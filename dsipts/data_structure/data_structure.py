@@ -349,7 +349,7 @@ class TimeSeries():
             starting_point (Union[None,dict], optional): a dictionary indicating if a sample must be considered. It is checked for the first lag in the future (useful in the case your model has to predict only starting from hour 12). Defaults to None.
             skip_step (int, optional): list of the categortial variables (same for past and future). Usual there is a skip of one between two saples but for debugging  or training time purposes you can skip some samples. Defaults to 1.
         Returns:
-            MyDataset: class thath extends torch.utils.data.Dataset (see utils)
+            MyDataset: class that extends torch.utils.data.Dataset (see utils)
                 keys of a batch:
                 y : the target variable(s)
                 x_num_past: the numerical past variables
@@ -788,10 +788,11 @@ class TimeSeries():
                 os.remove(os.path.join(os.path.join(dirpath,f)))
         if isinstance(self.losses,dict):
             self.losses = pd.DataFrame()
+
         try:
             self.model = self.model.load_from_checkpoint(self.checkpoint_file_last)
         except Exception as _:
-            beauty_string(f'There is a problem loading the weights on file {self.checkpoint_file_last}','section',self.verbose)
+            beauty_string(f'There is a problem loading the weights on file MAYBE CHANGED HOW WEIGHTS ARE LOADED {self.checkpoint_file_last}','section',self.verbose)
 
         try:
             val_loss = self.losses.val_loss.values[-1]
@@ -1051,8 +1052,7 @@ class TimeSeries():
                 directory = self.dirpath
             else:
                 directory = dirpath
-        
-        
+
             if load_last:
                 
                 try:

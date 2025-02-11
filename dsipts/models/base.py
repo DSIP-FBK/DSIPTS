@@ -102,7 +102,7 @@ class Base(pl.LightningModule):
         
         :meta private:
         """
-        
+        self.has_sam_optim = False
         if self.optim_config is None:
             self.optim_config = {'lr': 5e-05}
 
@@ -110,11 +110,13 @@ class Base(pl.LightningModule):
         if self.optim is None:
             optimizer = optim.Adam(self.parameters(),  **self.optim_config)
             self.initialize = True
+            
         else:
             if self.initialize is False:
                 if self.optim=='SAM':
                     self.has_sam_optim = True
                     self.automatic_optimization = False
+                    self.my_step = 0
 
                 else:
                     self.optim = eval(self.optim)
@@ -141,20 +143,40 @@ class Base(pl.LightningModule):
         
         :meta private:
         """
-        y_hat = self(batch)
-        loss = self.compute_loss(batch,y_hat)
-        if self.has_sam_optim:
-
-            opt = self.optimizers()
-            self.manual_backward(loss)
-            opt.first_step(zero_grad=True)
-
-            y_hat = self(batch)
-            loss = self.compute_loss(batch, y_hat)
-
-            self.manual_backward(loss,retain_graph=True)
-            opt.second_step(zero_grad=True)
         
+        #loss = self.compute_loss(batch,y_hat)
+        #import pdb
+        #pdb.set_trace()
+
+        if self.has_sam_optim:
+            
+            opt = self.optimizers()
+            def closure():
+                opt.zero_grad()
+                y_hat = self(batch)
+                loss = self.compute_loss(batch,y_hat)
+                self.manual_backward(loss)
+                return loss
+
+            opt.step(closure)
+            y_hat = self(batch)
+            loss = self.compute_loss(batch,y_hat)
+            
+            #opt.first_step(zero_grad=True)
+
+            #y_hat = self(batch)
+            #loss = self.compute_loss(batch, y_hat)
+            #self.my_step+=1
+            #self.manual_backward(loss,retain_graph=True)
+            #opt.second_step(zero_grad=True)
+            #self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
+            #self.log("global_step",  self.my_step, on_step=True)  # Correct way to log
+
+   
+            #self.trainer.fit_loop.epoch_loop.manual_optimization.optim_step_progress.increment("optimizer")
+        else:
+            y_hat = self(batch)
+            loss = self.compute_loss(batch,y_hat)
         return loss
 
     
@@ -243,7 +265,7 @@ class Base(pl.LightningModule):
             #import pdb
             #pdb.set_trace()
             mda =  (1-torch.mean( torch.sign(torch.diff(x,axis=1))*torch.sign(torch.diff(batch['y'],axis=1))))
-            loss =  torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten()) + self.persistence_weight*mda#/10
+            loss =   torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten()) + self.persistence_weight*mda/10
             
             
         
@@ -255,7 +277,6 @@ class Base(pl.LightningModule):
             sinkhorn = SinkhornDistance(eps=0.1, max_iter=100, reduction='mean')
             loss = sinkhorn.compute(x,batch['y'])
 
-            
         elif self.loss_type == 'additive_iv':
             std = torch.sqrt(torch.var(batch['y'], dim=(1))+ 1e-8) ##--> BSxChannel
             x_std = torch.sqrt(torch.var(x, dim=(1))+ 1e-8)
@@ -278,7 +299,7 @@ class Base(pl.LightningModule):
             
         elif self.loss_type=='triplet':
             loss_fn = torch.nn.TripletMarginLoss(margin=0.01, p=1.0,swap=False)
-            loss = initial_loss +  self.persistence_weight*loss_fn(x, batch['y'], y_persistence)
+            loss =  initial_loss + self.persistence_weight*loss_fn(x, batch['y'], y_persistence)
                 
         elif self.loss_type=='high_order':
             loss = initial_loss
@@ -291,12 +312,12 @@ class Base(pl.LightningModule):
             
         elif self.loss_type=='dilated':
             #BxLxCxMUL
-            #if self.persistence_weight==0.1:
-            #    alpha = 0.25
-            #if self.persistence_weight==1:
-            #    alpha = 0.5
-            #else:
-            #    alpha  =0.75
+            if self.persistence_weight==0.1:
+                alpha = 0.25
+            if self.persistence_weight==1:
+                alpha = 0.5
+            else:
+                alpha  =0.75
             alpha = self.persistence_weight 
             gamma = 0.01
             loss = 0
@@ -307,8 +328,8 @@ class Base(pl.LightningModule):
                 loss+= dilate_loss( batch['y'][:,:,i:i+1],x[:,:,i:i+1], alpha, gamma, y_hat.device)
             
         elif self.loss_type=='huber':
-            #loss = torch.nn.HuberLoss(reduction='mean', delta=self.persistence_weight/10)   
-            loss = torch.nn.HuberLoss(reduction='mean', delta=self.persistence_weight)   
+            loss = torch.nn.HuberLoss(reduction='mean', delta=self.persistence_weight/10)   
+            #loss = torch.nn.HuberLoss(reduction='mean', delta=self.persistence_weight)   
             if self.use_quantiles is False:
                 x = y_hat[:,:,:,0]
             else:

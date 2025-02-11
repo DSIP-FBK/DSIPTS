@@ -36,7 +36,7 @@ split_params:
   scaler: 'StandardScaler()' ## or sklearn.preprocessing.StandardScaler()
 train_config:
   dirpath: null
-  num_workers: 4
+  num_workers: 0
   auto_lr_find: false
   devices: [0]                   
   seed: 42    
@@ -58,8 +58,8 @@ hydra:
   launcher:
     n_jobs:  2
     verbose: 1
-    pre_dispatch: 1
-    batch_size: 1
+    pre_dispatch: 2
+    batch_size: 2
 
   output_subdir: null 
   sweeper:

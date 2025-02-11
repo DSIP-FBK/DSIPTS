@@ -124,7 +124,7 @@ class MyDataset(Dataset):
                 idx_target: index of target features in the past array
             t (np.array): the time array related to the target variables
             idx_target (Union[np.array,None]): you can specify the index in the past data that represent the input features (for differntial analysis or detrending strategies)
-            idx_target (Union[np.array,None]): you can specify the index in the future data that represent the input features (for differntial analysis or detrending strategies)
+            idx_target_future (Union[np.array,None]): you can specify the index in the future data that represent the input features (for differntial analysis or detrending strategies)
 
         Returns:
             torch.utils.data.Dataset: a torch Dataset to be used in a Dataloader
@@ -134,6 +134,8 @@ class MyDataset(Dataset):
         self.groups = groups
         self.idx_target = np.array(idx_target) if idx_target is not None else None
         self.idx_target_future = np.array(idx_target_future) if idx_target_future is not None else None
+
+  
 
     def __len__(self):
         
