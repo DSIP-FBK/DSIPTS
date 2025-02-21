@@ -1,20 +1,3 @@
-<<<<<<< HEAD
-image: python:3.11.9
-
-run:
-  script:
-    - pip install twine sphinx-pdj-theme sphinx
-    - python setup.py sdist bdist_wheel
-    - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token python -m twine upload --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
-pages:
-  script:
-    - pip install -r requirements.txt
-    #- pip install --force dsipts --index-url ${DISIP_URL} 
-    - ./make_doc.sh
-    - mkdir .public
-    - cp -r docs/_build/html/* .public
-    - mv .public public
-=======
 # You can override the included template(s) by including variable overrides
 # SAST customization: https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
 # Secret Detection customization: https://docs.gitlab.com/ee/user/application_security/secret_detection/pipeline/#customization
@@ -38,13 +21,8 @@ pages:
   - mkdir .public
   - cp -r docs/_build/html/* .public
   - mv .public public
->>>>>>> ca7d81b74c55dd5b3523acd8d25365736e7df292
   artifacts:
     paths:
     - public
 include:
-<<<<<<< HEAD
-  - template: Jobs/Secret-Detection.gitlab-ci.yml
-=======
 - template: Security/Secret-Detection.gitlab-ci.yml
->>>>>>> ca7d81b74c55dd5b3523acd8d25365736e7df292
