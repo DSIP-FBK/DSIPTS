@@ -354,6 +354,22 @@ class MultiSourceTSDataSet(Dataset):
         if not self.memory_efficient and file_idx in self.data_cache:
             # Use preloaded data from cache
             file_data = self.data_cache[file_idx]
+            
+            # Filter for the group
+            if isinstance(group_key, tuple):
+                # For multi-column groups, check all columns
+                mask = np.ones(len(file_data), dtype=bool)
+                for col, val in zip(self.group, group_key):
+                    mask &= (file_data[col] == val)
+            else:
+                # For single-column groups, simple equality check
+                mask = file_data[self.group[0]] == group_key
+            
+            # If this file contains data for our group
+            if mask.any():
+                group_data = file_data[mask].copy()
+            else:
+                return pd.DataFrame()
         else:
             # Load from file
             if self.memory_efficient:
@@ -988,14 +1004,16 @@ class TSDataModule(L.LightningDataModule):
                 self.train_dataset, 
                 batch_size=self.batch_size,
                 sampler=self.sampler(self.train_dataset),
-                num_workers=self.num_workers
+                num_workers=self.num_workers,
+                collate_fn=custom_collate_fn
             )
         else:
             return DataLoader(
                 self.train_dataset, 
                 batch_size=self.batch_size,
                 shuffle=True,
-                num_workers=self.num_workers
+                num_workers=self.num_workers,
+                collate_fn=custom_collate_fn
             )
     
     def val_dataloader(self):
@@ -1007,7 +1025,8 @@ class TSDataModule(L.LightningDataModule):
             self.val_dataset, 
             batch_size=self.batch_size,
             shuffle=False,
-            num_workers=self.num_workers
+            num_workers=self.num_workers,
+            collate_fn=custom_collate_fn
         )
     
     def test_dataloader(self):
@@ -1019,7 +1038,8 @@ class TSDataModule(L.LightningDataModule):
             self.test_dataset, 
             batch_size=self.batch_size,
             shuffle=False,
-            num_workers=self.num_workers
+            num_workers=self.num_workers,
+            collate_fn=custom_collate_fn
         )
 
 
@@ -1046,6 +1066,30 @@ class TimeSeriesSubset(Dataset):
         return self.data_module[self.indices[idx]]
 
 
+def custom_collate_fn(batch):
+    """
+    Custom collate function for the DataLoader to handle mixed data types.
+    Handles static features that may be objects or other non-tensor types.
+    """
+    elem = batch[0]
+    result = {}
+    
+    # Process each key in the batch
+    for key in elem:
+        if key in ['st', 'group_id', 't', 'v']:  # Special handling for non-tensor data
+            # Store as lists
+            result[key] = [sample[key] for sample in batch]
+        else:  # Default handling for tensors
+            # For tensors, we can stack them
+            try:
+                result[key] = torch.stack([sample[key] for sample in batch])
+            except:
+                # If stacking fails, just store as a list
+                result[key] = [sample[key] for sample in batch]
+    
+    return result
+
+
 def create_example_files():
     """Create example CSV files with different groups."""
     print("Creating example files with multiple groups...")
@@ -1055,8 +1099,11 @@ def create_example_files():
     df1 = pd.DataFrame({
         'time': pd.date_range(start='2025-01-01', periods=100, freq='D'),
         'group': ['A'] * 50 + ['B'] * 50,
-        'value': np.random.randn(100),
-        'category': np.random.choice(['cat1', 'cat2'], size=100)
+        'x1': np.random.randn(100),
+        'x2': np.random.randn(100),
+        'y1': np.random.randn(100),
+        'static1': np.random.choice(['s1', 's2'], size=100),
+        'static2': np.random.randint(1, 10, size=100)
     })
     df1.to_csv('file1.csv', index=False)  # Save to CSV
     
@@ -1065,8 +1112,11 @@ def create_example_files():
     df2 = pd.DataFrame({
         'time': pd.date_range(start='2025-02-01', periods=100, freq='D'),
         'group': ['B'] * 50 + ['C'] * 50,
-        'value': np.random.randn(100),
-        'category': np.random.choice(['cat2', 'cat3'], size=100)
+        'x1': np.random.randn(100),
+        'x2': np.random.randn(100),
+        'y1': np.random.randn(100),
+        'static1': np.random.choice(['s2', 's3'], size=100),
+        'static2': np.random.randint(1, 10, size=100)
     })
     df2.to_csv('file2.csv', index=False)  # Save to csv
     
@@ -1075,8 +1125,11 @@ def create_example_files():
     df3 = pd.DataFrame({
         'time': pd.date_range(start='2025-03-01', periods=150, freq='D'),
         'group': ['C'] * 50 + ['D'] * 50 + ['E'] * 50,
-        'value': np.random.randn(150),
-        'category': np.random.choice(['cat3', 'cat4', 'cat5'], size=150)
+        'x1': np.random.randn(150),
+        'x2': np.random.randn(150),
+        'y1': np.random.randn(150),
+        'static1': np.random.choice(['s3', 's4', 's5'], size=150),
+        'static2': np.random.randint(1, 10, size=150)
     })
     df3.to_csv('file3.csv', index=False)
     
@@ -1085,8 +1138,11 @@ def create_example_files():
     df4 = pd.DataFrame({
         'time': pd.date_range(start='2025-04-01', periods=150, freq='D'),
         'group': ['F'] * 50 + ['G'] * 50 + ['H'] * 50,
-        'value': np.random.randn(150),
-        'category': np.random.choice(['cat4', 'cat5', 'cat6'], size=150)
+        'x1': np.random.randn(150),
+        'x2': np.random.randn(150),
+        'y1': np.random.randn(150),
+        'static1': np.random.choice(['s6', 's7', 's8'], size=150),
+        'static2': np.random.randint(1, 10, size=150)
     })
     df4.to_csv('file4.csv', index=False)
     
@@ -1102,15 +1158,18 @@ def test_dataset():
     
     # Set up paths to example files
     file_paths = [
-        "example_data_1.csv",
-        "example_data_2.csv",
+        "file1.csv",
+        "file2.csv",
+        "file3.csv",
+        "file4.csv",
     ]
     
     # Test with default settings (memory efficient mode OFF)
     print("\n=== Testing with memory_efficient=False (preload all data) ===")
     d1_dataset = MultiSourceTSDataSet(
         file_paths=file_paths,
-        feature_cols=["x1", "x2"],
+        time="time",
+        num=["x1", "x2"],
         target=["y1"],
         static=["static1", "static2"],
         group="group",
@@ -1205,7 +1264,8 @@ def test_dataset():
     print("\n=== Testing with memory_efficient=True (chunked processing) ===")
     d1_dataset_efficient = MultiSourceTSDataSet(
         file_paths=file_paths,
-        feature_cols=["x1", "x2"],
+        time="time",
+        num=["x1", "x2"],
         target=["y1"],
         static=["static1", "static2"],
         group="group",
