@@ -17,13 +17,14 @@ Key Features:
 import os
 import torch
 from torch.utils.data import Dataset, DataLoader
-import pytorch_lightning as L
+import pytorch_lightning as pl
 import pandas as pd
 import numpy as np
 from typing import Dict, List, Optional, Union, Tuple
 from datetime import timedelta
 from sklearn.preprocessing import OrdinalEncoder
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Configure logging
 logging.basicConfig(
@@ -123,63 +124,82 @@ def extend_time_df(df, time_col, freq, group_cols=None, max_length=None):
 
 class MultiSourceTSDataSet(Dataset):
     """
-    D1 Layer - PyTorch Dataset for loading time series data from multiple CSV files.
+    Layer 1 (D1) dataset for multi-source time series data.
     
-    This class handles raw data from multiple CSV files, performing basic preprocessing
-    and providing access to the data via __getitem__ method.
+    This dataset:
+    1. Loads time series data from multiple CSV files
+    2. Handles categorical encoding and normalization
+    3. Efficiently processes data in chunks for memory-efficient operation
+    4. Preserves NaN values for D2 layer to handle
     
-    Key Features:
-    - Handles multiple CSV files with different groups
-    - Supports numerical and categorical features
-    - Automatically extends data to ensure regular time intervals
-    - Can load data on-demand or preload based on memory constraints
-    - Maintains consistent label encoding across all files
-    - Treats groups as file-specific to handle large files efficiently
-    - Preserves NaN values for valid index computation in D2 layer
+    It does NOT compute validity of windows or create sliding windows - that is
+    the responsibility of the D2 layer (TSDataProcessor).
     """
     
     def __init__(
-            self,
-            file_paths: List[str],
-            time: str,
-            target: Union[str, List[str]],
-            group: Union[str, List[str]],
-            num: Optional[List[str]] = None,
-            cat: Optional[List[str]] = None,
-            static: Optional[List[str]] = None,
-            weights: Optional[str] = None,
-            memory_efficient: bool = False,
-            chunk_size: int = 10000
-        ):
+        self,
+        file_paths: List[str],
+        group_cols: Union[str, List[str]],
+        time_col: str,
+        feature_cols: List[str],
+        target_cols: List[str],
+        static_cols: Optional[List[str]] = None,
+        cat_cols: Optional[List[str]] = None,
+        num_cols: Optional[List[str]] = None,
+        known_cols: Optional[List[str]] = None,
+        unknown_cols: Optional[List[str]] = None,
+        weights: Optional[str] = None,
+        memory_efficient: bool = False,
+        chunk_size: int = 10000
+    ):
         """
         Initialize the MultiSourceTSDataSet.
         
         Args:
             file_paths: List of paths to CSV files containing time series data
-            time: The name of the time index column
-            target: The name(s) of the target variable column(s)
-            group: The name(s) of column(s) identifying a time series instance
-            num: Optional list of numerical feature columns
-            cat: Optional list of categorical feature columns
-            static: Optional list of static feature columns
-            weights: Optional name of weights column
-            memory_efficient: If True, load files on demand; if False, preload smaller files
-            chunk_size: Number of rows to process at a time for memory-efficient mode
+            group_cols: Column(s) that identify unique time series groups
+            time_col: Column containing time/date information
+            feature_cols: Columns to use as features (X)
+            target_cols: Columns to use as targets (y)
+            static_cols: Columns with static (non-time-varying) features
+            cat_cols: Categorical columns that need encoding
+            num_cols: Numerical columns (if None, all non-categorical columns are treated as numerical)
+            known_cols: Columns that are known at prediction time (if None, all feature_cols are considered known)
+            unknown_cols: Columns that are unknown at prediction time (if None, all target_cols are considered unknown)
+            weights: Name of weights column
+            memory_efficient: Whether to use memory-efficient mode
+            chunk_size: Chunk size for processing data (used in memory-efficient mode)
         """
-        # Store configuration parameters
+        # Basic configuration
         self.file_paths = file_paths
-        self.time = time
-        self.target = _coerce_to_list(target)
-        self.group = _coerce_to_list(group)
-        self.num = _coerce_to_list(num) if num else []
-        self.cat = _coerce_to_list(cat) if cat else []
-        self.static = _coerce_to_list(static) if static else []
+        self.time_col = time_col
         self.weights = weights
+        
+        # Handle group columns (can be single column or multiple)
+        if isinstance(group_cols, str):
+            self.group_cols = [group_cols]
+        else:
+            self.group_cols = group_cols
+            
+        # Feature configuration
+        self.feature_cols = feature_cols
+        self.target_cols = target_cols
+        self.static_cols = static_cols or []
+        self.cat_cols = cat_cols or []
+        self.num_cols = num_cols or []
+        
+        # Known/unknown columns configuration
+        self.known_cols = known_cols or self.feature_cols.copy()
+        self.unknown_cols = unknown_cols or self.target_cols.copy()
+        
+        # If num_cols not specified, infer from feature_cols and cat_cols
+        if not self.num_cols:
+            all_cols = self.feature_cols + self.target_cols + self.static_cols
+            self.num_cols = [c for c in all_cols if c not in self.cat_cols]
+        
+        # Internal state
         self.memory_efficient = memory_efficient
         self.chunk_size = chunk_size
-        
-        # Initialize feature columns (combination of numerical and categorical features)
-        self.feature_cols = self.num + self.cat
         
         # Initialize label encoders for categorical columns
         self.label_encoders = {}
@@ -268,14 +288,14 @@ class MultiSourceTSDataSet(Dataset):
         self._update_encoders(chunk)
         
         # Find all unique groups in the current chunk
-        groups = chunk[self.group].drop_duplicates()
+        groups = chunk[self.group_cols].drop_duplicates()
         
         # Process each group in the chunk
         for _, group_row in groups.iterrows():
             # Create a key from the group columns' values
-            group_key = tuple(group_row[self.group].values)
+            group_key = tuple(group_row[self.group_cols].values)
             # If there's only one group column, use the value directly instead of a tuple
-            if len(self.group) == 1:
+            if len(self.group_cols) == 1:
                 group_key = group_key[0]
             
             # Create a file-specific group identifier
@@ -288,7 +308,7 @@ class MultiSourceTSDataSet(Dataset):
                 self.lengths[file_group_key] = 0  # Initialize length counter for this group
             
             # Filter data for the current group
-            group_mask = (chunk[self.group] == group_row).all(axis=1)
+            group_mask = (chunk[self.group_cols] == group_row).all(axis=1)
             group_data = chunk[group_mask]
             
             # Store information about the group
@@ -297,8 +317,8 @@ class MultiSourceTSDataSet(Dataset):
                 'file_path': file_path,
                 'group_key': group_key,
                 'file_group_key': file_group_key,
-                'start_time': group_data[self.time].min(),
-                'end_time': group_data[self.time].max(),
+                'start_time': group_data[self.time_col].min(),
+                'end_time': group_data[self.time_col].max(),
                 'row_count': len(group_data)
             }
             
@@ -312,15 +332,15 @@ class MultiSourceTSDataSet(Dataset):
     
     def _preload_data(self):
         """
-        preload all data from files for faster access (wee only used when memory_efficient=False).
+        Preload all data from files for faster access (wee only used when memory_efficient=False).
         """
         print("Preloading data into memory...")
         for file_idx, file_path in enumerate(self.file_paths):
             print(f"Loading file {file_idx + 1}/{len(self.file_paths)}: {file_path}")
-            self.data_cache[file_idx] = pd.read_csv(file_path)
+            self.data_cache[file_idx] = pd.read_csv(file_path) #TODO sorting in D1
             
             # Encode categorical features
-            for col in self.cat:
+            for col in self.cat_cols:
                 if col in self.data_cache[file_idx].columns:
                     self.data_cache[file_idx][col] = self.label_encoders[col].transform(
                         self.data_cache[file_idx][col].values.reshape(-1, 1)
@@ -334,6 +354,8 @@ class MultiSourceTSDataSet(Dataset):
         This method:
         1. Gets the file containing data for the requested group
         2. Loads from cache or from disk based on memory_efficient setting
+            if not, use cache storage
+            if yes, load from location. 
         3. Applies encoding to categorical features if needed
         4. Preserves NaN values for valid index computation in D2 layer
         
@@ -359,11 +381,11 @@ class MultiSourceTSDataSet(Dataset):
             if isinstance(group_key, tuple):
                 # For multi-column groups, check all columns
                 mask = np.ones(len(file_data), dtype=bool)
-                for col, val in zip(self.group, group_key):
+                for col, val in zip(self.group_cols, group_key):
                     mask &= (file_data[col] == val)
             else:
                 # For single-column groups, simple equality check
-                mask = file_data[self.group[0]] == group_key
+                mask = file_data[self.group_cols[0]] == group_key
             
             # If this file contains data for our group
             if mask.any():
@@ -382,18 +404,18 @@ class MultiSourceTSDataSet(Dataset):
                     if isinstance(group_key, tuple):
                         # For multi-column groups, check all columns
                         mask = np.ones(len(chunk), dtype=bool)
-                        for col, val in zip(self.group, group_key):
+                        for col, val in zip(self.group_cols, group_key):
                             mask &= (chunk[col] == val)
                     else:
                         # For single-column groups, simple equality check
-                        mask = chunk[self.group[0]] == group_key
+                        mask = chunk[self.group_cols[0]] == group_key
                     
                     # If this chunk contains data for our group
                     if mask.any():
                         group_chunk = chunk[mask].copy()
                         
                         # Encode categorical features
-                        for col in self.cat:
+                        for col in self.cat_cols:
                             if col in group_chunk.columns:
                                 group_chunk[col] = self.label_encoders[col].transform(
                                     group_chunk[col].values.reshape(-1, 1)
@@ -411,7 +433,7 @@ class MultiSourceTSDataSet(Dataset):
                 file_data = pd.read_csv(file_path)
                 
                 # Encode categorical features
-                for col in self.cat:
+                for col in self.cat_cols:
                     if col in file_data.columns:
                         file_data[col] = self.label_encoders[col].transform(
                             file_data[col].values.reshape(-1, 1)
@@ -421,11 +443,11 @@ class MultiSourceTSDataSet(Dataset):
                 if isinstance(group_key, tuple):
                     # For multi-column groups, check all columns
                     mask = np.ones(len(file_data), dtype=bool)
-                    for col, val in zip(self.group, group_key):
+                    for col, val in zip(self.group_cols, group_key):
                         mask &= (file_data[col] == val)
                 else:
                     # For single-column groups, simple equality check
-                    mask = file_data[self.group[0]] == group_key
+                    mask = file_data[self.group_cols[0]] == group_key
                 
                 # If this file contains data for our group
                 if mask.any():
@@ -434,13 +456,7 @@ class MultiSourceTSDataSet(Dataset):
                     return pd.DataFrame()
         
         # Sort by time
-        group_data = group_data.sort_values(self.time)
-        
-        # Mark valid rows (no NaN values in target or feature columns)
-        check_cols = self.target + self.feature_cols
-        group_data['valid'] = ~group_data[check_cols].isna().any(axis=1)
-        
-        # IMPORTANT: We preserve NaN values for valid index computation in D2 layer
+        group_data = group_data.sort_values(self.time_col)
         
         return group_data
     
@@ -456,7 +472,7 @@ class MultiSourceTSDataSet(Dataset):
         Args:
             data: DataFrame chunk to process
         """
-        for col in self.cat + self.group:
+        for col in self.cat_cols + self.group_cols:
             if col in data.columns:
                 # Get unique values for this column
                 unique_values = data[col].dropna().unique().reshape(-1, 1)
@@ -494,7 +510,6 @@ class MultiSourceTSDataSet(Dataset):
             - 'y': Target tensor
             - 't': Time values (as numpy array)
             - 'w': Weight tensor
-            - 'v': Valid mask tensor - will be used in D2 layer #TODO: REMOVE?
             - 'group_id': Group identifier
             - 'st': Static features
         """
@@ -513,44 +528,55 @@ class MultiSourceTSDataSet(Dataset):
         
         # Convert data to appropriate format
         x = torch.tensor(group_data[self.feature_cols].values, dtype=torch.float32)
-        y = torch.tensor(group_data[self.target].values, dtype=torch.float32)
-        t = group_data[self.time].values  # Keep time as numpy array
-        v = torch.tensor(group_data['valid'].values, dtype=torch.bool)
+        y = torch.tensor(group_data[self.target_cols].values, dtype=torch.float32)
         
-        # Handle weights properly without modifying the DataFrame
-        if self.weights is None or self.weights not in group_data.columns:
-            # Create a tensor of ones if weights column is not specified or not present
-            w = torch.ones(len(group_data), dtype=torch.float32)
-        else:
-            # Use the specified weights column
+        # Time values - keep as numpy array for datetime support
+        t = group_data[self.time_col].values
+        
+        # Weights - use ones if not provided
+        if self.weights is not None and self.weights in group_data.columns:
             w = torch.tensor(group_data[self.weights].values, dtype=torch.float32)
+        else:
+            w = torch.ones(len(group_data), dtype=torch.float32)
         
-        # Prepare static features if available
-        st = {}
-        if self.static: 
-            for col in self.static:
+        # Static features - use empty tensor if none provided
+        if self.static_cols and len(self.static_cols) > 0:
+            # Take first row since static features are constant within a group
+            static_values = []
+            for col in self.static_cols:
                 if col in group_data.columns:
-                    # Use the first non-null value for each static feature
-                    val = group_data[col].dropna().iloc[0] if not group_data[col].isna().all() else None
-                    st[col] = val
+                    # Convert to float if possible, otherwise use 0.0 as placeholder
+                    try:
+                        val = float(group_data[col].iloc[0])
+                    except (ValueError, TypeError):
+                        val = 0.0  # Default value for non-numeric static features
+                    static_values.append(val)
+            
+            # Create tensor if we have values, otherwise empty tensor
+            if static_values:
+                st = torch.tensor(static_values, dtype=torch.float32)
+            else:
+                st = torch.tensor([], dtype=torch.float32)
+        else:
+            st = torch.tensor([], dtype=torch.float32)
         
+        # Return all data as a dictionary
         return {
             'x': x,  # features
             'y': y,  # targets
             't': t,  # time indices (as numpy array)
             'w': w,  # weights
-            'v': v,  # valid mask - will be used in D2 layer
             'group_id': group_id,  # group identifier
             'st': st  # static features
         }
     
     def _prepare_metadata(self):
-        """Prepare metadata about the dataset."""
+        """Prepare metadata about the dataset.""" #TODO: max number of classes in the data. (categoricAL)
         self.metadata = {
             "cols": {
-                "y": self.target,
+                "y": self.target_cols,
                 "x": self.feature_cols,
-                "st": self.static,
+                "st": self.static_cols,
             },
             "col_type": {},
             "col_known": {},
@@ -560,15 +586,20 @@ class MultiSourceTSDataSet(Dataset):
         
         # Mark categorical feature indices
         for i, c in enumerate(self.feature_cols):
-            if c in self.cat:
+            if c in self.cat_cols:
                 self.metadata['cat_index'].append(i)
         
-        # Set column types and known status
-        all_cols = self.target + self.feature_cols  + self.static
+        # Set column types and known status #TODO: user should define the known and unknown columns
+        all_cols = self.target_cols + self.feature_cols  + self.static_cols
         for col in all_cols:
-            self.metadata["col_type"][col] = "C" if col in self.cat else "F"
+            self.metadata["col_type"][col] = "C" if col in self.cat_cols else "F"
             # All columns are considered unknown for future values by default
             self.metadata["col_known"][col] = "U"
+        
+        # Add known/unknown column information
+        self.metadata['known_cols'] = self.known_cols
+        self.metadata['unknown_cols'] = self.unknown_cols 
+        #TODOdistinguish between cat an dnum known and unknown
         
         # Add encoders to metadata
         self.metadata['encoders'] = self.label_encoders
@@ -583,7 +614,7 @@ class MultiSourceTSDataSet(Dataset):
         return self.metadata
 
 
-class TSDataModule(L.LightningDataModule):
+class TSDataModule(pl.LightningDataModule):
     """D2 Layer - Processes time series data for model consumption.
     
     This class:
@@ -601,13 +632,14 @@ class TSDataModule(L.LightningDataModule):
         past_len: int,
         future_len: int = 1,
         batch_size: int = 32,
-        num_workers: int = 0,
-        precompute: bool = True,
-        split_config=None,
+        min_valid_length: Optional[int] = None,
         split_method: str = 'percentage',
-        split_seed: int = 42,
-        min_valid_length: int = 1,
-        sampler=None
+        split_config: Optional[tuple] = None,
+        num_workers: int = 0,
+        sampler: Optional[Sampler] = None,
+        memory_efficient: bool = False,
+        known_cols: Optional[List[str]] = None,
+        unknown_cols: Optional[List[str]] = None
     ):
         """
         Initialize the TSDataModule.
@@ -617,65 +649,62 @@ class TSDataModule(L.LightningDataModule):
             past_len: Number of past time steps for input
             future_len: Number of future time steps for prediction
             batch_size: Batch size for DataLoaders
-            num_workers: Number of workers for DataLoaders
-            precompute: Whether to precompute valid indices
-            split_config: Configuration for data splitting:
-                          - For 'percentage' method: (train%, val%, test%)
-                          - For 'group' method: (train_groups, val_groups, test_groups)
+            min_valid_length: Minimum number of valid points required in a window
             split_method: Method for splitting data ('percentage' or 'group')
-            split_seed: Random seed for reproducible splits
-            min_valid_length: Minimum valid consecutive points for a window
+            split_config: Configuration for the split
+            num_workers: Number of workers for DataLoader
             sampler: Optional custom sampler for the DataLoader
+            memory_efficient: Whether to use memory-efficient mode
+            known_cols: Columns that are known at prediction time (overrides D1 dataset settings)
+            unknown_cols: Columns that are unknown at prediction time (overrides D1 dataset settings)
         """
         super().__init__()
         self.d1_dataset = d1_dataset
         self.past_len = past_len
         self.future_len = future_len
         self.batch_size = batch_size
-        self.num_workers = num_workers
-        self.precompute = precompute
+        self.min_valid_length = min_valid_length or past_len
         self.split_method = split_method
-        self.split_seed = split_seed
-        self.min_valid_length = min_valid_length
+        self.split_config = split_config
+        self.num_workers = num_workers
         self.sampler = sampler
+        self.memory_efficient = memory_efficient
         
-        # Set feature and target columns
-        self.feature_cols = d1_dataset.feature_cols
-        self.target_cols = d1_dataset.target
-        self.static_cols = d1_dataset.static
+        # Fixed number for max cached groups
+        self.max_cached_groups = 50
         
         # Store reference to D1 dataset metadata
-        self.metadata = d1_dataset.metadata
+        self.metadata = d1_dataset.metadata.copy()
         
-        # For tracking loaded data
+        # Set feature and target columns from D1 dataset
+        self.feature_cols = d1_dataset.feature_cols
+        self.target_cols = d1_dataset.target_cols
+        self.static_cols = d1_dataset.static_cols
+        
+        # Override known/unknown columns if provided
+        self.known_cols = known_cols if known_cols is not None else d1_dataset.known_cols
+        self.unknown_cols = unknown_cols if unknown_cols is not None else d1_dataset.unknown_cols
+        
+        # Update metadata with known/unknown columns
+        self.metadata['known_cols'] = self.known_cols
+        self.metadata['unknown_cols'] = self.unknown_cols
+        
+        # For tracking loaded data with simple FIFO caching
         self.loaded_groups = {}
+        self.group_load_order = []
         
         # Default split configuration based on method
         if split_config is None:
-            if self.split_method == 'percentage':
-                self.split_config = (0.7, 0.15, 0.15)  # Default percentages
-            elif self.split_method == 'group':
-                # Will be set during setup based on available groups
-                self.split_config = None
-        else:
-            self.split_config = split_config
+            if split_method == 'percentage':
+                self.split_config = (0.7, 0.15, 0.15)  # Default: 70% train, 15% val, 15% test
+            else:
+                raise ValueError("For 'group' split method, split_config must be provided")
+                
+        # Initialize the module
+        self._initialize()
         
-        # Datasets and indices
-        self.train_dataset = None
-        self.val_dataset = None
-        self.test_dataset = None
-        
-        # These will be initialized during setup
-        self.valid_indices = {}
-        self.mapping = []
-        self.length = None
-        self.train_indices = None
-        self.val_indices = None
-        self.test_indices = None
-        
-        # Initialize if precompute is enabled
-        if precompute:
-            self._initialize()
+        # Add max classes information to metadata
+        self._add_max_classes_to_metadata()
     
     def _initialize(self):
         """Initialize the dataset by computing valid indices and mappings."""
@@ -684,65 +713,127 @@ class TSDataModule(L.LightningDataModule):
         self.mapping = self._create_global_mapping()
         self.length = len(self.mapping)
         
-        # Create train/validation/test splits if provided
-        if self.split_config is not None:
-            self.train_indices, self.val_indices, self.test_indices = self._create_splits(self.split_config)
-            print(f"Split statistics: Train: {len(self.train_indices)}, Validation: {len(self.val_indices)}, Test: {len(self.test_indices)}")
-        else:
-            # Default to all indices as training
-            self.train_indices = list(range(self.length))
-            self.val_indices = []
-            self.test_indices = []
+        # Create splits if not already done
+        if not hasattr(self, 'train_indices') or not self.train_indices:
+            if self.split_config is not None:
+                print(f"Creating {self.split_method} splits with config: {self.split_config}")
+                
+                # Create splits with the new config
+                self.train_indices, self.val_indices, self.test_indices = self._create_splits(self.split_config)
+                print(f"Split statistics: Train: {len(self.train_indices)}, Validation: {len(self.val_indices)}, Test: {len(self.test_indices)}")
+            else:
+                # Default to all indices as training
+                self.train_indices = list(range(self.length))
+                self.val_indices = []
+                self.test_indices = []
+        
+        # Create subset datasets for train/val/test using the indices
+        if hasattr(self, 'train_indices') and self.train_indices:
+            self.train_dataset = TimeSeriesSubset(self, self.train_indices)
+        if hasattr(self, 'val_indices') and self.val_indices:
+            self.val_dataset = TimeSeriesSubset(self, self.val_indices)
+        if hasattr(self, 'test_indices') and self.test_indices:
+            self.test_dataset = TimeSeriesSubset(self, self.test_indices)
     
     def _compute_valid_indices(self):
         """
         Compute valid indices for all groups in the dataset.
         
-        A valid index is one where:
-        1. There are enough past and future time steps
-        2. All required data points are valid (no NaN values)
+        This method ensures that windows are valid based on:
+        1. Having enough valid points in the past window
+        2. Having at least one valid point in the future window
+        
+        Optimizations:
+        - Vectorized operations for NaN checks
+        - Early termination for invalid regions
+        - Efficient masking for bulk validation
         
         Returns:
             Dictionary mapping group indices to lists of valid indices
         """
-        valid_indices = {}
+        valid_indices = {} 
+        device = torch.device('cpu')  # Use CPU for consistency across environments
         
         for i in range(len(self.d1_dataset)):
             # Load group data from D1 dataset
             group_data = self.d1_dataset[i]
-            group_id = group_data['group_id']
             
-            # Fetch valid mask and find valid indices
-            valid_mask = group_data['v'].numpy()
+            # Fetch feature and target tensors
+            features = group_data.get('x', torch.tensor([]))
+            targets = group_data.get('y', torch.tensor([]))
             
             # Get the time series length
-            ts_length = len(valid_mask)
+            ts_length = len(features)
             
-            # Find valid windows
-            # A window is valid if:
-            # 1. It's within the time series (has enough past and future points)
-            # 2. All points in the window are valid (no NaN values)
+            # Skip if time series is too short
+            if ts_length < (self.past_len + self.future_len):
+                valid_indices[i] = []
+                continue
+            
+            # Pre-compute all possible window start indices
+            all_indices = list(range(ts_length - (self.past_len + self.future_len) + 1))
+            
+            # Create validity masks for features and targets
+            feature_is_valid = ~torch.isnan(features) if features.numel() > 0 else torch.ones((ts_length, 1), dtype=torch.bool)
+            target_is_valid = ~torch.isnan(targets) if targets.numel() > 0 else torch.ones((ts_length, 1), dtype=torch.bool)
+            
+            # If features or targets are multi-dimensional, check if any dimension has NaN
+            if feature_is_valid.dim() > 1:
+                feature_is_valid = feature_is_valid.all(dim=1)
+            if target_is_valid.dim() > 1:
+                target_is_valid = target_is_valid.all(dim=1)
+            
+            # Combined mask for both features and targets
+            combined_mask = feature_is_valid & target_is_valid
+            
+            # Vectorized approach to find valid windows
             group_valid_indices = []
             
-            for t in range(ts_length - (self.past_len + self.future_len) + 1):
-                end_past = t + self.past_len
+            # Process each potential window
+            t = 0
+            while t < len(all_indices):
+                idx = all_indices[t]
+                end_past = idx + self.past_len
                 end_future = end_past + self.future_len
                 
-                # Check if all points in the window are valid
-                past_valid = valid_mask[t:end_past].sum() >= self.min_valid_length
-                future_valid = valid_mask[end_past:end_future].sum() >= 1  # At least one future point must be valid
+                # Check past validity - count valid points in past window
+                past_valid_count = combined_mask[idx:end_past].sum().item()
+                past_valid = past_valid_count >= self.min_valid_length
+                
+                # Early termination - if past isn't valid, skip this window
+                if not past_valid:
+                    # Find the next valid point after the current position
+                    next_valid_idx = None
+                    for j in range(idx + 1, min(ts_length, idx + self.past_len * 2)):
+                        if combined_mask[j]:
+                            next_valid_idx = j
+                            break
+                    
+                    if next_valid_idx is not None:
+                        # Skip to a position where this valid point would be in the window
+                        # but not at the end (to maximize valid points in window)
+                        skip_to = max(t + 1, next_valid_idx - self.past_len + 1)
+                        t = skip_to
+                    else:
+                        # No valid points ahead, skip to the end
+                        t = len(all_indices)
+                    continue
+                
+                # Check future validity - at least one point must be valid
+                future_valid = combined_mask[end_past:end_future].any().item()
                 
                 if past_valid and future_valid:
-                    group_valid_indices.append(t)
+                    group_valid_indices.append(idx)
+                
+                t += 1
             
-            # Store indices if there are any valid ones
-            if group_valid_indices:
-                valid_indices[i] = group_valid_indices
-        
+            valid_indices[i] = group_valid_indices
+            
         # Print statistics
         total_valid = sum(len(indices) for indices in valid_indices.values())
-        print(f"Found {total_valid} valid windows across {len(valid_indices)} groups")
-        
+        groups_with_valid = sum(1 for indices in valid_indices.values() if len(indices) > 0)
+        print(f"Found {total_valid} valid windows across {groups_with_valid} groups")
+            
         return valid_indices
     
     def _create_global_mapping(self):
@@ -756,122 +847,176 @@ class TSDataModule(L.LightningDataModule):
         """
         mapping = []
         
-        # Iterate through all groups with valid indices
-        for group_idx, local_indices in self.valid_indices.items():
-            # Add each local index with its group index to the mapping
-            for local_idx in local_indices:
-                mapping.append((group_idx, local_idx))
+        # Track statistics for reporting
+        total_valid = 0
+        groups_with_valid = 0
         
+        for group_idx, local_indices in self.valid_indices.items():
+            if local_indices:  # Only add groups with valid indices
+                for start_idx in local_indices:
+                    mapping.append((group_idx, start_idx))
+                total_valid += len(local_indices)
+                groups_with_valid += 1
+        
+        print(f"Created global mapping with {len(mapping)} windows from {groups_with_valid} groups")
         return mapping
+    
+    def _get_group_data(self, group_idx):
+        """
+        Get data for a specific group, using cache if available.
+        
+        This method:
+        1. Checks if the group data is already in the cache
+        2. If not, loads it from the D1 dataset
+        
+        Args:
+            group_idx: Index of the group to retrieve
+            
+        Returns:
+            Dictionary containing the group data
+        """
+        # Check if the group is already loaded
+        if group_idx in self.loaded_groups:
+            return self.loaded_groups[group_idx]
+            
+        # Load the group data from D1 dataset
+        group_data = self.d1_dataset[group_idx]
+        
+        # Simple FIFO caching
+        if len(self.loaded_groups) >= self.max_cached_groups:
+            # Remove oldest group if cache is full
+            if self.group_load_order:
+                oldest_group = self.group_load_order.pop(0)
+                if oldest_group in self.loaded_groups:
+                    del self.loaded_groups[oldest_group]
+        
+        # Add to cache and update load order
+        self.loaded_groups[group_idx] = group_data
+        self.group_load_order.append(group_idx)
+            
+        return group_data
+        
+    def _add_max_classes_to_metadata(self):
+        """
+        Add information about maximum number of classes for categorical features.
+        This is useful for model architecture decisions.
+        """
+        if 'max_classes' not in self.metadata:
+            self.metadata['max_classes'] = {}
+            
+        # Get label encoders from D1 dataset
+        for col, encoder in self.d1_dataset.label_encoders.items():
+            # Number of classes is the number of unique values seen by the encoder
+            num_classes = len(encoder.classes_)
+            self.metadata['max_classes'][col] = num_classes
+            
+        # Ensure known/unknown columns are properly reflected in metadata
+        self.metadata['known_cols'] = self.known_cols
+        self.metadata['unknown_cols'] = self.unknown_cols
     
     def _create_splits(self, split_config):
         """
-        Create train/validation/test splits based on the specified method.
+        Create train/validation/test splits based on the specified configuration.
         
         Args:
-            split_config: Either a tuple of percentages (train%, val%, test%) or
-                          a tuple of lists (train_groups, val_groups, test_groups)
+            split_config: Configuration for splits:
+                          - For 'percentage' method: (train%, val%, test%)
+                          - For 'group' method: (train_groups, val_groups, test_groups)
                           
         Returns:
             Tuple of (train_indices, val_indices, test_indices)
         """
-        # Set random seed for reproducibility
-        np.random.seed(self.split_seed)
-        
         if self.split_method == 'percentage':
-            # Split by percentage within each group
+            # Percentage-based split (temporal or random)
             train_pct, val_pct, test_pct = split_config
+            total_samples = len(self.mapping)
             
-            # Validate percentages
+            # Normalize percentages if they don't sum to 1
             total_pct = train_pct + val_pct + test_pct
-            if not np.isclose(total_pct, 1.0):
-                raise ValueError(f"Split percentages must sum to 1.0, got {total_pct}")
+            if abs(total_pct - 1.0) > 1e-6:
+                train_pct /= total_pct
+                val_pct /= total_pct
+                test_pct /= total_pct
             
-            # Create a mapping from group_idx to list of global indices
-            group_to_global_indices = {}
-            for global_idx, (group_idx, _) in enumerate(self.mapping):
-                if group_idx not in group_to_global_indices:
-                    group_to_global_indices[group_idx] = []
-                group_to_global_indices[group_idx].append(global_idx)
+            # Calculate number of samples for each split
+            train_size = int(total_samples * train_pct)
+            val_size = int(total_samples * val_pct)
+            test_size = total_samples - train_size - val_size
             
-            # Calculate split indices
-            train_indices = []
-            val_indices = []
-            test_indices = []
+            # For temporal splits, sort by time
+            all_indices = list(range(total_samples))
             
-            # Process each group
-            for group_idx, global_indices in group_to_global_indices.items():
-                # Shuffle indices for this group
-                shuffled_indices = np.random.permutation(global_indices)
-                n_indices = len(shuffled_indices)
+            # Try to sort by time if available #TODO: sort in D1 by group and then time. 
+            try:
+                # Collect time values for each window
+                time_values = []
+                for idx in all_indices:
+                    group_idx, local_idx = self.mapping[idx]
+                    group_data = self.d1_dataset[group_idx]
+                    # Use the first time point of each window
+                    time_point = group_data['t'][local_idx]
+                    # Convert to numeric value for sorting
+                    if isinstance(time_point, (str, np.datetime64)):
+                        # Convert to timestamp (seconds since epoch)
+                        time_numeric = pd.to_datetime(time_point).timestamp()
+                    else:
+                        time_numeric = float(time_point)
+                    time_values.append(time_numeric)
                 
-                # Calculate split points
-                n_train = int(n_indices * train_pct)
-                n_val = int(n_indices * val_pct)
+                # Sort indices by time
+                sorted_indices = [idx for _, idx in sorted(zip(time_values, all_indices))]
                 
-                # Add to respective splits
-                train_indices.extend(shuffled_indices[:n_train])
-                val_indices.extend(shuffled_indices[n_train:n_train + n_val])
-                test_indices.extend(shuffled_indices[n_train + n_val:])
-            
-            print(f"Percentage-based split - Train: {len(train_indices)}, Val: {len(val_indices)}, Test: {len(test_indices)} samples")
-            
+                # Split into train/val/test
+                train_indices = sorted_indices[:train_size]
+                val_indices = sorted_indices[train_size:train_size + val_size]
+                test_indices = sorted_indices[train_size + val_size:]
+                
+                print(f"Temporal percentage-based split - Train: {len(train_indices)}, Val: {len(val_indices)}, Test: {len(test_indices)} samples")
+                
+            except (TypeError, ValueError) as e:
+                # Fallback to random split if time-based sorting fails
+                print(f"Warning: Could not sort by time ({str(e)}), using random split instead")
+                random.shuffle(all_indices)
+                train_indices = all_indices[:train_size]
+                val_indices = all_indices[train_size:train_size + val_size]
+                test_indices = all_indices[train_size + val_size:]
+                
+                print(f"Random percentage-based split - Train: {len(train_indices)}, Val: {len(val_indices)}, Test: {len(test_indices)} samples")
+                
         elif self.split_method == 'group':
-            # Split by assigning entire groups to train/val/test
+            # Group-based split
             train_groups, val_groups, test_groups = split_config
             
-            # Validate groups
-            all_groups = set()
-            for group_idx in self.valid_indices.keys():
-                group_id = self.d1_dataset[group_idx]['group_id']
-                all_groups.add(group_id)
+            # Convert to sets for faster lookup
+            train_groups_set = set(train_groups)
+            val_groups_set = set(val_groups)
+            test_groups_set = set(test_groups)
             
-            # Ensure all groups are accounted for
-            specified_groups = set(train_groups + val_groups + test_groups)
-            if specified_groups != all_groups:
-                missing = all_groups - specified_groups
-                extra = specified_groups - all_groups
-                message = []
-                if missing:
-                    message.append(f"Missing groups: {missing}")
-                if extra:
-                    message.append(f"Extra groups not in dataset: {extra}")
-                raise ValueError("Invalid group specification: " + ", ".join(message))
-            
-            # Create a mapping from group_idx to group_id and global indices
-            group_idx_to_id = {}
-            group_idx_to_global_indices = {}
-            
-            for global_idx, (group_idx, _) in enumerate(self.mapping):
-                if group_idx not in group_idx_to_id:
-                    group_idx_to_id[group_idx] = self.d1_dataset[group_idx]['group_id']
-                    group_idx_to_global_indices[group_idx] = []
-                group_idx_to_global_indices[group_idx].append(global_idx)
-            
-            # Create mappings
+            # Assign indices to splits based on group membership
             train_indices = []
             val_indices = []
             test_indices = []
             
-            # Process each group
-            for group_idx, global_indices in group_idx_to_global_indices.items():
-                group_id = group_idx_to_id[group_idx]
+            for idx, (group_idx, _) in enumerate(self.mapping):
+                group_id = self.d1_dataset[group_idx]['group_id']
                 
-                # Add to respective splits
-                if group_id in train_groups:
-                    train_indices.extend(global_indices)
-                elif group_id in val_groups:
-                    val_indices.extend(global_indices)
-                elif group_id in test_groups:
-                    test_indices.extend(global_indices)
+                if group_id in train_groups_set:
+                    train_indices.append(idx)
+                elif group_id in val_groups_set:
+                    val_indices.append(idx)
+                elif group_id in test_groups_set:
+                    test_indices.append(idx)
+                else:
+                    # Default to train if not specified
+                    train_indices.append(idx)
             
-            print(f"Group-based split - Train: {len(train_indices)} ({len(train_groups)} groups), "
-                  f"Val: {len(val_indices)} ({len(val_groups)} groups), "
-                  f"Test: {len(test_indices)} ({len(test_groups)} groups) samples")
-        
+            print(f"Group-based split - Train: {len(train_indices)} (from {len(train_groups)} groups), "
+                  f"Val: {len(val_indices)} (from {len(val_groups)} groups), "
+                  f"Test: {len(test_indices)} (from {len(test_groups)} groups) samples")
+            
         else:
-            raise ValueError(f"Unknown split method: {self.split_method}. Use 'percentage' or 'group'")
-        
+            raise ValueError(f"Unknown split method: {self.split_method}")
+            
         return train_indices, val_indices, test_indices
     
     def __len__(self):
@@ -887,107 +1032,82 @@ class TSDataModule(L.LightningDataModule):
     
     def __getitem__(self, idx):
         """
-        Get a sample by index.
+        Get a time series window by global index.
         
-        In precompute mode, this uses the precomputed mapping.
-        In lazy mode, it may need to compute valid indices on the fly.
+        This method:
+        1. Maps the global index to a specific group and local index
+        2. Extracts the window from the group data
+        3. Returns the window in a format suitable for model training
         
         Args:
-            idx: Global index of the sample to retrieve
+            idx: Global index of the window to retrieve
             
         Returns:
-            Dictionary with past and future data for the sample
+            Dictionary containing:
+            - past_features: Tensor of past features
+            - past_time: Array of past time points
+            - future_targets: Tensor of future targets
+            - future_time: Array of future time points
+            - group_id: Group identifier
+            - static: Static features tensor
         """
-        # Ensure mapping is initialized
-        if not self.mapping:
-            if self.precompute:
-                raise RuntimeError("No valid samples found in the dataset")
-            else:
-                # In lazy mode, compute the mapping if not done yet
-                self.valid_indices = self._compute_valid_indices()
-                self.mapping = self._create_global_mapping()
-                self.length = len(self.mapping)
-        
-        if idx >= len(self.mapping):
-            raise IndexError(f"Index {idx} out of range for dataset of length {len(self.mapping)}")
-            
+        # Map global index to group and local index
         group_idx, local_idx = self.mapping[idx]
         
-        # Get group data, either from cache or by loading
-        if group_idx in self.loaded_groups:
-            group_data = self.loaded_groups[group_idx]
-        else:
-            group_data = self.d1_dataset[group_idx]
-            self.loaded_groups[group_idx] = group_data
+        # Get the group data
+        group_data = self._get_group_data(group_idx)
         
-        # Extract time window
-        start_past = local_idx
-        end_past = start_past + self.past_len
-        start_future = end_past
-        end_future = start_future + self.future_len
+        # Get the start and end indices for the window
+        start_idx = local_idx
+        past_end_idx = start_idx + self.past_len
+        future_end_idx = past_end_idx + self.future_len
         
-        # Get past data
-        past_time = group_data['t'][start_past:end_past]
-        past_target = group_data['y'][start_past:end_past]
-        past_features = group_data['x'][start_past:end_past]
-        past_weights = group_data['w'][start_past:end_past]
+        # Extract past and future windows
+        past_features = group_data['x'][start_idx:past_end_idx]
+        past_time = group_data['t'][start_idx:past_end_idx]
+        future_targets = group_data['y'][past_end_idx:future_end_idx]
+        future_time = group_data['t'][past_end_idx:future_end_idx]
         
-        # Get future data
-        future_time = group_data['t'][start_future:end_future]
-        future_target = group_data['y'][start_future:end_future]
-        future_features = group_data['x'][start_future:end_future]
-        future_weights = group_data['w'][start_future:end_future]
+        # Get static features
+        static = group_data.get('st', torch.tensor([]))
         
-        # Get group ID and static features
-        group_id = group_data['group_id']
-        static_features = group_data['st']
-        
-        # Return sample as a dictionary
+        # Return the window as a dictionary
         return {
-            'past_time': past_time,
-            'past_target': past_target,
             'past_features': past_features,
-            'past_weights': past_weights,
+            'past_time': past_time,
+            'future_targets': future_targets,
             'future_time': future_time,
-            'future_target': future_target,
-            'future_features': future_features,
-            'future_weights': future_weights,
-            'group': group_id,
-            'static': static_features
+            'group_id': group_data['group_id'],
+            'static': static
         }
     
     def setup(self, stage=None):
         """
-        Set up the datasets for train, validation, and test.
+        Prepare data for the given stage.
         
-        This method is called by Lightning before training/validation/testing.
+        Args:
+            stage: Either 'fit' or 'test'
         """
-        # Initialize if not already done
-        if not self.precompute and self.mapping == []:
-            self._initialize()
-            
-        # For group-based splitting, if no config was provided, auto-assign groups
-        if self.split_method == 'group' and self.split_config is None:
-            # Get all unique groups
-            group_ids = set()
-            for i in range(len(self.d1_dataset)):
-                group_ids.add(self.d1_dataset[i]['group_id'])
-            group_ids = sorted(list(group_ids))
-            
-            # Auto-split: 70% train, 15% val, 15% test
-            n_groups = len(group_ids)
-            n_train = int(n_groups * 0.7)
-            n_val = int(n_groups * 0.15)
-            
-            train_groups = group_ids[:n_train]
-            val_groups = group_ids[n_train:n_train + n_val]
-            test_groups = group_ids[n_train + n_val:]
-            
-            self.split_config = (train_groups, val_groups, test_groups)
-            print(f"Auto-assigned groups: {n_train} train, {len(val_groups)} validation, {len(test_groups)} test")
-            
-            # Create splits with the new config
-            self.train_indices, self.val_indices, self.test_indices = self._create_splits(self.split_config)
+        # If we haven't precomputed valid indices yet, do it now
+        if not hasattr(self, 'valid_indices') or self.valid_indices is None:
+            print("Computing valid indices...")
+            self.valid_indices = self._compute_valid_indices()
+            self.mapping = self._create_global_mapping()
+            self.length = len(self.mapping)
+        
+        # Create splits if not already done
+        if not hasattr(self, 'train_indices') or not self.train_indices:
+            if self.split_config is not None:
+                print(f"Creating {self.split_method} splits with config: {self.split_config}")
+                
+                # Create splits with the new config
+                self.train_indices, self.val_indices, self.test_indices = self._create_splits(self.split_config)
+                print(f"Split statistics: Train: {len(self.train_indices)}, Validation: {len(self.val_indices)}, Test: {len(self.test_indices)}")
+            else:
+                # Default to all indices as training
+                self.train_indices = list(range(self.length))
+                self.val_indices = []
+                self.test_indices = []
         
         # Create subset datasets for train/val/test using the indices
         if stage == 'fit' or stage is None:
@@ -1090,217 +1210,166 @@ def custom_collate_fn(batch):
     return result
 
 
-def create_example_files():
-    """Create example CSV files with different groups."""
-    print("Creating example files with multiple groups...")
+def generate_example_csv(output_dir, num_groups=5, samples_per_group=100, num_features=3, num_targets=1):
+    """
+    Generate example CSV files for testing the time series dataset.
     
-    # File 1 with groups A and B
-    print("  Creating file1.csv with groups A and B")
-    df1 = pd.DataFrame({
-        'time': pd.date_range(start='2025-01-01', periods=100, freq='D'),
-        'group': ['A'] * 50 + ['B'] * 50,
-        'x1': np.random.randn(100),
-        'x2': np.random.randn(100),
-        'y1': np.random.randn(100),
-        'static1': np.random.choice(['s1', 's2'], size=100),
-        'static2': np.random.randint(1, 10, size=100)
-    })
-    df1.to_csv('file1.csv', index=False)  # Save to CSV
+    Args:
+        output_dir: Directory to save CSV files
+        num_groups: Number of groups to generate
+        samples_per_group: Number of samples per group
+        num_features: Number of features to generate
+        num_targets: Number of targets to generate
+    """
+    os.makedirs(output_dir, exist_ok=True)
     
-    # File 2 with groups B and C
-    print("  Creating file2.csv with groups B and C")
-    df2 = pd.DataFrame({
-        'time': pd.date_range(start='2025-02-01', periods=100, freq='D'),
-        'group': ['B'] * 50 + ['C'] * 50,
-        'x1': np.random.randn(100),
-        'x2': np.random.randn(100),
-        'y1': np.random.randn(100),
-        'static1': np.random.choice(['s2', 's3'], size=100),
-        'static2': np.random.randint(1, 10, size=100)
-    })
-    df2.to_csv('file2.csv', index=False)  # Save to csv
-    
-    # File 3 with groups C, D and E
-    print("  Creating file3.csv with groups C, D and E")
-    df3 = pd.DataFrame({
-        'time': pd.date_range(start='2025-03-01', periods=150, freq='D'),
-        'group': ['C'] * 50 + ['D'] * 50 + ['E'] * 50,
-        'x1': np.random.randn(150),
-        'x2': np.random.randn(150),
-        'y1': np.random.randn(150),
-        'static1': np.random.choice(['s3', 's4', 's5'], size=150),
-        'static2': np.random.randint(1, 10, size=150)
-    })
-    df3.to_csv('file3.csv', index=False)
-    
-    # File 4 with groups F, G and H
-    print("  Creating file4.csv with groups F, G and H")
-    df4 = pd.DataFrame({
-        'time': pd.date_range(start='2025-04-01', periods=150, freq='D'),
-        'group': ['F'] * 50 + ['G'] * 50 + ['H'] * 50,
-        'x1': np.random.randn(150),
-        'x2': np.random.randn(150),
-        'y1': np.random.randn(150),
-        'static1': np.random.choice(['s6', 's7', 's8'], size=150),
-        'static2': np.random.randint(1, 10, size=150)
-    })
-    df4.to_csv('file4.csv', index=False)
-    
-    print("  Example files created successfully")
+    # Generate two CSV files
+    for file_idx in range(2):
+        data = []
+        
+        # Generate data for each group
+        for group_idx in range(num_groups):
+            # Determine which file gets which groups
+            if (group_idx % 2 == 0 and file_idx == 0) or (group_idx % 2 == 1 and file_idx == 1):
+                # Generate time series for this group
+                for t in range(samples_per_group):
+                    row = {
+                        'group': f'group_{group_idx}',
+                        'time': t,
+                    }
+                    
+                    # Generate features with some NaNs
+                    for f in range(num_features):
+                        # Add some randomness and occasional NaNs
+                        if np.random.random() < 0.05:  # 5% chance of NaN
+                            row[f'feature_{f}'] = np.nan
+                        else:
+                            row[f'feature_{f}'] = np.sin(t/10 + group_idx) + np.random.normal(0, 0.1)
+                    
+                    # Generate targets with some NaNs
+                    for tgt in range(num_targets):
+                        if np.random.random() < 0.05:  # 5% chance of NaN
+                            row[f'target_{tgt}'] = np.nan
+                        else:
+                            # Target is a function of features with noise
+                            row[f'target_{tgt}'] = np.cos(t/10 + group_idx) + np.random.normal(0, 0.1)
+                    
+                    # Add a categorical feature
+                    row['cat_feature'] = f'cat_{np.random.randint(0, 3)}'
+                    
+                    data.append(row)
+        
+        # Create DataFrame and save to CSV
+        df = pd.DataFrame(data)
+        df.to_csv(os.path.join(output_dir, f'example_data_{file_idx}.csv'), index=False)
+        print(f"Generated {len(df)} rows in file {file_idx}")
 
-
-def test_dataset():
-    """Test the time series dataset implementation with both memory modes and splitting strategies."""
-    print("=== Time Series Dataset Test ===")
+# Example usage
+if __name__ == "__main__":
+    # Generate example data
+    example_dir = "example_data"
+    generate_example_csv(example_dir)
     
-    # Create example files if they don't exist
-    create_example_files()
+    # Create D1 dataset with explicit known/unknown columns
+    file_paths = [os.path.join(example_dir, f'example_data_{i}.csv') for i in range(2)]
     
-    # Set up paths to example files
-    file_paths = [
-        "file1.csv",
-        "file2.csv",
-        "file3.csv",
-        "file4.csv",
-    ]
+    # Define column sets
+    feature_cols = [f'feature_{i}' for i in range(3)]
+    target_cols = [f'target_{0}']
     
-    # Test with default settings (memory efficient mode OFF)
-    print("\n=== Testing with memory_efficient=False (preload all data) ===")
+    # Explicitly define which features are known at prediction time
+    # In this example, we're saying feature_0 and feature_1 are known,
+    # but feature_2 is unknown (perhaps it's only available during training)
+    known_cols = [f'feature_{i}' for i in range(2)]  # Only first two features are known
+    unknown_cols = [f'feature_2'] + target_cols  # feature_2 and target are unknown
+    
     d1_dataset = MultiSourceTSDataSet(
         file_paths=file_paths,
-        time="time",
-        num=["x1", "x2"],
-        target=["y1"],
-        static=["static1", "static2"],
-        group="group",
-        memory_efficient=False
+        group_cols='group',
+        time_col='time',
+        feature_cols=feature_cols,
+        target_cols=target_cols,
+        cat_cols=['cat_feature'],
+        known_cols=known_cols,
+        unknown_cols=unknown_cols,
+        memory_efficient=False,
+        chunk_size=1000
     )
     
-    print("\nD1 Dataset Stats:")
-    print(f"  Number of groups: {len(d1_dataset)}")
-    print(f"  Feature columns: {d1_dataset.feature_cols}")
-    print(f"  Target columns: {d1_dataset.target}")
-    print(f"  Static columns: {d1_dataset.static}")
-    print(f"  Memory mode: {'Efficient' if d1_dataset.memory_efficient else 'Preloaded'}")
+    print(f"D1 Dataset Stats:")
+    print(f"Number of groups: {len(d1_dataset)}")
+    print(f"Feature columns: {d1_dataset.feature_cols}")
+    print(f"Known columns: {d1_dataset.known_cols}")
+    print(f"Unknown columns: {d1_dataset.unknown_cols}")
+    print(f"Metadata: {d1_dataset.metadata}")
     
-    # Get a sample from D1 dataset
-    print("\nSample from D1 dataset (first group):")
-    sample = d1_dataset[0]
-    
-    for key, value in sample.items():
-        if isinstance(value, torch.Tensor):
-            print(f"  {key}: Tensor of shape {value.shape}, dtype={value.dtype}")
-        else:
-            print(f"  {key}: {value}")
-    
-    # Test precompute mode with percentage-based splits
-    print("\n=== Testing D2 Module with Percentage Splits ===")
-    d2_module_pct = TSDataModule(
+    # Create D2 module with percentage split
+    # Here we're overriding the known/unknown columns from D1
+    d2_module = TSDataModule(
         d1_dataset=d1_dataset,
-        past_len=3,
-        future_len=1,
-        precompute=True,
-        batch_size=8,
-        split_config=(0.7, 0.15, 0.15),
+        past_len=10,
+        future_len=5,
+        batch_size=32,
+        min_valid_length=8,
         split_method='percentage',
-        split_seed=42
+        split_config=(0.7, 0.15, 0.15),
+        memory_efficient=False,
+        num_workers=0,
+        sampler=None,
+        # Override known/unknown columns from D1
+        known_cols=['feature_0'],  # Now only feature_0 is known
+        unknown_cols=['feature_1', 'feature_2', 'target_0']  # feature_1 is now unknown too
     )
     
     print(f"D2 Module Stats (Percentage Split):")
-    print(f"  Total samples: {len(d2_module_pct)}")
-    print(f"  Past steps: {d2_module_pct.past_len}")
-    print(f"  Future steps: {d2_module_pct.future_len}")
-    print(f"  Train samples: {len(d2_module_pct.train_indices)}")
-    print(f"  Validation samples: {len(d2_module_pct.val_indices)}")
-    print(f"  Test samples: {len(d2_module_pct.test_indices)}")
+    print(f"Total windows: {d2_module.length}")
+    print(f"Train windows: {len(d2_module.train_indices)}")
+    print(f"Val windows: {len(d2_module.val_indices)}")
+    print(f"Test windows: {len(d2_module.test_indices)}")
+    print(f"Known columns: {d2_module.known_cols}")
+    print(f"Unknown columns: {d2_module.unknown_cols}")
+    print(f"Metadata: {d2_module.metadata}")
     
-    # Get a sample from train split
-    if d2_module_pct.train_indices:
-        train_idx = d2_module_pct.train_indices[0]
-        print(f"\nSample from D2 train split (index {train_idx}):")
-        train_sample = d2_module_pct[train_idx]
-        print(f"  Past time shape: {train_sample['past_time'].shape}")
-        print(f"  Past features shape: {train_sample['past_features'].shape}")
-        print(f"  Future target shape: {train_sample['future_target'].shape}")
+    # Test DataLoaders
+    train_loader = d2_module.train_dataloader()
+    val_loader = d2_module.val_dataloader()
+    test_loader = d2_module.test_dataloader()
     
-    # Test with group-based splits
-    print("\n=== Testing D2 Module with Group-Based Splits ===")
-    # Get all unique groups
-    group_ids = set()
-    for i in range(len(d1_dataset)):
-        group_ids.add(d1_dataset[i]['group_id'])
-    group_ids = sorted(list(group_ids))
+    # Fetch a batch
+    batch = next(iter(train_loader))
+    print(f"Batch keys: {batch.keys()}")
+    print(f"Past features shape: {batch['past_features'].shape}")
+    print(f"Future targets shape: {batch['future_targets'].shape}")
     
-    # Split groups manually for demonstration
-    n_groups = len(group_ids)
-    n_train = max(1, int(n_groups * 0.6))
-    n_val = max(1, int(n_groups * 0.2))
+    # Create D2 module with group split
+    # First, get all group indices
+    all_groups = list(range(len(d1_dataset)))
     
-    train_groups = group_ids[:n_train]
-    val_groups = group_ids[n_train:n_train + n_val]
-    test_groups = group_ids[n_train + n_val:]
+    # Split groups into train/val/test
+    np.random.shuffle(all_groups)
+    train_groups = all_groups[:int(0.7 * len(all_groups))]
+    val_groups = all_groups[int(0.7 * len(all_groups)):int(0.85 * len(all_groups))]
+    test_groups = all_groups[int(0.85 * len(all_groups)):]
     
+    # Using the D1 dataset's known/unknown columns (not overriding)
     d2_module_group = TSDataModule(
         d1_dataset=d1_dataset,
-        past_len=3,
-        future_len=1,
-        precompute=True,
-        batch_size=8,
-        split_config=(train_groups, val_groups, test_groups),
+        past_len=10,
+        future_len=5,
+        batch_size=32,
+        min_valid_length=8,
         split_method='group',
-        split_seed=42
+        split_config=(train_groups, val_groups, test_groups),
+        memory_efficient=False,
+        num_workers=0,
+        sampler=None
+        # Not specifying known_cols/unknown_cols, so it will use D1's settings
     )
     
     print(f"D2 Module Stats (Group Split):")
-    print(f"  Total samples: {len(d2_module_group)}")
-    print(f"  Train groups: {train_groups}")
-    print(f"  Train samples: {len(d2_module_group.train_indices)}")
-    print(f"  Validation groups: {val_groups}")
-    print(f"  Validation samples: {len(d2_module_group.val_indices)}")
-    print(f"  Test groups: {test_groups}")
-    print(f"  Test samples: {len(d2_module_group.test_indices)}")
-    
-    # Test with memory_efficient=True
-    print("\n=== Testing with memory_efficient=True (chunked processing) ===")
-    d1_dataset_efficient = MultiSourceTSDataSet(
-        file_paths=file_paths,
-        time="time",
-        num=["x1", "x2"],
-        target=["y1"],
-        static=["static1", "static2"],
-        group="group",
-        memory_efficient=True
-    )
-    
-    # Test PyTorch Lightning Integration with TSDataModule
-    print("\n=== Testing PyTorch Lightning Integration ===")
-    # Setup the datamodule
-    d2_module_pct.setup()
-    
-    # Get dataloaders
-    train_loader = d2_module_pct.train_dataloader()
-    val_loader = d2_module_pct.val_dataloader()
-    test_loader = d2_module_pct.test_dataloader()
-    
-    print(f"Train DataLoader: {len(train_loader)} batches of size {d2_module_pct.batch_size}")
-    if val_loader:
-        print(f"Validation DataLoader: {len(val_loader)} batches of size {d2_module_pct.batch_size}")
-    if test_loader:
-        print(f"Test DataLoader: {len(test_loader)} batches of size {d2_module_pct.batch_size}")
-    
-    # Show one batch from the train loader
-    for batch_idx, batch in enumerate(train_loader):
-        print(f"\nBatch {batch_idx + 1} structure:")
-        for key, value in batch.items():
-            if isinstance(value, torch.Tensor):
-                print(f"  {key}: Tensor of shape {value.shape}")
-            else:
-                print(f"  {key}: {value}")
-        # Just show the first batch
-        break
-    
-    print("\nTest completed successfully!")
-
-
-if __name__ == "__main__":
-    test_dataset()
+    print(f"Total windows: {d2_module_group.length}")
+    print(f"Train windows: {len(d2_module_group.train_indices)}")
+    print(f"Val windows: {len(d2_module_group.val_indices)}")
+    print(f"Test windows: {len(d2_module_group.test_indices)}")
+    print(f"Known columns: {d2_module_group.known_cols}")
+    print(f"Unknown columns: {d2_module_group.unknown_cols}")
