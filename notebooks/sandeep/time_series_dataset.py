@@ -332,134 +332,38 @@ class MultiSourceTSDataSet(Dataset):
     
     def _preload_data(self):
         """
-        Preload all data from files for faster access (wee only used when memory_efficient=False).
+        Preload all data from files into memory for faster access.
         """
         print("Preloading data into memory...")
         for file_idx, file_path in enumerate(self.file_paths):
             print(f"Loading file {file_idx + 1}/{len(self.file_paths)}: {file_path}")
-            self.data_cache[file_idx] = pd.read_csv(file_path) #TODO sorting in D1
+            # Load the data
+            file_data = pd.read_csv(file_path)
             
             # Encode categorical features
             for col in self.cat_cols:
-                if col in self.data_cache[file_idx].columns:
-                    self.data_cache[file_idx][col] = self.label_encoders[col].transform(
-                        self.data_cache[file_idx][col].values.reshape(-1, 1)
+                if col in file_data.columns:
+                    file_data[col] = self.label_encoders[col].transform(
+                        file_data[col].values.reshape(-1, 1)
                     ).flatten()
-        print("Data preloading complete.")
-    
-    def _load_group_data(self, file_group_key):
-        """
-        Load data for a specific file-group combination.
-        
-        This method:
-        1. Gets the file containing data for the requested group
-        2. Loads from cache or from disk based on memory_efficient setting
-            if not, use cache storage
-            if yes, load from location. 
-        3. Applies encoding to categorical features if needed
-        4. Preserves NaN values for valid index computation in D2 layer
-        
-        Args:
-            file_group_key: Tuple of (file_idx, group_key) to load data for
             
-        Returns:
-            DataFrame containing all data for the requested file-group combination
-        """
-        file_idx, group_key = file_group_key
-        
-        # Get file information for this group
-        file_indices = self.group_info[file_group_key]
-        info = self.file_info[file_indices[0]]
-        file_path = info['file_path']
-        
-        # Different data loading strategies based on memory efficiency setting
-        if not self.memory_efficient and file_idx in self.data_cache:
-            # Use preloaded data from cache
-            file_data = self.data_cache[file_idx]
+            # Sort by group columns and then by time
+            sort_cols = self.group_cols + [self.time_col]
+            file_data = file_data.sort_values(sort_cols)
             
-            # Filter for the group
-            if isinstance(group_key, tuple):
-                # For multi-column groups, check all columns
-                mask = np.ones(len(file_data), dtype=bool)
-                for col, val in zip(self.group_cols, group_key):
-                    mask &= (file_data[col] == val)
-            else:
-                # For single-column groups, simple equality check
-                mask = file_data[self.group_cols[0]] == group_key
+            # Store in cache
+            self.data_cache[file_idx] = file_data
             
-            # If this file contains data for our group
-            if mask.any():
-                group_data = file_data[mask].copy()
-            else:
-                return pd.DataFrame()
-        else:
-            # Load from file
-            if self.memory_efficient:
-                # We'll accumulate data from chunks
-                group_chunks = []
-                
-                # Read file in chunks
-                for chunk in pd.read_csv(file_path, chunksize=self.chunk_size):
-                    # Filter for the group
-                    if isinstance(group_key, tuple):
-                        # For multi-column groups, check all columns
-                        mask = np.ones(len(chunk), dtype=bool)
-                        for col, val in zip(self.group_cols, group_key):
-                            mask &= (chunk[col] == val)
-                    else:
-                        # For single-column groups, simple equality check
-                        mask = chunk[self.group_cols[0]] == group_key
-                    
-                    # If this chunk contains data for our group
-                    if mask.any():
-                        group_chunk = chunk[mask].copy()
-                        
-                        # Encode categorical features
-                        for col in self.cat_cols:
-                            if col in group_chunk.columns:
-                                group_chunk[col] = self.label_encoders[col].transform(
-                                    group_chunk[col].values.reshape(-1, 1)
-                                ).flatten()
-                        
-                        group_chunks.append(group_chunk)
-                
-                # Combine all chunks
-                if group_chunks:
-                    group_data = pd.concat(group_chunks, ignore_index=True)
-                else:
-                    return pd.DataFrame()
-            else:
-                # Load entire file at once
-                file_data = pd.read_csv(file_path)
-                
-                # Encode categorical features
-                for col in self.cat_cols:
-                    if col in file_data.columns:
-                        file_data[col] = self.label_encoders[col].transform(
-                            file_data[col].values.reshape(-1, 1)
-                        ).flatten()
-                
-                # Filter for the group
-                if isinstance(group_key, tuple):
-                    # For multi-column groups, check all columns
-                    mask = np.ones(len(file_data), dtype=bool)
-                    for col, val in zip(self.group_cols, group_key):
-                        mask &= (file_data[col] == val)
-                else:
-                    # For single-column groups, simple equality check
-                    mask = file_data[self.group_cols[0]] == group_key
-                
-                # If this file contains data for our group
-                if mask.any():
-                    group_data = file_data[mask].copy()
-                else:
-                    return pd.DataFrame()
+        print(f"Preloaded {len(self.file_paths)} files")
         
-        # Sort by time
-        group_data = group_data.sort_values(self.time_col)
+        # Estimate memory usage
+        if self.data_cache:
+            first_file = next(iter(self.data_cache.values()))
+            # Calculate approximate size in MB
+            size_mb = first_file.memory_usage(deep=True).sum() / (1024 * 1024)
+            total_mb = sum(df.memory_usage(deep=True).sum() for df in self.data_cache.values()) / (1024 * 1024)
+            print(f"Estimated memory usage: {total_mb:.2f} MB")
         
-        return group_data
-    
     def _update_encoders(self, data):
         """
         Update label encoders with new categories from the data.
@@ -571,12 +475,12 @@ class MultiSourceTSDataSet(Dataset):
         }
     
     def _prepare_metadata(self):
-        """Prepare metadata about the dataset.""" #TODO: max number of classes in the data. (categoricAL)
+        """Prepare metadata about the dataset."""
         self.metadata = {
             "cols": {
                 "y": self.target_cols,
                 "x": self.feature_cols,
-                "st": self.static_cols,
+                "st": self.static_cols
             },
             "col_type": {},
             "col_known": {},
@@ -584,13 +488,13 @@ class MultiSourceTSDataSet(Dataset):
             "cat_index": []
         }
         
-        # Mark categorical feature indices
+        # Add column indices
         for i, c in enumerate(self.feature_cols):
             if c in self.cat_cols:
                 self.metadata['cat_index'].append(i)
         
-        # Set column types and known status #TODO: user should define the known and unknown columns
-        all_cols = self.target_cols + self.feature_cols  + self.static_cols
+        # Set column types and known status
+        all_cols = self.target_cols + self.feature_cols + self.static_cols
         for col in all_cols:
             self.metadata["col_type"][col] = "C" if col in self.cat_cols else "F"
             # All columns are considered unknown for future values by default
@@ -598,8 +502,20 @@ class MultiSourceTSDataSet(Dataset):
         
         # Add known/unknown column information
         self.metadata['known_cols'] = self.known_cols
-        self.metadata['unknown_cols'] = self.unknown_cols 
-        #TODOdistinguish between cat an dnum known and unknown
+        self.metadata['unknown_cols'] = self.unknown_cols
+        
+        # Distinguish between categorical and numerical known/unknown columns
+        self.metadata['known_cat_cols'] = [col for col in self.known_cols if col in self.cat_cols]
+        self.metadata['known_num_cols'] = [col for col in self.known_cols if col not in self.cat_cols]
+        self.metadata['unknown_cat_cols'] = [col for col in self.unknown_cols if col in self.cat_cols]
+        self.metadata['unknown_num_cols'] = [col for col in self.unknown_cols if col not in self.cat_cols]
+        
+        # Add max classes information for categorical columns
+        self.metadata['max_classes'] = {}
+        for col, encoder in self.label_encoders.items():
+            # Number of classes is the number of unique values seen by the encoder
+            num_classes = len(encoder.classes_)
+            self.metadata['max_classes'][col] = num_classes
         
         # Add encoders to metadata
         self.metadata['encoders'] = self.label_encoders
@@ -612,6 +528,151 @@ class MultiSourceTSDataSet(Dataset):
             Dictionary containing metadata about columns and their properties
         """
         return self.metadata
+
+    def _load_group_data(self, file_group_key):
+        """
+        Load data for a specific file-group combination.
+        
+        This method:
+        1. Gets the file containing data for the requested group
+        2. Loads from cache or from disk based on memory_efficient setting
+        3. Applies encoding to categorical features if needed
+        4. Sorts data by time column
+        5. Regularizes time series using extend_time_df
+        6. Preserves NaN values for valid index computation in D2 layer
+        
+        Args:
+            file_group_key: Tuple of (file_idx, group_key) to load data for
+            
+        Returns:
+            DataFrame containing all data for the requested file-group combination
+        """
+        file_idx, group_key = file_group_key
+        
+        # Get file information for this group
+        file_indices = self.group_info[file_group_key]
+        info = self.file_info[file_indices[0]]
+        file_path = info['file_path']
+        
+        # Different data loading strategies based on memory efficiency setting
+        if not self.memory_efficient and file_idx in self.data_cache:
+            # Use preloaded data from cache (already sorted by group and time)
+            file_data = self.data_cache[file_idx]
+            
+            # Filter for the group
+            if isinstance(group_key, tuple):
+                # For multi-column groups, check all columns
+                mask = np.ones(len(file_data), dtype=bool)
+                for col, val in zip(self.group_cols, group_key):
+                    mask &= (file_data[col] == val)
+            else:
+                # For single-column groups, simple equality check
+                mask = file_data[self.group_cols[0]] == group_key
+            
+            # If this file contains data for our group
+            if mask.any():
+                group_data = file_data[mask].copy()
+            else:
+                return pd.DataFrame()
+        else:
+            # Load from file
+            if self.memory_efficient:
+                # We'll accumulate data from chunks
+                group_chunks = []
+                
+                # Read file in chunks
+                for chunk in pd.read_csv(file_path, chunksize=self.chunk_size):
+                    # Filter for the group
+                    if isinstance(group_key, tuple):
+                        # For multi-column groups, check all columns
+                        mask = np.ones(len(chunk), dtype=bool)
+                        for col, val in zip(self.group_cols, group_key):
+                            mask &= (chunk[col] == val)
+                    else:
+                        # For single-column groups, simple equality check
+                        mask = chunk[self.group_cols[0]] == group_key
+                    
+                    # If this chunk contains data for our group
+                    if mask.any():
+                        group_chunk = chunk[mask].copy()
+                        
+                        # Encode categorical features
+                        for col in self.cat_cols:
+                            if col in group_chunk.columns:
+                                group_chunk[col] = self.label_encoders[col].transform(
+                                    group_chunk[col].values.reshape(-1, 1)
+                                ).flatten()
+                        
+                        group_chunks.append(group_chunk)
+                
+                # Combine all chunks
+                if group_chunks:
+                    group_data = pd.concat(group_chunks, ignore_index=True)
+                else:
+                    return pd.DataFrame()
+            else:
+                # Load entire file at once
+                file_data = pd.read_csv(file_path)
+                
+                # Encode categorical features
+                for col in self.cat_cols:
+                    if col in file_data.columns:
+                        file_data[col] = self.label_encoders[col].transform(
+                            file_data[col].values.reshape(-1, 1)
+                        ).flatten()
+                
+                # Filter for the group
+                if isinstance(group_key, tuple):
+                    # For multi-column groups, check all columns
+                    mask = np.ones(len(file_data), dtype=bool)
+                    for col, val in zip(self.group_cols, group_key):
+                        mask &= (file_data[col] == val)
+                else:
+                    # For single-column groups, simple equality check
+                    mask = file_data[self.group_cols[0]] == group_key
+                
+                # If this file contains data for our group
+                if mask.any():
+                    group_data = file_data[mask].copy()
+                else:
+                    return pd.DataFrame()
+        
+        # Sort by time (since we're dealing with a single group, no need to sort by group)
+        group_data = group_data.sort_values(self.time_col)
+        
+        # Regularize time series (fill gaps with NaN values)
+        # First, try to detect the frequency
+        try:
+            # Convert time column to datetime if it's not numeric
+            time_col_data = group_data[self.time_col]
+            if not pd.api.types.is_numeric_dtype(time_col_data):
+                time_col_data = pd.to_datetime(time_col_data)
+                
+            # Calculate differences between consecutive time points
+            if len(time_col_data) > 1:
+                if pd.api.types.is_datetime64_dtype(time_col_data):
+                    # For datetime, calculate timedeltas
+                    time_diffs = time_col_data.diff().dropna()
+                    # Get the most common difference (mode)
+                    freq = time_diffs.mode().iloc[0]
+                else:
+                    # For numeric time, calculate differences
+                    time_diffs = np.diff(time_col_data)
+                    # Get the most common difference (mode)
+                    freq = pd.Series(time_diffs).mode().iloc[0]
+                    
+                # Use extend_time_df to regularize the time series
+                group_data = extend_time_df(
+                    df=group_data,
+                    time_col=self.time_col,
+                    freq=freq,
+                    fill_value=np.nan
+                )
+        except Exception as e:
+            # If regularization fails, log the error but continue with original data
+            print(f"Warning: Time series regularization failed for group {group_key}: {str(e)}")
+        
+        return group_data
 
 
 class TSDataModule(pl.LightningDataModule):
@@ -670,9 +731,6 @@ class TSDataModule(pl.LightningDataModule):
         self.sampler = sampler
         self.memory_efficient = memory_efficient
         
-        # Fixed number for max cached groups
-        self.max_cached_groups = 50
-        
         # Store reference to D1 dataset metadata
         self.metadata = d1_dataset.metadata.copy()
         
@@ -688,10 +746,6 @@ class TSDataModule(pl.LightningDataModule):
         # Update metadata with known/unknown columns
         self.metadata['known_cols'] = self.known_cols
         self.metadata['unknown_cols'] = self.unknown_cols
-        
-        # For tracking loaded data with simple FIFO caching
-        self.loaded_groups = {}
-        self.group_load_order = []
         
         # Default split configuration based on method
         if split_config is None:
@@ -876,23 +930,10 @@ class TSDataModule(pl.LightningDataModule):
             Dictionary containing the group data
         """
         # Check if the group is already loaded
-        if group_idx in self.loaded_groups:
-            return self.loaded_groups[group_idx]
-            
+        # Removed caching-related variables
+        
         # Load the group data from D1 dataset
         group_data = self.d1_dataset[group_idx]
-        
-        # Simple FIFO caching
-        if len(self.loaded_groups) >= self.max_cached_groups:
-            # Remove oldest group if cache is full
-            if self.group_load_order:
-                oldest_group = self.group_load_order.pop(0)
-                if oldest_group in self.loaded_groups:
-                    del self.loaded_groups[oldest_group]
-        
-        # Add to cache and update load order
-        self.loaded_groups[group_idx] = group_data
-        self.group_load_order.append(group_idx)
             
         return group_data
         
@@ -901,18 +942,19 @@ class TSDataModule(pl.LightningDataModule):
         Add information about maximum number of classes for categorical features.
         This is useful for model architecture decisions.
         """
-        if 'max_classes' not in self.metadata:
-            self.metadata['max_classes'] = {}
+        # Copy max classes information from D1 dataset metadata
+        if 'max_classes' in self.d1_dataset.metadata:
+            self.metadata['max_classes'] = self.d1_dataset.metadata['max_classes'].copy()
             
-        # Get label encoders from D1 dataset
-        for col, encoder in self.d1_dataset.label_encoders.items():
-            # Number of classes is the number of unique values seen by the encoder
-            num_classes = len(encoder.classes_)
-            self.metadata['max_classes'][col] = num_classes
-            
-        # Ensure known/unknown columns are properly reflected in metadata
+        # Ensure known/unknown column categorization is properly reflected in metadata
         self.metadata['known_cols'] = self.known_cols
         self.metadata['unknown_cols'] = self.unknown_cols
+        
+        # Add categorical/numerical classification for known/unknown columns
+        self.metadata['known_cat_cols'] = [col for col in self.known_cols if col in self.d1_dataset.cat_cols]
+        self.metadata['known_num_cols'] = [col for col in self.known_cols if col not in self.d1_dataset.cat_cols]
+        self.metadata['unknown_cat_cols'] = [col for col in self.unknown_cols if col in self.d1_dataset.cat_cols]
+        self.metadata['unknown_num_cols'] = [col for col in self.unknown_cols if col not in self.d1_dataset.cat_cols]
     
     def _create_splits(self, split_config):
         """
@@ -1373,3 +1415,4 @@ if __name__ == "__main__":
     print(f"Test windows: {len(d2_module_group.test_indices)}")
     print(f"Known columns: {d2_module_group.known_cols}")
     print(f"Unknown columns: {d2_module_group.unknown_cols}")
+    print(f"Metadata: {d2_module_group.metadata}")
