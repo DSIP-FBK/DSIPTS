@@ -24,7 +24,6 @@ from typing import Dict, List, Optional, Union, Tuple
 from datetime import timedelta
 from sklearn.preprocessing import OrdinalEncoder
 import logging
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Configure logging
 logging.basicConfig(
@@ -678,20 +677,17 @@ class MultiSourceTSDataSet(Dataset):
 class TSDataModule(pl.LightningDataModule):
     """D2 Layer - Processes time series data for model consumption.
     
-    This class:
-    1. Takes a D1 dataset as input
-    2. Creates sliding windows of time series data
-    3. Splits data into train/validation/test sets
-    4. Manages memory efficiently based on data size and configuration
-    5. Provides samples on demand with target and feature values
-    6. Integrates with PyTorch Lightning for model training
+    This module:
+    1. Creates sliding windows from time series data
+    2. Handles train/validation/test splits
+    3. Creates DataLoaders for PyTorch Lightning
     """
     
     def __init__(
         self,
         d1_dataset: MultiSourceTSDataSet,
         past_len: int,
-        future_len: int = 1,
+        future_len: int,
         batch_size: int = 32,
         min_valid_length: Optional[int] = None,
         split_method: str = 'percentage',
@@ -700,7 +696,8 @@ class TSDataModule(pl.LightningDataModule):
         sampler: Optional[Sampler] = None,
         memory_efficient: bool = False,
         known_cols: Optional[List[str]] = None,
-        unknown_cols: Optional[List[str]] = None
+        unknown_cols: Optional[List[str]] = None,
+        precompute: bool = True
     ):
         """
         Initialize the TSDataModule.
@@ -753,6 +750,14 @@ class TSDataModule(pl.LightningDataModule):
                 self.split_config = (0.7, 0.15, 0.15)  # Default: 70% train, 15% val, 15% test
             else:
                 raise ValueError("For 'group' split method, split_config must be provided")
+        
+        # Whether to precompute valid indices and create datasets
+        self.precompute = precompute
+        
+        # Initialize dataset attributes
+        self.train_dataset = None
+        self.val_dataset = None
+        self.test_dataset = None
                 
         # Initialize the module
         self._initialize()
@@ -762,7 +767,7 @@ class TSDataModule(pl.LightningDataModule):
     
     def _initialize(self):
         """Initialize the dataset by computing valid indices and mappings."""
-        print("Precomputing valid indices and mappings...")
+        print("Computing valid indices and mappings...")
         self.valid_indices = self._compute_valid_indices()
         self.mapping = self._create_global_mapping()
         self.length = len(self.mapping)
@@ -781,13 +786,18 @@ class TSDataModule(pl.LightningDataModule):
                 self.val_indices = []
                 self.test_indices = []
         
-        # Create subset datasets for train/val/test using the indices
-        if hasattr(self, 'train_indices') and self.train_indices:
-            self.train_dataset = TimeSeriesSubset(self, self.train_indices)
-        if hasattr(self, 'val_indices') and self.val_indices:
-            self.val_dataset = TimeSeriesSubset(self, self.val_indices)
-        if hasattr(self, 'test_indices') and self.test_indices:
-            self.test_dataset = TimeSeriesSubset(self, self.test_indices)
+        # Create subset datasets for train/val/test using the indices if precompute is enabled
+        # Otherwise, the datasets will be created on-demand during setup
+        if self.precompute:
+            print("Precomputing datasets for train/val/test splits...")
+            if hasattr(self, 'train_indices') and self.train_indices:
+                self.train_dataset = TimeSeriesSubset(self, self.train_indices)
+            if hasattr(self, 'val_indices') and self.val_indices:
+                self.val_dataset = TimeSeriesSubset(self, self.val_indices)
+            if hasattr(self, 'test_indices') and self.test_indices:
+                self.test_dataset = TimeSeriesSubset(self, self.test_indices)
+        else:
+            print("Datasets will be created on-demand during setup...")
     
     def _compute_valid_indices(self):
         """
@@ -949,12 +959,14 @@ class TSDataModule(pl.LightningDataModule):
         # Ensure known/unknown column categorization is properly reflected in metadata
         self.metadata['known_cols'] = self.known_cols
         self.metadata['unknown_cols'] = self.unknown_cols
+        print("before cat num known unknown cols", self.metadata)
         
         # Add categorical/numerical classification for known/unknown columns
         self.metadata['known_cat_cols'] = [col for col in self.known_cols if col in self.d1_dataset.cat_cols]
         self.metadata['known_num_cols'] = [col for col in self.known_cols if col not in self.d1_dataset.cat_cols]
         self.metadata['unknown_cat_cols'] = [col for col in self.unknown_cols if col in self.d1_dataset.cat_cols]
         self.metadata['unknown_num_cols'] = [col for col in self.unknown_cols if col not in self.d1_dataset.cat_cols]
+        print("after cat num known unknown cols", self.metadata)
     
     def _create_splits(self, split_config):
         """
@@ -1141,7 +1153,6 @@ class TSDataModule(pl.LightningDataModule):
         if not hasattr(self, 'train_indices') or not self.train_indices:
             if self.split_config is not None:
                 print(f"Creating {self.split_method} splits with config: {self.split_config}")
-                
                 # Create splits with the new config
                 self.train_indices, self.val_indices, self.test_indices = self._create_splits(self.split_config)
                 print(f"Split statistics: Train: {len(self.train_indices)}, Validation: {len(self.val_indices)}, Test: {len(self.test_indices)}")
@@ -1151,13 +1162,15 @@ class TSDataModule(pl.LightningDataModule):
                 self.val_indices = []
                 self.test_indices = []
         
-        # Create subset datasets for train/val/test using the indices
-        if stage == 'fit' or stage is None:
-            self.train_dataset = TimeSeriesSubset(self, self.train_indices)
-            self.val_dataset = TimeSeriesSubset(self, self.val_indices)
-            
-        if stage == 'test' or stage is None:
-            self.test_dataset = TimeSeriesSubset(self, self.test_indices)
+        # If precompute is False, create datasets on-demand during setup
+        # Otherwise, datasets were already created during initialization
+        if not self.precompute:
+            if stage == 'fit' or stage is None:
+                self.train_dataset = TimeSeriesSubset(self, self.train_indices)
+                self.val_dataset = TimeSeriesSubset(self, self.val_indices)
+                
+            if stage == 'test' or stage is None:
+                self.test_dataset = TimeSeriesSubset(self, self.test_indices)
     
     def train_dataloader(self):
         """Return a DataLoader for training."""
@@ -1213,9 +1226,11 @@ class TimeSeriesSubset(Dataset):
         Initialize the TimeSeriesSubset.
         
         Args:
-            data_module: The TSDataModule instance
+            data_module: The TSDataModule instance (stored as reference, not copy)
             indices: List of indices to include in this subset
         """
+        # In Python, this assignment creates a reference to the original data_module object
+        # No copying occurs, so all subsets share the same data_module instance
         self.data_module = data_module
         self.indices = indices
     
