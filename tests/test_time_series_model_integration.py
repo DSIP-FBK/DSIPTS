@@ -173,24 +173,45 @@ def main():
         # Create a temporary directory for test data
         tmp_path = Path(os.getcwd()) / "test_data"
         tmp_path.mkdir(exist_ok=True)
-        
-        logger.info("Starting D1/D2 model integration test with LinearTS model")
-        
-        # Create a dummy dataset
-        df, csv_path = create_dummy_dataset(tmp_path)
-        
+
+        # Choose data source: dummy (default) or monash
+        use_monash = os.environ.get("USE_MONASH_DATA", "0") == "1"
+        logger.info(f"USE_MONASH_DATA={use_monash}")
+
+        if use_monash:
+            logger.info("Loading data via Monash loader...")
+            from dsipts.data_management.monash import Monash
+            # Pick a small dataset id for test (e.g., 1); change as needed
+            monash_data_dir = tmp_path / "monash"
+            monash_data_dir.mkdir(exist_ok=True)
+            monash_obj = Monash(str(monash_data_dir / "monash_table"), rebuild=False)
+            monash_obj.download_dataset(str(monash_data_dir), id=1, rebuild=False)
+            df = monash_obj.generate_dataset(1)
+            logger.info(f"Loaded Monash dataset shape: {df.shape}")
+            # Infer columns (try to match expected names)
+            time_col = 'start_timestamp' if 'start_timestamp' in df.columns else 'time'
+            target_col = 'series_value' if 'series_value' in df.columns else 'target'
+            group_col = 'series_name' if 'series_name' in df.columns else 'group'
+            # Use all columns except time, group, target as features
+            feature_cols = [c for c in df.columns if c not in [time_col, group_col, target_col]]
+            # Save to CSV for pipeline compatibility
+            csv_path = monash_data_dir / "monash_data.csv"
+            df.to_csv(csv_path, index=False)
+        else:
+            logger.info("Using dummy dataset...")
+            # Create a dummy dataset
+            df, csv_path = create_dummy_dataset(tmp_path)
+            time_col = 'time'
+            target_col = 'target'
+            group_col = 'group'
+            feature_cols = ['feature1', 'feature2']
+
         logger.info(f"Dataset columns: {df.columns.tolist()}")
         logger.info(f"Dataset shape: {df.shape}")
-        
-        # 2. Prepare D1 dataset
-        time_col = 'time'
-        target_col = 'target'
-        group_col = 'group'
-        feature_cols = ['feature1', 'feature2']
-        
+
         logger.info(f"Creating D1 dataset with: time_col={time_col}, target_col={target_col}, "
                    f"group_col={group_col}, feature_cols={feature_cols}")
-        
+
         d1 = MultiSourceTSDataSet(
             file_paths=[str(csv_path)],
             group_cols=group_col,
@@ -200,7 +221,7 @@ def main():
             memory_efficient=False,
             chunk_size=1000
         )
-        
+
         logger.info(f"D1 dataset created with {len(d1)} groups")
         
         # Define window sizes for past and future
