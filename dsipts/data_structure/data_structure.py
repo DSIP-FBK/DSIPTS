@@ -335,7 +335,8 @@ class TimeSeries():
                            shift:int=0,
                            keep_entire_seq_while_shifting:bool=False,
                            starting_point:Union[None,dict]=None,
-                           skip_step:int=1
+                           skip_step:int=1,
+                           is_inference:bool=False
                          
                            )->MyDataset:
         """ Create the dataset for the training/inference step
@@ -448,7 +449,10 @@ class TimeSeries():
                             xx = x_num_future[i-shift+skip_stacked:i+future_steps-shift+skip_stacked].mean()
                     else:
                         xx = 0.0
-                    if np.isfinite(x_num_past[i-past_steps:i].min() + y_target[i+skip_stacked:i+future_steps+skip_stacked].min() + xx):
+                    if is_inference is False:
+                        xx+=y_target[i+skip_stacked:i+future_steps+skip_stacked].min()
+                    
+                    if np.isfinite(x_num_past[i-past_steps:i].min()  + xx):
                         
                         x_num_past_samples.append(x_num_past[i-past_steps:i])
                         if len(self.future_variables)>0:
@@ -473,6 +477,7 @@ class TimeSeries():
                 x_num_future_samples = np.stack(x_num_future_samples)
             except Exception as e:
                 beauty_string('WARNING x_num_future_samples is empty and it should not','info',True)
+        
         y_samples = np.stack(y_samples)
         t_samples = np.stack(t_samples)   
         g_samples = np.stack(g_samples)
@@ -944,7 +949,8 @@ class TimeSeries():
                   rescaling:bool=True,
                   data:pd.DataFrame=None,
                   steps_in_future:int=0,
-                  check_holes_and_duplicates:bool=True)->pd.DataFrame:
+                  check_holes_and_duplicates:bool=True,
+                  is_inference:bool=False)->pd.DataFrame:  ##TODO PUSH THIS ON PTF!
         
         """similar to `inference_on_set`
         only change is split_params that must contain this keys but using the default can be sufficient:
@@ -967,15 +973,16 @@ class TimeSeries():
             pd.DataFrame: predicted values
         """
         beauty_string('Inference on a custom dataset','block',self.verbose)
-        
         self.check_custom = True ##this is a check for the dataset loading
         ## enlarge the dataset in order to have all the rows needed
         if check_holes_and_duplicates:
             if self.group is None:
-                freq = pd.to_timedelta(np.diff(data.time).min())
+                ##freq = pd.to_timedelta(np.diff(data.time).min())
+                freq = self.freq #TODO port it into PTF
                 beauty_string(f'Detected minumum frequency: {freq}','section',self.verbose)
+                ## TODO work on this for consistency
                 empty = pd.DataFrame({'time':pd.date_range(data.time.min(),data.time.max()+freq*(steps_in_future+self.split_params['past_steps']+self.split_params['future_steps']),freq=freq)})
-
+  
             else:
                 freq = pd.to_timedelta(np.diff(data[data[self.group==data[self.group].unique()[0]]].time).min())
                 beauty_string(f'Detected minumum frequency: {freq} supposing constant frequence inside the groups','section',self.verbose)
@@ -986,6 +993,9 @@ class TimeSeries():
                     empty.append(pd.DataFrame({self.group:c,'time':pd.date_range(_min.time[_min[self.group]==c].values[0],_max.time[_max[self.group]==c].values[0]+freq*(steps_in_future+self.split_params['past_steps']+self.split_params['future_steps']),freq=freq)}))
                 empty = pd.concat(empty,ignore_index=True)
             dataset = empty.merge(data,how='left')
+            #TODO port it into PTF
+            for c in self.cat_var:
+                self.enrich(dataset, c)
         else:
             dataset = data.copy()
         
@@ -996,9 +1006,9 @@ class TimeSeries():
                 if c in ['past_steps','future_steps','shift','keep_entire_seq_while_shifting','starting_point']:
                     split_params[c] = self.split_params[c]
             split_params['skip_step']=1
-            data = self.create_data_loader(dataset,**split_params)
+            data = self.create_data_loader(dataset,**split_params,is_inference=is_inference)
         else:
-            data = self.create_data_loader(data,**split_params)
+            data = self.create_data_loader(data,**split_params,is_inference=is_inference)
 
         res = self.inference_on_set(batch_size=batch_size,num_workers=num_workers,split_params=None,set='custom',rescaling=rescaling,data=data)
         self.check_custom = False
