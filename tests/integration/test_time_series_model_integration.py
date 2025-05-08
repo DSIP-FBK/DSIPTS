@@ -5,6 +5,7 @@ import torch
 import pandas as pd
 import numpy as np
 from pathlib import Path
+from typing import List, Dict, Optional, Union, Tuple
 
 # Add the project root to the Python path for imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -29,13 +30,13 @@ class SimpleTimeSeriesModel(Base):
     """
     # Define class attributes required by Base
     handle_multivariate = True
-    handle_future_covariates = False
-    handle_categorical_variables = False
+    handle_future_covariates = True  # Updated to handle future covariates
+    handle_categorical_variables = True  # Updated to handle categorical variables
     handle_quantile_loss = False
     description = get_scope(handle_multivariate, handle_future_covariates, 
                            handle_categorical_variables, handle_quantile_loss)
     
-    def __init__(self, past_len, future_len, feature_dim, target_dim, verbose=True):
+    def __init__(self, past_len, future_len, feature_dim, target_dim, cat_dims=None, verbose=True):
         """
         Initialize the SimpleTimeSeriesModel.
         
@@ -44,6 +45,7 @@ class SimpleTimeSeriesModel(Base):
             future_len: Number of future time steps to predict
             feature_dim: Number of feature dimensions
             target_dim: Number of target dimensions
+            cat_dims: Dictionary of categorical dimensions {col_name: num_classes}
             verbose: Whether to print model information
         """
         super(SimpleTimeSeriesModel, self).__init__(verbose=verbose)
@@ -53,11 +55,17 @@ class SimpleTimeSeriesModel(Base):
         self.future_len = future_len
         self.feature_dim = feature_dim
         self.target_dim = target_dim
+        self.cat_dims = cat_dims or {}
         
         # Simple linear layers
         self.encoder = torch.nn.Linear(feature_dim, 64)
         self.decoder = torch.nn.Linear(64, target_dim)
         self.activation = torch.nn.ReLU()
+        
+        # Add embedding layers for categorical variables if needed
+        self.embeddings = torch.nn.ModuleDict()
+        for col, dim in self.cat_dims.items():
+            self.embeddings[col] = torch.nn.Embedding(dim, min(16, dim // 2 + 1))
         
         # Required by Base class
         self.optim = None
@@ -71,6 +79,9 @@ class SimpleTimeSeriesModel(Base):
         Args:
             batch: Dictionary containing input data
                 x_num_past: Past numerical features [batch_size, past_len, feature_dim]
+                x_cat_past: Past categorical features [batch_size, past_len, cat_dim]
+                x_num_future: Future numerical features [batch_size, future_len, feature_dim]
+                x_cat_future: Future categorical features [batch_size, future_len, cat_dim]
                 y: Target values [batch_size, future_len, target_dim] (optional, for training)
         
         Returns:
@@ -96,19 +107,28 @@ class SimpleTimeSeriesModel(Base):
         return predictions
 
 # Function to convert D2 batch format to model input format
-def convert_batch_for_model(batch):
+def convert_batch_for_model(batch, known_cat_cols=None, known_num_cols=None, unknown_cat_cols=None, unknown_num_cols=None):
     """
-    Convert batch from D2 layer format to the format expected by the LinearTS model
+    Convert batch from D2 layer format to the format expected by the model
     
     Args:
         batch: Batch from D2 layer
+        known_cat_cols: List of known categorical columns
+        known_num_cols: List of known numerical columns
+        unknown_cat_cols: List of unknown categorical columns
+        unknown_num_cols: List of unknown numerical columns
         
     Returns:
         Dict with keys expected by the model
     """
     model_batch = {}
     
-    # Extract past features
+    # Get batch dimensions
+    batch_size = batch['past_features'].shape[0] if 'past_features' in batch else 2
+    past_len = batch['past_features'].shape[1] if 'past_features' in batch else 5
+    future_len = batch['future_targets'].shape[1] if 'future_targets' in batch else 2
+    
+    # Extract past numerical features
     if 'past_features' in batch:
         model_batch['x_num_past'] = batch['past_features']
     
@@ -116,25 +136,38 @@ def convert_batch_for_model(batch):
     if 'future_targets' in batch:
         model_batch['y'] = batch['future_targets']
     
-    # Add other required fields with empty tensors if needed
-    if 'x_cat_past' not in model_batch:
-        # Empty tensor for categorical features (not used in this test)
-        batch_size = model_batch['x_num_past'].shape[0] if 'x_num_past' in model_batch else 2
-        model_batch['x_cat_past'] = torch.zeros((batch_size, 1, 0), dtype=torch.long)
+    # Add categorical features if available
+    if 'past_cat_features' in batch:
+        model_batch['x_cat_past'] = batch['past_cat_features']
+    else:
+        # Empty tensor for categorical features
+        model_batch['x_cat_past'] = torch.zeros((batch_size, past_len, 0), dtype=torch.long)
+    
+    # Add future numerical features if available
+    if 'future_num_features' in batch:
+        model_batch['x_num_future'] = batch['future_num_features']
+    else:
+        # Empty tensor for future numerical features
+        model_batch['x_num_future'] = torch.zeros((batch_size, future_len, 0), dtype=torch.float)
+    
+    # Add future categorical features if available
+    if 'future_cat_features' in batch:
+        model_batch['x_cat_future'] = batch['future_cat_features']
+    else:
+        # Empty tensor for future categorical features
+        model_batch['x_cat_future'] = torch.zeros((batch_size, future_len, 0), dtype=torch.long)
+    
+    # Add static features if available
+    if 'static' in batch:
+        model_batch['static'] = batch['static']
+    
+    # Add group_id if available
+    if 'group_id' in batch:
+        model_batch['group_id'] = batch['group_id']
     
     # Add idx_target - the index of target variable in the input features
-    # In our case, we're using the last feature as the target
-    feature_dim = model_batch['x_num_past'].shape[2] if 'x_num_past' in model_batch else 2
-    # Create a list of indices (0 for the first target variable)
+    # In our case, we're using the first feature as the target
     model_batch['idx_target'] = [0]  # Assuming the first feature corresponds to the target
-    
-    # Add x_num_future (empty tensor since we're not using future covariates)
-    batch_size = model_batch['x_num_past'].shape[0] if 'x_num_past' in model_batch else 2
-    future_len = model_batch['y'].shape[1] if 'y' in model_batch else 2
-    model_batch['x_num_future'] = torch.zeros((batch_size, future_len, 0), dtype=torch.float)
-    
-    # Add x_cat_future (empty tensor since we're not using categorical future covariates)
-    model_batch['x_cat_future'] = torch.zeros((batch_size, future_len, 0), dtype=torch.long)
     
     return model_batch
 
@@ -153,12 +186,20 @@ def create_dummy_dataset(path):
             feature1 = np.cos(date.day/10) + np.random.normal(0, 0.05)
             feature2 = date.day/30 + np.random.normal(0, 0.02)
             
+            # Add categorical features for testing
+            hour_of_day = date.hour  # 0-23
+            day_of_week = date.dayofweek  # 0-6
+            month = date.month  # 1-12
+            
             data.append({
                 'time': date,
                 'group': group,
                 'target': value,
                 'feature1': feature1,
-                'feature2': feature2
+                'feature2': feature2,
+                'hour': hour_of_day,
+                'day_of_week': day_of_week,
+                'month': month
             })
     
     df = pd.DataFrame(data)
@@ -212,12 +253,20 @@ def main():
         logger.info(f"Creating D1 dataset with: time_col={time_col}, target_col={target_col}, "
                    f"group_col={group_col}, feature_cols={feature_cols}")
 
+        # Define categorical and known/unknown columns
+        cat_cols = ['hour', 'day_of_week', 'month', 'group']
+        known_cols = ['feature1', 'hour', 'day_of_week', 'month']  # Known at prediction time
+        unknown_cols = ['feature2', 'target']  # Unknown at prediction time (need to be predicted)
+        
         d1 = MultiSourceTSDataSet(
             file_paths=[str(csv_path)],
             group_cols=group_col,
             time_col=time_col,
-            feature_cols=feature_cols,
+            feature_cols=feature_cols + ['hour', 'day_of_week', 'month'],  # Include categorical features
             target_cols=[target_col],
+            cat_cols=cat_cols,  # Specify categorical columns
+            known_cols=known_cols,  # Specify known columns
+            unknown_cols=unknown_cols,  # Specify unknown columns
             memory_efficient=False,
             chunk_size=1000
         )
@@ -230,13 +279,26 @@ def main():
         
         # 3. Prepare D2 (TSDataModule)
         logger.info("Creating D2 TSDataModule")
+        
+        # Define split method and configuration
+        # Option 1: Percentage-based split (temporal)
+        split_method = 'percentage'
+        split_config = (0.7, 0.15, 0.15)  # 70% train, 15% val, 15% test
+        
+        # Option 2: Group-based split with temporal ordering within groups
+        # split_method = 'group'
+        # split_config = (['A'], ['B'], ['C'])  # Group A for train, B for val, C for test
+        
+        logger.info(f"Using split method: {split_method} with config: {split_config}")
+        
         d2 = TSDataModule(
             d1_dataset=d1,
             past_len=past_len,
             future_len=future_len,
             batch_size=2,
-            split_method='percentage',
-            split_config=(0.7, 0.15, 0.15),
+            split_method=split_method,
+            split_config=split_config,
+            # We're not overriding known/unknown columns here, using D1's metadata
             precompute=True
         )
         
@@ -265,20 +327,45 @@ def main():
         
         logger.info(f"Feature dimension: {feature_dim}, Target dimension: {target_dim}")
         
+        # Get categorical dimensions from metadata if available
+        cat_dims = {}
+        if 'max_classes' in d2.metadata:
+            cat_dims = d2.metadata['max_classes']
+            logger.info(f"Categorical dimensions from metadata: {cat_dims}")
+        
         # Create the SimpleTimeSeriesModel
         model = SimpleTimeSeriesModel(
             past_len=past_len,
             future_len=future_len,
             feature_dim=feature_dim,
             target_dim=target_dim,
+            cat_dims=cat_dims,
             verbose=True
         )
         
         logger.info(f"Created SimpleTimeSeriesModel")
         
+        # Log D2 metadata to understand column categorization
+        logger.info("D2 Metadata:")
+        for key, value in d2.metadata.items():
+            if key in ['known_cat_cols', 'known_num_cols', 'unknown_cat_cols', 'unknown_num_cols']:
+                logger.info(f"  {key}: {value}")
+        
+        # Extract batch structure information
+        known_cat_cols = d2.metadata.get('known_cat_cols', [])
+        known_num_cols = d2.metadata.get('known_num_cols', [])
+        unknown_cat_cols = d2.metadata.get('unknown_cat_cols', [])
+        unknown_num_cols = d2.metadata.get('unknown_num_cols', [])
+        
         # Convert batch to model format
         logger.info("Converting batch to model format")
-        model_batch = convert_batch_for_model(batch)
+        model_batch = convert_batch_for_model(
+            batch,
+            known_cat_cols=known_cat_cols,
+            known_num_cols=known_num_cols,
+            unknown_cat_cols=unknown_cat_cols,
+            unknown_num_cols=unknown_num_cols
+        )
         
         logger.info(f"Model batch keys: {model_batch.keys()}")
         for k, v in model_batch.items():
@@ -298,6 +385,18 @@ def main():
         assert output.shape[0] == model_batch['x_num_past'].shape[0], "Batch size mismatch"
         assert output.shape[1] == future_len, "Sequence length mismatch"
         assert output.shape[2] == target_dim, "Feature dimension mismatch"
+        
+        # Additional validation for the enhanced batch structure
+        logger.info("Validating enhanced batch structure...")
+        
+        # Check if we have the expected keys for categorical/numerical features
+        expected_keys = ['x_num_past', 'x_cat_past', 'x_num_future', 'x_cat_future', 'y']
+        for key in expected_keys:
+            assert key in model_batch, f"Missing expected key: {key}"
+            
+        # Check if the dimensions are consistent
+        assert model_batch['x_num_past'].shape[0] == model_batch['x_cat_past'].shape[0], "Batch size mismatch between numerical and categorical features"
+        assert model_batch['x_num_future'].shape[1] == model_batch['y'].shape[1], "Future sequence length mismatch"
         
         logger.info("Test completed successfully!")
         logger.info("The D1/D2 layers work properly with the Base model.")
