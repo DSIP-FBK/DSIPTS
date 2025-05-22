@@ -85,13 +85,7 @@ class RevIN(nn.Module):
         return x
     
 
-
-class SAM(Optimizer):
-    """
-    SAM: Sharpness-Aware Minimization for Efficiently Improving Generalization https://arxiv.org/abs/2010.01412
-    https://github.com/davda54/sam
-    """
-
+class SAM(torch.optim.Optimizer):
     def __init__(self, params, base_optimizer, rho=0.05, adaptive=False, **kwargs):
         assert rho >= 0.0, f"Invalid rho, should be non-negative: {rho}"
 
@@ -100,6 +94,7 @@ class SAM(Optimizer):
 
         self.base_optimizer = base_optimizer(self.param_groups, **kwargs)
         self.param_groups = self.base_optimizer.param_groups
+        self.defaults.update(self.base_optimizer.defaults)
 
     @torch.no_grad()
     def first_step(self, zero_grad=False):
@@ -110,13 +105,9 @@ class SAM(Optimizer):
             for p in group["params"]:
                 if p.grad is None:
                     continue
-                e_w = (
-                    (torch.pow(p, 2) if group["adaptive"] else 1.0)
-                    * p.grad
-                    * scale.to(p)
-                )
-                p.add_(e_w)  # climb to the local maximum "w + e(w)"
-                self.state[p]["e_w"] = e_w
+                self.state[p]["old_p"] = p.data.clone()
+                e_w = (torch.pow(p, 2) if group["adaptive"] else 1.0) * p.grad * scale.to(p)
+                p.add_(e_w)  # Perturb weights in the gradient direction
 
         if zero_grad:
             self.zero_grad()
@@ -127,41 +118,37 @@ class SAM(Optimizer):
             for p in group["params"]:
                 if p.grad is None:
                     continue
-                p.sub_(self.state[p]["e_w"])  # get back to "w" from "w + e(w)"
+                p.data = self.state[p]["old_p"]  # Restore original weights
 
-        self.base_optimizer.step()  # do the actual "sharpness-aware" update
+        self.base_optimizer.step()  # Apply the sharpness-aware update
 
         if zero_grad:
             self.zero_grad()
 
     @torch.no_grad()
     def step(self, closure=None):
-        assert (
-            closure is not None
-        ), "Sharpness Aware Minimization requires closure, but it was not provided"
-        closure = torch.enable_grad()(
-            closure
-        )  # the closure should do a full forward-backward pass
+        assert closure is not None, "Sharpness Aware Minimization requires closure, but it was not provided"
+
+        with torch.enable_grad():
+            closure()  # First forward-backward pass
 
         self.first_step(zero_grad=True)
-        closure()
+
+        with torch.enable_grad():
+            closure()  # Second forward-backward pass
+
         self.second_step()
 
     def _grad_norm(self):
-        shared_device = self.param_groups[0]["params"][
-            0
-        ].device  # put everything on the same device, in case of model parallelism
-        norm = torch.norm(
-            torch.stack(
-                [
-                    ((torch.abs(p) if group["adaptive"] else 1.0) * p.grad)
-                    .norm(p=2)
-                    .to(shared_device)
-                    for group in self.param_groups
-                    for p in group["params"]
-                    if p.grad is not None
-                ]
-            ),
-            p=2,
-        )
-        return norm
+        shared_device = self.param_groups[0]["params"][0].device
+        grads = [
+            ((torch.abs(p) if group["adaptive"] else 1.0) * p.grad).norm(p=2).to(shared_device)
+            for group in self.param_groups for p in group["params"]
+            if p.grad is not None
+        ]
+        return torch.norm(torch.stack(grads), p=2) if grads else torch.tensor(0.0, device=shared_device)
+
+    def load_state_dict(self, state_dict):
+        super().load_state_dict(state_dict)
+        if hasattr(self, "base_optimizer"):  # Ensure base optimizer exists
+            self.base_optimizer.load_state_dict(state_dict["base_optimizer"])
