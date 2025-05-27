@@ -1,0 +1,33 @@
+# @package _global_
+
+model:
+  type: 'diffusion'
+  retrain: true
+ts:
+  name: 'test'
+  version: 1
+  enrich: ['hour']
+  use_covariates: True
+  silly: False
+
+model_configs:
+  d_model: 50
+  learn_var: True # True is better
+  cosine_alpha: True # True is better
+  diffusion_steps: 40 # >70
+  beta: 0.03 # not used if learn_var=True; if not use beta >0.04 
+  gamma: 0.01 # <=0.1
+  n_layers_RNN: 3 # dataset dependent, 
+  d_head: 16 #  if smaller, tends to overfit
+  n_head: 5 # main param: more heads of medium size
+  dropout_rate: 0.3
+  activation: 'torch.nn.GELU'
+  subnet: 3
+  perc_subnet_learning_for_step: 0.25
+  optim: torch.optim.Adam
+  persistence_weight: 0.1
+  loss_type: 'l1'
+
+train_config:
+  batch_size: 32
+  max_epochs: 300
