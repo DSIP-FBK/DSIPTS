@@ -1,0 +1,28 @@
+# @package _global_
+
+model:
+  type: 'timexer'
+  retrain: true
+ts:
+  name: 'test'
+  version: 1
+  enrich: ['hour']
+  use_covariates: true
+
+
+model_configs:
+  d_model: 4
+  n_head: 4
+  dropout_rate: 0.1
+  n_layer_decoder: 3
+  d_ff: 512
+  patch_len: 4
+  optim: torch.optim.Adam
+  persistence_weight: 0.010
+  loss_type: 'l1'
+  activation: torch.nn.ReLU
+
+train_config:
+  batch_size: 32
+  max_epochs: 3
+         
