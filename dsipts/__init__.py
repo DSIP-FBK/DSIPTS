@@ -20,3 +20,4 @@ from .models.Diffusion import Diffusion
 from .models.DilatedConvED import DilatedConvED
 from .models.TIDE import TIDE
 from .models.ITransformer import ITransformer
+from .models.TimeXER import TimeXER
