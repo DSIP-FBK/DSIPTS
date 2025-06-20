@@ -1,13 +1,13 @@
 #models: ['config_used/attention.yaml','config_used/persistent.yaml','config_used/linear.yaml','config_used/dlinear.yaml','config_used/nlinear.yaml','config_used/lstm.yaml','config_used/gru.yaml']
-models: 'config_electricity' 
+models: 'config_incube_electricity' 
 #models: ['config_weather/config_used/crossformer_test_1.yaml']
 #models: ['config_etth1/config_used/itransformer_test_1_loss_type=msepersistence_weight=0.1.yaml']
-dirpath: "/home/agobbi/Projects/ExpTS/electricity"
+dirpath: "/home/davide/Documents/WORKSPACE/ExpTS/incube_electricity"
 
 set: 'test'
 name: 'prova'
 rescaling: true
-batch_size: 32
+batch_size: 64
 
 defaults:
   - _self_

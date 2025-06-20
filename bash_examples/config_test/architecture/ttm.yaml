@@ -1,0 +1,28 @@
+model:
+  type: 'ttm'
+  retrain: true
+ts:
+  name: 'incube_electricity'
+  version: 1
+  enrich: []
+  use_covariates: true
+
+model_configs:
+  freq_prefix_tuning: false
+  freq: 1h
+  prefer_l1_loss: false
+  prefer_longer_context: true
+  loss_type: 'mse'
+  decoder_mode: 'mix_channel'
+  fcm_context_length: 1
+  fcm_user_mixer: true
+  fcm_mix_layers: 2
+  enable_forecast_channel_mixing: true
+  fcm_prepend_past: true
+  optim: torch.optim.AdamW
+  remove_last: false
+
+train_config:
+  batch_size: 64
+  max_epochs: 20
+            

@@ -1,0 +1,6 @@
+models: config_incube_electricity
+dirpath: /home/davide/Documents/WORKSPACE/ExpTS/incube_electricity
+set: test
+name: prova
+rescaling: true
+batch_size: 64
