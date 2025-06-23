@@ -1,0 +1,30 @@
+# @package _global_
+
+model:
+  type: 'itransformer'
+  retrain: true
+ts:
+  name: 'test'
+  version: 1
+  enrich: ['hour']
+  use_covariates: false
+
+
+model_configs:
+  d_model: 128
+  n_head: 4
+  hidden_size: 64
+  dropout_rate: 0.1
+  n_layer_decoder: 3
+  use_norm: True
+  optim: torch.optim.Adam
+  persistence_weight: 0.010
+  loss_type: 'l1'
+  activation: torch.nn.ReLU
+  class_strategy: 'projection' #projection/average/cls_token
+
+train_config:
+  batch_size: 128
+  max_epochs: 600
+            
+#python train.py  --config-dir=config_etth1 --config-name=config_xps -m architecture=itransformer model_configs.loss_type=mse,linear_penalization,mda,exponential_penalization,additive_iv,global_iv,triplet,high_order model_configs.persistence_weight=1,10
