@@ -59,17 +59,12 @@ def train(conf: DictConfig) -> None:
     model_conf = conf.model_configs
     if model_conf is None:
         model_conf = {}
-    
-    if 'ttm' not in conf.model.type:
-        model_conf['past_channels'] = len(ts.num_var)
-        model_conf['future_channels'] = len(ts.future_variables)
-        model_conf['embs'] = [ts.dataset[c].nunique() for c in ts.cat_var]
-        model_conf['out_channels'] = len(ts.target_variables)
-    else:
-        #NOTE: PUT HERE THE DEFAULTS FOR THE MODEL CONFIGS
-        model_conf['embs'] = [ts.dataset[c].nunique() for c in ts.cat_var]
-        model_conf['out_channels'] = len(ts.target_variables)
-        
+
+    model_conf['embs'] = [ts.dataset[c].nunique() for c in ts.cat_var]
+    model_conf['out_channels'] = len(ts.target_variables)
+    model_conf['future_channels'] = len(ts.future_variables)
+    model_conf['past_channels'] = len(ts.num_var)
+    if 'ttm' in conf.model.type:
         exog_feat = [c for c in ts.num_var if c not in ts.target_variables]
         model_conf['num_input_channels'] = len(ts.num_var) + len(ts.cat_var)
         model_conf['prediction_channel_indices'] = [ts.dataset.columns.get_loc(c)-1 for c in ts.target_variables]

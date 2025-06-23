@@ -2,12 +2,10 @@ import torch
 from torch import  nn
 from .base import Base
 from typing import List,Union
-from sklearn.preprocessing import MinMaxScaler
 
-from .utils import  get_scope, QuantileLossMO
+from .utils import  QuantileLossMO
 from ..data_structure.utils import beauty_string
 from .ttm.utils import get_model, get_frequency_token, count_parameters, RMSELoss
-from .ttm.modeling_tinytimemixer import TinyTimeMixerPreTrainedModel, TinyTimeMixerConfig, TinyTimeMixerForPrediction
 
 
 class TTM(Base):
@@ -85,7 +83,7 @@ class TTM(Base):
             fcm_use_mixer=fcm_use_mixer,
             fcm_mix_layers=fcm_mix_layers,
             fcm_prepend_past=fcm_prepend_past,
-            loss='mse',
+            #loss='mse',
             enable_forecast_channel_mixing=enable_forecast_channel_mixing,
         )
         self.__freeze_backbone()

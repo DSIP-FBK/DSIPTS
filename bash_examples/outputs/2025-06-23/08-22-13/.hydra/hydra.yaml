@@ -151,7 +151,7 @@ hydra:
     - path: ''
       schema: structured
       provider: schema
-    output_dir: /home/davide/Documents/WORKSPACE/timeseries/bash_examples/outputs/2025-06-20/16-32-58
+    output_dir: /home/davide/Documents/WORKSPACE/timeseries/bash_examples/outputs/2025-06-23/08-22-13
     choices:
       architecture: null
       hydra/env: default
