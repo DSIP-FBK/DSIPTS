@@ -22,8 +22,8 @@ set_seed(SEED)
 TIME_COL = "timestamp"
 CAT_COLS = ['ora', 'weekend', 'giorno', 'festività']
 #CAT_COLS = []
-EXOG_COLS = ['temperature','humidity']
-#EXOG_COLS = []
+#EXOG_COLS = ['temperature','humidity']
+EXOG_COLS = []
 TARGET_COl = ["ElectricWConsumed"] 
 past_steps = 90
 future_steps = 24
@@ -57,7 +57,7 @@ print(f"> Read: {df.shape}")
 df_device = df.loc[df['DEVICE'] == 'Z-WAVE_7E', 
                    ['time'] + TARGET_COl + CAT_COLS + EXOG_COLS].copy()
 
-df_device['t'] =  create_serie(df_device['time'].min(), df_device['time'].max(), freq='1h')
+#df_device['t'] =  create_serie(df_device['time'].min(), df_device['time'].max(), freq='1h')
 #df_device[CAT_COLS] = MinMaxScaler().fit_transform(df_device[CAT_COLS])
 #max_values = df_device[CAT_COLS].max()
 print(f"> DF size: {df_device.shape}")
@@ -66,14 +66,14 @@ print(f"> DF size: {df_device.shape}")
 ts = TimeSeries('prova')
 ts.load_signal(df_device,
                past_variables=EXOG_COLS, 
-               future_variables=TARGET_COl+EXOG_COLS+['t'], 
-               target_variables = TARGET_COl+['t'],
+               future_variables=TARGET_COl+EXOG_COLS, 
+               target_variables = TARGET_COl,
                cat_var = CAT_COLS)
 
 
 config = dict(model_configs =dict(
                                 model_path="ibm-granite/granite-timeseries-ttm-r2",
-                                num_input_channels=len(CAT_COLS) + len(EXOG_COLS) + len(TARGET_COl)+1,  # exog: number of input channels
+                                num_input_channels=len(CAT_COLS) + len(EXOG_COLS) + len(TARGET_COl),  # exog: number of input channels
                                 decoder_mode="mix_channel",  # exog:  set to mix_channel for mixing channels in history IF REMOVED GIVES THE BEST RESULTS
                                 #mode='mix_channel', # NOTE: ADDED THIS  IF REMOVED GIVES THE BEST RESULTS
                                 prediction_channel_indices=[ts.dataset.columns.get_loc(c)-1 for c in ts.target_variables],
@@ -91,7 +91,7 @@ config = dict(model_configs =dict(
                                 fcm_prepend_past=True,  # exog: set true to include lag from history during exog infusion.
                                 # Can also provide TTM Config args
                                 embs = [ts.dataset[c].nunique() for c in ts.cat_var],
-                                #quantiles=[0.1,0.5,0.9],
+                                quantiles=[0.1,0.5,0.9],
                                 #persistence_weight= 0.010,
                                 #loss_type= 'mse',
                                 loss_type= 'mse',
@@ -102,7 +102,7 @@ config = dict(model_configs =dict(
                                 out_channels = len(ts.target_variables)),
                 scheduler_config = None,#dict(gamma=0.1,step_size=100),
                 # 0.00478630092322638
-                optim_config = dict(lr = 0.001)) #,weight_decay=0.01 4.4306214575838814e-07
+                optim_config = dict(lr = 0.00478630092322638)) #,weight_decay=0.01 4.4306214575838814e-07
 model_sum = TTM(**config['model_configs'],
                 optim_config = config['optim_config'],
                 scheduler_config =config['scheduler_config'] )
@@ -132,6 +132,7 @@ print("> Model is trained.")
 #loaded = ts.load(TTM,os.path.join('/home/davide/Documents/WORKSPACE/timeseries/test/models','model'),load_last=True)
 #ts.checkpoint_file_last = '/home/davide/Documents/WORKSPACE/timeseries/test/models/last.ckpt'
 ts.model = ts.model.load_from_checkpoint(ts.checkpoint_file_last)
+ts.load(TTM,ts.checkpoint_file_last,load_last=True)
 print("> Model is loaded.")
 
 #res = ts.inference_on_set(set='test',batch_size=64,num_workers=4)

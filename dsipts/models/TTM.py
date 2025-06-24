@@ -52,11 +52,17 @@ class TTM(Base):
         self.remove_last = remove_last
         self.embs = embs
         self.freq = freq
+        self.extend_variables = False
         if len(quantiles)>0:
             assert len(quantiles)==3, beauty_string('ONLY 3 quantiles premitted','info',True)
             self.use_quantiles = True
             self.mul = len(quantiles)
             self.loss = QuantileLossMO(quantiles)
+            self.extend_variables = True
+            exogenous_channel_indices = [v+2 for v in exogenous_channel_indices]
+            prediction_channel_indices.append(1)
+            prediction_channel_indices.append(2)
+            num_input_channels = num_input_channels + 2
         else:
             self.use_quantiles = False
             self.mul = 1
@@ -83,8 +89,11 @@ class TTM(Base):
             fcm_use_mixer=fcm_use_mixer,
             fcm_mix_layers=fcm_mix_layers,
             fcm_prepend_past=fcm_prepend_past,
+            #distribution_output='normal',
+            #loss='nll',
+            #num_parallel_samples=3,
             #loss='mse',
-            enable_forecast_channel_mixing=enable_forecast_channel_mixing,
+            enable_forecast_channel_mixing=True,
         )
         self.__freeze_backbone()
 
@@ -129,6 +138,13 @@ class TTM(Base):
     
     def forward(self, batch):
         x_enc = batch['x_num_past']
+        original_indexes = batch['idx_target'][0].tolist()
+        original_indexes_future = batch['idx_target_future'][0].tolist()
+
+        if self.extend_variables:
+            x_enc = torch.concat([x_enc, x_enc[...,original_indexes], x_enc[...,original_indexes]], dim=-1)
+            original_indexes.append(x_enc.shape[-1]-2)
+            original_indexes.append(x_enc.shape[-1]-1)
 
         if 'x_cat_past' in batch.keys():
             x_mark_enc = batch['x_cat_past'].to(torch.float32).to(self.device)
@@ -140,6 +156,10 @@ class TTM(Base):
         x_dec = torch.tensor([]).to(self.device)
         if 'x_num_future' in batch.keys(): 
             x_dec = batch['x_num_future'].to(self.device)
+            if self.extend_variables:
+                x_dec = torch.concat([x_dec, x_dec[...,original_indexes_future], x_dec[...,original_indexes_future]], dim=-1)
+                original_indexes_future.append(x_dec.shape[-1]-2)
+                original_indexes_future.append(x_dec.shape[-1]-1)
         if 'x_cat_future' in batch.keys():
             x_mark_dec = batch['x_cat_future'].to(torch.float32).to(self.device)
             x_mark_dec = self.__scaler(x_mark_dec)
@@ -152,8 +172,8 @@ class TTM(Base):
             x_start = x_enc[:,-1,idx_target].unsqueeze(1)
             x_enc[:,:,idx_target]-=x_start 
 
-        past_values = self.__permute_indexes(past_values, self.model.prediction_channel_indices, batch['idx_target'][0].tolist())
-        future_values = self.__permute_indexes(future_values, self.model.prediction_channel_indices, batch['idx_target_future'][0].tolist())
+        past_values = self.__permute_indexes(past_values, self.model.prediction_channel_indices, original_indexes)
+        future_values = self.__permute_indexes(future_values, self.model.prediction_channel_indices, original_indexes_future)
 
         freq_token = get_frequency_token(self.freq).repeat(x_enc.shape[0])
 
