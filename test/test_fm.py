@@ -58,8 +58,6 @@ df_device = df.loc[df['DEVICE'] == 'Z-WAVE_7E',
                    ['time'] + TARGET_COl + CAT_COLS + EXOG_COLS].copy()
 
 df_device['t'] =  create_serie(df_device['time'].min(), df_device['time'].max(), freq='1h')
-#df_device[CAT_COLS] = MinMaxScaler().fit_transform(df_device[CAT_COLS])
-#max_values = df_device[CAT_COLS].max()
 print(f"> DF size: {df_device.shape}")
 
 ##initizate a timeseries object
@@ -92,6 +90,7 @@ config = dict(model_configs =dict(
                                 # Can also provide TTM Config args
                                 embs = [ts.dataset[c].nunique() for c in ts.cat_var],
                                 #quantiles=[0.1,0.5,0.9],
+                                quantiles=[],
                                 #persistence_weight= 0.010,
                                 #loss_type= 'mse',
                                 loss_type= 'mse',
@@ -102,7 +101,7 @@ config = dict(model_configs =dict(
                                 out_channels = len(ts.target_variables)),
                 scheduler_config = None,#dict(gamma=0.1,step_size=100),
                 # 0.00478630092322638
-                optim_config = dict(lr = 0.001)) #,weight_decay=0.01 4.4306214575838814e-07
+                optim_config = dict(lr = 0.00478630092322638)) #,weight_decay=0.01 4.4306214575838814e-07
 model_sum = TTM(**config['model_configs'],
                 optim_config = config['optim_config'],
                 scheduler_config =config['scheduler_config'] )
@@ -124,7 +123,7 @@ ts.train_model(dirpath="/home/davide/Documents/WORKSPACE/timeseries/test/models"
                                  scaler='MinMaxScaler()'),
                 batch_size=64,
                 num_workers=4,
-                max_epochs=2,
+                max_epochs=10,
                 auto_lr_find=False,
                 devices='auto')
 print("> Model is trained.")

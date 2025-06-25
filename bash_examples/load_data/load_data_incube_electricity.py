@@ -3,7 +3,6 @@ from dsipts import TimeSeries
 import numpy as np
 import pandas as pd
 
- 
 
 def load_data(conf):
     TIME_COL = "timestamp"
