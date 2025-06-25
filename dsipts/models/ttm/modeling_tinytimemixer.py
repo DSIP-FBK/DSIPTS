@@ -697,14 +697,6 @@ class ForecastChannelHeadMixer(nn.Module):
 
         residual = base_forecasts
 
-        # exog_values = exog_values.unsqueeze(1).expand(-1, 3, -1, -1)
-        # exog_values = torch.concat([exog_values[:,0,...], exog_values[:,1,...], exog_values[:,2,...]], dim=0)
-        #exog_values = exog_values.reshape(-1, exog_values.shape[-2] , exog_values.shape[-1])
-
-        # past_prepend_values = past_prepend_values.unsqueeze(1).expand(-1, 3, -1, -1)
-        # past_prepend_values = torch.concat([past_prepend_values[:,0,...], past_prepend_values[:,1,...], past_prepend_values[:,2,...]], dim=0)
-        #past_prepend_values = past_prepend_values.reshape(-1, past_prepend_values.shape[-2] , past_prepend_values.shape[-1])
-
         if exog_values is not None:
             base_forecasts = torch.cat(
                 (base_forecasts, exog_values), dim=-1
@@ -1115,19 +1107,14 @@ class TinyTimeMixerForPredictionHead(nn.Module):
             `torch.Tensor` of shape `(batch_size, prediction_length, forecast_channels)`.
 
         """
-        #hidden_features = hidden_features.unsqueeze(2).expand(-1, -1, 3, -1, -1)
-        #hidden_features = torch.concat([hidden_features[:,:,0,...], hidden_features[:,:,1,...], hidden_features[:,:,2,...]], dim=0)
+
         hidden_features = self.flatten(hidden_features)  # [batch_size x n_vars x num_patch * d_model]
         hidden_features = self.dropout_layer(hidden_features)  # [batch_size x n_vars x num_patch * d_model]
         forecast = self.base_forecast_block(hidden_features)  # [batch_size x n_vars x prediction_length]
-        #forecast = torch.repeat_interleave(forecast, repeats=3, dim=2)
         if isinstance(forecast, tuple):
             forecast = tuple(z.transpose(-1, -2) for z in forecast)
         else:
-            #forecast = forecast.unsqueeze(1).expand(-1, 3, -1, -1)
-            #forecast = torch.concat([forecast[:,0,...], forecast[:,1,...], forecast[:,2,...]], dim=0)
             forecast = forecast.transpose(-1, -2)  # [batch_size x prediction_length x n_vars]
-            #forecast = forecast.reshape(-1, forecast.shape[-2] , forecast.shape[-1])
 
         if self.prediction_channel_indices is not None:
             if isinstance(forecast, tuple):
@@ -1896,9 +1883,6 @@ class TinyTimeMixerForPrediction(TinyTimeMixerPreTrainedModel):
             loc = model_output.loc
             scale = model_output.scale
         
-        #new_batch_size = y_hat.shape[0]
-        #BS = past_values.shape[0]
-        #y_hat = torch.stack([y_hat[step:step+BS,...] for step in range(0, new_batch_size, BS)])
         y_hat = y_hat * scale + loc
         # loc/scale: batch_size x 1 x prediction_channel_indices or num_targets
 
@@ -1909,20 +1893,18 @@ class TinyTimeMixerForPrediction(TinyTimeMixerPreTrainedModel):
 
         # if self.distribution_output:
         #     distribution = self.distribution_output.distribution(y_hat, loc=loc, scale=scale)
-            #y_hat = self.generate(distribution=distribution)
-            # distribution = self.distribution_output.distribution(y_hat, loc=loc, scale=scale)
-            # if future_values is not None and return_loss is True and loss is not None:
-            #     if future_observed_mask is not None and (~fut_mask_bool).any():
-            #         if (~fut_mask_bool).all():
-            #             # no valid observed values
-            #             print(future_observed_mask)
-            #             raise ValueError("Loss computation failed due to too many missing values")
-            #         loss_val = loss(distribution, future_values)
-            #         # select only values of loss where entire timepoint is observed
-            #         loss_val = loss_val[fut_mask_bool.all(dim=-1)]
-            #     else:
-            #         loss_val = loss(distribution, future_values)
-            #     loss_val = weighted_average(loss_val)
+        #     if future_values is not None and return_loss is True and loss is not None:
+        #         if future_observed_mask is not None and (~fut_mask_bool).any():
+        #             if (~fut_mask_bool).all():
+        #                 # no valid observed values
+        #                 print(future_observed_mask)
+        #                 raise ValueError("Loss computation failed due to too many missing values")
+        #             loss_val = loss(distribution, future_values)
+        #             # select only values of loss where entire timepoint is observed
+        #             loss_val = loss_val[fut_mask_bool.all(dim=-1)]
+        #         else:
+        #             loss_val = loss(distribution, future_values)
+        #         loss_val = weighted_average(loss_val)
         # else:
         #     y_hat = y_hat * scale + loc
         #     if future_values is not None and return_loss is True and loss is not None:
@@ -1960,9 +1942,8 @@ class TinyTimeMixerForPrediction(TinyTimeMixerPreTrainedModel):
 
     def generate(
         self,
-        past_values: torch.Tensor = None,
+        past_values: torch.Tensor,
         past_observed_mask: Optional[torch.Tensor] = None,
-        distribution = None
     ) -> SampleTinyTimeMixerPredictionOutput:
         """
         Generate sequences of sample predictions from a model with a probability distribution head.
@@ -1984,28 +1965,26 @@ class TinyTimeMixerForPrediction(TinyTimeMixerPreTrainedModel):
         # get number of samples
         num_parallel_samples = self.num_parallel_samples
 
-        # # get model output
-        # outputs = self(
-        #     past_values=past_values,
-        #     future_values=None,
-        #     past_observed_mask=past_observed_mask,
-        #     output_hidden_states=False,
-        # )
+        # get model output
+        outputs = self(
+            past_values=past_values,
+            future_values=None,
+            past_observed_mask=past_observed_mask,
+            output_hidden_states=False,
+        )
 
-        # # get distribution
+        # get distribution
 
-        # distribution = self.distribution_output.distribution(
-        #     outputs.prediction_outputs, loc=outputs.loc, scale=outputs.scale
-        # )
+        distribution = self.distribution_output.distribution(
+            outputs.prediction_outputs, loc=outputs.loc, scale=outputs.scale
+        )
 
         # get samples: list of [batch_size x prediction_length x num_channels]
         samples = [distribution.sample() for _ in range(num_parallel_samples)]
 
         # stack tensors
         samples = torch.stack(samples, dim=1)  # [batch_size x num_samples x prediction_length x num_channels]
-        #return SampleTinyTimeMixerPredictionOutput(sequences=samples)
-        return samples
-
+        return SampleTinyTimeMixerPredictionOutput(sequences=samples)
 
 
 class TinyTimeMixerForMaskedPrediction(TinyTimeMixerForPrediction):

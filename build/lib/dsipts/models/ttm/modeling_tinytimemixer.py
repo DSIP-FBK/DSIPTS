@@ -17,55 +17,10 @@ from transformers.time_series_utils import (
     NormalOutput,
     StudentTOutput,
 )
-from transformers.utils import (
-    ModelOutput,
-    add_start_docstrings,
-    add_start_docstrings_to_model_forward,
-    logging,
-    replace_return_docstrings,
-)
+from transformers.utils import ModelOutput
 
 from .configuration_tinytimemixer import TinyTimeMixerConfig
 
-
-logger = logging.get_logger(__name__)
-
-_CONFIG_FOR_DOC = "TinyTimeMixerConfig"
-
-
-TINYTIMEMIXER_PRETRAINED_MODEL_ARCHIVE_LIST = []
-
-
-TINYTIMEMIXER_START_DOCSTRING = r"""
-
-    This model inherits from [`PreTrainedModel`]. Check the superclass documentation for the generic methods the
-    library implements for all its model (such as downloading or saving, resizing the input embeddings, pruning heads
-    etc.)
-
-    This model is also a PyTorch [torch.nn.Module](https://pytorch.org/docs/stable/nn.html#torch.nn.Module) subclass.
-    Use it as a regular PyTorch Module and refer to the PyTorch documentation for all matter related to general usage
-    and behavior.
-
-    Parameters:
-        config ([`TinyTimeMixerConfig`]):
-            Model configuration class with all the parameters of the model. Initializing with a config file does not
-            load the weights associated with the model, only the configuration. Check out the
-            [`~PreTrainedModel.from_pretrained`] method to load the model weights.
-"""
-
-TINYTIMEMIXER_INPUTS_DOCSTRING = r"""
-    Args:
-        past_values (`torch.FloatTensor` of shape `(batch_size, seq_length, num_input_channels)`):
-            Context values of the time series. For a forecasting task, this denotes the history/past time series values.
-            For univariate time series, `num_input_channels` dimension should be 1. For multivariate time series, it is
-            greater than 1.
-
-        output_hidden_states (`bool`, *optional*):
-            Whether or not to return the hidden states of all layers.
-
-        return_dict (`bool`, *optional*):
-            Whether or not to return a [`~utils.ModelOutput`] instead of a plain tuple.
-"""
 
 
 class PinballLoss(nn.Module):
@@ -863,10 +818,10 @@ class TinyTimeMixerAdaptivePatchingBlock(nn.Module):
 
         if config.d_model // self.adaptive_patch_factor <= 4:
             # do not allow reduction beyond d_model less than 4
-            logger.warning(
-                "Disabling adaptive patching at level %s. Either increase d_model or reduce adaptive_patching_levels"
-                % (adapt_patch_level)
-            )
+            # logger.warning(
+            #     "Disabling adaptive patching at level %s. Either increase d_model or reduce adaptive_patching_levels"
+            #     % (adapt_patch_level)
+            # )
             self.adaptive_patch_factor = 1
 
         if config.d_model % self.adaptive_patch_factor != 0:
@@ -1468,7 +1423,6 @@ class TinyTimeMixerEncoder(TinyTimeMixerPreTrainedModel):
         # if config.post_init:
         #     self.post_init()
 
-    @replace_return_docstrings(output_type=TinyTimeMixerEncoderOutput, config_class=_CONFIG_FOR_DOC)
     def forward(
         self,
         past_values: torch.Tensor,
@@ -1560,10 +1514,6 @@ class TinyTimeMixerModelOutput(ModelOutput):
     scale: Optional[torch.FloatTensor] = None
 
 
-@add_start_docstrings(
-    "The TinyTimeMixer Model for time-series forecasting.",
-    TINYTIMEMIXER_START_DOCSTRING,
-)
 class TinyTimeMixerModel(TinyTimeMixerPreTrainedModel):
     def __init__(self, config: TinyTimeMixerConfig):
         if config.init_processing is False:
@@ -1588,8 +1538,6 @@ class TinyTimeMixerModel(TinyTimeMixerPreTrainedModel):
         # if config.post_init:
         #     self.post_init()
 
-    @add_start_docstrings_to_model_forward(TINYTIMEMIXER_INPUTS_DOCSTRING)
-    @replace_return_docstrings(output_type=TinyTimeMixerModelOutput, config_class=_CONFIG_FOR_DOC)
     def forward(
         self,
         past_values: torch.Tensor,
@@ -1790,8 +1738,6 @@ class TinyTimeMixerForPrediction(TinyTimeMixerPreTrainedModel):
         if config.post_init:
             self.post_init()
 
-    @add_start_docstrings_to_model_forward(TINYTIMEMIXER_INPUTS_DOCSTRING)
-    @replace_return_docstrings(output_type=TinyTimeMixerForPredictionOutput, config_class=_CONFIG_FOR_DOC)
     def forward(
         self,
         past_values: torch.Tensor,

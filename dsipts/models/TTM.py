@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 from torch import  nn
 from .base import Base
 from typing import List,Union
@@ -27,6 +28,7 @@ class TTM(Base):
                 fcm_mix_layers,
                 fcm_prepend_past,
                 enable_forecast_channel_mixing,
+                out_channels:int,
                 embs:List[int],
                 remove_last = False,
                 optim:Union[str,None]=None,
@@ -36,7 +38,6 @@ class TTM(Base):
                 use_quantiles=False,
                 persistence_weight:float=0.0,
                 quantiles:List[int]=[],
-                
                 **kwargs)->None:
    
         super(TTM, self).__init__(verbose)
@@ -53,18 +54,22 @@ class TTM(Base):
         self.embs = embs
         self.freq = freq
         self.extend_variables = False
+
+        # NOTE: For Hydra
+        prediction_channel_indices = list(prediction_channel_indices)
+        exogenous_channel_indices = list(exogenous_channel_indices)
+
         if len(quantiles)>0:
             assert len(quantiles)==3, beauty_string('ONLY 3 quantiles premitted','info',True)
             self.use_quantiles = True
             self.mul = len(quantiles)
             self.loss = QuantileLossMO(quantiles)
             self.extend_variables = True
-            exogenous_channel_indices = [v+2 for v in exogenous_channel_indices]
-            prediction_channel_indices.append(1)
-            prediction_channel_indices.append(2)
-            num_input_channels = num_input_channels + 2
+            if out_channels * 3 != len(prediction_channel_indices):
+                prediction_channel_indices, exogenous_channel_indices, num_input_channels = self.__add_quantile_features(prediction_channel_indices, 
+                                                                                                                         exogenous_channel_indices, 
+                                                                                                                         out_channels)
         else:
-            self.use_quantiles = False
             self.mul = 1
             if self.loss_type == 'mse':
                 self.loss = nn.MSELoss(reduction="mean")
@@ -89,13 +94,16 @@ class TTM(Base):
             fcm_use_mixer=fcm_use_mixer,
             fcm_mix_layers=fcm_mix_layers,
             fcm_prepend_past=fcm_prepend_past,
-            #distribution_output='normal',
-            #loss='nll',
-            #num_parallel_samples=3,
             #loss='mse',
-            enable_forecast_channel_mixing=True,
+            enable_forecast_channel_mixing=enable_forecast_channel_mixing,
         )
         self.__freeze_backbone()
+
+    def __add_quantile_features(self, prediction_channel_indices, exogenous_channel_indices, out_channels):
+        prediction_channel_indices = list(range(out_channels * 3))
+        exogenous_channel_indices = [prediction_channel_indices[-1] + i for i in range(1, len(exogenous_channel_indices)+1)]
+        num_input_channels = len(prediction_channel_indices) + len(exogenous_channel_indices)
+        return prediction_channel_indices, exogenous_channel_indices, num_input_channels
 
     def __freeze_backbone(self):
         """
@@ -122,11 +130,12 @@ class TTM(Base):
         return input
     
     def __build_tupla_indexes(self, size, target_idx, current_idx):
-        count = 0
         permute = list(range(size))
-        for i in target_idx:
-            permute[i], permute[current_idx[count]] = current_idx[count], permute[i]
-            count += 1
+        for j, i in enumerate(target_idx):
+            permute[i], permute[current_idx[j]] = current_idx[j], permute[i]
+
+        assert len(set(permute)) == len(permute)
+        
         return tuple(permute)
 
     def __permute_indexes(self, values, target_idx, current_idx):
@@ -136,15 +145,22 @@ class TTM(Base):
             return values[..., self.__build_tupla_indexes(values.shape[-1], target_idx, current_idx)]
         return values
     
+    def __extend_with_quantile_variables(self, x, original_indexes):
+        covariate_indexes = [i for i in range(x.shape[-1]) if i not in original_indexes]
+        covariate_tensors = x[..., covariate_indexes]
+
+        new_tensors = [x[..., target_index] for target_index in original_indexes for _ in range(3)]
+
+        new_original_indexes = list(range(len(original_indexes) * 3))
+        return torch.cat([torch.stack(new_tensors, dim=-1), covariate_tensors], dim=-1), new_original_indexes
+    
     def forward(self, batch):
         x_enc = batch['x_num_past']
         original_indexes = batch['idx_target'][0].tolist()
         original_indexes_future = batch['idx_target_future'][0].tolist()
 
         if self.extend_variables:
-            x_enc = torch.concat([x_enc, x_enc[...,original_indexes], x_enc[...,original_indexes]], dim=-1)
-            original_indexes.append(x_enc.shape[-1]-2)
-            original_indexes.append(x_enc.shape[-1]-1)
+            x_enc, original_indexes = self.__extend_with_quantile_variables(x_enc, original_indexes)
 
         if 'x_cat_past' in batch.keys():
             x_mark_enc = batch['x_cat_past'].to(torch.float32).to(self.device)
@@ -157,9 +173,7 @@ class TTM(Base):
         if 'x_num_future' in batch.keys(): 
             x_dec = batch['x_num_future'].to(self.device)
             if self.extend_variables:
-                x_dec = torch.concat([x_dec, x_dec[...,original_indexes_future], x_dec[...,original_indexes_future]], dim=-1)
-                original_indexes_future.append(x_dec.shape[-1]-2)
-                original_indexes_future.append(x_dec.shape[-1]-1)
+                x_dec, original_indexes_future = self.__extend_with_quantile_variables(x_dec, original_indexes_future)
         if 'x_cat_future' in batch.keys():
             x_mark_dec = batch['x_cat_future'].to(torch.float32).to(self.device)
             x_mark_dec = self.__scaler(x_mark_dec)
