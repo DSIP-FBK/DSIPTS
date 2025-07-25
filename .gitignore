@@ -10,3 +10,5 @@ multirun
 tmp
 *.db
 dist*
+build
+dsipts.egg-info
