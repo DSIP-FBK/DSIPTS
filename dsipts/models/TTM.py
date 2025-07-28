@@ -131,8 +131,11 @@ class TTM(Base):
     
     def __build_tupla_indexes(self, size, target_idx, current_idx):
         permute = list(range(size))
+        history = dict()
         for j, i in enumerate(target_idx):
-            permute[i], permute[current_idx[j]] = current_idx[j], permute[i]
+            c = history.get(current_idx[j], current_idx[j])
+            permute[i], permute[c] = current_idx[j], i
+            history[i] = current_idx[j]
 
         assert len(set(permute)) == len(permute)
         
