@@ -37,7 +37,6 @@ class TTM(Base):
                 fcm_use_mixer,
                 fcm_mix_layers,
                 fcm_prepend_past,
-                bs,
                 enable_forecast_channel_mixing,
                 **kwargs)->None:
    
@@ -53,7 +52,15 @@ class TTM(Base):
         else:
             self.index_fut_cat = []
         self.freq = freq
-        self.token = get_frequency_token(self.freq).repeat(bs)
+
+        base_freq_token = get_frequency_token(self.freq)  # e.g., shape [n_token] or scalar
+        # ensure it's a tensor of integer type
+        if not torch.is_tensor(base_freq_token):
+            base_freq_token = torch.tensor(base_freq_token)
+        base_freq_token = base_freq_token.long()
+        self.register_buffer("token", base_freq_token, persistent=True)
+                
+        
         self.model = get_model(
             model_path=model_path,
             context_length=self.past_steps,
@@ -115,7 +122,7 @@ class TTM(Base):
         else:
             past_values = x_enc
         
-        future_values = torch.zeros_like(past_values)
+        future_values = torch.zeros_like(past_values).to(self.device)
         future_values = future_values[:,:self.future_steps,:]
 
         if 'x_num_future' in batch.keys(): 
@@ -129,6 +136,10 @@ class TTM(Base):
         #investigating!! problem with dynamo!
         #freq_token = get_frequency_token(self.freq).repeat(past_values.shape[0])
 
+        batch_size = past_values.shape[0]
+        freq_token = self.token.repeat(batch_size).long().to(past_values.device)
+
+
         res = self.model(
             past_values= past_values,
             future_values= future_values,# future_values if future_values.shape[0]>0 else None,
@@ -136,7 +147,7 @@ class TTM(Base):
             future_observed_mask = None,
             output_hidden_states =  False,
             return_dict = False,
-            freq_token= self.token[0:past_values.shape[0]], ##investigating
+            freq_token= freq_token,#[0:past_values.shape[0]], ##investigating
             static_categorical_values = None
         )
 

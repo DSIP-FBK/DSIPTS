@@ -1,4 +1,9 @@
 
+
+## 1.1.12 (2025-XX-XX)
+- Bug fixing dynamo stuff for `TTM`
+ 
+
 ## 1.1.11 (2025-11-06)
 - Added `torch.compile` for better performance on recent GPU
 - Stable `TTM` model according to version 1.1.5, still under debug, use at your own risk
