@@ -1186,6 +1186,6 @@ class TimeSeries():
                 self.model = self.model.load_from_checkpoint(tmp_path,verbose=self.verbose,)
             else:
                 self.model = self.model.__class__.load_from_checkpoint(tmp_path,verbose=self.verbose,)
-
+            self.model.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
         except Exception as e:
             beauty_string(f'There is a problem loading the weights on file {tmp_path} {e}','section',self.verbose)
