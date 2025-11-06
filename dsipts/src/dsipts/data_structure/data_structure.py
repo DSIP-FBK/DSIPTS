@@ -35,7 +35,18 @@ from .modifiers import *
 from aim.pytorch_lightning import AimLogger
 import time
 
-
+class DummyScaler():
+    def __init__(self):
+        pass
+    def fit(self,x):
+        pass
+    def transform(self,x):
+        return x
+    def inverse_transform(self,x):
+        return x
+    def fit_transform(self,x):
+        return x
+    
 
 pd.options.mode.chained_assignment = None 
 log = logging.getLogger(__name__)
@@ -672,7 +683,11 @@ class TimeSeries():
         #self.model.apply(weight_init_zeros)
 
         self.config = config
-        
+        try:
+            self.model = torch.compile(self.model)
+        except:
+            beauty_string('Can not compile the model','block',self.verbose)
+
         beauty_string('Setting the model','block',self.verbose)
         beauty_string(model,'',self.verbose)
         

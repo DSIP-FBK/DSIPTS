@@ -15,7 +15,7 @@ ts:
 model_configs:
   model_path: "ibm-granite/granite-timeseries-ttm-r2"
   freq_prefix_tuning: false
-  freq: 1h
+  freq: oov
   prefer_l1_loss: true
   prefer_longer_context: true
   loss_type: 'mse'
@@ -25,10 +25,14 @@ model_configs:
   fcm_mix_layers: 2
   enable_forecast_channel_mixing: true
   fcm_prepend_past: false
-  remove_last: false
   prediction_channel_indices: null #dataset dependent
-  exogenous_channel_indices: null #dataset dependent
+  exogenous_channel_indices_cont: null #dataset dependent
+  exogenous_channel_indices_cat: null #dataset dependent
 
 train_config:
   batch_size: 64
   max_epochs: 2
+
+optim_config:
+  lr: 0.001
+  weight_decay: 0.001

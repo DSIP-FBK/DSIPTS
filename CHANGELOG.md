@@ -1,5 +1,12 @@
-## 1.1.10 (2025-09-XX)
+
+## 1.1.11 (2025-11-06)
+- Added `torch.compile` for better performance on recent GPU
+- Stable `TTM` model according to version 1.1.5, still under debug, use at your own risk
+ 
+
+
 - Bux Fixing `cprs` inference (now produces 3 quantiles: `[0.05, 0.5, 0.95]`). The `persistence_weight` is the value of `alpha` in the paper (between 0 and 1)
+
 ## 1.1.9 (2025-09-19)
 - Added `cprs` https://arxiv.org/pdf/2412.15832v1 loss function. In this case use the quantile parameter to ask for the ensembles: `quantiles = [1,2,3,4,5,6,7,8,9,10]` will create 10 ensembles. For now the inference part will return just the mean, TODO: estimate a confidence interval with the ensembles 
 - Added `long_lag` the L1 error will be modulated with a linear weight depending on the lag in the future: the penalization goes from `1` to `persistence_weight`

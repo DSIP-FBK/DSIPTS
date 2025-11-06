@@ -62,15 +62,18 @@ def train(conf: DictConfig) -> None:
     model_conf['future_channels'] = len(ts.future_variables)
     model_conf['embs_past'] = [ts.dataset[c].nunique() for c in ts.cat_past_var]
     model_conf['embs_fut'] = [ts.dataset[c].nunique() for c in ts.cat_fut_var]
-
     model_conf['out_channels'] = len(ts.target_variables)
 
     if 'ttm' in conf.model.type:
-        exog_feat = [c for c in ts.past_variables if c not in ts.target_variables]
-        #model_conf['num_input_channels'] = len(ts.past_variables) + len(ts.cat_past_var) ##TODO check this
-        model_conf['prediction_channel_indices'] = list(range(len(ts.target_variables))) #[ts.dataset.columns.get_loc(c)-1 for c in ts.target_variables]
-        model_conf['exogenous_channel_indices'] = list(range(len(ts.future_variables)+len(ts.cat_fut_var)))   #list(range(len(ts.target_variables),len(ts.target_variables)+len(ts.cat_var))) #[ts.dataset.columns.get_loc(c)-1 for c in ts.cat_var + exog_feat]
+        import numpy as np
 
+        assert set(ts.future_variables).intersection(set(ts.past_variables)) == set(ts.future_variables),  beauty_string(f"TTM  does not allow future features that are not in the past",'', True)
+        assert set(ts.cat_fut_var).intersection(set(ts.cat_past_var)) == set(ts.cat_fut_var),  beauty_string(f"TTM  does not allow future features that are not in the past",'', True)
+
+        #model_conf['num_input_channels'] = len(ts.past_variables) + len(ts.cat_past_var) ##TODO check this
+        model_conf['prediction_channel_indices'] = [int(a) for a in list(np.where(np.isin(np.array(ts.past_variables),np.array(ts.target_variables)))[0] )]
+        model_conf['exogenous_channel_indices_cont'] =  [int(a) for a in list(np.where(np.isin(np.array(ts.past_variables),np.array(ts.future_variables)))[0])]
+        model_conf['exogenous_channel_indices_cat'] = [int(a) for a in list(np.where(np.isin(np.array(ts.cat_past_var),np.array(ts.cat_fut_var)))[0])]
 
     model = select_model(conf,model_conf,ts)
     if model is None:

@@ -5,11 +5,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>dsipts.models package &#8212; DSIPTS 1.1.10 documentation</title>
+    <title>dsipts.models package &#8212; DSIPTS 1.1.11 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
     <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
-    <script src="_static/documentation_options.js?v=25b84aaa"></script>
+    <script src="_static/documentation_options.js?v=81c0ceb3"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -3036,41 +3036,51 @@ registered hooks while the latter silently ignores them.</p>
 <span id="dsipts-models-ttm-module"></span><h2>dsipts.models.TTM module<a class="headerlink" href="#module-dsipts.models.TTM" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="dsipts.models.TTM.TTM">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.TTM.</span></span><span class="sig-name descname"><span class="pre">TTM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_prefix_tuning</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefer_l1_loss</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefer_longer_context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_input_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prediction_channel_indices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exogenous_channel_indices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decoder_mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fcm_context_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fcm_use_mixer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fcm_mix_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fcm_prepend_past</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_forecast_channel_mixing</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_last</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_quantiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persistence_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsipts.models.TTM.TTM" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">dsipts.models.TTM.</span></span><span class="sig-name descname"><span class="pre">TTM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefer_l1_loss</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefer_longer_context</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prediction_channel_indices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exogenous_channel_indices_cont</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exogenous_channel_indices_cat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decoder_mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq_prefix_tuning</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fcm_context_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fcm_use_mixer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fcm_mix_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fcm_prepend_past</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_forecast_channel_mixing</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsipts.models.TTM.TTM" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#dsipts.models.base_v2.Base" title="dsipts.models.base_v2.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></a></p>
-<p>TODO and FIX for future and past categorical variables</p>
+<p>This is the basic model, each model implemented must overwrite the init method and the forward method.
+The inference step is optional, by default it uses the forward method but for recurrent
+network you should implement your own method</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>model_path</strong> (<em>str</em>) – _description_</p></li>
-<li><p><strong>past_steps</strong> (<em>int</em>) – _description_</p></li>
-<li><p><strong>future_steps</strong> (<em>int</em>) – _description_</p></li>
-<li><p><strong>freq_prefix_tuning</strong> (<em>bool</em>) – _description_</p></li>
-<li><p><strong>freq</strong> (<em>str</em>) – _description_</p></li>
-<li><p><strong>prefer_l1_loss</strong> (<em>bool</em>) – _description_</p></li>
-<li><p><strong>loss_type</strong> (<em>str</em>) – _description_</p></li>
-<li><p><strong>num_input_channels</strong> (<em>_type_</em>) – _description_</p></li>
-<li><p><strong>prediction_channel_indices</strong> (<em>_type_</em>) – _description_</p></li>
-<li><p><strong>exogenous_channel_indices</strong> (<em>_type_</em>) – _description_</p></li>
-<li><p><strong>decoder_mode</strong> (<em>_type_</em>) – _description_</p></li>
-<li><p><strong>fcm_context_length</strong> (<em>_type_</em>) – _description_</p></li>
-<li><p><strong>fcm_use_mixer</strong> (<em>_type_</em>) – _description_</p></li>
-<li><p><strong>fcm_mix_layers</strong> (<em>_type_</em>) – _description_</p></li>
-<li><p><strong>fcm_prepend_past</strong> (<em>_type_</em>) – _description_</p></li>
-<li><p><strong>enable_forecast_channel_mixing</strong> (<em>_type_</em>) – _description_</p></li>
-<li><p><strong>out_channels</strong> (<em>int</em>) – _description_</p></li>
-<li><p><strong>embs</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>) – _description_</p></li>
-<li><p><strong>remove_last</strong> (<em>bool</em><em>, </em><em>optional</em>) – _description_. Defaults to False.</p></li>
-<li><p><strong>optim</strong> (<em>Union</em><em>[</em><em>str</em><em>,</em><em>None</em><em>]</em><em>, </em><em>optional</em>) – _description_. Defaults to None.</p></li>
-<li><p><strong>optim_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – _description_. Defaults to None.</p></li>
-<li><p><strong>scheduler_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – _description_. Defaults to None.</p></li>
-<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – _description_. Defaults to False.</p></li>
-<li><p><strong>use_quantiles</strong> (<em>bool</em><em>, </em><em>optional</em>) – _description_. Defaults to False.</p></li>
-<li><p><strong>persistence_weight</strong> (<em>float</em><em>, </em><em>optional</em>) – _description_. Defaults to 0.0.</p></li>
-<li><p><strong>quantiles</strong> (<em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – _description_. Defaults to [].</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>) – Flag to enable verbose logging.</p></li>
+<li><p><strong>past_steps</strong> (<em>int</em>) – Number of past time steps to consider.</p></li>
+<li><p><strong>future_steps</strong> (<em>int</em>) – Number of future time steps to predict.</p></li>
+<li><p><strong>past_channels</strong> (<em>int</em>) – Number of channels in the past input data.</p></li>
+<li><p><strong>future_channels</strong> (<em>int</em>) – Number of channels in the future input data.</p></li>
+<li><p><strong>out_channels</strong> (<em>int</em>) – Number of output channels.</p></li>
+<li><p><strong>embs_past</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>) – List of embedding dimensions for past data.</p></li>
+<li><p><strong>embs_fut</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>) – List of embedding dimensions for future data.</p></li>
+<li><p><strong>n_classes</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of classes for classification. Defaults to 0.</p></li>
+<li><p><strong>persistence_weight</strong> (<em>float</em><em>, </em><em>optional</em>) – Weight for persistence in loss calculation. Defaults to 0.0.</p></li>
+<li><p><strong>loss_type</strong> (<em>str</em><em>, </em><em>optional</em>) – Type of loss function to use (‘l1’ or ‘mse’). Defaults to ‘l1’.</p></li>
+<li><p><strong>quantiles</strong> (<em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – List of quantiles for quantile loss. Defaults to an empty list.</p></li>
+<li><p><strong>reduction_mode</strong> (<em>str</em><em>, </em><em>optional</em>) – Mode for reduction for categorical embedding layer (‘mean’, ‘sum’, ‘none’). Defaults to ‘mean’.</p></li>
+<li><p><strong>use_classical_positional_encoder</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag to use classical positional encoding or using embedding layer also for the positions. Defaults to False.</p></li>
+<li><p><strong>emb_dim</strong> (<em>int</em><em>, </em><em>optional</em>) – Dimension of categorical embeddings. Defaults to 16.</p></li>
+<li><p><strong>optim</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>None</em><em>]</em><em>, </em><em>optional</em>) – Optimizer type. Defaults to None.</p></li>
+<li><p><strong>optim_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – Configuration for the optimizer. Defaults to None.</p></li>
+<li><p><strong>scheduler_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – Configuration for the learning rate scheduler. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>AssertionError</strong> – If the number of quantiles is not equal to 3 when quantiles are provided.</p></li>
+<li><p><strong>AssertionError</strong> – If the number of output channels is not 1 for classification tasks.</p></li>
 </ul>
 </dd>
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.models.TTM.TTM.allow_zero_length_dataloader_with_multiple_devices">
+<span class="sig-name descname"><span class="pre">allow_zero_length_dataloader_with_multiple_devices</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#dsipts.models.TTM.TTM.allow_zero_length_dataloader_with_multiple_devices" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.models.TTM.TTM.description">
+<span class="sig-name descname"><span class="pre">description</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Can</span>&#160;&#160; <span class="pre">handle</span> <span class="pre">multivariate</span> <span class="pre">output</span> <span class="pre">\nCan</span>&#160;&#160; <span class="pre">handle</span> <span class="pre">future</span> <span class="pre">covariates\nCan</span>&#160;&#160; <span class="pre">handle</span> <span class="pre">categorical</span> <span class="pre">covariates\nCan</span>&#160;&#160; <span class="pre">handle</span> <span class="pre">Quantile</span> <span class="pre">loss</span> <span class="pre">function'</span></em><a class="headerlink" href="#dsipts.models.TTM.TTM.description" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.models.TTM.TTM.forward">
 <span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsipts.models.TTM.TTM.forward" title="Link to this definition">¶</a></dt>
@@ -3093,6 +3103,36 @@ idx_target: index of target features in the past array</p>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.models.TTM.TTM.handle_categorical_variables">
+<span class="sig-name descname"><span class="pre">handle_categorical_variables</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#dsipts.models.TTM.TTM.handle_categorical_variables" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.models.TTM.TTM.handle_future_covariates">
+<span class="sig-name descname"><span class="pre">handle_future_covariates</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#dsipts.models.TTM.TTM.handle_future_covariates" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.models.TTM.TTM.handle_multivariate">
+<span class="sig-name descname"><span class="pre">handle_multivariate</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#dsipts.models.TTM.TTM.handle_multivariate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.models.TTM.TTM.handle_quantile_loss">
+<span class="sig-name descname"><span class="pre">handle_quantile_loss</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#dsipts.models.TTM.TTM.handle_quantile_loss" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.models.TTM.TTM.prepare_data_per_node">
+<span class="sig-name descname"><span class="pre">prepare_data_per_node</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#dsipts.models.TTM.TTM.prepare_data_per_node" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.models.TTM.TTM.training">
+<span class="sig-name descname"><span class="pre">training</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#dsipts.models.TTM.TTM.training" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -3568,6 +3608,12 @@ idx_target: index of target features in the past array</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.base.Base.on_validation_start">
+<span class="sig-name descname"><span class="pre">on_validation_start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsipts.models.base.Base.on_validation_start" title="Link to this definition">¶</a></dt>
+<dd><p>Called at the beginning of validation.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
@@ -3688,6 +3734,12 @@ idx_target: index of target features in the past array</p>
 <dd class="field-odd"><p>torch.tensor</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.models.base_v2.Base.on_validation_start">
+<span class="sig-name descname"><span class="pre">on_validation_start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsipts.models.base_v2.Base.on_validation_start" title="Link to this definition">¶</a></dt>
+<dd><p>Called at the beginning of validation.</p>
 </dd></dl>
 
 <dl class="py attribute">

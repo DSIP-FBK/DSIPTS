@@ -15,7 +15,6 @@ from typing import List, Union
 from .utils import QuantileLossMO, CPRS
 import torch.nn as nn
 
-
 def standardize_momentum(x,order):
     mean = torch.mean(x,1).unsqueeze(1).repeat(1,x.shape[1],1)
     num = torch.pow(x-mean,order).mean(axis=1)
@@ -113,8 +112,13 @@ class Base(pl.LightningModule):
         self.train_loss_epoch = -100.0
         self.verbose = verbose
         self.name = self.__class__.__name__
-        self.train_epoch_metrics = []
-        self.validation_epoch_metrics = []
+        #self.train_epoch_metrics = 0
+        #self.validation_epoch_metrics = 0
+        
+        self.register_buffer("train_epoch_metrics", torch.tensor(0.0))
+        self.register_buffer("validation_epoch_metrics", torch.tensor(0.0))
+        self.register_buffer("train_epoch_count", torch.tensor(0))
+        self.register_buffer("validation_epoch_count", torch.tensor(0))
         
         self.use_quantiles = True if len(quantiles)>0 else False
         self.quantiles =  quantiles
@@ -299,7 +303,8 @@ class Base(pl.LightningModule):
                 y_hat = self(batch)
                 loss = self.compute_loss(batch,y_hat)
             
-        self.train_epoch_metrics.append(loss.item())
+        self.train_epoch_metrics+=loss.detach()
+        self.train_epoch_count +=1
         return loss
 
     
@@ -316,41 +321,54 @@ class Base(pl.LightningModule):
             y_hat = self(batch)
             score = 0
         if batch_idx==0:
-            if self.use_quantiles:
-                idx = 1
-            else:
-                idx = 0
+
             #track the predictions! We can do better than this but maybe it is better to firstly update pytorch-lightening 
 
             if self.count_epoch%int(max(self.trainer.max_epochs/100,1))==1:
+                self._val_outputs.append({
+                    "y": batch['y'].detach().cpu(),
+                    "y_hat": y_hat.detach().cpu()
+                })                
+        self.validation_epoch_metrics+= (self.compute_loss(batch,y_hat)+score).detach()
+        self.validation_epoch_count+=1
+        return None
 
-                for i in range(batch['y'].shape[2]):
-                    real =  batch['y'][0,:,i].cpu().detach().numpy()
-                    pred =  y_hat[0,:,i,idx].cpu().detach().numpy()
-                    fig, ax = plt.subplots(figsize=(7,5))  
-                    ax.plot(real,'o-',label='real')
-                    ax.plot(pred,'o-',label='pred')
-                    ax.legend()
-                    ax.set_title(f'Channel {i} first element first batch validation {int(100*self.count_epoch/self.trainer.max_epochs)}%')
-                    self.logger.experiment.track(Image(fig), name='cm_training_end')
-                    #self.log(f"example_{i}", np.stack([real, pred]).T,sync_dist=True)
-        self.validation_epoch_metrics.append(self.compute_loss(batch,y_hat)+score)
-        return 
-
+    def on_validation_start(self):
+        # reset buffer each epoch
+        self._val_outputs = []
+    
 
     def on_validation_epoch_end(self):
         """
         pythotrch lightening stuff
         
         :meta private:
-        """
+        """   
 
-        if len(self.validation_epoch_metrics)==0:
-            avg = 10000
-            beauty_string(f'THIS IS A BUG, It should be polulated','info',self.verbose)
-        else:
-            avg = torch.stack(self.validation_epoch_metrics).mean()
-        self.validation_epoch_metrics = []
+        if len(self._val_outputs)>0:
+            ys = torch.cat([o["y"] for o in self._val_outputs])
+            y_hats = torch.cat([o["y_hat"] for o in self._val_outputs])
+            if self.use_quantiles:
+                idx = 1
+            else:
+                idx = 0
+            for i in range(ys.shape[2]):
+                real =  ys[0,:,i].cpu().detach().numpy()
+                pred =  y_hats[0,:,i,idx].cpu().detach().numpy()
+                fig, ax = plt.subplots(figsize=(7,5))  
+                ax.plot(real,'o-',label='real')
+                ax.plot(pred,'o-',label='pred')
+                ax.legend()
+                ax.set_title(f'Channel {i} first element first batch validation {int(100*self.count_epoch/self.trainer.max_epochs)}%')
+                self.logger.experiment.track(Image(fig), name='cm_training_end')
+                #self.log(f"example_{i}", np.stack([real, pred]).T,sync_dist=True)
+                plt.close(fig) 
+            
+         
+        avg = self.validation_epoch_metrics/self.validation_epoch_count
+
+        self.validation_epoch_metrics.zero_()
+        self.validation_epoch_count.zero_()
         self.log("val_loss", avg,sync_dist=True)
         beauty_string(f'Epoch: {self.count_epoch} train error: {self.train_loss_epoch:.4f} validation loss: {avg:.4f}','info',self.verbose)
 
@@ -361,14 +379,12 @@ class Base(pl.LightningModule):
         
         :meta private:
         """
-        if len(self.train_epoch_metrics)==0:
-            avg = 0
-            beauty_string(f'THIS IS A BUG, It should be polulated','info',self.verbose)
-        else:
-            avg = np.stack(self.train_epoch_metrics).mean()
+
+        avg = self.train_epoch_metrics/self.train_epoch_count
         self.log("train_loss", avg,sync_dist=True)
         self.count_epoch+=1    
-        self.train_epoch_metrics = []
+        self.train_epoch_metrics.zero_()
+        self.train_epoch_count.zero_()
         self.train_loss_epoch = avg
 
     def compute_loss(self,batch,y_hat):
