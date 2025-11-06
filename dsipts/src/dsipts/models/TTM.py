@@ -12,7 +12,7 @@ except:
     from .base import Base
 
 
-from .ttm.utils import get_model, get_frequency_token, count_parameters
+from .ttm.utils import get_model, get_frequency_token, count_parameters, DEFAULT_FREQUENCY_MAPPING
 from ..data_structure.utils import beauty_string
 from .utils import  get_scope
 
@@ -37,12 +37,14 @@ class TTM(Base):
                 fcm_use_mixer,
                 fcm_mix_layers,
                 fcm_prepend_past,
+                bs,
                 enable_forecast_channel_mixing,
                 **kwargs)->None:
    
         super().__init__(**kwargs)
         self.save_hyperparameters(logger=False)
 
+        
 
         self.index_fut = list(exogenous_channel_indices_cont)
 
@@ -51,7 +53,7 @@ class TTM(Base):
         else:
             self.index_fut_cat = []
         self.freq = freq
-
+        self.token = get_frequency_token(self.freq).repeat(bs)
         self.model = get_model(
             model_path=model_path,
             context_length=self.past_steps,
@@ -124,8 +126,8 @@ class TTM(Base):
             future_values[:,:,self.index_cat_fut] = x_mark_dec
         
 
-        #investigating!!
-        freq_token = get_frequency_token(self.freq).repeat(past_values.shape[0])
+        #investigating!! problem with dynamo!
+        #freq_token = get_frequency_token(self.freq).repeat(past_values.shape[0])
 
         res = self.model(
             past_values= past_values,
@@ -134,7 +136,7 @@ class TTM(Base):
             future_observed_mask = None,
             output_hidden_states =  False,
             return_dict = False,
-            freq_token= freq_token, ##investigating
+            freq_token= self.token[0:past_values.shape[0]], ##investigating
             static_categorical_values = None
         )
 
