@@ -112,8 +112,8 @@ class TTM(Base):
         x_enc = batch['x_num_past']
         original_indexes = batch['idx_target'][0].tolist()
 
-        #import pdb
-        #pdb.set_trace()
+        import pdb
+        pdb.set_trace()
 
 
         if 'x_cat_past' in batch.keys():
