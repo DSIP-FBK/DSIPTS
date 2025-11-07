@@ -1,7 +1,8 @@
 
 
-## 1.1.12 (2025-XX-XX)
+## 1.1.12 (2025-11-07)
 - Bug fixing dynamo stuff for `TTM`
+- Bug fixing loading weights after training process ('dynamo module can not load weights`)
  
 
 ## 1.1.11 (2025-11-06)

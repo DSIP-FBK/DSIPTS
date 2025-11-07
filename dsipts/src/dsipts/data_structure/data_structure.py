@@ -895,10 +895,19 @@ class TimeSeries():
             self.losses = pd.DataFrame()
 
         try:
+
             if OLD_PL:
-                self.model = self.model.load_from_checkpoint(self.checkpoint_file_last)
+                if isinstance(self.model, torch._dynamo.eval_frame.OptimizedModule):
+                    self.model = self.model._orig_mod 
+                    self.model.load_from_checkpoint(self.checkpoint_file_last)
+                else:
+                    self.model = self.model.load_from_checkpoint(self.checkpoint_file_last)
             else:
-                self.model = self.model.__class__.load_from_checkpoint(self.checkpoint_file_last)
+                if isinstance(self.model, torch._dynamo.eval_frame.OptimizedModule):
+                    mm = self.model._orig_mod 
+                    self.model = mm.__class__.load_from_checkpoint(self.checkpoint_file_last)
+                else:
+                    self.model = self.model.__class__.load_from_checkpoint(self.checkpoint_file_last)
 
         except Exception as _:
             beauty_string(f'There is a problem loading the weights on file MAYBE CHANGED HOW WEIGHTS ARE LOADED {self.checkpoint_file_last}','section',self.verbose)
