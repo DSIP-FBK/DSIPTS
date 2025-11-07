@@ -109,11 +109,8 @@ class TTM(Base):
 
 
     def forward(self, batch):
-        x_enc = batch['x_num_past']
+        x_enc = batch['x_num_past'].to(self.device)
         original_indexes = batch['idx_target'][0].tolist()
-
-        import pdb
-        pdb.set_trace()
 
 
         if 'x_cat_past' in batch.keys():
@@ -138,7 +135,7 @@ class TTM(Base):
         #freq_token = get_frequency_token(self.freq).repeat(past_values.shape[0])
 
         batch_size = past_values.shape[0]
-        freq_token = self.token.repeat(batch_size).long().to(past_values.device)
+        freq_token = self.token.repeat(batch_size).long().to(self.device)
 
 
         res = self.model(
