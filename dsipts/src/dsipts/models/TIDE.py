@@ -108,7 +108,7 @@ class TIDE(Base):
         self.linear_target = nn.Linear(self.past_steps*self.out_channels, self.future_steps*self.out_channels*self.mul)
     
     def can_be_compiled(self):
-        return True  
+        return False  
   
 
     def forward(self, batch:dict)-> float:
