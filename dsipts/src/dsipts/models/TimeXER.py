@@ -125,7 +125,9 @@ class TimeXER(Base):
 
         
 
-
+    def can_be_compiled(self):
+        return True  
+  
 
 
     def forward(self, batch:dict)-> float:

@@ -85,7 +85,9 @@ class Samformer(Base):
                                          activation(),
                                          nn.Linear(dim*2,self.out_channels*self.mul  ))
 
-
+    def can_be_compiled(self):
+        return True  
+  
     def forward(self, batch:dict)-> float:
 
         x = batch['x_num_past'].to(self.device)

@@ -107,7 +107,9 @@ class TTM(Base):
             input[:,:,i] = input[:, :, i] / (e-1)
         return input
 
-
+    def can_be_compiled(self):
+        return True  
+  
     def forward(self, batch):
         x_enc = batch['x_num_past'].to(self.device)
         original_indexes = batch['idx_target'][0].tolist()

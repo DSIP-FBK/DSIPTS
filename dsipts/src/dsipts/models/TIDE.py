@@ -106,7 +106,10 @@ class TIDE(Base):
 
         # linear for Y lookback
         self.linear_target = nn.Linear(self.past_steps*self.out_channels, self.future_steps*self.out_channels*self.mul)
-
+    
+    def can_be_compiled(self):
+        return True  
+  
 
     def forward(self, batch:dict)-> float:
         """training process of the diffusion network

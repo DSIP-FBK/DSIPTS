@@ -111,6 +111,10 @@ class TFT(Base):
 
         self.outLinear = nn.Linear(d_model, self.out_channels*self.mul)
 
+    def can_be_compiled(self):
+        return True  
+  
+
     def forward(self, batch:dict) -> torch.Tensor:
         """Temporal Fusion Transformer
 

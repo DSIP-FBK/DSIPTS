@@ -67,7 +67,9 @@ class Simple(Base):
         self.linear = (nn.Sequential(nn.Linear(emb_past_out_channel*self.past_steps+emb_fut_out_channel*self.future_steps+self.past_steps*self.past_channels+self.future_channels*self.future_steps,hidden_size),
                                                     activation(),nn.Dropout(dropout_rate),
                                                     nn.Linear(hidden_size,self.out_channels*self.future_steps*self.mul)))
-                               
+    def can_be_compiled(self):
+        return True  
+                             
     def forward(self, batch):
       
         x =  batch['x_num_past'].to(self.device)
