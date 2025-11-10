@@ -219,7 +219,7 @@ class SparseDispatcher(object):
         # expand according to batch index so we can just split by _part_sizes
         inp_exp = inp[self._batch_index].squeeze(1)
         return torch.split(inp_exp, self._part_sizes, dim=0)
-
+    @torch._dynamo.disable
     def combine(self, expert_out, multiply_by_gates=True):
         """Sum together the expert output, weighted by the gates.
         The slice corresponding to a particular batch element `b` is computed
