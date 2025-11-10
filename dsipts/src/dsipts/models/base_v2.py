@@ -307,7 +307,7 @@ class Base(pl.LightningModule):
         self.train_epoch_count +=1
         return loss
 
-    #@torch._dynamo.disable
+    @torch._dynamo.disable
     def validation_step(self, batch, batch_idx):
         """
         pythotrch lightening stuff
