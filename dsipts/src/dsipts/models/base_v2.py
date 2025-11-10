@@ -320,15 +320,14 @@ class Base(pl.LightningModule):
         else:
             y_hat = self(batch)
             score = 0
-        if batch_idx==0:
+        log_this_batch = (batch_idx == 0) and (self.count_epoch % int(max(self.trainer.max_epochs / 100,1)) == 1)
 
+        if log_this_batch:
             #track the predictions! We can do better than this but maybe it is better to firstly update pytorch-lightening 
-
-            if self.count_epoch%int(max(self.trainer.max_epochs/100,1))==1:
-                self._val_outputs.append({
-                    "y": batch['y'].detach().cpu(),
-                    "y_hat": y_hat.detach().cpu()
-                })                
+            self._val_outputs.append({
+                "y": batch['y'].detach().cpu(),
+                "y_hat": y_hat.detach().cpu()
+            })                
         self.validation_epoch_metrics+= (self.compute_loss(batch,y_hat)+score).detach()
         self.validation_epoch_count+=1
         return None
