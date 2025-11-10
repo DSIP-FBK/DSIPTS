@@ -234,10 +234,9 @@ class SparseDispatcher(object):
           a `Tensor` with shape `[batch_size, <extra_output_dims>]`.
         """
         # apply exp to expert outputs, so we are not longer in log space
-        try:
-            stitched = torch.cat(expert_out, 0)
-        except:
-            import pdb;pdb.set_trace()
+  
+        stitched = torch.cat(expert_out, 0)
+
         if multiply_by_gates:
             # stitched = stitched.mul(self._nonzero_gates)
             stitched = torch.einsum("i...,ij->i...", stitched, self._nonzero_gates)
@@ -433,6 +432,8 @@ class Linear_extractor_cluster(nn.Module):
         expert_inputs = dispatcher.dispatch(x_norm)
 
         gates = dispatcher.expert_to_gates()
+        import pdb
+        pdb.set_trace()
         expert_outputs = [
             self.experts[i](expert_inputs[i]) for i in range(self.num_experts)
         ]
