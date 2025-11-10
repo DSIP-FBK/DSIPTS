@@ -234,7 +234,10 @@ class SparseDispatcher(object):
           a `Tensor` with shape `[batch_size, <extra_output_dims>]`.
         """
         # apply exp to expert outputs, so we are not longer in log space
-        stitched = torch.cat(expert_out, 0)
+        try:
+            stitched = torch.cat(expert_out, 0)
+        except:
+            import pdb;pdb.set_trace()
         if multiply_by_gates:
             # stitched = stitched.mul(self._nonzero_gates)
             stitched = torch.einsum("i...,ij->i...", stitched, self._nonzero_gates)
