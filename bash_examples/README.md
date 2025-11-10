@@ -226,6 +226,13 @@ or, if you are in a slurm cluster
 python train.py  architecture=linear --config-dir=config_test --config-name=config_slurm -m
 ```
 
+it is possible to change the parameters from the command line like:
+```
+python train.py --config-dir=config_test --config-name=config -m architecture=linear dataset.path='/storage3/DSIP/agobbi/Projects/ExpTS/data' train_config.dirpath='/storage3/DSIP/agobbi/Projects/ExpTS/test' inference.output_path='/storage3/DSIP/agobbi/Projects/ExpTS/test'
+```
+
+
+
 The `-m` option is important because generally we would't lauch the script in the frontend. This shortcut allows hydra to use the multirun scheduler and lauch the process(es) in the required nodes. In the case of a single gpu machine it will lauch parallel process (careful to the used VRAM).
 
 For example we can train two models on the same data using:

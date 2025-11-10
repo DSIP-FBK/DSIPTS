@@ -32,7 +32,6 @@ model_configs:
   persistence_weight: 0.010
   loss_type: 'l1'
   activation: torch.nn.ReLU
-  quantiles: [0.1,0.5,0.9]
 train_config:
   batch_size: 64
   max_epochs: 2

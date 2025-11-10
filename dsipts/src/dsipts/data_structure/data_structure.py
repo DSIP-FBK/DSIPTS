@@ -683,10 +683,7 @@ class TimeSeries():
         #self.model.apply(weight_init_zeros)
 
         self.config = config
-        try:
-            self.model = torch.compile(self.model)
-        except:
-            beauty_string('Can not compile the model','block',self.verbose)
+
 
         beauty_string('Setting the model','block',self.verbose)
         beauty_string(model,'',self.verbose)
@@ -812,7 +809,11 @@ class TimeSeries():
             weight_exists = False
             beauty_string('I can not load a previous model','section',self.verbose)
 
-
+        self.model.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
+        try:
+            self.model = torch.compile(self.model)
+        except:
+            beauty_string('Can not compile the model','block',self.verbose)
         
         
         if OLD_PL:

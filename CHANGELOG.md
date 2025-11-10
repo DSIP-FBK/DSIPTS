@@ -3,7 +3,8 @@
 ## 1.1.12 (2025-11-07)
 - Bug fixing dynamo stuff for `TTM`
 - Bug fixing loading weights after training process ('dynamo module can not load weights`)
- 
+- Bug fixing validation recompilation dynamo
+- Bug fixing test configurations
 
 ## 1.1.11 (2025-11-06)
 - Added `torch.compile` for better performance on recent GPU
