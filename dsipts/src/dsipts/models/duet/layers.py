@@ -432,11 +432,10 @@ class Linear_extractor_cluster(nn.Module):
         expert_inputs = dispatcher.dispatch(x_norm)
 
         gates = dispatcher.expert_to_gates()
-        import pdb
-        pdb.set_trace()
+
         expert_outputs = [
             self.experts[i](expert_inputs[i]) for i in range(self.num_experts)
         ]
-        y = dispatcher.combine(expert_outputs)
+        y = dispatcher.combine([e for e in expert_outputs if len(e)>0])
 
         return y, loss
