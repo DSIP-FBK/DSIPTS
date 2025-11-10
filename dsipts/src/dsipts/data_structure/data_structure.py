@@ -813,6 +813,8 @@ class TimeSeries():
         if self.model.can_be_compiled():
             try:
                 self.model = torch.compile(self.model)
+                beauty_string('Model COMPILED','block',self.verbose)
+
             except:
                 beauty_string('Can not compile the model','block',self.verbose)
         else:

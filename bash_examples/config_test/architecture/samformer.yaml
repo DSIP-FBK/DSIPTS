@@ -11,7 +11,6 @@ ts:
   use_covariates: true
   silly: False
   use_future_covariates: true
-  silly: false
 model_configs:
 
   hidden_size: 16
