@@ -143,7 +143,8 @@ class LinearTS(Base):
                                                     activation(),
                                                     nn.BatchNorm1d(hidden_size//8) if use_bn else nn.Dropout(dropout_rate) ,    
                                                     nn.Linear(hidden_size//8,self.future_steps*self.mul)))
-                               
+    def can_be_compiled(self):
+        return True                            
     def forward(self, batch):
       
         x =  batch['x_num_past'].to(self.device)

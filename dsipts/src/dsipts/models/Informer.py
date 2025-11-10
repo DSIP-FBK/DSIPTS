@@ -124,7 +124,8 @@ class Informer(Base):
         
                 
         
-  
+    def can_be_compiled(self):
+        return True  
         
     def forward(self,batch): 
         #x_enc, x_mark_enc, x_dec, x_mark_dec,enc_self_mask=None, dec_self_mask=None, dec_enc_mask=None):

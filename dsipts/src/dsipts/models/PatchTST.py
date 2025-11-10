@@ -133,6 +133,9 @@ class PatchTST(Base):
     
         #self.final_linear = nn.Sequential(nn.Linear(past_channels,past_channels//2),activation(),nn.Dropout(dropout_rate), nn.Linear(past_channels//2,out_channels)  )
     
+    def can_be_compiled(self):
+        return True  
+    
     def forward(self, batch):           # x: [Batch, Input length, Channel]
         
 

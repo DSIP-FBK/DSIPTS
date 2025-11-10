@@ -228,7 +228,8 @@ class DilatedConvED(Base):
                                                 nn.BatchNorm1d(hidden_RNN) if use_bn else nn.Dropout(dropout_rate) ,
                                                 Permute() if use_bn else nn.Identity() ,
                                                 nn.Linear(hidden_RNN ,self.mul))
-        
+    def can_be_compiled(self):
+        return True  
 
 
     def forward(self, batch):

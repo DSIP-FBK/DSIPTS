@@ -148,7 +148,8 @@ class RNN(Base):
                                             activation(),
                                             MyBN(hidden_RNN//8) if use_bn else nn.Dropout(dropout_rate) ,
                                             nn.Linear(hidden_RNN//8,1)))
-
+    def can_be_compiled(self):
+        return True  
   
 
     def forward(self, batch):

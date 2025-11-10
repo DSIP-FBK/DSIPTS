@@ -101,6 +101,9 @@ class ITransformer(Base):
         )
         self.projector = nn.Linear(d_model, self.future_steps*self.mul, bias=True)
 
+    def can_be_compiled(self):
+        return True  
+
     def forecast(self, x_enc, x_mark_enc, x_dec, x_mark_dec):
         if self.use_norm:
             # Normalization from Non-stationary Transformer

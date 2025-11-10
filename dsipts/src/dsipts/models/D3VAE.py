@@ -98,7 +98,8 @@ class D3VAE(Base):
         self.gamma = 0.01
         self.lambda1 = 1.0
 
-        
+    def can_be_compiled(self):
+        return False   
     def configure_optimizers(self):
         """
         Each model has optim_config and scheduler_config

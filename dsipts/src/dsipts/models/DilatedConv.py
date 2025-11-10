@@ -234,7 +234,8 @@ class DilatedConv(Base):
         self.return_additional_loss = True
         
 
-        
+    def can_be_compiled(self):
+        return True
 
     def forward(self, batch):
         """It is mandatory to implement this method

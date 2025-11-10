@@ -810,11 +810,14 @@ class TimeSeries():
             beauty_string('I can not load a previous model','section',self.verbose)
 
         self.model.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
-        #try:
-        #    self.model = torch.compile(self.model)
-        #except:
-        #    beauty_string('Can not compile the model','block',self.verbose)
-        
+        if self.model.can_be_compiled():
+            try:
+                self.model = torch.compile(self.model)
+            except:
+                beauty_string('Can not compile the model','block',self.verbose)
+        else:
+            beauty_string('Model can not still be compiled, be patient','block',self.verbose)
+
         
         if OLD_PL:
             trainer = pl.Trainer(default_root_dir=dirpath,

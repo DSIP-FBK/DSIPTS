@@ -425,6 +425,9 @@ class Diffusion(Base):
         loss = self.compute_loss(batch,out)
         return loss
 
+    def can_be_compiled(self):
+        return False
+
     # function to concat embedded categorical variables
     def cat_categorical_vars(self, batch:dict):
         """Extracting categorical context about past and future
