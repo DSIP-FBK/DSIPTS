@@ -324,10 +324,10 @@ class Base(pl.LightningModule):
 
         #if log_this_batch:
             #track the predictions! We can do better than this but maybe it is better to firstly update pytorch-lightening 
-        self._val_outputs.append({
+        self._val_outputs=[{
                 "y": batch['y'].detach().cpu(),
                 "y_hat": y_hat.detach().cpu()
-            })                
+            }]               
         self.validation_epoch_metrics+= (self.compute_loss(batch,y_hat)+score).detach()
         self.validation_epoch_count+=1
         return None
