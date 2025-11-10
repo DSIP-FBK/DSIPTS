@@ -136,7 +136,7 @@ class Duet(Base):
                                          activation(),
                                          nn.Linear(dim*2,self.out_channels*self.mul  ))
 
-    @torch._dynamo.disable
+    #@torch._dynamo.disable
     def forward(self, batch:dict)-> float:
         # x: [Batch, Input length, Channel]
         x_enc = batch['x_num_past'].to(self.device)

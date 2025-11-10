@@ -437,5 +437,6 @@ class Linear_extractor_cluster(nn.Module):
             self.experts[i](expert_inputs[i]) for i in range(self.num_experts)
         ]
         #y = dispatcher.combine([e for e in expert_outputs if len(e)>0])
-        y = dispatcher.combine(expert_outputs)
+        with torch._dynamo.disable():
+            y = dispatcher.combine(expert_outputs)
         return y, loss
