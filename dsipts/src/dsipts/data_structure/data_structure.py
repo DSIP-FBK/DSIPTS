@@ -160,13 +160,16 @@ class TimeSeries():
         self.stacked = stacked
         self.verbose = True
         self.group = None
+    
     def __str__(self) -> str:
         return f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables} \n With {'no group' if self.group is None else self.group+' as group' }"
+    
     def __repr__(self) -> str:
         return f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables}\n With {'no group' if self.group is None else self.group+' as group' }"
     
     def set_verbose(self,verbose:bool):
         self.verbose = verbose
+    
     def _generate_base(self,length:int,type:int=0)-> None:
         """Generate a basic timeseries 
 
@@ -182,8 +185,11 @@ class TimeSeries():
         """
         
         """    
+    
+    
     def generate_signal(self,length:int=5000,categorical_variables:List[Categorical]=[],noise_mean:int=1,type:int=0)->None:
-        """This will generate a syntetic signal with a selected length, a noise level and some categorical variables. The additive series are added at the end while the multiplicative series acts on the original signal
+        """This will generate a syntetic signal with a selected length, a noise level and some categorical variables. 
+        The additive series are added at the end while the multiplicative series acts on the original signal
         The TS structure will be populated
 
         Args:
@@ -239,16 +245,17 @@ class TimeSeries():
         except:
             beauty_string(f'I can not automatically enrich column {columns}. Probably not a temporal index.','section',True)
 
-    def load_signal(self,data:pd.DataFrame,
-                    enrich_cat:List[str] = [],
-                    past_variables:List[str]=[],
-                    future_variables:List[str]=[],
-                    target_variables:List[str]=[],
-                    cat_past_var:List[str]=[],
-                    cat_fut_var:List[str]=[],
-                    check_past:bool=True,
-                    group:Union[None,str]=None,
-                    check_holes_and_duplicates:bool=True,
+    def load_signal(self,
+                    data:pd.DataFrame,                          # Dataframe with time as timestamp time must be int or datetime, and non empty target variable 
+                    enrich_cat:List[str] = [],                  # List of columns to enrich with hour, dow, month, minute (pure dt extraction not cyclic encoding)
+                    past_variables:List[str]=[],                 # List of past variables to be used for training as exogenous variables offered with the acompany of target variable
+                    future_variables:List[str]=[],               # List of future variables to be used for training as exogenous variables
+                    target_variables:List[str]=[],               # List of target variables
+                    cat_past_var:List[str]=[],                   # List of categorical past variables
+                    cat_fut_var:List[str]=[],                    # List of categorical future variables
+                    check_past:bool=True,                       # Boolean to check if the past variables are available
+                    group:Union[None,str]=None,                  # Group variable to be used for training as exogenous variables
+                    check_holes_and_duplicates:bool=True,        # Boolean to check if the holes and duplicates are present
                     silly_model:bool=False)->None:
         """ This is a crucial point in the data structure. We expect here to have a dataset with time as timestamp.
             There are some checks:
@@ -275,7 +282,7 @@ class TimeSeries():
         
         
         dataset = data.copy()
-        dataset.sort_values(by='time',inplace=True)
+        dataset.sort_values(by='time',inplace=True) # Sort the dataset by time
         
         if check_holes_and_duplicates:
             beauty_string('I will drop duplicates, I dont like them','section',self.verbose)
@@ -310,6 +317,7 @@ class TimeSeries():
                 
         assert len(target_variables)>0, 'Provide at least one column for target'
         assert 'time'  in dataset.columns, 'The temporal column must be called time'
+
         if set(target_variables).intersection(set(past_variables))!= set(target_variables): 
             if check_past:
                 beauty_string('I will update past column adding all target columns, if you want to avoid this beahviour please use check_pass as false','info',self.verbose)
@@ -328,6 +336,7 @@ class TimeSeries():
                 self.cat_fut_var.append(group)   
                 
         self.enrich_cat = enrich_cat
+
         for c in enrich_cat:
             self.cat_past_var = list(set(self.cat_past_var+[c]))
             self.cat_fut_var = list(set(self.cat_fut_var+[c]))  
@@ -335,6 +344,7 @@ class TimeSeries():
                 beauty_string('Categorical {c} already present, it will be added to categorical variable but not call the enriching function','info',self.verbose) 
             else:
                 self.enrich(dataset,c)
+        
         self.cat_past_var = list(np.sort(self.cat_past_var))
         self.cat_fut_var = list(np.sort(self.cat_fut_var))
         
@@ -523,6 +533,8 @@ class TimeSeries():
             except Exception as e:
                 beauty_string('WARNING x_num_future_samples is empty and it should not','info',True)
         
+        if len(y_samples) == 0:
+            raise ValueError(f"No samples generated! The dataset (length {data.shape[0]}) is likely too small for the requested past_steps ({past_steps}) and future_steps ({future_steps}). Check your split parameters.")
         y_samples = np.stack(y_samples)
         t_samples = np.stack(t_samples)   
         g_samples = np.stack(g_samples)
@@ -688,7 +700,9 @@ class TimeSeries():
         beauty_string('Setting the model','block',self.verbose)
         beauty_string(model,'',self.verbose)
         
-    def train_model(self,dirpath:str,
+    def train_model(self,
+                    dirpath:str,
+                    repo:str,
                     split_params:dict,
                     batch_size:int=100,
                     num_workers:int=4,
@@ -765,9 +779,10 @@ class TimeSeries():
                                       save_top_k = 1,
                                      filename='checkpoint')
         
-        
+        self.repo = repo
         #logger = CSVLogger("logs", name=dirpath)
         aim_logger = AimLogger(
+            repo=self.repo,
             experiment=self.name,
             train_metric_prefix='train_',
             val_metric_prefix='val_',

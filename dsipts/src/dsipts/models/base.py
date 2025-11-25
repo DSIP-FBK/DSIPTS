@@ -166,7 +166,7 @@ class Base(pl.LightningModule):
         beauty_string(self.description,'info',True)
     @abstractmethod
     def forward(self, batch:dict)-> torch.tensor:
-        """Forlward method used during the training loop
+        """Forward method used during the training loop
 
         Args:
             batch (dict): the batch structure. The keys are:

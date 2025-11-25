@@ -2,6 +2,7 @@
 
 from .data_management.monash import Monash, get_freq
 from .data_management.public_datasets import read_public_dataset
+from .data_management.custom_datasets import load_custom_dataset
 from .data_structure.data_structure import TimeSeries, Categorical
 from .data_structure.utils import extend_time_df, beauty_string
 
@@ -37,7 +38,7 @@ except ImportError:
 
 __all__ = [
     # Data Management
-    "Monash", "get_freq", "read_public_dataset",
+    "Monash", "get_freq", "read_public_dataset", "load_custom_dataset",
     # Data Structure
     "TimeSeries", "Categorical", "extend_time_df", "beauty_string",
     # Models

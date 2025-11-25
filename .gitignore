@@ -12,3 +12,7 @@ tmp
 dist*
 build
 dsipts.egg-info
+mh_test/
+env_3_11_13/
+notebooks_test/
+.aim/
