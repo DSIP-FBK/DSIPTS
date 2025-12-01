@@ -11,6 +11,7 @@ def load_data(conf):
     
     ts.load_signal(data, enrich_cat= conf.ts.get('enrich',[]),
                    target_variables=['y'],
+                   sampler_weights = conf.ts.get('sampler_weights',None),
                    past_variables=columns if conf.ts.get('use_covariates',False) else [],
                    future_variables=[],
                    silly_model=conf.ts.get('silly',False))

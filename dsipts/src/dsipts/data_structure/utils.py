@@ -142,12 +142,13 @@ class MyDataset(Dataset):
         Returns:
             torch.utils.data.Dataset: a torch Dataset to be used in a Dataloader
         """
+
         self.data = data
         self.t = t
         self.groups = groups
         self.idx_target = np.array(idx_target) if idx_target is not None else None
         self.idx_target_future = np.array(idx_target_future) if idx_target_future is not None else None
-
+        self.sampler_weights = data['sampler_weights']
   
 
     def __len__(self):
@@ -157,7 +158,8 @@ class MyDataset(Dataset):
     def __getitem__(self, idxs):
         sample = {}
         for k in self.data:
-            sample[k] = self.data[k][idxs]
+            if k!='sampler_weights':
+                sample[k] = self.data[k][idxs]
         if self.idx_target is not None:
             sample['idx_target'] = self.idx_target
         if self.idx_target_future is not None:

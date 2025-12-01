@@ -11,6 +11,7 @@ ts:
   enrich: ['hour']
   use_covariates: true
   use_future_covariates: true
+  #sampler_weights: fake_columns
 
 scheduler_config:
   gamma: 1.0

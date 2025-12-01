@@ -6,7 +6,7 @@ from sklearn.preprocessing import LabelEncoder, OrdinalEncoder
 from sklearn.preprocessing import * 
 from torch.utils.data import DataLoader
 from .utils import extend_time_df,MetricsCallback, MyDataset, ActionEnum,beauty_string
-
+from torch.utils.data.sampler import WeightedRandomSampler
 try:
 
     #new version of lightning
@@ -249,7 +249,8 @@ class TimeSeries():
                     check_past:bool=True,
                     group:Union[None,str]=None,
                     check_holes_and_duplicates:bool=True,
-                    silly_model:bool=False)->None:
+                    silly_model:bool=False,
+                    sampler_weights:Union[None,str]=None)->None:
         """ This is a crucial point in the data structure. We expect here to have a dataset with time as timestamp.
             There are some checks:
                 1- the duplicates will tbe removed taking the first instance
@@ -270,6 +271,7 @@ class TimeSeries():
             group (str or None, optional): if not None the time serie dataset is considered composed by omogeneus timeseries coming from different realization (for example point of sales, cities, locations) and the relative series are not splitted during the sample generation. Defaults to None
             check_holes_and_duplicates (bool, optional): if False duplicates or holes will not checked, the dataloader can not correctly work, disable at your own risk. Defaults True
             silly_model (bool, optional): if True, target variables will be added to the pool of the future variables. This can be useful to see if information passes throught the decoder part of your model (if any)
+            sampler_weights  group (str or None, optional): if it is a column name it will be used as weight for the sampler. Careful that the weight of the sample is the weight value of the fist target value (index)
         """
         
         
@@ -322,7 +324,7 @@ class TimeSeries():
         if group is not None:
             if group not in cat_past_var:
                 beauty_string(f'I will add {group} to the categorical past/future variables','info',self.verbose)
-                self.cat_var.append(group)
+                self.cat_past_var.append(group)
             if group not in cat_fut_var:
                 beauty_string(f'I will add {group} to the categorical past/future variables','info',self.verbose)
                 self.cat_fut_var.append(group)   
@@ -350,7 +352,7 @@ class TimeSeries():
         if silly_model:
             beauty_string('YOU ARE TRAINING A SILLY MODEL WITH THE TARGETS IN THE INPUTS','section',self.verbose) 
             self.future_variables+=self.target_variables
-            
+        self.sampler_weights = sampler_weights
     def plot(self):
         """  
         Easy way to control the loaded data
@@ -409,6 +411,7 @@ class TimeSeries():
         y_samples = []
         t_samples = []
         g_samples = []
+        sampler_weights_samples = []
         
         if starting_point is not None:
             kk = list(starting_point.keys())[0]
@@ -475,7 +478,8 @@ class TimeSeries():
             if len(self.cat_fut_var)>0:
                 x_fut_cat = tmp[self.cat_fut_var].values
             y_target = tmp[self.target_variables].values
-
+            if self.sampler_weights is not None:
+                sampler_weights = tmp[self.sampler_weights].values.flatten()
         
             if starting_point is not None:
                 check = tmp[list(starting_point.keys())[0]].values == starting_point[list(starting_point.keys())[0]]
@@ -512,6 +516,8 @@ class TimeSeries():
                                 x_cat_future_samples.append(x_fut_cat[i-shift+skip_stacked:i+future_steps-shift+skip_stacked])
                         
                         y_samples.append(y_target[i+skip_stacked:i+future_steps+skip_stacked])
+                        if self.sampler_weights is not None:
+                            sampler_weights_samples.append(sampler_weights[i+skip_stacked])
                         t_samples.append(t[i+skip_stacked:i+future_steps+skip_stacked])
                         g_samples.append(groups[i])
 
@@ -524,6 +530,8 @@ class TimeSeries():
                 beauty_string('WARNING x_num_future_samples is empty and it should not','info',True)
         
         y_samples = np.stack(y_samples)
+        if self.sampler_weights is not None:
+            sampler_weights_samples = np.stack(sampler_weights_samples)
         t_samples = np.stack(t_samples)   
         g_samples = np.stack(g_samples)
 
@@ -537,7 +545,6 @@ class TimeSeries():
         else:
             mod = 1.0
         dd = {'y':y_samples.astype(np.float32),
-
               'x_num_past':(x_num_past_samples*mod).astype(np.float32)}
         if len(self.cat_past_var)>0:
             dd['x_cat_past'] = x_cat_past_samples
@@ -545,7 +552,10 @@ class TimeSeries():
             dd['x_cat_future'] = x_cat_future_samples
         if len(self.future_variables)>0:
             dd['x_num_future'] = x_num_future_samples.astype(np.float32)
-        
+        if self.sampler_weights is not None:
+            dd['sampler_weights'] = sampler_weights_samples.astype(np.float32)
+        else:
+            dd['sampler_weights'] = np.ones(len(y_samples)).astype(np.float32)
         return MyDataset(dd,t_samples,g_samples,idx_target,idx_target_future)
     
           
@@ -753,8 +763,14 @@ class TimeSeries():
         else:
             self.modifier = None
         
+        if self.sampler_weights is not None:
+            beauty_string(f'USING SAMPLER IN TRAIN','section',self.verbose)
 
-        train_dl = DataLoader(train, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
+            sampler = WeightedRandomSampler(train.sampler_weights, num_samples= len(train))
+            train_dl = DataLoader(train, batch_size = batch_size , shuffle=False,sampler=sampler,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
+
+        else:
+            train_dl = DataLoader(train, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
         valid_dl = DataLoader(validation, batch_size = batch_size , shuffle=False,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
    
         checkpoint_callback = ModelCheckpoint(dirpath=dirpath,
@@ -1026,7 +1042,7 @@ class TimeSeries():
             
             if self.group is not None:
                 time[self.group] = groups
-                time = time.melt(id_vars=['region'])
+                time = time.melt(id_vars=[self.group])
             else:
                 time = time.melt()
             time.rename(columns={'value':'time','variable':'lag'},inplace=True)
@@ -1048,7 +1064,8 @@ class TimeSeries():
 
             if self.group is not None:
                 time[self.group] = groups
-                time = time.melt(id_vars=['region'])
+
+                time = time.melt(id_vars=[self.group])
             else:
                 time = time.melt()
             time.rename(columns={'value':'time','variable':'lag'},inplace=True)

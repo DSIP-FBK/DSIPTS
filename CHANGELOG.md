@@ -1,5 +1,6 @@
-
-
+## 1.1.13 (2025-11-07)
+- Added weight for the WeightedRandomSampler (only for the training part)
+- Bug fixing when using groups in the categorical variables
 ## 1.1.12 (2025-11-07)
 - Bug fixing dynamo stuff for `TTM`
 - Bug fixing loading weights after training process ('dynamo module can not load weights`)
