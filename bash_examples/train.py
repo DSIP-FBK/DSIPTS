@@ -35,8 +35,9 @@ def train(conf: DictConfig) -> None:
     beauty_string(selection,'block', VERBOSE)
 
     ##OCCHIO CHE tutti questi dataset hanno y come target! ###############################################
-    
-    if conf.dataset.dataset == 'incube': 
+    if conf.dataset.dataset == 'dst': 
+        from load_data.load_data_dst import load_data
+    elif conf.dataset.dataset == 'incube': 
         from load_data.load_data_incube import load_data
     elif conf.dataset.dataset == 'pollen': 
         from load_data.load_data_pollen import load_data

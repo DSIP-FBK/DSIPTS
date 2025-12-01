@@ -77,6 +77,8 @@ def inference(conf:DictConfig,split_params=None)->List[pd.DataFrame]:
     if conf.dataset.dataset == 'custom': 
         beauty_string('PLEASE WRITE CUSTOM PROCESSING FUNCTION','block',VERBOSE)
         from load_data.load_data_public import load_data
+    elif conf.dataset.dataset == 'dst': 
+        from load_data.load_data_dst import load_data
     elif conf.dataset.dataset == 'synthetic': 
         from load_data.load_data_generated import load_data
     else:

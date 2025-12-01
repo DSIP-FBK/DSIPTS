@@ -764,7 +764,7 @@ class TimeSeries():
             self.modifier = None
         
         if self.sampler_weights is not None:
-            beauty_string(f'USING SAMPLER IN TRAIN','section',self.verbose)
+            beauty_string(f'USING SAMPLER IN TRAIN {min(train.sampler_weights)}-{max(train.sampler_weights)}','section',self.verbose)
 
             sampler = WeightedRandomSampler(train.sampler_weights, num_samples= len(train))
             train_dl = DataLoader(train, batch_size = batch_size , shuffle=False,sampler=sampler,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
