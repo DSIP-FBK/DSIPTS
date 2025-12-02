@@ -1,7 +1,11 @@
+## 1.1.14 (2025-12-02)
+- Add CHANGELOG to the pip page
 ## 1.1.13 (2025-12-02)
+
 - Added weight for the WeightedRandomSampler (only for the training part)
 - Bug fixing when using groups in the categorical variables
 - TTM fixed for working with zeropad for shorter sequences and future covariates
+
 ## 1.1.12 (2025-11-07)
 - Bug fixing dynamo stuff for `TTM`
 - Bug fixing loading weights after training process ('dynamo module can not load weights`)

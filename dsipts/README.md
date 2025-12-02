@@ -374,14 +374,11 @@ and then open the url (http://127.0.0.1:43800)[http://127.0.0.1:43800]. It will 
 
 [ ] clean code and standardize documentation
 
-[ ] add more sintetic data
-
 [ ] check all the code in the README 
 
 [ ] check architecture description (which model can be used under certain assumption) 
 
 [ ] complete the classification part (loss function + inference step)
-
 
 [ ] check D3VAE, it seems broken in some configurations
 
@@ -392,10 +389,6 @@ and then open the url (http://127.0.0.1:43800)[http://127.0.0.1:43800]. It will 
 [ ] add https://github.com/Hank0626/PDF/blob/main/models/PDF.py
 
 [ ] add https://github.com/decisionintelligence/pathformer
-
-[x] add Duet
-
-[x] add categorical support to Crossformer, Samformer 
 
 [ ] in 1.1.5 we split the future and past categorical variables. D3VAE, Diffusion, TTM need to be revised 
 

@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.abspath("../../src"))
 # -- Project information -----------------------------------------------------
 project = "DSIPTS"
 author = "Andrea Gobbi (agobbifbk.eu)"
-release = "1.1.13"
+release = "1.1.14"
 
 # -- General configuration ---------------------------------------------------
 extensions = [
