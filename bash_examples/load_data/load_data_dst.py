@@ -18,11 +18,11 @@ def load_data(conf):
                                                     'y': np.mean})
     dati_agg.reset_index(inplace=True)
     dati_agg.sort_values(by = ['data','ora_round'],inplace=True)
-    from datetime import timedelta
+    from datetime import timedelta, datetime
     dati_agg['time'] = dati_agg.apply(lambda x:x['data']+timedelta(hours=x['ora_round'] ),axis=1)
     
     ##care here
-    dst_min = dati_agg.loc[dati_agg.time<= datetime.datetime(2008,12,31),'y']
+    dst_min = dati_agg.loc[dati_agg.time<= datetime(2008,12,31),'y']
 
 
     bins = [dst_min.min() - 10] + list(np.arange(-300, dst_min.max() + 10, 10))
@@ -37,10 +37,10 @@ def load_data(conf):
         if dst_v - b[pos] < 0:
             pos = pos-1
         return w[pos]/h.max()
-    import pdb
-    pdb.set_trace()
+
     fix_weight_v = np.vectorize(fix_weight)    
     weights = fix_weight_v(dst_min)
+    weights[weights>0.25] = 0.25
     print(weights.min(), weights.max())
     dati_agg['weights'] = 0.25
     dati_agg.loc[0:len(dst_min),'weights'] = weights
