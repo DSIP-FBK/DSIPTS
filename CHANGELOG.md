@@ -11,9 +11,6 @@
 ## 1.1.11 (2025-11-06)
 - Added `torch.compile` for better performance on recent GPU
 - Stable `TTM` model according to version 1.1.5, still under debug, use at your own risk
- 
-
-
 - Bux Fixing `cprs` inference (now produces 3 quantiles: `[0.05, 0.5, 0.95]`). The `persistence_weight` is the value of `alpha` in the paper (between 0 and 1)
 
 ## 1.1.9 (2025-09-19)
