@@ -22,8 +22,8 @@ def load_data(conf):
     dati_agg['time'] = dati_agg.apply(lambda x:x['data']+timedelta(hours=x['ora_round'] ),axis=1)
     
     ##care here
-    M = int(dati_agg.shape[0]*conf.split_params.perc_train)
-    dst_min = dati_agg['y'].values[0:M]
+    dst_min = dati_agg.loc[dati_agg.time<= datetime.datetime(2008,12,31),'y']
+
 
     bins = [dst_min.min() - 10] + list(np.arange(-300, dst_min.max() + 10, 10))
     h, b = np.histogram(dst_min, bins=bins)
@@ -37,12 +37,13 @@ def load_data(conf):
         if dst_v - b[pos] < 0:
             pos = pos-1
         return w[pos]/h.max()
-
+    import pdb
+    pdb.set_trace()
     fix_weight_v = np.vectorize(fix_weight)    
     weights = fix_weight_v(dst_min)
     print(weights.min(), weights.max())
-    dati_agg['weights'] = 1.0
-    dati_agg.loc[0:M-1,'weights'] = weights
+    dati_agg['weights'] = 0.25
+    dati_agg.loc[0:len(dst_min),'weights'] = weights
     dati_agg.drop(columns=['data','ora_round'],inplace=True)
     #dati_agg['f'] = 1
     ts = TimeSeries(conf.ts.name)
