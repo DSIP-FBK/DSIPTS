@@ -38,6 +38,7 @@ class TTM(Base):
                 fcm_mix_layers,
                 fcm_prepend_past,
                 enable_forecast_channel_mixing,
+                force_return,
                 **kwargs)->None:
    
         super().__init__(**kwargs)
@@ -48,7 +49,9 @@ class TTM(Base):
         self.index_fut = list(exogenous_channel_indices_cont)
 
         if len(exogenous_channel_indices_cat)>0:
-            self.index_fut_cat = (self.past_channels+len(self.embs_past))+list(exogenous_channel_indices_cat)
+
+            self.index_fut_cat = [self.past_channels+c for c in list(exogenous_channel_indices_cat)]
+
         else:
             self.index_fut_cat = []
         self.freq = freq
@@ -75,6 +78,7 @@ class TTM(Base):
             fcm_use_mixer=fcm_use_mixer,
             fcm_mix_layers=fcm_mix_layers,
             freq=freq,
+            force_return=force_return,
             freq_prefix_tuning=freq_prefix_tuning,
             fcm_prepend_past=fcm_prepend_past,
             enable_forecast_channel_mixing=enable_forecast_channel_mixing,
@@ -83,7 +87,7 @@ class TTM(Base):
         hidden_size =  self.model.config.hidden_size
         self.model.prediction_head = torch.nn.Linear(hidden_size, self.out_channels*self.mul)
         self._freeze_backbone()
-
+        self.zero_pad = (force_return=='zeropad') 
     def _freeze_backbone(self):
         """
         Freeze the backbone of the model.
@@ -108,29 +112,44 @@ class TTM(Base):
         return input
 
     def can_be_compiled(self):
-        return True  
+        
+        return True#not self.zero_pad  
   
     def forward(self, batch):
         x_enc = batch['x_num_past'].to(self.device)
+
+        
+        if self.zero_pad:
+            B,L,C = batch['x_num_past'].shape
+            x_enc = torch.zeros((B,512,C)).to(self.device)
+            x_enc[:,-L:,:] = batch['x_num_past'].to(self.device)
+        else:
+            x_enc = batch['x_num_past'].to(self.device)
         original_indexes = batch['idx_target'][0].tolist()
 
 
         if 'x_cat_past' in batch.keys():
-            x_mark_enc = batch['x_cat_past'].to(torch.float32).to(self.device)
-            x_mark_enc = self._scaler_past(x_mark_enc)
+            if self.zero_pad:
+                B,L,C = batch['x_cat_past'].shape
+                x_mark_enc = torch.zeros((B,512,C)).to(self.device)
+                x_mark_enc[:,-L:,:] = batch['x_cat_past'].to(torch.float32).to(self.device)
+            else:
+                x_mark_enc = batch['x_cat_past'].to(torch.float32).to(self.device)
+                x_mark_enc = self._scaler_past(x_mark_enc)
             past_values = torch.cat((x_enc,x_mark_enc), axis=-1).type(torch.float32)
         else:
             past_values = x_enc
+        B,L,C = past_values.shape
+        future_values = torch.zeros((B,self.future_steps,C)).to(self.device)
         
-        future_values = torch.zeros_like(past_values).to(self.device)
-        future_values = future_values[:,:self.future_steps,:]
 
+   
         if 'x_num_future' in batch.keys(): 
             future_values[:,:,self.index_fut] = batch['x_num_future'].to(self.device)
         if 'x_cat_future' in batch.keys():
             x_mark_dec = batch['x_cat_future'].to(torch.float32).to(self.device)
             x_mark_dec = self._scaler_fut(x_mark_dec)
-            future_values[:,:,self.index_cat_fut] = x_mark_dec
+            future_values[:,:,self.index_fut_cat] = x_mark_dec
         
 
         #investigating!! problem with dynamo!

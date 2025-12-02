@@ -44,14 +44,17 @@ def load_data(conf):
     dati_agg['weights'] = 1.0
     dati_agg.loc[0:M-1,'weights'] = weights
     dati_agg.drop(columns=['data','ora_round'],inplace=True)
+    #dati_agg['f'] = 1
     ts = TimeSeries(conf.ts.name)
 
 
     ts.load_signal(dati_agg, enrich_cat= [],
                    target_variables=['y'],
+                    #cat_past_var=['f'],
+                    #cat_fut_var=['f'],
                    sampler_weights = conf.ts.get('sampler_weights',None),
                    past_variables = ['BX', 'BY', 'BZ', 'FLOW_SPEED', 'PROTON_DENSITY','TEMPERATURE', 'PRESSION', 'ELETTRIC', 'y'],
-                   future_variables = [],
+                   #future_variables = ['BX'],
                    silly_model=conf.ts.get('silly',False))
 
     print(ts)
