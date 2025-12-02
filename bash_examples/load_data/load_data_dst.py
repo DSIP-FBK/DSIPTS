@@ -22,7 +22,7 @@ def load_data(conf):
     dati_agg['time'] = dati_agg.apply(lambda x:x['data']+timedelta(hours=x['ora_round'] ),axis=1)
     
     ##care here
-    dst_min = dati_agg.loc[dati_agg.time<= datetime(2008,12,31),'y']
+    dst_min = dati_agg.loc[dati_agg.time<= datetime(2008,12,31),'y'].values
 
 
     bins = [dst_min.min() - 10] + list(np.arange(-300, dst_min.max() + 10, 10))
@@ -43,7 +43,7 @@ def load_data(conf):
     weights[weights>0.25] = 0.25
     print(weights.min(), weights.max())
     dati_agg['weights'] = 0.25
-    dati_agg.loc[0:len(dst_min),'weights'] = weights
+    dati_agg.loc[0:len(dst_min)-1,'weights'] = weights
     dati_agg.drop(columns=['data','ora_round'],inplace=True)
     #dati_agg['f'] = 1
     ts = TimeSeries(conf.ts.name)
