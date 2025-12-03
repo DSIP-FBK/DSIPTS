@@ -335,7 +335,6 @@ class Base(pl.LightningModule):
     def on_validation_start(self):
         # reset buffer each epoch
         self._val_outputs = []
-    
 
     def on_validation_epoch_end(self):
         """
