@@ -353,6 +353,7 @@ class Base(pl.LightningModule):
                 idx = 0
             for i in range(ys.shape[2]):
                 real =  ys[0,:,i].cpu().detach().numpy()
+    
                 pred =  y_hats[0,:,i,idx].cpu().detach().numpy()
                 fig, ax = plt.subplots(figsize=(7,5))  
                 ax.plot(real,'o-',label='real')
@@ -407,8 +408,17 @@ class Base(pl.LightningModule):
             initial_loss = self.loss(y_hat[:,:,:,0], batch['y'])
         else:
             initial_loss = self.loss(y_hat, batch['y'])
+            
+        if  self.loss_type in ['mse','l1']:
+            return initial_loss
+        
         x =  batch['x_num_past'].to(self.device)
+        
         idx_target = batch['idx_target'][0]
+        
+        if idx_target is None:
+            beauty_string(f'Can not compute non-standard loss for non autoregressive models, if you want to use custom losses please add check=True wile initialize the time series object','info',self.verbose)
+            return initial_loss
         x_start = x[:,-1,idx_target].unsqueeze(1)
         y_persistence = x_start.repeat(1,self.future_steps,1)
         
@@ -423,7 +433,7 @@ class Base(pl.LightningModule):
             persistence_error = (2.0-10.0*torch.clamp( torch.abs((y_persistence-x)/(0.001+torch.abs(y_persistence))),min=0.0,max=max(0.05,0.1*(1+np.log10(self.persistence_weight)  ))))
             loss = torch.mean(torch.abs(x- batch['y'])*persistence_error)
         
-        if self.loss_type == 'mda':
+        elif self.loss_type == 'mda':
             #import pdb
             #pdb.set_trace()
             mda =  (1-torch.mean( torch.sign(torch.diff(x,axis=1))*torch.sign(torch.diff(batch['y'],axis=1))))

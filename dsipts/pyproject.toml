@@ -1,7 +1,3 @@
-[tool.uv]
-pre-build = [
-    "python generate_long_description.py"
-]
 
 [project]
 name = "dsipts"

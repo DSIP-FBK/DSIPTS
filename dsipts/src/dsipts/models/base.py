@@ -392,8 +392,15 @@ class Base(pl.LightningModule):
             initial_loss = self.loss(y_hat[:,:,:,0], batch['y'])
         else:
             initial_loss = self.loss(y_hat, batch['y'])
+            
+        if  self.loss_type in ['mse','l1']:
+            return initial_loss
+            
         x =  batch['x_num_past'].to(self.device)
         idx_target = batch['idx_target'][0]
+        if idx_target is None:
+            beauty_string(f'Can not compute non-standard loss for non autoregressive models, if you want to use custom losses please add check=True wile initialize the time series object','info',self.verbose)
+            return initial_loss
         x_start = x[:,-1,idx_target].unsqueeze(1)
         y_persistence = x_start.repeat(1,self.future_steps,1)
         

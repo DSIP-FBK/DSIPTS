@@ -1,5 +1,6 @@
 ## 1.1.14 (2025-12-02)
 - Add CHANGELOG to the pip page
+- Bug fixing for non autoregressive models
 ## 1.1.13 (2025-12-02)
 
 - Added weight for the WeightedRandomSampler (only for the training part)

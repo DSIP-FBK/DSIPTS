@@ -54,7 +54,7 @@ def load_data(conf):
                     #cat_past_var=['f'],
                     #cat_fut_var=['f'],
                    sampler_weights = conf.ts.get('sampler_weights',None),
-                   check_past=False,
+                   check_past=conf.ts.check,
                    past_variables = ['BX', 'BY', 'BZ', 'FLOW_SPEED', 'PROTON_DENSITY','TEMPERATURE', 'PRESSION', 'ELETTRIC'],
                    #future_variables = ['BX'],
                    silly_model=conf.ts.get('silly',False))
