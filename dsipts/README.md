@@ -366,6 +366,8 @@ and then open the url (http://127.0.0.1:43800)[http://127.0.0.1:43800]. It will 
 
 
 ## TODO
+[ ] some models can not work in a non-autoregressive way (target past variable is required). Relax some constraints in the forward loop can help this
+
 [ ] reduce test time 
 
 [ ] add pre-commit hook for code checking (`ruff check --ignore E501,E722 .`)
@@ -390,7 +392,7 @@ and then open the url (http://127.0.0.1:43800)[http://127.0.0.1:43800]. It will 
 
 [ ] add https://github.com/decisionintelligence/pathformer
 
-[ ] in 1.1.5 we split the future and past categorical variables. D3VAE, Diffusion, TTM need to be revised 
+[ ] in 1.1.5 we split the future and past categorical variables. D3VAE &^ Diffusion to be revised 
 
 [ ] all snippet of code and notebook must be review in 1.1.5 (categorical past and future, embedding layer parameters)
 

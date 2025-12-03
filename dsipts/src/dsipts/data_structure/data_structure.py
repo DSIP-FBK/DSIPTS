@@ -829,7 +829,7 @@ class TimeSeries():
         self.model.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
         if self.model.can_be_compiled():
             try:
-                #self.model = torch.compile(self.model)
+                self.model = torch.compile(self.model)
                 beauty_string('Model COMPILED','block',self.verbose)
 
             except:
