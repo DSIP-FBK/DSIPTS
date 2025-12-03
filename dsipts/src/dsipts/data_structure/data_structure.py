@@ -1204,15 +1204,21 @@ class TimeSeries():
                 
                 try:
                     tmp_path = os.path.join(directory,self.checkpoint_file_last.split('/')[-1])
+                    beauty_string(f"Loading {tmp_path}",'section',self.verbose)
+
                 except Exception as _:
                     beauty_string('checkpoint_file_last not defined try to load best','section',self.verbose)
                     tmp_path = os.path.join(directory,self.checkpoint_file_best.split('/')[-1])
+                    beauty_string(f"Loading {tmp_path}",'section',self.verbose)
             else:
                 try:
+                    
                     tmp_path = os.path.join(directory,self.checkpoint_file_best.split('/')[-1])
+                    beauty_string(f"Loading {tmp_path}",'section',self.verbose)
                 except Exception as _:
                     beauty_string('checkpoint_file_best not defined try to load best','section',self.verbose)
                     tmp_path = os.path.join(directory,self.checkpoint_file_last.split('/')[-1])
+                    beauty_string(f"Loading {tmp_path}",'section',self.verbose)
         try:
             #with torch.serialization.add_safe_globals([ListConfig]):
             if OLD_PL:
