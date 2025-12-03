@@ -1,7 +1,7 @@
 # @package _global_
 
 model:
-  type: 'timesnet'
+  type: 'timekan'
   retrain: true
   restart: false
 ts:
@@ -16,11 +16,13 @@ model_configs:
   use_classical_positional_encoder: true 
   emb_dim: 16 
   reduction_mode: mean 
+  down_sampling_window: 2
   e_layers: 2
-  d_model: 4
-  top_k: 4
-  d_ff: 64
-  num_kernels: 3
+  moving_avg: 3
+  down_sampling_layers: 2
+  d_model: 6
+  begin_order: 2
+  use_norm: true
   optim: torch.optim.AdamW
   persistence_weight: 0.010
   loss_type: 'l1'
