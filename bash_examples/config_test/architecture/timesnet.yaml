@@ -1,0 +1,32 @@
+# @package _global_
+
+model:
+  type: 'timesnet'
+  retrain: true
+  restart: false
+ts:
+  name: 'test'
+  version: 1
+  enrich: ['hour']
+  use_covariates: true
+  use_future_covariates: true
+  silly: false
+  
+model_configs:
+  use_classical_positional_encoder: true 
+  emb_dim: 16 
+  reduction_mode: mean 
+  e_layers: 2
+  d_model: 4
+  top_k: 4
+  d_ff: 64
+  num_kernels: 3
+  optim: torch.optim.AdamW
+  persistence_weight: 0.010
+  loss_type: 'l1'
+  activation: torch.nn.ReLU
+  quantiles: [0.1,0.5,0.9]
+train_config:
+  batch_size: 32
+  max_epochs: 1
+         

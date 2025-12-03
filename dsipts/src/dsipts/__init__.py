@@ -26,6 +26,8 @@ from .models.TTM import TTM
 from .models.Samformer import Samformer
 from .models.Duet import Duet
 from .models.Simple import Simple
+from .models.TimesNet import TimesNet
+
 try:
     import lightning.pytorch as pl
     from .models.base_v2 import Base
@@ -44,5 +46,5 @@ __all__ = [
     "RNN", "LinearTS", "Persistent", "D3VAE", "DilatedConv", "TFT",
     "Informer", "VVA", "VQVAEA", "CrossFormer", "Autoformer", "PatchTST",
     "Diffusion", "DilatedConvED", "TIDE", "ITransformer", "TimeXER",
-    "TTM", "Samformer", "Duet", "Base", "Simple"
+    "TTM", "Samformer", "Duet", "Base", "Simple","TimesNet"
 ]

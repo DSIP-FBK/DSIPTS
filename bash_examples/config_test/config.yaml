@@ -12,6 +12,8 @@ ts:
   use_covariates: true
   use_future_covariates: true
   #sampler_weights: fake_columns
+  sampler_weights: null
+  check: true #add the target to past covariates (for some models it is mandatory)
 
 scheduler_config:
   gamma: 1.0
