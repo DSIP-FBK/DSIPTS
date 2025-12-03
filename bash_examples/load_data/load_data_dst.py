@@ -25,7 +25,7 @@ def load_data(conf):
     dst_min = dati_agg.loc[dati_agg.time<= datetime(2008,12,31),'y'].values
 
 
-    bins = [dst_min.min() - 10] + list(np.arange(-300, dst_min.max() + 10, 10))
+    bins = [dst_min.min() - 10] + list(np.arange(-300, 40 + 10, 10))
     h, b = np.histogram(dst_min, bins=bins)
     if len(np.argwhere(h == 0)) > 0:
         bins = np.delete(bins, np.argwhere(h == 0)[0] + 1)
@@ -34,13 +34,15 @@ def load_data(conf):
     
     def fix_weight(dst_v):
         pos = np.argwhere(np.abs(b - dst_v) == np.abs((b - dst_v)).min())[0,0]
+        if pos==len(w):
+            return w[pos-1]/h.max()
         if dst_v - b[pos] < 0:
             pos = pos-1
         return w[pos]/h.max()
 
     fix_weight_v = np.vectorize(fix_weight)    
     weights = fix_weight_v(dst_min)
-    weights[weights>0.25] = 0.25
+    #weights[weights>0.25] = 0.25
     print(weights.min(), weights.max())
     dati_agg['weights'] = 0.25
     dati_agg.loc[0:len(dst_min)-1,'weights'] = weights
