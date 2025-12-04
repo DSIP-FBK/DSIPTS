@@ -1009,12 +1009,15 @@ class TimeSeries():
         beauty_string(f'Device used: {self.model.device}','info',self.verbose)
 
         for batch in dl:
+    
+
             res.append(self.model.inference(batch).cpu().detach().numpy())
             real.append(batch['y'].cpu().detach().numpy())
-       
+
         res = np.vstack(res)
- 
         real = np.vstack(real)
+
+        
         time = dl.dataset.t
         groups = dl.dataset.groups
         #import pdb
@@ -1226,5 +1229,6 @@ class TimeSeries():
             else:
                 self.model = self.model.__class__.load_from_checkpoint(tmp_path,verbose=self.verbose,)
             self.model.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
+
         except Exception as e:
             beauty_string(f'There is a problem loading the weights on file {tmp_path} {e}','section',self.verbose)

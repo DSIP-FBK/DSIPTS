@@ -22,30 +22,32 @@ def load_data(conf):
     dati_agg['time'] = dati_agg.apply(lambda x:x['data']+timedelta(hours=x['ora_round'] ),axis=1)
     
     ##care here
-    dst_min = dati_agg.loc[dati_agg.time<= datetime(2008,12,31),'y'].values
-
-
-    bins = [dst_min.min() - 10] + list(np.arange(-300, 40 + 10, 10))
+    
+    dst_min = dati_agg.loc[dati_agg.time<= datetime.datetime(2008,12,31),'y'].values
+    dst_min = np.stack([np.roll(dst_min, i) for i in range(-24,24)]).min(0)
+    bins = [dst_min.min() - 10] + list(np.arange(-300, dst_min.max() + 10, 10))
     h, b = np.histogram(dst_min, bins=bins)
     if len(np.argwhere(h == 0)) > 0:
         bins = np.delete(bins, np.argwhere(h == 0)[0] + 1)
         h, b = np.histogram(dst_min, bins=bins)
     w = h.max()/h
-    
+
     def fix_weight(dst_v):
         pos = np.argwhere(np.abs(b - dst_v) == np.abs((b - dst_v)).min())[0,0]
-        if pos==len(w):
-            return w[pos-1]/h.max()
         if dst_v - b[pos] < 0:
             pos = pos-1
+        if dst_v<-250:
+            return 0.025
         return w[pos]/h.max()
 
+
+
     fix_weight_v = np.vectorize(fix_weight)    
-    weights = fix_weight_v(dst_min)
+    weights = fix_weight_v(dst_min)*100
     #weights[weights>0.25] = 0.25
     print(weights.min(), weights.max())
-    dati_agg['weights'] = 0.25
-    dati_agg.loc[0:len(dst_min)-1,'weights'] = weights*2
+    dati_agg['weights'] = 1
+    dati_agg.loc[0:len(dst_min)-1,'weights'] = weights
     dati_agg.drop(columns=['data','ora_round'],inplace=True)
     #dati_agg['f'] = 1
     ts = TimeSeries(conf.ts.name)
