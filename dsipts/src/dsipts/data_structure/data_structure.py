@@ -671,7 +671,7 @@ class TimeSeries():
                         if c!=self.group:                               
                             self.scaler_cat[f'{c}_{group}'] =  OrdinalEncoder(dtype=np.int32,handle_unknown= 'use_encoded_value',unknown_value=train[c].nunique())
                             self.scaler_cat[f'{c}_{group}'].fit(tmp[c].values.reshape(-1,1))  
-
+ 
         dl_train = self.create_data_loader(train,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)
         dl_validation = self.create_data_loader(validation,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)
         if test.shape[0]>0:

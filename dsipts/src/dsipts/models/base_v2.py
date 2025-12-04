@@ -314,7 +314,7 @@ class Base(pl.LightningModule):
         
         :meta private:
         """
-
+  
         if self.return_additional_loss:
             y_hat,score = self(batch)
         else:
@@ -363,7 +363,7 @@ class Base(pl.LightningModule):
                 #self.log(f"example_{i}", np.stack([real, pred]).T,sync_dist=True)
                 plt.close(fig) 
             
-         
+
         avg = self.validation_epoch_metrics/self.validation_epoch_count
 
         self.validation_epoch_metrics.zero_()

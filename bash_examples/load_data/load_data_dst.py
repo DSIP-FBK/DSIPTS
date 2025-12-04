@@ -45,7 +45,7 @@ def load_data(conf):
     #weights[weights>0.25] = 0.25
     print(weights.min(), weights.max())
     dati_agg['weights'] = 0.25
-    dati_agg.loc[0:len(dst_min)-1,'weights'] = weights
+    dati_agg.loc[0:len(dst_min)-1,'weights'] = weights*2
     dati_agg.drop(columns=['data','ora_round'],inplace=True)
     #dati_agg['f'] = 1
     ts = TimeSeries(conf.ts.name)

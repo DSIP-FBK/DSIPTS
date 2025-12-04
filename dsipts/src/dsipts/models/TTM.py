@@ -113,7 +113,7 @@ class TTM(Base):
 
     def can_be_compiled(self):
         
-        return True#not self.zero_pad  
+        return True#True#not self.zero_pad  
   
     def forward(self, batch):
         x_enc = batch['x_num_past'].to(self.device)
@@ -172,6 +172,7 @@ class TTM(Base):
 
 
         BS = res.shape[0]
+
         return res.reshape(BS,self.future_steps,-1,self.mul)
         
     
