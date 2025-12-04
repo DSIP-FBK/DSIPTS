@@ -23,7 +23,7 @@ def load_data(conf):
     
     ##care here
     
-    dst_min = dati_agg.loc[dati_agg.time<= datetime.datetime(2008,12,31),'y'].values
+    dst_min = dati_agg.loc[dati_agg.time<= datetime(2008,12,31),'y'].values
     dst_min = np.stack([np.roll(dst_min, i) for i in range(-24,24)]).min(0)
     bins = [dst_min.min() - 10] + list(np.arange(-300, dst_min.max() + 10, 10))
     h, b = np.histogram(dst_min, bins=bins)
