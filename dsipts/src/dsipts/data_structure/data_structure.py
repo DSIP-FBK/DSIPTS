@@ -773,7 +773,22 @@ class TimeSeries():
         else:
             train_dl = DataLoader(train, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
         valid_dl = DataLoader(validation, batch_size = batch_size , shuffle=False,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
-   
+        '''
+        dl = DataLoader(test, batch_size = batch_size , shuffle=False,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
+        res = []
+        real = []
+        for batch in dl:
+    
+
+            res.append(self.model.inference(batch).cpu().detach().numpy())
+            real.append(batch['y'].cpu().detach().numpy())
+
+        res = np.vstack(res)
+        real = np.vstack(real)
+        with open('/home/agobbi/Projects/ExpTS/tmp_beginning.pkl','wb') as f:
+            import pickle
+            pickle.dump([res,real],f)
+        '''
         checkpoint_callback = ModelCheckpoint(dirpath=dirpath,
                                      monitor='val_loss',
                                       save_last = True,
@@ -906,6 +921,21 @@ class TimeSeries():
         self.losses = mc.metrics
 
         files = os.listdir(dirpath)
+        '''
+        res = []
+        real = []
+        for batch in dl:
+    
+
+            res.append(self.model.inference(batch).cpu().detach().numpy())
+            real.append(batch['y'].cpu().detach().numpy())
+
+        res = np.vstack(res)
+        real = np.vstack(real)
+        with open('/home/agobbi/Projects/ExpTS/tmp_after_training.pkl','wb') as f:
+            import pickle
+            pickle.dump([res,real],f)
+        '''
         ##accrocchio per multi gpu
         for f in files:
             if '__losses__.csv' in f:
@@ -931,7 +961,21 @@ class TimeSeries():
                     self.model = mm.__class__.load_from_checkpoint(self.checkpoint_file_last)
                 else:
                     self.model = self.model.__class__.load_from_checkpoint(self.checkpoint_file_last)
+            '''
+            res = []
+            real = []
+            for batch in dl:
+        
 
+                res.append(self.model.inference(batch).cpu().detach().numpy())
+                real.append(batch['y'].cpu().detach().numpy())
+
+            res = np.vstack(res)
+            real = np.vstack(real)
+            with open('/home/agobbi/Projects/ExpTS/tmp_after_loading.pkl','wb') as f:
+                import pickle
+                pickle.dump([res,real],f)
+            '''
         except Exception as _:
             beauty_string(f'There is a problem loading the weights on file MAYBE CHANGED HOW WEIGHTS ARE LOADED {self.checkpoint_file_last}','section',self.verbose)
 
@@ -1017,7 +1061,7 @@ class TimeSeries():
         res = np.vstack(res)
         real = np.vstack(real)
 
-        
+
         time = dl.dataset.t
         groups = dl.dataset.groups
         #import pdb
