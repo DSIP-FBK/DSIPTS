@@ -24,7 +24,7 @@ def load_data(conf):
     ##care here
     
     dst_min = dati_agg.loc[dati_agg.time<= datetime(2008,12,31),'y'].values
-    dst_min = np.stack([np.roll(dst_min, i) for i in range(-24,24)]).min(0)
+    dst_min = np.stack([np.roll(dst_min, i) for i in range(-11,1)]).min(0)
     bins = [dst_min.min() - 10] + list(np.arange(-300, dst_min.max() + 10, 10))
     h, b = np.histogram(dst_min, bins=bins)
     if len(np.argwhere(h == 0)) > 0:
@@ -37,7 +37,7 @@ def load_data(conf):
         if dst_v - b[pos] < 0:
             pos = pos-1
         if dst_v<-250:
-            return 0.025
+            return 0.05
         return w[pos]/h.max()
 
 
@@ -46,8 +46,10 @@ def load_data(conf):
     weights = fix_weight_v(dst_min)*100
     #weights[weights>0.25] = 0.25
     print(weights.min(), weights.max())
-    dati_agg['weights'] = 1.0
-    dati_agg.loc[0:len(dst_min)-1,'weights'] = np.sqrt(weights)*10
+    w = np.ones(dati_agg.shape[0])
+    w[0:len(weights)] = np.sqrt(weights)*10
+    dati_agg['weights'] = w
+
     dati_agg.drop(columns=['data','ora_round'],inplace=True)
     #dati_agg['f'] = 1
     ts = TimeSeries(conf.ts.name)

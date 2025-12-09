@@ -773,7 +773,8 @@ class TimeSeries():
         else:
             train_dl = DataLoader(train, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
         valid_dl = DataLoader(validation, batch_size = batch_size , shuffle=False,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
-        debug_prediction = True
+        debug_prediction = False
+
         if debug_prediction:
             dl = DataLoader(test, batch_size = batch_size , shuffle=False,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
             res = []
@@ -886,20 +887,21 @@ class TimeSeries():
       
      
         if auto_lr_find and (weight_exists is False):
-            if OLD_PL:
-                lr_tuner = trainer.tune(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)
-                files = os.listdir(dirpath)
-                for f in files:
-                    if '.lr_find' in f:
-                        os.remove(os.path.join(dirpath,f))
-                self.model.optim_config['lr'] = lr_tuner['lr_find'].suggestion()
-            else:
-                from lightning.pytorch.tuner import Tuner
-                tuner = Tuner(trainer)
-                lr_finder = tuner.lr_find(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)
-                self.model.optim_config['lr'] = lr_finder.suggestion() ## we are using it as optim key
-        
- 
+            try:
+                if OLD_PL:
+                    lr_tuner = trainer.tune(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)
+                    files = os.listdir(dirpath)
+                    for f in files:
+                        if '.lr_find' in f:
+                            os.remove(os.path.join(dirpath,f))
+                    self.model.optim_config['lr'] = lr_tuner['lr_find'].suggestion()
+                else:
+                    from lightning.pytorch.tuner import Tuner
+                    tuner = Tuner(trainer)
+                    lr_finder = tuner.lr_find(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)
+                    self.model.optim_config['lr'] = lr_finder.suggestion() ## we are using it as optim key
+            except Exception as e:
+                beauty_string(f'There is a problem with the finding LR routine {e}','section',self.verbose)
         
         if OLD_PL:
             if weight_exists:
