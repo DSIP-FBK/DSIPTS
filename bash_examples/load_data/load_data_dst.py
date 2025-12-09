@@ -48,7 +48,7 @@ def load_data(conf):
     print(weights.min(), weights.max())
     w = np.ones(dati_agg.shape[0])
     w[0:len(weights)] = np.sqrt(weights)*10
-    dati_agg['weights'] = w
+    dati_agg['weights'] = w**2
 
     dati_agg.drop(columns=['data','ora_round'],inplace=True)
     #dati_agg['f'] = 1
