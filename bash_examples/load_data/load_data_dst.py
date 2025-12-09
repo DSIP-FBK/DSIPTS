@@ -43,12 +43,16 @@ def load_data(conf):
 
 
     fix_weight_v = np.vectorize(fix_weight)    
-    weights = fix_weight_v(dst_min)*100
+    weights = fix_weight_v(dst_min)
     #weights[weights>0.25] = 0.25
     print(weights.min(), weights.max())
     w = np.ones(dati_agg.shape[0])
-    w[0:len(weights)] = np.sqrt(weights)*10
-    dati_agg['weights'] = w**2
+    severe = True
+    if not severe :
+        w[0:len(weights)] = np.sqrt(weights)
+    else:
+        w[0:len(weights)] = weights
+    dati_agg['weights'] = w
 
     dati_agg.drop(columns=['data','ora_round'],inplace=True)
     #dati_agg['f'] = 1
