@@ -336,7 +336,7 @@ class Base(pl.LightningModule):
         
         :meta private:
         """
-        if len(self._val_outputs)>0:
+        if (len(self._val_outputs)>0) & (self.trainer.max_epochs>0):
             ys = torch.cat([o["y"] for o in self._val_outputs])
             y_hats = torch.cat([o["y_hat"] for o in self._val_outputs])
             if self.use_quantiles:

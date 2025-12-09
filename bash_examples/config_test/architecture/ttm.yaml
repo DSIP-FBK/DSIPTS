@@ -28,7 +28,8 @@ model_configs:
   prediction_channel_indices: null #dataset dependent
   exogenous_channel_indices_cont: null #dataset dependent
   exogenous_channel_indices_cat: null #dataset dependent
-
+  force_return: zeropad
+  few_shot: false
 train_config:
   batch_size: 64
   max_epochs: 2

@@ -39,6 +39,7 @@ class TTM(Base):
                 fcm_prepend_past,
                 enable_forecast_channel_mixing,
                 force_return,
+                few_shot = True,
                 **kwargs)->None:
    
         super().__init__(**kwargs)
@@ -86,7 +87,8 @@ class TTM(Base):
         )
         hidden_size =  self.model.config.hidden_size
         self.model.prediction_head = torch.nn.Linear(hidden_size, self.out_channels*self.mul)
-        self._freeze_backbone()
+        if few_shot:
+            self._freeze_backbone()
         self.zero_pad = (force_return=='zeropad') 
     def _freeze_backbone(self):
         """

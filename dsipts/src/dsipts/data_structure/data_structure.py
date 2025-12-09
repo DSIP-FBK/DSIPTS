@@ -773,22 +773,23 @@ class TimeSeries():
         else:
             train_dl = DataLoader(train, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
         valid_dl = DataLoader(validation, batch_size = batch_size , shuffle=False,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
-        '''
-        dl = DataLoader(test, batch_size = batch_size , shuffle=False,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
-        res = []
-        real = []
-        for batch in dl:
-    
+        debug_prediction = True
+        if debug_prediction:
+            dl = DataLoader(test, batch_size = batch_size , shuffle=False,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
+            res = []
+            real = []
+            for batch in dl:
+        
 
-            res.append(self.model.inference(batch).cpu().detach().numpy())
-            real.append(batch['y'].cpu().detach().numpy())
+                res.append(self.model.inference(batch).cpu().detach().numpy())
+                real.append(batch['y'].cpu().detach().numpy())
 
-        res = np.vstack(res)
-        real = np.vstack(real)
-        with open('/home/agobbi/Projects/ExpTS/tmp_beginning.pkl','wb') as f:
-            import pickle
-            pickle.dump([res,real],f)
-        '''
+            res = np.vstack(res)
+            real = np.vstack(real)
+            with open('/home/agobbi/Projects/ExpTS/tmp_beginning.pkl','wb') as f:
+                import pickle
+                pickle.dump([res,real],f)
+        
         checkpoint_callback = ModelCheckpoint(dirpath=dirpath,
                                      monitor='val_loss',
                                       save_last = True,
@@ -883,7 +884,7 @@ class TimeSeries():
 
 
       
-
+     
         if auto_lr_find and (weight_exists is False):
             if OLD_PL:
                 lr_tuner = trainer.tune(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)
@@ -899,7 +900,7 @@ class TimeSeries():
                 self.model.optim_config['lr'] = lr_finder.suggestion() ## we are using it as optim key
         
  
-
+        
         if OLD_PL:
             if weight_exists:
                 trainer.fit(self.model, train_dl,valid_dl,ckpt_path=os.path.join(dirpath,'last.ckpt'))
@@ -910,32 +911,36 @@ class TimeSeries():
                 trainer.fit(self.model, train_dataloaders = train_dl,val_dataloaders = valid_dl,ckpt_path=os.path.join(dirpath,'last.ckpt'))
             else:
                 trainer.fit(self.model, train_dataloaders = train_dl,val_dataloaders = valid_dl)
+
         self.checkpoint_file_best = checkpoint_callback.best_model_path
         self.checkpoint_file_last = checkpoint_callback.last_model_path 
         if self.checkpoint_file_last=='':
             beauty_string('There is a bug on saving last model I will try to fix it','info',self.verbose)
-            self.checkpoint_file_last = checkpoint_callback.best_model_path.replace('checkpoint','last')
+            self.checkpoint_file_last = os.path.join(dirpath, "last.ckpt")
+            trainer.save_checkpoint(os.path.join(dirpath, "last.ckpt"))
+        if self.checkpoint_file_best=='':
+            beauty_string('There is a bug on saving best model I will try to fix it','info',self.verbose)
+            self.checkpoint_file_best = os.path.join(dirpath, "checkpoint.ckpt")
+            trainer.save_checkpoint(os.path.join(dirpath, "checkpoint.ckpt"))
 
         self.dirpath = dirpath
         
         self.losses = mc.metrics
 
         files = os.listdir(dirpath)
-        '''
-        res = []
-        real = []
-        for batch in dl:
-    
+        if debug_prediction:
+            res = []
+            real = []
+            for batch in dl:
+                res.append(self.model.inference(batch).cpu().detach().numpy())
+                real.append(batch['y'].cpu().detach().numpy())
 
-            res.append(self.model.inference(batch).cpu().detach().numpy())
-            real.append(batch['y'].cpu().detach().numpy())
-
-        res = np.vstack(res)
-        real = np.vstack(real)
-        with open('/home/agobbi/Projects/ExpTS/tmp_after_training.pkl','wb') as f:
-            import pickle
-            pickle.dump([res,real],f)
-        '''
+            res = np.vstack(res)
+            real = np.vstack(real)
+            with open('/home/agobbi/Projects/ExpTS/tmp_after_training.pkl','wb') as f:
+                import pickle
+                pickle.dump([res,real],f)
+        
         ##accrocchio per multi gpu
         for f in files:
             if '__losses__.csv' in f:
@@ -948,7 +953,6 @@ class TimeSeries():
             self.losses = pd.DataFrame()
 
         try:
-
             if OLD_PL:
                 if isinstance(self.model, torch._dynamo.eval_frame.OptimizedModule):
                     self.model = self.model._orig_mod 
@@ -961,21 +965,21 @@ class TimeSeries():
                     self.model = mm.__class__.load_from_checkpoint(self.checkpoint_file_last)
                 else:
                     self.model = self.model.__class__.load_from_checkpoint(self.checkpoint_file_last)
-            '''
-            res = []
-            real = []
-            for batch in dl:
-        
+            if debug_prediction:
+                res = []
+                real = []
+                for batch in dl:
+            
 
-                res.append(self.model.inference(batch).cpu().detach().numpy())
-                real.append(batch['y'].cpu().detach().numpy())
+                    res.append(self.model.inference(batch).cpu().detach().numpy())
+                    real.append(batch['y'].cpu().detach().numpy())
 
-            res = np.vstack(res)
-            real = np.vstack(real)
-            with open('/home/agobbi/Projects/ExpTS/tmp_after_loading.pkl','wb') as f:
-                import pickle
-                pickle.dump([res,real],f)
-            '''
+                res = np.vstack(res)
+                real = np.vstack(real)
+                with open('/home/agobbi/Projects/ExpTS/tmp_after_loading.pkl','wb') as f:
+                    import pickle
+                    pickle.dump([res,real],f)
+            
         except Exception as _:
             beauty_string(f'There is a problem loading the weights on file MAYBE CHANGED HOW WEIGHTS ARE LOADED {self.checkpoint_file_last}','section',self.verbose)
 
