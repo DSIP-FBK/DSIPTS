@@ -26,7 +26,12 @@ def train(conf: DictConfig) -> None:
     for t in tasks:
         if 'model_configs' in t:
             version_modifier+=t.split('model_configs.')[1] ##cerco solo quelli che modifico
-
+        elif 'train_config' in t:
+            version_modifier+=t.split('train_config.')[1] ##cerco solo quelli che modifico
+        elif 'optim_config' in t:
+            version_modifier+=t.split('optim_config.')[1] ##cerco solo quelli che modifico
+        elif 'split_params' in t:
+            version_modifier+=t.split('split_params.')[1] ##cerco solo quelli che modifico
     version = str(conf.ts.version)
     if version_modifier!='':
         version = version+'_'+version_modifier
