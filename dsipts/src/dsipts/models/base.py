@@ -14,7 +14,8 @@ import matplotlib.pyplot as plt
 from typing import List, Union
 from .utils import QuantileLossMO, CPRS
 import torch.nn as nn
-from torch.optim import *
+from torch.optim import Adam, AdamW, SGD, RMSprop   
+
 def standardize_momentum(x,order):
     mean = torch.mean(x,1).unsqueeze(1).repeat(1,x.shape[1],1)
     num = torch.pow(x-mean,order).mean(axis=1)
