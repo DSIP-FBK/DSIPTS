@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 from typing import List, Union
 from .utils import QuantileLossMO, CPRS
 import torch.nn as nn
+from torch.optim import Adam, AdamW, SGD, RMSprop   
 
 def standardize_momentum(x,order):
     mean = torch.mean(x,1).unsqueeze(1).repeat(1,x.shape[1],1)
@@ -220,7 +221,7 @@ class Base(pl.LightningModule):
 
         
         if self.optim is None:
-            optimizer = optim.Adam(self.parameters(),  **self.optim_config)
+            optimizer = Adam(self.parameters(),  **self.optim_config)
             self.initialize = True
             
         else:
@@ -237,7 +238,7 @@ class Base(pl.LightningModule):
 
             beauty_string(self.optim,'',self.verbose)
             if self.has_sam_optim:
-                optimizer = SAM(self.parameters(), base_optimizer=torch.optim.Adam, **self.optim_config)
+                optimizer = SAM(self.parameters(), base_optimizer=Adam, **self.optim_config)
             else:
                 optimizer = self.optim(self.parameters(),  **self.optim_config)
             beauty_string(optimizer,'',self.verbose)
