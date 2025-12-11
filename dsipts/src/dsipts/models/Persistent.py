@@ -30,6 +30,8 @@ class Persistent(Base):
         self.save_hyperparameters(logger=False)
         self.fake = nn.Linear(1,1)
         self.use_quantiles = False
+    def can_be_compiled(self):
+        return False
     
     def forward(self, batch):
      
