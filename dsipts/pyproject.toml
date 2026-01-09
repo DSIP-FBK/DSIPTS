@@ -1,7 +1,7 @@
 
 [project]
 name = "dsipts"
-version = "1.1.18"
+version = "1.1.19"
 description = "Unified library for timeseries modelling"
 readme = { file = "LONG_DESCRIPTION.md", content-type = "text/markdown" }
 requires-python = "==3.11.13"
@@ -40,7 +40,7 @@ Homepage = "https://github.com/DSIP-FBK/DSIPTS"
 Docs = "https://dsip-fbk.github.io/DSIPTS/"
 
 [tool.bumpver]
-current_version = "1.1.18"
+current_version = "1.1.19"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit = false
 tag = false
