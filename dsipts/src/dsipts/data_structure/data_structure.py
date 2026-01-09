@@ -34,7 +34,7 @@ import logging
 from .modifiers import *
 from aim.pytorch_lightning import AimLogger
 import time
-
+debug_prediction = False
 class DummyScaler():
     def __init__(self):
         pass
@@ -773,7 +773,7 @@ class TimeSeries():
         else:
             train_dl = DataLoader(train, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
         valid_dl = DataLoader(validation, batch_size = batch_size , shuffle=False,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
-        debug_prediction = True
+        
 
         if debug_prediction:
             dl = DataLoader(test, batch_size = batch_size , shuffle=False,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)

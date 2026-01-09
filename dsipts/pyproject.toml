@@ -1,13 +1,14 @@
 
 [project]
 name = "dsipts"
-version = "1.1.15"
+version = "1.1.17"
 description = "Unified library for timeseries modelling"
 readme = { file = "LONG_DESCRIPTION.md", content-type = "text/markdown" }
 requires-python = "==3.11.13"
 dependencies = [
     "aim==3.20.1",
     "beautifulsoup4==4.12.0",
+    "bumpver>=2025.1131",
     "einops>=0.8.1",
     "html-table-parser-python3==0.3.1",
     "html5lib>=1.1",
@@ -37,3 +38,20 @@ authors = [
 [project.urls]
 Homepage = "https://github.com/DSIP-FBK/DSIPTS"
 Docs = "https://dsip-fbk.github.io/DSIPTS/"
+
+[tool.bumpver]
+current_version = "1.1.17"
+version_pattern = "MAJOR.MINOR.PATCH"
+commit = true
+tag = true
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = [
+  'version = "{version}"',
+]
+"src/dsipts/version.py" = [
+  '__version__ = "{version}"',
+]
+"docs/source/conf.py" = [
+  'release = "{version}"',
+]
