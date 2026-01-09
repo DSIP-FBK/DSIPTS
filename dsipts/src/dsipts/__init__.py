@@ -28,7 +28,7 @@ from .models.Duet import Duet
 from .models.Simple import Simple
 from .models.TimesNet import TimesNet
 from .models.TimeKAN import TimeKAN
-
+from .version import __version__
 try:
     import lightning.pytorch as pl
     from .models.base_v2 import Base
