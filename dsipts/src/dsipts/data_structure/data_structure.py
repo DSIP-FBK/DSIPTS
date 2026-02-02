@@ -838,7 +838,7 @@ class TimeSeries():
             
             aim_logger._run['hyperparameters'] = tmp
         else:
-            aim_logger = None
+            aim_logger = False
         mc = MetricsCallback(dirpath)
         ## TODO se ci sono 2 o piu gpu MetricsCallback non funziona (secondo me fa una istanza per ogni dataparallel che lancia e poi non riesce a recuperare info)
         pl.seed_everything(seed, workers=True)
