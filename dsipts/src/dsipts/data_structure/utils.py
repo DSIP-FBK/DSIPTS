@@ -12,42 +12,43 @@ import torch
 import os
 import logging
 from typing import Union
+
 def get_logger(name: str = __name__):
     # Crea la cartella logs se non esiste
     logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
+    if not logger.handlers:
+        logger.setLevel(logging.DEBUG)
 
-    # Evita duplicazione degli handler se il logger viene importato più volte
-    if logger.handlers:
-        return logger
-    
-    logger.propagate = False
+        # Evita duplicazione degli handler se il logger viene importato più volte
+        if logger.handlers:
+            return logger
+        
+        logger.propagate = False
 
-    # === Formatter===
-    formatter = logging.Formatter(
-        "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
+        # === Formatter===
+        formatter = logging.Formatter(
+            "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
 
-    # === Handler per il terminale ===
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.DEBUG)
-    console_handler.setFormatter(formatter)
-    logger.addHandler(console_handler)
+        # === Handler per il terminale ===
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.DEBUG)
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
 
-    # === Handler per i file log ===
-    #os.makedirs("logs", exist_ok=True)
+        # === Handler per i file log ===
+        #os.makedirs("logs", exist_ok=True)
 
-    # file_handler = logging.FileHandler("logs/app.log")
-    # file_handler.setLevel(logging.DEBUG)
-    # file_handler.setFormatter(formatter)
-    # logger.addHandler(file_handler)
+        # file_handler = logging.FileHandler("logs/app.log")
+        # file_handler.setLevel(logging.DEBUG)
+        # file_handler.setFormatter(formatter)
+        # logger.addHandler(file_handler)
 
     return logger
-logger = get_logger('main')
 
+logger = get_logger("dsip")
 def beauty_string(message:str,type:str,verbose:bool):
-    logger=get_logger()
     size = 150
     if verbose is True:
         if type=='block':
