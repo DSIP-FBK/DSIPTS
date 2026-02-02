@@ -774,6 +774,7 @@ class TimeSeries():
             train_dl = DataLoader(train, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
         valid_dl = DataLoader(validation, batch_size = batch_size , shuffle=False,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
         
+        beauty_string(f'train:{len(train_dl)}, validation:{len(valid_dl)}','section',self.verbose)
 
         if debug_prediction:
             dl = DataLoader(test, batch_size = batch_size , shuffle=False,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
@@ -801,6 +802,8 @@ class TimeSeries():
         
         
         #logger = CSVLogger("logs", name=dirpath)
+        beauty_string(f'Init aim','section',self.verbose)
+
         aim_logger = AimLogger(
             experiment=self.name,
             train_metric_prefix='train_',
@@ -884,7 +887,8 @@ class TimeSeries():
         tot_seconds = time.time()
 
 
-      
+        beauty_string(f'tuning lr','section',self.verbose)
+
      
         if auto_lr_find and (weight_exists is False):
             try:
@@ -902,7 +906,8 @@ class TimeSeries():
                     self.model.optim_config['lr'] = lr_finder.suggestion() ## we are using it as optim key
             except Exception as e:
                 beauty_string(f'There is a problem with the finding LR routine {e}','section',self.verbose)
-        
+        beauty_string(f'Start fitting','section',self.verbose)
+
         if OLD_PL:
             if weight_exists:
                 trainer.fit(self.model, train_dl,valid_dl,ckpt_path=os.path.join(dirpath,'last.ckpt'))
