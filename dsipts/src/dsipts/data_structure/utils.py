@@ -13,8 +13,6 @@ import os
 import logging
 from typing import Union
 
-
-
 def beauty_string(message:str,type:str,verbose:bool):
     logger = logging.getLogger()  # root logger
     size = 150
