@@ -36,9 +36,6 @@ def beauty_string(message:str,type:str,verbose:bool):
         else:
             logger.info(message)
     
-
-
-
 def extend_time_df(x:pd.DataFrame,freq:Union[str,int],group:Union[str,None]=None,global_minmax:bool=False)-> pd.DataFrame:
     """Utility for generating a full dataset and then merge the real data
 
