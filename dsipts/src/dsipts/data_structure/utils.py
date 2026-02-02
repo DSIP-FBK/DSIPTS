@@ -13,64 +13,56 @@ import os
 import logging
 from typing import Union
 
-def get_logger(name: str = __name__):
-    # Crea la cartella logs se non esiste
+def get_logger(name: str = "main"):
     logger = logging.getLogger(name)
-    if not logger.handlers:
-        logger.setLevel(logging.DEBUG)
 
-        # Evita duplicazione degli handler se il logger viene importato più volte
-        if logger.handlers:
-            return logger
-        
-        logger.propagate = False
+    if logger.handlers:
+        return logger
 
-        # === Formatter===
-        formatter = logging.Formatter(
-            "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
+    logger.setLevel(logging.DEBUG)
+    logger.propagate = False
 
-        # === Handler per il terminale ===
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.DEBUG)
-        console_handler.setFormatter(formatter)
-        logger.addHandler(console_handler)
+    formatter = logging.Formatter(
+        "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
 
-        # === Handler per i file log ===
-        #os.makedirs("logs", exist_ok=True)
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.DEBUG)
+    console_handler.setFormatter(formatter)
 
-        # file_handler = logging.FileHandler("logs/app.log")
-        # file_handler.setLevel(logging.DEBUG)
-        # file_handler.setFormatter(formatter)
-        # logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
 
     return logger
 
-logger = get_logger("main")
-def beauty_string(message:str,type:str,verbose:bool):
+logger = get_logger("dsip")
+def beauty_string(message: str, type: str, verbose: bool):
     size = 150
-    if verbose is True:
-        if type=='block':
-            characters = len(message)
-            border = max((100-characters)//2-5,0)
-            logger.info('\n')
-            logger.info(f"{'#'*size}")
-            logger.info(f"{'#'*border}{' '*(size-border*2)}{'#'*border}")
-            logger.info(f"{ message:^{size}}")
-            logger.info(f"{'#'*border}{' '*(size-border*2)}{'#'*border}")
-            logger.info(f"{'#'*size}")
-        elif type=='section':
-            logger.info('\n')
-            logger.info(f"{'#'*size}")
-            logger.info(f"{ message:^{size}}")
-            logger.info(f"{'#'*size}")
-        elif type=='info':
-            logger.info(f"{ message:^{size}}")
-        else:
-            logger.info(message)
-    
 
+    if not verbose:
+        return
+
+    if type == 'block':
+        characters = len(message)
+        border = max((100 - characters) // 2 - 5, 0)
+        logger.info("")
+        logger.info("#" * size)
+        logger.info(f"{'#' * border}{' ' * (size - border * 2)}{'#' * border}")
+        logger.info(f"{message:^{size}}")
+        logger.info(f"{'#' * border}{' ' * (size - border * 2)}{'#' * border}")
+        logger.info("#" * size)
+
+    elif type == 'section':
+        logger.info("")
+        logger.info("#" * size)
+        logger.info(f"{message:^{size}}")
+        logger.info("#" * size)
+
+    elif type == 'info':
+        logger.info(f"{message:^{size}}")
+
+    else:
+        logger.info(message)
 
 
 def extend_time_df(x:pd.DataFrame,freq:Union[str,int],group:Union[str,None]=None,global_minmax:bool=False)-> pd.DataFrame:
