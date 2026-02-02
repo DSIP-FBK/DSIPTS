@@ -374,7 +374,11 @@ class TimeSeries():
             fig.show()
         return fig
     
-        
+    logging.getLogger("lightning").setLevel(logging.CRITICAL)
+    logging.getLogger("lightning.pytorch").setLevel(logging.CRITICAL)
+    logging.getLogger("lightning.pytorch.utilities.rank_zero").setLevel(logging.CRITICAL)
+    logging.getLogger("lightning.pytorch.trainer").setLevel(logging.CRITICAL)
+    
     def create_data_loader(self,data:pd.DataFrame,
                            past_steps:int,
                            future_steps:int,
