@@ -363,6 +363,7 @@ class Base(pl.LightningModule):
                 try:
                     self.logger.experiment.track(Image(fig), name='cm_training_end')
                 except:
+                    beauty_string('AIM NOT USED','info',self.verbose)
                     pass ##no aim probably
                 #self.log(f"example_{i}", np.stack([real, pred]).T,sync_dist=True)
                 plt.close(fig) 
