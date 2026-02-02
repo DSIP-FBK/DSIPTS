@@ -47,7 +47,7 @@ def get_logger(name: str = __name__):
 
     return logger
 
-logger = get_logger("dsip")
+logger = get_logger("main")
 def beauty_string(message:str,type:str,verbose:bool):
     size = 150
     if verbose is True:
