@@ -15,6 +15,7 @@ from typing import Union
 
 def beauty_string(message:str,type:str,verbose:bool):
     logger = logging.getLogger()  # root logger
+    logger.propagate = True 
     size = 150
     if verbose is True:
         if type=='block':
