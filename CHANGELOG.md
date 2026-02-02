@@ -1,3 +1,6 @@
+## 1.1.20 (2026-02-01)
+- automation of tags, version etc using only the makefile
+- update newer version of python
 ## 1.1.14 (2025-12-02)
 - Add CHANGELOG to the pip page
 - Bug fixing for non autoregressive models
