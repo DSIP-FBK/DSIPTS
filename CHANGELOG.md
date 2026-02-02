@@ -1,3 +1,7 @@
+## 1.1.21-22 (2026-02-02)
+- fixing lightening version support (not yet solved for version >2.6)
+- removed aim (compatibility)
+
 ## 1.1.20 (2026-02-01)
 - automation of tags, version etc using only the makefile
 - update newer version of python

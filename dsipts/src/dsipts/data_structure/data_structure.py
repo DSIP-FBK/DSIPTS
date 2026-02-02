@@ -32,7 +32,10 @@ from datetime import datetime
 from ..models.utils import weight_init_zeros,weight_init
 import logging 
 from .modifiers import *
-from aim.pytorch_lightning import AimLogger
+disable_aim = True
+
+if disable_aim is False:
+    from aim.pytorch_lightning import AimLogger
 import time
 debug_prediction = False
 class DummyScaler():
@@ -804,11 +807,6 @@ class TimeSeries():
         #logger = CSVLogger("logs", name=dirpath)
         beauty_string(f'Init aim','section',self.verbose)
 
-        aim_logger = AimLogger(
-            experiment=self.name,
-            train_metric_prefix='train_',
-            val_metric_prefix='val_',
-        )
 
         #https://stackoverflow.com/questions/49201236/check-the-total-number-of-parameters-in-a-pytorch-model
         n_params = sum(dict((p.data_ptr(), p.numel()) for p in self.model.parameters()).values())
@@ -822,17 +820,25 @@ class TimeSeries():
             buffer_size += buffer.nelement() * buffer.element_size()
 
         size_all_mb = (param_size + buffer_size) / 1024**2
-        #aim_logger.experiment.track(self.model.name,name='model_name')
-
-        aim_logger.experiment.track(n_params,name='N-parameters')
-        aim_logger.experiment.track(size_all_mb,name='dim-model-MB')
-        aim_logger.experiment.track(len(train_dl.dataset),name='len-train')
-        aim_logger.experiment.track(len(valid_dl.dataset),name='len-valid')
-        #aim_logger.experiment.track(self.config,name=None)
         tmp = self.config.copy()
         tmp['model_name'] = self.model.name
-        aim_logger._run['hyperparameters'] = tmp
 
+        #aim_logger.experiment.track(self.model.name,name='model_name')
+        if disable_aim is False:
+            aim_logger = AimLogger(
+                experiment=self.name,
+                train_metric_prefix='train_',
+                val_metric_prefix='val_',
+            )
+            aim_logger.experiment.track(n_params,name='N-parameters')
+            aim_logger.experiment.track(size_all_mb,name='dim-model-MB')
+            aim_logger.experiment.track(len(train_dl.dataset),name='len-train')
+            aim_logger.experiment.track(len(valid_dl.dataset),name='len-valid')
+            #aim_logger.experiment.track(self.config,name=None)
+            
+            aim_logger._run['hyperparameters'] = tmp
+        else:
+            aim_logger = None
         mc = MetricsCallback(dirpath)
         ## TODO se ci sono 2 o piu gpu MetricsCallback non funziona (secondo me fa una istanza per ogni dataparallel che lancia e poi non riesce a recuperare info)
         pl.seed_everything(seed, workers=True)
@@ -999,8 +1005,10 @@ class TimeSeries():
         
         beauty_string('END of the training process','block',self.verbose)
 
-        aim_logger.experiment.track((time.time()-tot_seconds),name='seconds-training')
-        aim_logger.experiment.track(val_loss,name='val-loss-end-train')
+
+        if disable_aim is False:
+            aim_logger.experiment.track((time.time()-tot_seconds),name='seconds-training')
+            aim_logger.experiment.track(val_loss,name='val-loss-end-train')
 
         
         

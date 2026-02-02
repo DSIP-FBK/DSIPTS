@@ -1,12 +1,12 @@
 
 [project]
 name = "dsipts"
-version = "1.1.21"
+version = "1.1.22"
 description = "Unified library for timeseries modelling"
 readme = { file = "LONG_DESCRIPTION.md", content-type = "text/markdown" }
 requires-python = ">=3.12"
 dependencies = [
-    "aim",
+    #"aim",
     "beautifulsoup4==4.12.0",
     "bumpver>=2025.1131",
     "einops>=0.8.1",
@@ -17,7 +17,7 @@ dependencies = [
     "hydra-optuna-sweeper>=1.2.0",
     "hydra-submitit-launcher>=1.2.0",
     "ipykernel>=6.30.1",
-    "lightning>=2.5.4",
+    "lightning==2.5.5",
     "matplotlib>=3.10.6",
     "nbformat>=5.10.4",
     "numba>=0.61.2",
@@ -40,7 +40,7 @@ Homepage = "https://github.com/DSIP-FBK/DSIPTS"
 Docs = "https://dsip-fbk.github.io/DSIPTS/"
 
 [tool.bumpver]
-current_version = "1.1.21"
+current_version = "1.1.22"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit = false
 tag = false

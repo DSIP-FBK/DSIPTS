@@ -60,7 +60,7 @@ inference:
   output_path: tmp
   load_last: true
   batch_size: 200 
-  num_workers: 4
+  num_workers: 1
   set: "validation"
   rescaling: true
 
