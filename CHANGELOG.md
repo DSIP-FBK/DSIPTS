@@ -1,4 +1,8 @@
-## 1.1.21-22-23-26-27 (2026-02-02)
+## 1.1.31
+- aim & logger back working
+- fixed validation with few sampler
+
+## 1.1.21-22-23-26-27-30 (2026-02-02)
 - fixing lightening version support (not yet solved for version >2.6)
 - removed aim (compatibility)
 - logger

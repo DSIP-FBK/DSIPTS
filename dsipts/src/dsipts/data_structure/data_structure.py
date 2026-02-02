@@ -779,7 +779,7 @@ class TimeSeries():
 
         else:
             train_dl = DataLoader(train, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
-        valid_dl = DataLoader(validation, batch_size = batch_size , shuffle=False,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
+        valid_dl = DataLoader(validation, batch_size = batch_size , shuffle=False,drop_last=False,num_workers=num_workers,persistent_workers=persistent_workers)
         
         beauty_string(f'train:{len(train_dl)}, validation:{len(valid_dl)}','section',self.verbose)
 
