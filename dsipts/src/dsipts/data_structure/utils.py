@@ -13,56 +13,33 @@ import os
 import logging
 from typing import Union
 
-def get_logger(name: str = "main"):
-    logger = logging.getLogger(name)
 
-    if logger.handlers:
-        return logger
 
-    logger.setLevel(logging.DEBUG)
-    logger.propagate = False
-
-    formatter = logging.Formatter(
-        "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.DEBUG)
-    console_handler.setFormatter(formatter)
-
-    logger.addHandler(console_handler)
-
-    return logger
-
-logger = get_logger("dsip")
-def beauty_string(message: str, type: str, verbose: bool):
+def beauty_string(message:str,type:str,verbose:bool):
+    if logger is None:
+        logger = logging.getLogger()  # root logger
     size = 150
+    if verbose is True:
+        if type=='block':
+            characters = len(message)
+            border = max((100-characters)//2-5,0)
+            logger.info('\n')
+            logger.info(f"{'#'*size}")
+            logger.info(f"{'#'*border}{' '*(size-border*2)}{'#'*border}")
+            logger.info(f"{ message:^{size}}")
+            logger.info(f"{'#'*border}{' '*(size-border*2)}{'#'*border}")
+            logger.info(f"{'#'*size}")
+        elif type=='section':
+            logger.info('\n')
+            logger.info(f"{'#'*size}")
+            logger.info(f"{ message:^{size}}")
+            logger.info(f"{'#'*size}")
+        elif type=='info':
+            logger.info(f"{ message:^{size}}")
+        else:
+            logger.info(message)
+    
 
-    if not verbose:
-        return
-
-    if type == 'block':
-        characters = len(message)
-        border = max((100 - characters) // 2 - 5, 0)
-        logger.info("")
-        logger.info("#" * size)
-        logger.info(f"{'#' * border}{' ' * (size - border * 2)}{'#' * border}")
-        logger.info(f"{message:^{size}}")
-        logger.info(f"{'#' * border}{' ' * (size - border * 2)}{'#' * border}")
-        logger.info("#" * size)
-
-    elif type == 'section':
-        logger.info("")
-        logger.info("#" * size)
-        logger.info(f"{message:^{size}}")
-        logger.info("#" * size)
-
-    elif type == 'info':
-        logger.info(f"{message:^{size}}")
-
-    else:
-        logger.info(message)
 
 
 def extend_time_df(x:pd.DataFrame,freq:Union[str,int],group:Union[str,None]=None,global_minmax:bool=False)-> pd.DataFrame:
