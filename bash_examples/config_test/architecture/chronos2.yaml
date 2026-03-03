@@ -1,0 +1,57 @@
+# @package _global_
+
+model:
+  type: 'chronos2'
+  retrain: true
+  restart: false
+
+ts:
+  name: 'test'
+  version: 1
+  enrich: ['minute']
+  use_covariates: true
+  use_future_covariates: true
+  # silly: false
+
+model_configs:
+  chronos_config: # desired by chronos structure
+    context_length: ${model_configs.past_steps}
+    input_patch_size: 16
+    input_patch_stride: 16
+    max_output_patches: 64
+    output_patch_size: 16
+    quantiles: ${model_configs.quantiles}
+    time_encoding_scale: ${model_configs.past_steps}
+    use_arcsinh: true
+    use_reg_token: true
+  d_ff: 3072
+  d_kv: 64
+  d_model: 768
+  dense_act_fn: "relu" # ${model_configs.activation}
+  dropout_rate: 0.1
+  dtype: "float32"
+  feed_forward_proj: "relu" # ${model_configs.activation}
+  initializer_factor: 0.05
+  is_gated_act: false
+  layer_norm_epsilon: 1e-06
+  model_type: "t5"
+  num_heads: 12
+  num_layers: 12
+  pad_token_id: 0
+  reg_token_id: 1
+  rope_theta: 10000.0
+  transformers_version: "4.57.6"
+  use_cache: true
+  vocab_size: 2
+  verbose: false
+  is_decoder: false
+  quantiles: [0.5]
+
+  optim: torch.optim.Adam
+  activation: torch.nn.PReLU
+  persistence_weight: 0.010
+  loss_type: 'l1'
+  
+train_config:
+  batch_size: 128
+  max_epochs: 3

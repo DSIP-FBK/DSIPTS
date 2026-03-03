@@ -148,8 +148,10 @@ class Autoformer(Base):
             projection=nn.Linear(d_model, self.out_channels*self.mul, bias=True)
         )
         self.projection = nn.Linear(self.past_channels,self.out_channels*self.mul )
+    
     def can_be_compiled(self):
         return True
+    
     def forward(self, batch):
         
 
