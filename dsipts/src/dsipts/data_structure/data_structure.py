@@ -170,6 +170,7 @@ class TimeSeries():
     
     def set_verbose(self,verbose:bool):
         self.verbose = verbose
+        
     def _generate_base(self,length:int,type:int=0)-> None:
         """Generate a basic timeseries 
 
@@ -739,7 +740,6 @@ class TimeSeries():
         """
 
         beauty_string('Training the model','block',self.verbose)
-
         self.split_params = split_params
         self.check_custom = False
         train,validation,test = self.split_for_train(**self.split_params)
@@ -895,7 +895,6 @@ class TimeSeries():
                                 gradient_clip_val=gradient_clip_val,
                                 gradient_clip_algorithm=gradient_clip_algorithm)#,devices=1)
         tot_seconds = time.time()
-
 
         beauty_string(f'tuning lr','section',self.verbose)
 
@@ -1256,10 +1255,12 @@ class TimeSeries():
         with open(filename+'.pkl','rb') as f:
             params = pickle.load(f)
             for p in params:
-                setattr(self,p, params[p])    
+                setattr(self,p, params[p])
+                
         if 'verbose' in self.config['model_configs'].keys():
+            self.config['model_configs'] = dict(self.config['model_configs'])
             self.config['model_configs'].pop('verbose')
-        self.model = model(**self.config['model_configs'],optim_config = self.config['optim_config'],scheduler_config =self.config['scheduler_config'],verbose=self.verbose )
+        self.model = model(**self.config['model_configs'], optim_config = self.config['optim_config'], scheduler_config =self.config['scheduler_config'], verbose=self.verbose )
         
         
         if weight_path is not None:

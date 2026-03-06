@@ -1,5 +1,5 @@
 
-from dsipts import  beauty_string
+from dsipts import beauty_string
 from omegaconf import DictConfig, OmegaConf
 from hydra.core.hydra_config import HydraConfig
 import hydra
@@ -57,7 +57,6 @@ def train(conf: DictConfig) -> None:
 
     ts.set_verbose(VERBOSE)
     ######################################################################################################
-    ts
     check_split_parameters(conf)
     ######################################################################################################
     model_conf = conf.model_configs
@@ -81,7 +80,9 @@ def train(conf: DictConfig) -> None:
         model_conf['exogenous_channel_indices_cont'] =  [int(a) for a in list(np.where(np.isin(np.array(ts.past_variables),np.array(ts.future_variables)))[0])]
         model_conf['exogenous_channel_indices_cat'] = [int(a) for a in list(np.where(np.isin(np.array(ts.cat_past_var),np.array(ts.cat_fut_var)))[0])]
 
-    model = select_model(conf,model_conf,ts)
+
+
+    model = select_model(conf, model_conf, ts)
     if model is None:
         return 1000
 
@@ -103,7 +104,6 @@ def train(conf: DictConfig) -> None:
         return 1000
     
     ##clean folders
-    
     if  (os.path.exists(dirpath)) and (conf.model.get('restart',False) is False):
         shutil.rmtree(dirpath)
     if  os.path.exists(dirpath) is False:
@@ -117,18 +117,19 @@ def train(conf: DictConfig) -> None:
     split_params['past_steps'] = model_conf['past_steps']
     split_params['future_steps'] = model_conf['future_steps']
     ##save now so we can use it during the trainin step (or use intermediate pth files)
-    ts.dirpath = dirpath    
+    ts.dirpath = dirpath
     ts.losses = None
     ts.checkpoint_file_last = os.path.join(dirpath,'checkpoint.ckpt')
     ts.save(os.path.join(conf.train_config.dirpath,'model'))
 
     ##save the config for the comparison task before training so we can get predictions during the training procedure
-    path =  HydraConfig.get()['runtime']['config_sources'][1]['path']
+    path = HydraConfig.get()['runtime']['config_sources'][1]['path']
     used_config = os.path.join(path,'config_used')
     if not os.path.exists(used_config):
         os.mkdir(used_config)
     tot_seconds = time.time()
-    try:    
+    
+    try:
         valid_loss = ts.train_model(split_params=split_params,**conf.train_config)
         ok = True
     except Exception as _:
@@ -141,7 +142,6 @@ def train(conf: DictConfig) -> None:
             f.write(OmegaConf.to_yaml(conf))
         beauty_string(f'FINISH TRAINING PROCEDURE in {((time.time()-tot_seconds)/60):.2f} minutes with loss = {(valid_loss):.2f}','block', VERBOSE)
     
-        
     return valid_loss ##for optuna!    
         
 if __name__ == '__main__': 

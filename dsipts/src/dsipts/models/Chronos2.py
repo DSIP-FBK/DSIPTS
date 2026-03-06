@@ -42,67 +42,64 @@ class Chronos2(Base): # type: ignore
     _supports_future_covariates: bool = True
     _supports_sdpa: bool = True
 
-    def __init__(self, config, **kwargs
-                #  Chronos2ForecastingConfig,
-                #  past_steps,
-                #  future_steps,
-                #  quantiles,
-                #  past_channels,
-                #  future_channels,
-                #  embs_past,
-                #  embs_fut,
-                #  out_channels,
-                #  d_ff,
-                #  d_kv,
-                #  d_model,
-                #  dense_act_fn,
-                #  dropout_rate,
-                #  dtype,
-                #  feed_forward_proj,
-                #  initializer_factor,
-                #  is_gated_act,
-                #  layer_norm_epsilon,
-                #  model_type,
-                #  num_heads,
-                #  num_layers,
-                #  pad_token_id,
-                #  reg_token_id,
-                #  rope_theta,
-                #  transformers_version,
-                #  use_cache,
-                #  vocab_size,
-                #  optim,
-                #  activation,
-                #  persistence_weight,
-                #  loss_type,
-                #  optim_config,
-                #  scheduler_config,
-                #  verbose
-                 )->None:
-        assert hasattr(config, "chronos_config"), "Not a valid Chronos config"
+    def __init__(self,
+                context_length,
+                input_patch_size,
+                input_patch_stride,
+                max_output_patches,
+                output_patch_size,
+                time_encoding_scale,
+                use_arcsinh,
+                use_reg_token,
+
+                d_ff,
+                d_kv,
+                d_model,
+                dense_act_fn,
+                dropout_rate,
+                feed_forward_proj,
+                initializer_factor,
+                layer_norm_epsilon,
+                num_heads,
+                num_layers,
+                pad_token_id,
+                reg_token_id,
+                rope_theta,
+                vocab_size,
+                attn_implementation,
+                **kwargs)->None:
+
+        super().__init__(**kwargs)
         
-        keys_for_super_config = ['past_steps', 'future_steps', 'past_channels', 'future_channels', 'out_channels', 'embs_past', 'embs_fut', 'verbose']
-        super_config = {k: config[k] for k in keys_for_super_config}
-        # create the config for Base.__init__
-        super().__init__(**super_config)
-        self.config: Chronos2CoreConfig
-        self.model_dim = config.d_model
+        # self.config = config
+        self.model_dim = d_model
+        self.initializer_factor = initializer_factor
+        self.d_ff = d_ff
+        self.d_kv = d_kv
+        self.num_heads = num_heads
+        self.reg_token_id = reg_token_id
 
+        chronos_config = {'context_length':context_length, 
+                        'output_patch_size':output_patch_size, 
+                        'input_patch_size':input_patch_size, 
+                        'input_patch_stride':input_patch_stride,
+                        'quantiles':kwargs['quantiles'],
+                        'use_reg_token':use_reg_token,
+                        'use_arcsinh':use_arcsinh,
+                        'max_output_patches':max_output_patches,
+                        'time_encoding_scale':time_encoding_scale,
+                        }
+        self.chronos_config = Chronos2ForecastingConfig(**chronos_config)
 
-        config.chronos_config["time_encoding_scale"] = config.chronos_config.get(
-            "time_encoding_scale", config.chronos_config["context_length"]
-        )
-        self.chronos_config = Chronos2ForecastingConfig(**config.chronos_config)
-
-        self.shared = nn.Embedding(config.vocab_size, config.d_model)
+        self.shared = nn.Embedding(vocab_size, d_model)
 
         self.input_patch_embedding = ResidualBlock(
             # x3 for [time_embedding, patch, patch_mask]
             in_dim = self.chronos_config.input_patch_size * 3,
-            h_dim = config.d_ff,
-            out_dim = config.d_model,
-            act_fn_name = config.dense_act_fn,
-            dropout_p = config.dropout_rate,
+            h_dim = d_ff,
+            out_dim = d_model,
+            act_fn_name = dense_act_fn,
+            dropout_p = dropout_rate,
         )
         self.patch = Patch(
             patch_size = self.chronos_config.input_patch_size, 
@@ -112,8 +109,21 @@ class Chronos2(Base): # type: ignore
         # instance normalization, also referred to as "scaling" in Chronos and GluonTS
         self.instance_norm = InstanceNorm(use_arcsinh = self.chronos_config.use_arcsinh)
 
-        # breakpoint()
-        encoder_config = copy.deepcopy(config)
+        encoder_config = Chronos2CoreConfig(
+                d_model = d_model,
+                d_kv = d_kv,
+                d_ff = d_ff,
+                num_layers = num_layers,
+                num_heads = num_heads,
+                dropout_rate = dropout_rate,
+                layer_norm_epsilon = layer_norm_epsilon,
+                initializer_factor = initializer_factor,
+                feed_forward_proj = feed_forward_proj,
+                vocab_size = vocab_size,
+                pad_token_id = pad_token_id,
+                rope_theta = rope_theta,
+                attn_implementation = attn_implementation,
+                **kwargs,)
         # encoder_config['is_decoder'] = False
         self.encoder = Chronos2Encoder(encoder_config)
 
@@ -123,11 +133,11 @@ class Chronos2(Base): # type: ignore
         self.register_buffer("chronos_quantiles", quantiles_tensor, persistent=False)
 
         self.output_patch_embedding = ResidualBlock(
-            in_dim = config.d_model,
-            h_dim = config.d_ff,
+            in_dim = d_model,
+            h_dim = d_ff,
             out_dim = self.num_quantiles * self.chronos_config.output_patch_size,
-            act_fn_name = config.dense_act_fn,
-            dropout_p = config.dropout_rate,
+            act_fn_name = dense_act_fn,
+            dropout_p = dropout_rate,
         )
 
     def can_be_compiled(self):
@@ -136,25 +146,25 @@ class Chronos2(Base): # type: ignore
     def _init_weights(self, module):
         super()._init_weights(module)
         """Initialize the weights"""
-        factor = self.config.initializer_factor
+        factor = self.initializer_factor
         if isinstance(module, Chronos2LayerNorm):
             module.weight.data.fill_(factor * 1.0)
         elif isinstance(module, MLP):
             # Mesh TensorFlow FF initialization
             # See https://github.com/tensorflow/mesh/blob/master/mesh_tensorflow/transformer/transformer_layers.py#L56
             # and https://github.com/tensorflow/mesh/blob/fa19d69eafc9a482aff0b59ddd96b025c0cb207d/mesh_tensorflow/layers.py#L89
-            module.wi.weight.data.normal_(mean=0.0, std=factor * ((self.config.d_model) ** -0.5))
+            module.wi.weight.data.normal_(mean=0.0, std=factor * ((self.d_model) ** -0.5))
             if hasattr(module.wi, "bias") and module.wi.bias is not None:
                 module.wi.bias.data.zero_()
-            module.wo.weight.data.normal_(mean=0.0, std=factor * ((self.config.d_ff) ** -0.5))
+            module.wo.weight.data.normal_(mean=0.0, std=factor * ((self.d_ff) ** -0.5))
             if hasattr(module.wo, "bias") and module.wo.bias is not None:
                 module.wo.bias.data.zero_()
         elif isinstance(module, MHA):
             # Mesh TensorFlow attention initialization to avoid scaling before softmax
             # See https://github.com/tensorflow/mesh/blob/fa19d69eafc9a482aff0b59ddd96b025c0cb207d/mesh_tensorflow/transformer/attention.py#L136
-            d_model = self.config.d_model
-            kv_proj_dim = self.config.d_kv
-            n_heads = self.config.num_heads
+            d_model = self.d_model
+            kv_proj_dim = self.d_kv
+            n_heads = self.num_heads
             module.q.weight.data.normal_(mean=0.0, std=factor * ((d_model * kv_proj_dim) ** -0.5))
             module.k.weight.data.normal_(mean=0.0, std=factor * (d_model**-0.5))
             module.v.weight.data.normal_(mean=0.0, std=factor * (d_model**-0.5))
@@ -450,7 +460,7 @@ class Chronos2(Base): # type: ignore
         input_embeds: torch.Tensor = self.input_patch_embedding(patched_context)
         # append [REG] special token embedding, if needed
         if self.chronos_config.use_reg_token:
-            reg_input_ids = torch.full((batch_size, 1), self.config.reg_token_id, device=input_embeds.device)
+            reg_input_ids = torch.full((batch_size, 1), self.reg_token_id, device=input_embeds.device)
             reg_embeds = self.shared(reg_input_ids)
             input_embeds = torch.cat([input_embeds, reg_embeds], dim=-2)
             attention_mask = torch.cat(
@@ -497,7 +507,7 @@ class Chronos2(Base): # type: ignore
         # future_target: torch.Tensor | None = None,
         # future_target_mask: torch.Tensor | None = None,
         # output_attentions: bool = False,
-    ) -> Chronos2Output:
+    ):
         """Forward pass of the Chronos2 model.
 
         Parameters
@@ -564,12 +574,49 @@ class Chronos2(Base): # type: ignore
         - enc_time_self_attn_weights: Time self attention weights, if output_attentions=True
         - enc_group_self_attn_weights: Group self attention weights, if output_attentions=True
         """
-        breakpoint()
         # ADAPT from BATCH to STANDARD CHRONOS2 INPUTS
-        batch_size = batch['y'].shape[0]
+        batch_size, horizon, number_target_vars = batch['y'].shape
+        num_output_patches = horizon // self.chronos_config.output_patch_size +1
         output_attentions = False
-
         
+        # past variables
+        numerical_past_vars = batch['x_num_past'].shape[-1]
+        categorical_past_vars = batch['x_cat_past'].shape[-1]
+        # future variables
+        numerical_fut_vars = batch['x_num_future'].shape[-1]
+        categorical_fut_vars = batch['x_cat_future'].shape[-1]
+        # number_target_vars = batch['idx_target'].shape[-1]
+
+        # total variables and check compatibility
+        tot_past_vars = numerical_past_vars + categorical_past_vars
+        tot_aux_vars = numerical_fut_vars + categorical_fut_vars
+        tot_future_vars = tot_aux_vars + number_target_vars
+        assert tot_past_vars == tot_future_vars
+
+        group_ids = torch.arange(batch_size)
+        group_ids = torch.repeat_interleave(group_ids, repeats = tot_past_vars, dim = 0)
+        
+        past_context = torch.cat((batch['x_cat_past'], batch['x_num_past']), dim = -1)
+        context = rearrange(past_context, 'b f s -> (b s) f')
+
+        future_context = torch.cat((batch['y'], batch['x_cat_future'], batch['x_num_future']), dim = -1)
+        future_context = rearrange(future_context, 'b f s -> (b s) f')
+        # create an aux mask to create 'future_target' and 'future_covariates'
+        ones_mask = torch.ones(horizon).view(1,-1)
+        ones_mask = torch.repeat_interleave(ones_mask, repeats = number_target_vars, dim = 0)
+        zeros_mask = torch.zeros(horizon).view(1,-1)
+        zeros_mask = torch.repeat_interleave(zeros_mask, repeats = tot_aux_vars, dim = 0)
+        aux_mask = torch.cat((ones_mask, zeros_mask), dim = 0).to(bool)
+        # repeat the mask for every group
+        full_aux_mask = aux_mask.repeat(batch_size, 1)
+        future_target = torch.where(full_aux_mask, future_context, torch.tensor(float('nan')))
+        future_covariates = torch.where(~full_aux_mask, future_context, torch.tensor(float('nan')))
+
+        # mask = torch.isnan(torch.arange(4)).logical_not().to(past_context.dtype) # will be created later in encode!
+        context_mask = None
+        future_covariates_mask = None
+        future_target_mask = None
+
         #
         encoder_outputs, loc_scale, patched_future_covariates_mask, num_context_patches = self.encode(
             context=context,
@@ -583,7 +630,7 @@ class Chronos2(Base): # type: ignore
             output_attentions=output_attentions,
         )
         hidden_states: torch.Tensor = encoder_outputs[0]
-        assert hidden_states.shape == (batch_size, num_context_patches + 1 + num_output_patches, self.model_dim)
+        assert hidden_states.shape == (batch_size*tot_future_vars, num_context_patches + 1 + num_output_patches, self.model_dim)
 
         # slice the last num_output_patches hidden states to be input into the output_patch_embedding
         forecast_embeds = hidden_states[:, -num_output_patches:]
@@ -595,25 +642,13 @@ class Chronos2(Base): # type: ignore
             q=self.num_quantiles,
             p=self.chronos_config.output_patch_size,
         )
-
-        loss = (
-            self._compute_loss(
-                quantile_preds=quantile_preds,
-                future_target=future_target,
-                future_target_mask=future_target_mask,
-                patched_future_covariates_mask=patched_future_covariates_mask,
-                loc_scale=loc_scale,
-                num_output_patches=num_output_patches,
-            )
-            if future_target is not None
-            else None
-        )
+        ## skipping loss computation
 
         # Unscale predictions
         quantile_preds = rearrange(
             quantile_preds,
             "b q h -> b (q h)",
-            b=batch_size,
+            b=batch_size*tot_future_vars,
             q=self.num_quantiles,
             h=num_output_patches * self.chronos_config.output_patch_size,
         )
@@ -625,9 +660,21 @@ class Chronos2(Base): # type: ignore
             h=num_output_patches * self.chronos_config.output_patch_size,
         )
 
-        return Chronos2Output(
-            loss=loss,
-            quantile_preds=quantile_preds,
-            enc_time_self_attn_weights=encoder_outputs.all_time_self_attn_weights,
-            enc_group_self_attn_weights=encoder_outputs.all_group_self_attn_weights,
-        )
+        ## customizing output
+        quantile_preds = quantile_preds[:batch_size*number_target_vars,:, :horizon] # check
+        # breakpoint()
+        quantile_preds = rearrange(quantile_preds,
+                                   "(b c) q l -> b l c q",
+                                   b = batch_size,
+                                   c = number_target_vars,
+                                #    q = self.num_quantiles, 
+                                #    l = horizon 
+                                   )
+
+        return quantile_preds
+        # return Chronos2Output(
+        #     loss=loss,
+        #     quantile_preds=quantile_preds,
+        #     enc_time_self_attn_weights=encoder_outputs.all_time_self_attn_weights,
+        #     enc_group_self_attn_weights=encoder_outputs.all_group_self_attn_weights,
+        # )

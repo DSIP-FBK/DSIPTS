@@ -218,7 +218,7 @@ train_config:
 Hydra allows us to train a specific model using if you are in a gpu environment
 
 ```
-python train.py  architecture=linear --config-dir=config_test--config-name=config
+python train.py  architecture=linear --config-dir=config_test --config-name=config
 ```
 or, if you are in a slurm cluster
 
