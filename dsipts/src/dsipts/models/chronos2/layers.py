@@ -12,7 +12,7 @@ from transformers.activations import ACT2FN
 from transformers.pytorch_utils import ALL_LAYERNORM_LAYERS
 from transformers.utils.generic import ModelOutput
 
-from .config import Chronos2CoreConfig, Chronos2ForecastingConfig
+from .config import Chronos2CoreConfig #, Chronos2ForecastingConfig
 
 class Patch(nn.Module):
     def __init__(self, patch_size: int, patch_stride: int) -> None:
@@ -498,7 +498,7 @@ class Chronos2EncoderOutput(ModelOutput):
 class Chronos2Encoder(nn.Module):
     def __init__(self, config: Chronos2CoreConfig):
         super().__init__()
-        assert not config.is_decoder
+        # assert not config.is_decoder
 
         self.block = nn.ModuleList([Chronos2EncoderBlock(config) for i in range(config.num_layers)])
         self.final_layer_norm = Chronos2LayerNorm(config.d_model, eps=config.layer_norm_epsilon)

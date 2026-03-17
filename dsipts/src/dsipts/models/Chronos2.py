@@ -8,7 +8,7 @@ import copy
 from .chronos2.layers import ResidualBlock, Chronos2LayerNorm, MLP, MHA, Patch, InstanceNorm, Chronos2Encoder, Chronos2EncoderOutput
 from .chronos2.config import Chronos2CoreConfig, Chronos2ForecastingConfig
 from transformers.utils.generic import ModelOutput
-from .utils import  get_scope
+from .utils import get_scope
 
 try:
     import lightning.pytorch as pl
@@ -78,6 +78,13 @@ class Chronos2(Base): # type: ignore
         self.d_kv = d_kv
         self.num_heads = num_heads
         self.reg_token_id = reg_token_id
+
+        # if past variables has to contain future variables
+        self.need_shared_past_fut_variables = True
+        # if needed data ordering
+        self.need_ordered_variables = True
+        self.n_past_only_num_vars = 0
+        self.n_past_only_cat_vars = 0
 
         chronos_config = {'context_length':context_length, 
                         'output_patch_size':output_patch_size, 
@@ -498,16 +505,60 @@ class Chronos2(Base): # type: ignore
     def forward(
         self,
         batch
-        # context: torch.Tensor,
-        # context_mask: torch.Tensor | None = None,
-        # group_ids: torch.Tensor | None = None,
-        # future_covariates: torch.Tensor | None = None,
-        # future_covariates_mask: torch.Tensor | None = None,
-        # num_output_patches: int = 1,
-        # future_target: torch.Tensor | None = None,
-        # future_target_mask: torch.Tensor | None = None,
-        # output_attentions: bool = False,
     ):
+        # ADAPT from BATCH to STANDARD CHRONOS2 INPUTS
+        batch_size, horizon, n_target_vars = batch['y'].shape
+        num_past_with_y = batch['x_num_past']
+        _, context_length, number_past_no_cat_vars = num_past_with_y.shape
+
+        ### context
+        target_idx_expanded = batch['idx_target'].unsqueeze(1).expand(-1, context_length, -1)
+        past_target = torch.gather(num_past_with_y, dim=2, index=target_idx_expanded)
+
+        # remove target from num_past
+        n_past_num_vars = number_past_no_cat_vars - n_target_vars
+        mask = torch.ones((batch_size, number_past_no_cat_vars), device=num_past_with_y.device, dtype=torch.bool)
+        mask.scatter_(1, target_idx_expanded[:, 0, :], False)
+        mask_3d = mask.unsqueeze(1).expand(-1, context_length, -1)
+        num_past = num_past_with_y[mask_3d].view(batch_size, context_length, n_past_num_vars)
+
+        # past_only_vars: with new workflow they are sorted
+        context = torch.cat([
+            past_target, # Past Targets
+            num_past[:, :, :self.n_past_only_num_vars], # Past-only Numerical
+            batch['x_cat_past'][:, :, :self.n_past_only_cat_vars], # Past-only Categorical
+            num_past[:, :, self.n_past_only_num_vars:], # Other Numerical
+            batch['x_cat_past'][:, :, self.n_past_only_cat_vars:]  # Other Categorical
+        ], dim=-1)
+        tot_vars = context.shape[-1]
+
+        ### group id
+        group_ids = torch.arange(batch_size)
+        group_ids = torch.repeat_interleave(group_ids, repeats = tot_vars, dim = 0)
+
+        ### future_covariates
+        future_covariates = torch.cat([batch['x_num_future'],batch['x_cat_future']], dim=-1)
+        fut_cov_pad_size = context.shape[-1] - future_covariates.shape[-1]
+        # Padding tuple for 3D: (Dim2_L, Dim2_R, Dim1_T, Dim1_B, Dim0_F, Dim0_B)
+        future_covariates = nn.functional.pad(future_covariates, (fut_cov_pad_size, 0, 0, 0, 0, 0), value=float('nan'))
+
+        ### future_target
+        future_target = batch['y']
+        fut_y_pad_size = future_covariates.shape[-1] - future_target.shape[-1]
+        future_target = nn.functional.pad(future_target, (0, fut_y_pad_size, 0, 0, 0, 0), value=float('nan'))
+
+        # aux
+        num_output_patches = horizon // self.chronos_config.output_patch_size +1
+        output_attentions = False
+        context_mask = None
+        future_covariates_mask = None
+        future_target_mask = None
+
+        # reshape all
+        context = rearrange(context, "b t f -> (b f) t")
+        future_covariates = rearrange(future_covariates, "b t f -> (b f) t")
+        future_target = rearrange(future_target, "b t f -> (b f) t")
+
         """Forward pass of the Chronos2 model.
 
         Parameters
@@ -574,50 +625,7 @@ class Chronos2(Base): # type: ignore
         - enc_time_self_attn_weights: Time self attention weights, if output_attentions=True
         - enc_group_self_attn_weights: Group self attention weights, if output_attentions=True
         """
-        # ADAPT from BATCH to STANDARD CHRONOS2 INPUTS
-        batch_size, horizon, number_target_vars = batch['y'].shape
-        num_output_patches = horizon // self.chronos_config.output_patch_size +1
-        output_attentions = False
-        
-        # past variables
-        numerical_past_vars = batch['x_num_past'].shape[-1]
-        categorical_past_vars = batch['x_cat_past'].shape[-1]
-        # future variables
-        numerical_fut_vars = batch['x_num_future'].shape[-1]
-        categorical_fut_vars = batch['x_cat_future'].shape[-1]
-        # number_target_vars = batch['idx_target'].shape[-1]
 
-        # total variables and check compatibility
-        tot_past_vars = numerical_past_vars + categorical_past_vars
-        tot_aux_vars = numerical_fut_vars + categorical_fut_vars
-        tot_future_vars = tot_aux_vars + number_target_vars
-        assert tot_past_vars == tot_future_vars
-
-        group_ids = torch.arange(batch_size)
-        group_ids = torch.repeat_interleave(group_ids, repeats = tot_past_vars, dim = 0)
-        
-        past_context = torch.cat((batch['x_cat_past'], batch['x_num_past']), dim = -1)
-        context = rearrange(past_context, 'b f s -> (b s) f')
-
-        future_context = torch.cat((batch['y'], batch['x_cat_future'], batch['x_num_future']), dim = -1)
-        future_context = rearrange(future_context, 'b f s -> (b s) f')
-        # create an aux mask to create 'future_target' and 'future_covariates'
-        ones_mask = torch.ones(horizon).view(1,-1)
-        ones_mask = torch.repeat_interleave(ones_mask, repeats = number_target_vars, dim = 0)
-        zeros_mask = torch.zeros(horizon).view(1,-1)
-        zeros_mask = torch.repeat_interleave(zeros_mask, repeats = tot_aux_vars, dim = 0)
-        aux_mask = torch.cat((ones_mask, zeros_mask), dim = 0).to(bool)
-        # repeat the mask for every group
-        full_aux_mask = aux_mask.repeat(batch_size, 1)
-        future_target = torch.where(full_aux_mask, future_context, torch.tensor(float('nan')))
-        future_covariates = torch.where(~full_aux_mask, future_context, torch.tensor(float('nan')))
-
-        # mask = torch.isnan(torch.arange(4)).logical_not().to(past_context.dtype) # will be created later in encode!
-        context_mask = None
-        future_covariates_mask = None
-        future_target_mask = None
-
-        #
         encoder_outputs, loc_scale, patched_future_covariates_mask, num_context_patches = self.encode(
             context=context,
             context_mask=context_mask,
@@ -630,7 +638,7 @@ class Chronos2(Base): # type: ignore
             output_attentions=output_attentions,
         )
         hidden_states: torch.Tensor = encoder_outputs[0]
-        assert hidden_states.shape == (batch_size*tot_future_vars, num_context_patches + 1 + num_output_patches, self.model_dim)
+        assert hidden_states.shape == (batch_size*tot_vars, num_context_patches + 1 + num_output_patches, self.model_dim)
 
         # slice the last num_output_patches hidden states to be input into the output_patch_embedding
         forecast_embeds = hidden_states[:, -num_output_patches:]
@@ -648,7 +656,7 @@ class Chronos2(Base): # type: ignore
         quantile_preds = rearrange(
             quantile_preds,
             "b q h -> b (q h)",
-            b=batch_size*tot_future_vars,
+            b=batch_size*tot_vars,
             q=self.num_quantiles,
             h=num_output_patches * self.chronos_config.output_patch_size,
         )
@@ -661,12 +669,12 @@ class Chronos2(Base): # type: ignore
         )
 
         ## customizing output
-        quantile_preds = quantile_preds[:batch_size*number_target_vars,:, :horizon] # check
+        quantile_preds = quantile_preds[:batch_size*n_target_vars,:, :horizon] # check
         # breakpoint()
         quantile_preds = rearrange(quantile_preds,
                                    "(b c) q l -> b l c q",
                                    b = batch_size,
-                                   c = number_target_vars,
+                                   c = n_target_vars,
                                 #    q = self.num_quantiles, 
                                 #    l = horizon 
                                    )

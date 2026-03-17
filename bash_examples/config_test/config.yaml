@@ -28,11 +28,15 @@ model_configs:
   past_steps: 16
   future_steps: 8
   quantiles: []
-  past_channels : null #dataset dependent
-  future_channels : null #dataset dependent
-  embs_past: null #dataset dependent
-  embs_fut: null #dataset dependent
-  out_channels: null #dataset dependent
+  # dataset dependent part
+  past_channels : null 
+  future_channels : null
+  embs_past: null 
+  embs_fut: null
+  out_channels: null
+  # prediction_channel_indices: null
+  # exogenous_channel_indices_cont: null
+  # exogenous_channel_indices_cat: null
 
 stack:
   dirpath: null ##leave it null

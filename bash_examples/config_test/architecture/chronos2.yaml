@@ -15,23 +15,23 @@ ts:
 
 model_configs:
   context_length: ${model_configs.past_steps}
-  input_patch_size: 16
-  input_patch_stride: 16
+  input_patch_size: 4
+  input_patch_stride: 4
   max_output_patches: 64
-  output_patch_size: 16
+  output_patch_size: 4
   time_encoding_scale: ${model_configs.past_steps}
   use_arcsinh: true
   use_reg_token: true
   d_ff: 256
-  d_kv: 16
+  d_kv: 32
   d_model: 128
   dense_act_fn: "relu" # ${model_configs.activation}
   dropout_rate: 0.1
   feed_forward_proj: "relu" # ${model_configs.activation}
   initializer_factor: 0.05
   layer_norm_epsilon: 1e-06
-  num_heads: 1
-  num_layers: 1
+  num_heads: 3
+  num_layers: 2
   pad_token_id: 0
   reg_token_id: 1
   rope_theta: 10000.0
@@ -45,4 +45,4 @@ model_configs:
   
 train_config:
   batch_size: 128 # chronos works on [bs*num_vars, past/future_length]: start with small batch_size!
-  max_epochs: 3
+  max_epochs: 100

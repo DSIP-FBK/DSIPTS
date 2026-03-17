@@ -54,6 +54,7 @@ def train(conf: DictConfig) -> None:
         ts = load_data(conf)
     except Exception:
         beauty_string(f"LOADING {conf.dataset.dataset} ERROR {traceback.format_exc()}",'', True)
+        raise 
 
     ts.set_verbose(VERBOSE)
     ######################################################################################################
@@ -68,19 +69,35 @@ def train(conf: DictConfig) -> None:
     model_conf['embs_past'] = [ts.dataset[c].nunique() for c in ts.cat_past_var]
     model_conf['embs_fut'] = [ts.dataset[c].nunique() for c in ts.cat_fut_var]
     model_conf['out_channels'] = len(ts.target_variables)
-
+    
     if 'ttm' in conf.model.type:
-        import numpy as np
+    # if conf.model.type in ['ttm','chronos2']:
+        # preprocessing and validation bridge specifically designed for "Channel-Independent" or multi-variate Time Series models
+        
+        past_set = set(ts.past_variables)
+        if not set(ts.future_variables).issubset(past_set):
+            raise ValueError(beauty_string("Some future continuous variables do not exist in the past", '', True))
+        
+        cat_past_set = set(ts.cat_past_var)
+        if not set(ts.cat_fut_var).issubset(cat_past_set):
+            raise ValueError(beauty_string("Some future categorical variables do not exist in the past", '', True))
 
-        assert set(ts.future_variables).intersection(set(ts.past_variables)) == set(ts.future_variables),  beauty_string(f"TTM  does not allow future features that are not in the past",'', True)
-        assert set(ts.cat_fut_var).intersection(set(ts.cat_past_var)) == set(ts.cat_fut_var),  beauty_string(f"TTM  does not allow future features that are not in the past",'', True)
+        # We enumerate the list to get (index, name) pairs, then filter
+        # indices_target_channels
+        model_conf['prediction_channel_indices'] = [i for i, var in enumerate(ts.past_variables) if var in ts.target_variables]
+        # indices_exogenous_channels
+        model_conf['exogenous_channel_indices_cont'] = [i for i, var in enumerate(ts.past_variables) if var in ts.future_variables]
+        # indices_exogenous_channels
+        model_conf['exogenous_channel_indices_cat'] = [i for i, var in enumerate(ts.cat_past_var) if var in ts.cat_fut_var]
 
-        #model_conf['num_input_channels'] = len(ts.past_variables) + len(ts.cat_past_var) ##TODO check this
-        model_conf['prediction_channel_indices'] = [int(a) for a in list(np.where(np.isin(np.array(ts.past_variables),np.array(ts.target_variables)))[0] )]
-        model_conf['exogenous_channel_indices_cont'] =  [int(a) for a in list(np.where(np.isin(np.array(ts.past_variables),np.array(ts.future_variables)))[0])]
-        model_conf['exogenous_channel_indices_cat'] = [int(a) for a in list(np.where(np.isin(np.array(ts.cat_past_var),np.array(ts.cat_fut_var)))[0])]
+        # import numpy as np
+        # assert set(ts.future_variables).intersection(set(ts.past_variables)) == set(ts.future_variables),  beauty_string("TTM  does not allow future features that are not in the past",'', True)
+        # assert set(ts.cat_fut_var).intersection(set(ts.cat_past_var)) == set(ts.cat_fut_var),  beauty_string("TTM  does not allow future features that are not in the past",'', True)
 
-
+        # #model_conf['num_input_channels'] = len(ts.past_variables) + len(ts.cat_past_var) ##TODO check this
+        # model_conf['prediction_channel_indices'] = [int(a) for a in list(np.where(np.isin(np.array(ts.past_variables),np.array(ts.target_variables)))[0] )]
+        # model_conf['exogenous_channel_indices_cont'] =  [int(a) for a in list(np.where(np.isin(np.array(ts.past_variables),np.array(ts.future_variables)))[0])]
+        # model_conf['exogenous_channel_indices_cat'] = [int(a) for a in list(np.where(np.isin(np.array(ts.cat_past_var),np.array(ts.cat_fut_var)))[0])]
 
     model = select_model(conf, model_conf, ts)
     if model is None:
@@ -95,11 +112,8 @@ def train(conf: DictConfig) -> None:
             pass
         else:
             retrain = False
-            
-
     if retrain is False:
         beauty_string(f'MODEL{ conf.model.type}-{conf.ts.name}-{conf.ts.version}  ALREADY TRAINED if you want to overwrite set model.retrain=True in the config ','block', True)
-
         ## TODO if a model is altready trained with a config I should save the testloss somewhere
         return 1000
     
@@ -127,15 +141,14 @@ def train(conf: DictConfig) -> None:
     used_config = os.path.join(path,'config_used')
     if not os.path.exists(used_config):
         os.mkdir(used_config)
+
     tot_seconds = time.time()
-    
     try:
         valid_loss = ts.train_model(split_params=split_params,**conf.train_config)
         ok = True
     except Exception as _:
         beauty_string(traceback.format_exc(),'', True)
         ok = False
-        
     if ok:
         ts.save(os.path.join(conf.train_config.dirpath,'model'))
         with open(os.path.join(used_config,selection+'.yaml'),'w') as f:

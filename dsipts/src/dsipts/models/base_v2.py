@@ -73,7 +73,10 @@ class Base(pl.LightningModule):
 
                  optim:Union[str,None]=None,
                  optim_config:dict=None,
-                 scheduler_config:dict=None,):
+                 scheduler_config:dict=None,
+                prediction_channel_indices = None,
+                exogenous_channel_indices_cont= None,
+                exogenous_channel_indices_cat= None):
         """
         This is the basic model, each model implemented must overwrite the init method and the forward method.
         The inference step is optional, by default it uses the forward method but for recurrent 

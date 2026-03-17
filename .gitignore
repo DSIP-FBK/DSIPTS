@@ -4,6 +4,7 @@
 __pycache__/
 *.rst
 *.pkl
+*.aim
 *config_used*
 logs
 multirun
