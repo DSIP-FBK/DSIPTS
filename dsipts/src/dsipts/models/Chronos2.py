@@ -522,14 +522,17 @@ class Chronos2(Base): # type: ignore
         mask_3d = mask.unsqueeze(1).expand(-1, context_length, -1)
         num_past = num_past_with_y[mask_3d].view(batch_size, context_length, n_past_num_vars)
 
-        # past_only_vars: with new workflow they are sorted
-        context = torch.cat([
-            past_target, # Past Targets
-            num_past[:, :, :self.n_past_only_num_vars], # Past-only Numerical
-            batch['x_cat_past'][:, :, :self.n_past_only_cat_vars], # Past-only Categorical
-            num_past[:, :, self.n_past_only_num_vars:], # Other Numerical
-            batch['x_cat_past'][:, :, self.n_past_only_cat_vars:]  # Other Categorical
-        ], dim=-1)
+        # context: with new workflow they are sorted
+        if 'x_cat_past' in batch.keys():
+            context = torch.cat([
+                past_target, # Past Targets
+                num_past[:, :, :self.n_past_only_num_vars], # Past-only Numerical
+                batch['x_cat_past'][:, :, :self.n_past_only_cat_vars], # Past-only Categorical
+                num_past[:, :, self.n_past_only_num_vars:], # Other Numerical
+                batch['x_cat_past'][:, :, self.n_past_only_cat_vars:]  # Other Categorical
+            ], dim=-1)
+        else:
+            context = torch.cat([past_target, num_past], dim=-1)
         tot_vars = context.shape[-1]
 
         ### group id
@@ -537,14 +540,27 @@ class Chronos2(Base): # type: ignore
         group_ids = torch.repeat_interleave(group_ids, repeats = tot_vars, dim = 0)
 
         ### future_covariates
-        future_covariates = torch.cat([batch['x_num_future'],batch['x_cat_future']], dim=-1)
-        fut_cov_pad_size = context.shape[-1] - future_covariates.shape[-1]
-        # Padding tuple for 3D: (Dim2_L, Dim2_R, Dim1_T, Dim1_B, Dim0_F, Dim0_B)
-        future_covariates = nn.functional.pad(future_covariates, (fut_cov_pad_size, 0, 0, 0, 0, 0), value=float('nan'))
+        x_num_future = batch.get('x_num_future', torch.empty((batch_size, horizon, 0), device=context.device))
+        x_cat_future = batch.get('x_cat_future', torch.empty((batch_size, horizon, 0), device=context.device))
+        future_covariates = torch.cat([x_num_future, x_cat_future.float()], dim=-1)
+
+        fut_cov_pad_size = tot_vars - future_covariates.shape[-1]
+        if fut_cov_pad_size != tot_vars:
+            if fut_cov_pad_size > 0:
+                future_covariates = nn.functional.pad(
+                    future_covariates, 
+                    # Padding tuple for 3D: 
+                    # (Dim2_L, Dim2_R, Dim1_T, Dim1_B, Dim0_F, Dim0_B)
+                    (fut_cov_pad_size, 0, 0, 0, 0, 0), 
+                    value=float('nan')
+                )
+            future_covariates = rearrange(future_covariates, "b t f -> (b f) t")
+        else:
+            future_covariates = None
 
         ### future_target
         future_target = batch['y']
-        fut_y_pad_size = future_covariates.shape[-1] - future_target.shape[-1]
+        fut_y_pad_size = tot_vars - future_target.shape[-1]
         future_target = nn.functional.pad(future_target, (0, fut_y_pad_size, 0, 0, 0, 0), value=float('nan'))
 
         # aux
@@ -556,7 +572,6 @@ class Chronos2(Base): # type: ignore
 
         # reshape all
         context = rearrange(context, "b t f -> (b f) t")
-        future_covariates = rearrange(future_covariates, "b t f -> (b f) t")
         future_target = rearrange(future_target, "b t f -> (b f) t")
 
         """Forward pass of the Chronos2 model.
