@@ -1,3 +1,7 @@
+
+## 1.1.32
+- timekan multioutput fix
+
 ## 1.1.31
 - aim & logger back working
 - fixed validation with few sampler

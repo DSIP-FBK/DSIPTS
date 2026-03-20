@@ -68,7 +68,7 @@ class TimeKAN(Base):
                         self.past_steps,
                         self.future_steps,
                     )
-        self.final_layer = nn.Linear(d_model, self.mul)
+        self.final_layer = nn.Linear(d_model, self.mul*self.out_channels)
         self.down_sampling_layers = down_sampling_layers
         self.down_sampling_window = down_sampling_window
     def can_be_compiled(self):
@@ -118,6 +118,7 @@ class TimeKAN(Base):
 
         dec_out = x_list[0]
         dec_out = self.predict_layer(dec_out.permute(0, 2, 1)).permute( 0, 2, 1)  
+
         dec_out = self.final_layer(dec_out)
 
         return dec_out.reshape(BS,self.future_steps,self.out_channels,self.mul)
