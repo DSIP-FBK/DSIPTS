@@ -101,7 +101,7 @@ uv pip install .
 ```
 You can install also the package from pip (be sure that the python version is less than 3.12, still sperimental):
 ```bash
-uv venv --python 3.11
+uv venv --python 3.12
 uv pip install dsipts
 ```
 

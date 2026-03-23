@@ -1,4 +1,8 @@
 
+## 1.1.33
+- added chronos v2
+- update python
+
 ## 1.1.32
 - timekan multioutput fix
 

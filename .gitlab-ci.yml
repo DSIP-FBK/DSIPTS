@@ -1,4 +1,4 @@
-image: python:3.11
+image: python:3.12
 #run:
   #script:
   #- pip install twine sphinx-pdj-theme sphinx

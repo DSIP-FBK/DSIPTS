@@ -4,11 +4,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index &#8212; DSIPTS 1.1.32 documentation</title>
+    <title>Index &#8212; DSIPTS 1.1.33 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
     <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
-    <script src="_static/documentation_options.js?v=7fa7e451"></script>
+    <script src="_static/documentation_options.js?v=dbdf6048"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="index" title="Index" href="#" />
@@ -123,6 +123,12 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.act">act() (in module dsipts.models.d3vae.neural_operations)</a>
 </li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.Chronos2EncoderOutput.all_group_self_attn_weights">all_group_self_attn_weights (dsipts.models.chronos2.layers.Chronos2EncoderOutput attribute)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.Chronos2EncoderOutput.all_time_self_attn_weights">all_time_self_attn_weights (dsipts.models.chronos2.layers.Chronos2EncoderOutput attribute)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.RoPE.apply_rotary_pos_emb">apply_rotary_pos_emb() (dsipts.models.chronos2.layers.RoPE static method)</a>
+</li>
       <li><a href="dsipts.models.crossformer.html#dsipts.models.crossformer.attn.AttentionLayer">AttentionLayer (class in dsipts.models.crossformer.attn)</a>
 
       <ul>
@@ -133,10 +139,18 @@
         <li><a href="dsipts.models.itransformer.html#dsipts.models.itransformer.SelfAttention_Family.AttentionLayer">(class in dsipts.models.itransformer.SelfAttention_Family)</a>
 </li>
       </ul></li>
-      <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.configuration_tinytimemixer.TinyTimeMixerConfig.attribute_map">attribute_map (dsipts.models.ttm.configuration_tinytimemixer.TinyTimeMixerConfig attribute)</a>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.AttentionOutput">AttentionOutput (class in dsipts.models.chronos2.layers)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.AttentionOutput.attn_weights">attn_weights (dsipts.models.chronos2.layers.AttentionOutput attribute)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2CoreConfig.attribute_map">attribute_map (dsipts.models.chronos2.config.Chronos2CoreConfig attribute)</a>
+
+      <ul>
+        <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.configuration_tinytimemixer.TinyTimeMixerConfig.attribute_map">(dsipts.models.ttm.configuration_tinytimemixer.TinyTimeMixerConfig attribute)</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.models.autoformer.html#dsipts.models.autoformer.layers.AutoCorrelation">AutoCorrelation (class in dsipts.models.autoformer.layers)</a>
 </li>
       <li><a href="dsipts.models.autoformer.html#dsipts.models.autoformer.layers.AutoCorrelationLayer">AutoCorrelationLayer (class in dsipts.models.autoformer.layers)</a>
@@ -214,6 +228,8 @@
       <li><a href="dsipts.html#dsipts.Autoformer.can_be_compiled">can_be_compiled() (dsipts.Autoformer method)</a>
 
       <ul>
+        <li><a href="dsipts.html#dsipts.Chronos2.can_be_compiled">(dsipts.Chronos2 method)</a>
+</li>
         <li><a href="dsipts.html#dsipts.CrossFormer.can_be_compiled">(dsipts.CrossFormer method)</a>
 </li>
         <li><a href="dsipts.html#dsipts.D3VAE.can_be_compiled">(dsipts.D3VAE method)</a>
@@ -293,8 +309,6 @@
         <li><a href="dsipts.html#dsipts.TTM.can_be_compiled">(dsipts.TTM method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.html#dsipts.Diffusion.cat_categorical_vars">cat_categorical_vars() (dsipts.Diffusion method)</a>
 
       <ul>
@@ -307,6 +321,8 @@
         <li><a href="dsipts.data_structure.html#dsipts.data_structure.data_structure.Categorical">(class in dsipts.data_structure.data_structure)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.vva.html#dsipts.models.vva.minigpt.CausalSelfAttention">CausalSelfAttention (class in dsipts.models.vva.minigpt)</a>
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Cell">Cell (class in dsipts.models.d3vae.encoder)</a>
@@ -319,6 +335,22 @@
 </li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.utils.check_ttm_model_path">check_ttm_model_path() (in module dsipts.models.ttm.utils)</a>
 </li>
+      <li><a href="dsipts.html#dsipts.Chronos2">Chronos2 (class in dsipts)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2CoreConfig">Chronos2CoreConfig (class in dsipts.models.chronos2.config)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.Chronos2Encoder">Chronos2Encoder (class in dsipts.models.chronos2.layers)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.Chronos2EncoderBlock">Chronos2EncoderBlock (class in dsipts.models.chronos2.layers)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.Chronos2EncoderBlockOutput">Chronos2EncoderBlockOutput (class in dsipts.models.chronos2.layers)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.Chronos2EncoderOutput">Chronos2EncoderOutput (class in dsipts.models.chronos2.layers)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2ForecastingConfig">Chronos2ForecastingConfig (class in dsipts.models.chronos2.config)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.Chronos2LayerNorm">Chronos2LayerNorm (class in dsipts.models.chronos2.layers)</a>
+</li>
       <li><a href="dsipts.models.duet.html#dsipts.models.duet.layers.SparseDispatcher.combine">combine() (dsipts.models.duet.layers.SparseDispatcher method)</a>
 </li>
       <li><a href="dsipts.models.html#dsipts.models.utils.SinkhornDistance.compute">compute() (dsipts.models.utils.SinkhornDistance method)</a>
@@ -327,9 +359,11 @@
 </li>
       <li><a href="dsipts.models.html#dsipts.models.utils.compute_softdtw_backward">compute_softdtw_backward() (in module dsipts.models.utils)</a>
 </li>
-      <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerEncoder.config_class">config_class (dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerEncoder attribute)</a>
+      <li><a href="dsipts.html#dsipts.Chronos2.config_class">config_class (dsipts.Chronos2 attribute)</a>
 
       <ul>
+        <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerEncoder.config_class">(dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerEncoder attribute)</a>
+</li>
         <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerForMaskedPrediction.config_class">(dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerForMaskedPrediction attribute)</a>
 </li>
         <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerForPrediction.config_class">(dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerForPrediction attribute)</a>
@@ -345,6 +379,8 @@
         <li><a href="dsipts.html#dsipts.VVA.configure_optimizers">(dsipts.VVA method)</a>
 </li>
       </ul></li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2ForecastingConfig.context_length">context_length (dsipts.models.chronos2.config.Chronos2ForecastingConfig attribute)</a>
+</li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.Conv2D">Conv2D (class in dsipts.models.d3vae.neural_operations)</a>
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.ConvBNSwish">ConvBNSwish (class in dsipts.models.d3vae.neural_operations)</a>
@@ -397,6 +433,8 @@
         <li><a href="dsipts.models.html#dsipts.models.D3VAE.D3VAE">(class in dsipts.models.D3VAE)</a>
 </li>
       </ul></li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.MHA.d_model">d_model (dsipts.models.chronos2.layers.MHA attribute)</a>
+</li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.embedding.DataEmbedding">DataEmbedding (class in dsipts.models.d3vae.embedding)</a>
 
       <ul>
@@ -443,6 +481,8 @@
 
       <ul>
         <li><a href="dsipts.html#dsipts.Base.description">(dsipts.Base attribute)</a>
+</li>
+        <li><a href="dsipts.html#dsipts.Chronos2.description">(dsipts.Chronos2 attribute)</a>
 </li>
         <li><a href="dsipts.html#dsipts.CrossFormer.description">(dsipts.CrossFormer attribute)</a>
 </li>
@@ -563,6 +603,8 @@
         <li><a href="dsipts.html#dsipts.Monash.download_dataset">(dsipts.Monash method)</a>
 </li>
       </ul></li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.MHA.dropout">dropout (dsipts.models.chronos2.layers.MHA attribute)</a>
+</li>
       <li>
     dsipts
 
@@ -662,6 +704,27 @@
 </li>
       </ul></li>
       <li>
+    dsipts.models.chronos2
+
+      <ul>
+        <li><a href="dsipts.models.chronos2.html#module-dsipts.models.chronos2">module</a>
+</li>
+      </ul></li>
+      <li>
+    dsipts.models.chronos2.config
+
+      <ul>
+        <li><a href="dsipts.models.chronos2.html#module-dsipts.models.chronos2.config">module</a>
+</li>
+      </ul></li>
+      <li>
+    dsipts.models.chronos2.layers
+
+      <ul>
+        <li><a href="dsipts.models.chronos2.html#module-dsipts.models.chronos2.layers">module</a>
+</li>
+      </ul></li>
+      <li>
     dsipts.models.CrossFormer
 
       <ul>
@@ -710,6 +773,8 @@
         <li><a href="dsipts.models.html#module-dsipts.models.D3VAE">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     dsipts.models.d3vae
 
@@ -731,8 +796,6 @@
         <li><a href="dsipts.models.d3vae.html#module-dsipts.models.d3vae.embedding">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     dsipts.models.d3vae.encoder
 
@@ -1159,6 +1222,8 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2ForecastingConfig.editable_fields">editable_fields() (dsipts.models.chronos2.config.Chronos2ForecastingConfig class method)</a>
+</li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.ELUConv">ELUConv (class in dsipts.models.d3vae.neural_operations)</a>
 </li>
       <li><a href="dsipts.models.tft.html#dsipts.models.tft.sub_nn.embedding_cat_variables">embedding_cat_variables (class in dsipts.models.tft.sub_nn)</a>
@@ -1166,6 +1231,8 @@
       <li><a href="dsipts.models.html#dsipts.models.utils.Embedding_cat_variables">Embedding_cat_variables (class in dsipts.models.utils)</a>
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.EncCombinerCell">EncCombinerCell (class in dsipts.models.d3vae.neural_operations)</a>
+</li>
+      <li><a href="dsipts.html#dsipts.Chronos2.encode">encode() (dsipts.Chronos2 method)</a>
 </li>
       <li><a href="dsipts.models.autoformer.html#dsipts.models.autoformer.layers.Encoder">Encoder (class in dsipts.models.autoformer.layers)</a>
 
@@ -1189,10 +1256,10 @@
         <li><a href="dsipts.models.vva.html#dsipts.models.vva.vqvae.Encoder">(class in dsipts.models.vva.vqvae)</a>
 </li>
       </ul></li>
-      <li><a href="dsipts.models.duet.html#dsipts.models.duet.layers.Linear_extractor.encoder">encoder() (dsipts.models.duet.layers.Linear_extractor method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dsipts.models.duet.html#dsipts.models.duet.layers.Linear_extractor.encoder">encoder() (dsipts.models.duet.layers.Linear_extractor method)</a>
+</li>
       <li><a href="dsipts.models.autoformer.html#dsipts.models.autoformer.layers.EncoderLayer">EncoderLayer (class in dsipts.models.autoformer.layers)</a>
 
       <ul>
@@ -1238,6 +1305,8 @@
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.FactorizedReduce">FactorizedReduce (class in dsipts.models.d3vae.neural_operations)</a>
 </li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.FeatureMixerBlock">FeatureMixerBlock (class in dsipts.models.ttm.modeling_tinytimemixer)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.FeedForward">FeedForward (class in dsipts.models.chronos2.layers)</a>
 </li>
       <li><a href="dsipts.models.timesnet.html#dsipts.models.timesnet.Layers.FFT_for_Period">FFT_for_Period() (in module dsipts.models.timesnet.Layers)</a>
 </li>
@@ -1288,6 +1357,8 @@
       <ul>
         <li><a href="dsipts.html#dsipts.Base.forward">(dsipts.Base method)</a>
 </li>
+        <li><a href="dsipts.html#dsipts.Chronos2.forward">(dsipts.Chronos2 method)</a>
+</li>
         <li><a href="dsipts.html#dsipts.CrossFormer.forward">(dsipts.CrossFormer method)</a>
 </li>
         <li><a href="dsipts.html#dsipts.D3VAE.forward">(dsipts.D3VAE method)</a>
@@ -1331,6 +1402,30 @@
         <li><a href="dsipts.models.html#dsipts.models.base.Base.forward">(dsipts.models.base.Base method)</a>
 </li>
         <li><a href="dsipts.models.html#dsipts.models.base_v2.Base.forward">(dsipts.models.base_v2.Base method)</a>
+</li>
+        <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.Chronos2Encoder.forward">(dsipts.models.chronos2.layers.Chronos2Encoder method)</a>
+</li>
+        <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.Chronos2EncoderBlock.forward">(dsipts.models.chronos2.layers.Chronos2EncoderBlock method)</a>
+</li>
+        <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.Chronos2LayerNorm.forward">(dsipts.models.chronos2.layers.Chronos2LayerNorm method)</a>
+</li>
+        <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.FeedForward.forward">(dsipts.models.chronos2.layers.FeedForward method)</a>
+</li>
+        <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.GroupSelfAttention.forward">(dsipts.models.chronos2.layers.GroupSelfAttention method)</a>
+</li>
+        <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.InstanceNorm.forward">(dsipts.models.chronos2.layers.InstanceNorm method)</a>
+</li>
+        <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.MHA.forward">(dsipts.models.chronos2.layers.MHA method)</a>
+</li>
+        <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.MLP.forward">(dsipts.models.chronos2.layers.MLP method)</a>
+</li>
+        <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.Patch.forward">(dsipts.models.chronos2.layers.Patch method)</a>
+</li>
+        <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.ResidualBlock.forward">(dsipts.models.chronos2.layers.ResidualBlock method)</a>
+</li>
+        <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.RoPE.forward">(dsipts.models.chronos2.layers.RoPE method)</a>
+</li>
+        <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.TimeSelfAttention.forward">(dsipts.models.chronos2.layers.TimeSelfAttention method)</a>
 </li>
         <li><a href="dsipts.models.crossformer.html#dsipts.models.crossformer.attn.AttentionLayer.forward">(dsipts.models.crossformer.attn.AttentionLayer method)</a>
 </li>
@@ -1825,14 +1920,14 @@
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.diffusion_process.get_beta_schedule">get_beta_schedule() (in module dsipts.models.d3vae.diffusion_process)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.tft.html#dsipts.models.tft.sub_nn.embedding_cat_variables.get_cat_n_embd">get_cat_n_embd() (dsipts.models.tft.sub_nn.embedding_cat_variables method)</a>
 
       <ul>
         <li><a href="dsipts.models.html#dsipts.models.utils.Embedding_cat_variables.get_cat_n_embd">(dsipts.models.utils.Embedding_cat_variables method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.html#dsipts.get_freq">get_freq() (in module dsipts)</a>, <a href="generated/dsipts.get_freq.html#dsipts.get_freq">[1]</a>
 
       <ul>
@@ -1875,7 +1970,11 @@
       </ul></li>
       <li><a href="dsipts.models.tft.html#dsipts.models.tft.sub_nn.GRN">GRN (class in dsipts.models.tft.sub_nn)</a>
 </li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.Chronos2EncoderBlockOutput.group_self_attn_weights">group_self_attn_weights (dsipts.models.chronos2.layers.Chronos2EncoderBlockOutput attribute)</a>
+</li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.utils.groups_per_scale">groups_per_scale() (in module dsipts.models.d3vae.utils)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.GroupSelfAttention">GroupSelfAttention (class in dsipts.models.chronos2.layers)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -1887,6 +1986,8 @@
 
       <ul>
         <li><a href="dsipts.html#dsipts.Base.handle_categorical_variables">(dsipts.Base attribute)</a>
+</li>
+        <li><a href="dsipts.html#dsipts.Chronos2.handle_categorical_variables">(dsipts.Chronos2 attribute)</a>
 </li>
         <li><a href="dsipts.html#dsipts.CrossFormer.handle_categorical_variables">(dsipts.CrossFormer attribute)</a>
 </li>
@@ -1980,6 +2081,8 @@
       <ul>
         <li><a href="dsipts.html#dsipts.Base.handle_future_covariates">(dsipts.Base attribute)</a>
 </li>
+        <li><a href="dsipts.html#dsipts.Chronos2.handle_future_covariates">(dsipts.Chronos2 attribute)</a>
+</li>
         <li><a href="dsipts.html#dsipts.CrossFormer.handle_future_covariates">(dsipts.CrossFormer attribute)</a>
 </li>
         <li><a href="dsipts.html#dsipts.Diffusion.handle_future_covariates">(dsipts.Diffusion attribute)</a>
@@ -2071,6 +2174,8 @@
 
       <ul>
         <li><a href="dsipts.html#dsipts.Base.handle_multivariate">(dsipts.Base attribute)</a>
+</li>
+        <li><a href="dsipts.html#dsipts.Chronos2.handle_multivariate">(dsipts.Chronos2 attribute)</a>
 </li>
         <li><a href="dsipts.html#dsipts.CrossFormer.handle_multivariate">(dsipts.CrossFormer attribute)</a>
 </li>
@@ -2166,6 +2271,8 @@
       <ul>
         <li><a href="dsipts.html#dsipts.Base.handle_quantile_loss">(dsipts.Base attribute)</a>
 </li>
+        <li><a href="dsipts.html#dsipts.Chronos2.handle_quantile_loss">(dsipts.Chronos2 attribute)</a>
+</li>
         <li><a href="dsipts.html#dsipts.CrossFormer.handle_quantile_loss">(dsipts.CrossFormer attribute)</a>
 </li>
         <li><a href="dsipts.html#dsipts.Diffusion.handle_quantile_loss">(dsipts.Diffusion attribute)</a>
@@ -2253,9 +2360,13 @@
         <li><a href="dsipts.html#dsipts.VVA.handle_quantile_loss">(dsipts.VVA attribute)</a>
 </li>
       </ul></li>
-      <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerEncoderOutput.hidden_states">hidden_states (dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerEncoderOutput attribute)</a>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.AttentionOutput.hidden_states">hidden_states (dsipts.models.chronos2.layers.AttentionOutput attribute)</a>
 
       <ul>
+        <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.Chronos2EncoderBlockOutput.hidden_states">(dsipts.models.chronos2.layers.Chronos2EncoderBlockOutput attribute)</a>
+</li>
+        <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerEncoderOutput.hidden_states">(dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerEncoderOutput attribute)</a>
+</li>
         <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerForPredictionOutput.hidden_states">(dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerForPredictionOutput attribute)</a>
 </li>
         <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerModelOutput.hidden_states">(dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerModelOutput attribute)</a>
@@ -2309,14 +2420,14 @@
         <li><a href="dsipts.html#dsipts.VVA.inference">(dsipts.VVA method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.inference_on_set">inference_on_set() (dsipts.data_structure.data_structure.TimeSeries method)</a>
 
       <ul>
         <li><a href="dsipts.html#dsipts.TimeSeries.inference_on_set">(dsipts.TimeSeries method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.html#dsipts.Informer">Informer (class in dsipts)</a>, <a href="generated/dsipts.Informer.html#dsipts.Informer">[1]</a>
 
       <ul>
@@ -2339,7 +2450,19 @@
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Encoder.init_sampler">init_sampler() (dsipts.models.d3vae.encoder.Encoder method)</a>
 </li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.MHA.inner_dim">inner_dim (dsipts.models.chronos2.layers.MHA attribute)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2ForecastingConfig.input_patch_size">input_patch_size (dsipts.models.chronos2.config.Chronos2ForecastingConfig attribute)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2ForecastingConfig.input_patch_stride">input_patch_stride (dsipts.models.chronos2.config.Chronos2ForecastingConfig attribute)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.InstanceNorm">InstanceNorm (class in dsipts.models.chronos2.layers)</a>
+</li>
       <li><a href="dsipts.models.tft.html#dsipts.models.tft.sub_nn.InterpretableMultiHead">InterpretableMultiHead (class in dsipts.models.tft.sub_nn)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.RoPE.inv_freq">inv_freq (dsipts.models.chronos2.layers.RoPE attribute)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.InstanceNorm.inverse">inverse() (dsipts.models.chronos2.layers.InstanceNorm method)</a>
 </li>
       <li><a href="dsipts.data_structure.html#dsipts.data_structure.data_structure.DummyScaler.inverse_transform">inverse_transform() (dsipts.data_structure.data_structure.DummyScaler method)</a>
 
@@ -2377,6 +2500,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Normal.kl">kl() (dsipts.models.d3vae.encoder.Normal method)</a>
 </li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.MHA.kv_proj_dim">kv_proj_dim (dsipts.models.chronos2.layers.MHA attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -2387,9 +2512,11 @@
 </li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.utils.ModelSize.LARGE">LARGE (dsipts.models.ttm.utils.ModelSize attribute)</a>
 </li>
-      <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerEncoderOutput.last_hidden_state">last_hidden_state (dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerEncoderOutput attribute)</a>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.Chronos2EncoderOutput.last_hidden_state">last_hidden_state (dsipts.models.chronos2.layers.Chronos2EncoderOutput attribute)</a>
 
       <ul>
+        <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerEncoderOutput.last_hidden_state">(dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerEncoderOutput attribute)</a>
+</li>
         <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerModelOutput.last_hidden_state">(dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerModelOutput attribute)</a>
 </li>
       </ul></li>
@@ -2469,14 +2596,26 @@
         <li><a href="dsipts.models.itransformer.html#dsipts.models.itransformer.SelfAttention_Family.TriangularCausalMask.mask">(dsipts.models.itransformer.SelfAttention_Family.TriangularCausalMask property)</a>
 </li>
       </ul></li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2ForecastingConfig.max_output_patches">max_output_patches (dsipts.models.chronos2.config.Chronos2ForecastingConfig attribute)</a>
+</li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.MeanPoolConv">MeanPoolConv (class in dsipts.models.d3vae.resnet)</a>
 </li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.utils.ModelSize.MEDIUM">MEDIUM (dsipts.models.ttm.utils.ModelSize attribute)</a>
 </li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.MHA">MHA (class in dsipts.models.chronos2.layers)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.MLP">MLP (class in dsipts.models.chronos2.layers)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.FeedForward.mlp">mlp (dsipts.models.chronos2.layers.FeedForward attribute)</a>
+</li>
       <li><a href="dsipts.models.xlstm.html#dsipts.models.xlstm.xLSTM.mLSTM">mLSTM (class in dsipts.models.xlstm.xLSTM)</a>
 </li>
-      <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.configuration_tinytimemixer.TinyTimeMixerConfig.model_type">model_type (dsipts.models.ttm.configuration_tinytimemixer.TinyTimeMixerConfig attribute)</a>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2CoreConfig.model_type">model_type (dsipts.models.chronos2.config.Chronos2CoreConfig attribute)</a>
+
+      <ul>
+        <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.configuration_tinytimemixer.TinyTimeMixerConfig.model_type">(dsipts.models.ttm.configuration_tinytimemixer.TinyTimeMixerConfig attribute)</a>
 </li>
+      </ul></li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.utils.ModelSize">ModelSize (class in dsipts.models.ttm.utils)</a>
 </li>
       <li><a href="dsipts.data_structure.html#dsipts.data_structure.modifiers.Modifier">Modifier (class in dsipts.data_structure.modifiers)</a>
@@ -2514,6 +2653,12 @@
         <li><a href="dsipts.models.html#module-dsipts.models.base">dsipts.models.base</a>
 </li>
         <li><a href="dsipts.models.html#module-dsipts.models.base_v2">dsipts.models.base_v2</a>
+</li>
+        <li><a href="dsipts.models.chronos2.html#module-dsipts.models.chronos2">dsipts.models.chronos2</a>
+</li>
+        <li><a href="dsipts.models.chronos2.html#module-dsipts.models.chronos2.config">dsipts.models.chronos2.config</a>
+</li>
+        <li><a href="dsipts.models.chronos2.html#module-dsipts.models.chronos2.layers">dsipts.models.chronos2.layers</a>
 </li>
         <li><a href="dsipts.models.html#module-dsipts.models.CrossFormer">dsipts.models.CrossFormer</a>
 </li>
@@ -2692,6 +2837,8 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.MHA.n_heads">n_heads (dsipts.models.chronos2.layers.MHA attribute)</a>
+</li>
       <li><a href="dsipts.models.vva.html#dsipts.models.vva.minigpt.NewGELU">NewGELU (class in dsipts.models.vva.minigpt)</a>
 </li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.nll">nll() (in module dsipts.models.ttm.modeling_tinytimemixer)</a>
@@ -2702,10 +2849,10 @@
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.norm">norm() (in module dsipts.models.d3vae.neural_operations)</a>
 </li>
-      <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Normal">Normal (class in dsipts.models.d3vae.encoder)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Normal">Normal (class in dsipts.models.d3vae.encoder)</a>
+</li>
       <li><a href="dsipts.html#dsipts.Diffusion.normal_kl">normal_kl() (dsipts.Diffusion method)</a>
 
       <ul>
@@ -2735,6 +2882,10 @@
 </li>
       </ul></li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2ForecastingConfig.output_patch_size">output_patch_size (dsipts.models.chronos2.config.Chronos2ForecastingConfig attribute)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="P">P</h2>
@@ -2743,6 +2894,8 @@
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.diffusion_process.GaussianDiffusion.p_losses">p_losses() (dsipts.models.d3vae.diffusion_process.GaussianDiffusion method)</a>
 </li>
       <li><a href="dsipts.models.html#dsipts.models.utils.pairwise_distances">pairwise_distances() (in module dsipts.models.utils)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.Patch">Patch (class in dsipts.models.chronos2.layers)</a>
 </li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerModelOutput.patch_input">patch_input (dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerModelOutput attribute)</a>
 </li>
@@ -2832,6 +2985,8 @@
 </li>
       <li><a href="dsipts.models.html#dsipts.models.utils.QuantileLossMO">QuantileLossMO (class in dsipts.models.utils)</a>
 </li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2ForecastingConfig.quantiles">quantiles (dsipts.models.chronos2.config.Chronos2ForecastingConfig attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -2880,9 +3035,11 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.vva.html#dsipts.models.vva.vqvae.Residual">Residual (class in dsipts.models.vva.vqvae)</a>
 </li>
-      <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.ResidualBlock">ResidualBlock (class in dsipts.models.d3vae.resnet)</a>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.ResidualBlock">ResidualBlock (class in dsipts.models.chronos2.layers)</a>
 
       <ul>
+        <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.ResidualBlock">(class in dsipts.models.d3vae.resnet)</a>
+</li>
         <li><a href="dsipts.models.html#dsipts.models.TIDE.ResidualBlock">(class in dsipts.models.TIDE)</a>
 </li>
       </ul></li>
@@ -2907,6 +3064,10 @@
 </li>
       </ul></li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.utils.ForceReturn.ROLLING">ROLLING (dsipts.models.ttm.utils.ForceReturn attribute)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.RoPE">RoPE (class in dsipts.models.chronos2.layers)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.RoPE.rotate_half">rotate_half() (dsipts.models.chronos2.layers.RoPE static method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -3074,6 +3235,10 @@
 </li>
       <li><a href="dsipts.models.autoformer.html#dsipts.models.autoformer.layers.AutoCorrelation.time_delay_agg_training">time_delay_agg_training() (dsipts.models.autoformer.layers.AutoCorrelation method)</a>
 </li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2ForecastingConfig.time_encoding_scale">time_encoding_scale (dsipts.models.chronos2.config.Chronos2ForecastingConfig attribute)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.Chronos2EncoderBlockOutput.time_self_attn_weights">time_self_attn_weights (dsipts.models.chronos2.layers.Chronos2EncoderBlockOutput attribute)</a>
+</li>
       <li><a href="dsipts.models.informer.html#dsipts.models.informer.embed.TimeFeatureEmbedding">TimeFeatureEmbedding (class in dsipts.models.informer.embed)</a>
 
       <ul>
@@ -3083,6 +3248,8 @@
       <li><a href="dsipts.html#dsipts.TimeKAN">TimeKAN (class in dsipts)</a>
 </li>
       <li><a href="dsipts.models.timesnet.html#dsipts.models.timesnet.Layers.TimesBlock">TimesBlock (class in dsipts.models.timesnet.Layers)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.TimeSelfAttention">TimeSelfAttention (class in dsipts.models.chronos2.layers)</a>
 </li>
       <li><a href="dsipts.html#dsipts.TimeSeries">TimeSeries (class in dsipts)</a>, <a href="generated/dsipts.TimeSeries.html#dsipts.TimeSeries">[1]</a>
 
@@ -3118,12 +3285,12 @@
 </li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerEncoderOutput">TinyTimeMixerEncoderOutput (class in dsipts.models.ttm.modeling_tinytimemixer)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerForMaskedPrediction">TinyTimeMixerForMaskedPrediction (class in dsipts.models.ttm.modeling_tinytimemixer)</a>
 </li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerForPrediction">TinyTimeMixerForPrediction (class in dsipts.models.ttm.modeling_tinytimemixer)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerForPredictionHead">TinyTimeMixerForPredictionHead (class in dsipts.models.ttm.modeling_tinytimemixer)</a>
 </li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerForPredictionOutput">TinyTimeMixerForPredictionOutput (class in dsipts.models.ttm.modeling_tinytimemixer)</a>
@@ -3203,6 +3370,12 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.UpSample">UpSample (class in dsipts.models.d3vae.neural_operations)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2ForecastingConfig.use_arcsinh">use_arcsinh (dsipts.models.chronos2.config.Chronos2ForecastingConfig attribute)</a>
+</li>
+      <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2ForecastingConfig.use_reg_token">use_reg_token (dsipts.models.chronos2.config.Chronos2ForecastingConfig attribute)</a>
 </li>
   </ul></td>
 </tr></table>
