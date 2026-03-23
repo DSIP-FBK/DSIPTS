@@ -1,5 +1,6 @@
-from dsipts import TimeSeries,read_public_dataset
+from dsipts import TimeSeries, read_public_dataset
 import numpy as np
+
 def load_data(conf):
     data, columns = read_public_dataset(**conf.dataset)
     ts = TimeSeries(conf.ts.name)

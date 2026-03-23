@@ -1,7 +1,7 @@
 import numpy as np
 import plotly.express as px
 import pandas as pd
-from typing import List
+from typing import List, Tuple
 from sklearn.preprocessing import LabelEncoder, OrdinalEncoder
 from sklearn.preprocessing import * 
 from torch.utils.data import DataLoader
@@ -38,6 +38,7 @@ if disable_aim is False:
     from aim.pytorch_lightning import AimLogger
 import time
 debug_prediction = False
+
 class DummyScaler():
     def __init__(self):
         pass
@@ -163,13 +164,16 @@ class TimeSeries():
         self.stacked = stacked
         self.verbose = True
         self.group = None
+    
     def __str__(self) -> str:
         return f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables} \n With {'no group' if self.group is None else self.group+' as group' }"
+    
     def __repr__(self) -> str:
         return f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables}\n With {'no group' if self.group is None else self.group+' as group' }"
     
     def set_verbose(self,verbose:bool):
         self.verbose = verbose
+        
     def _generate_base(self,length:int,type:int=0)-> None:
         """Generate a basic timeseries 
 
@@ -185,6 +189,7 @@ class TimeSeries():
         """
         
         """    
+    
     def generate_signal(self,length:int=5000,categorical_variables:List[Categorical]=[],noise_mean:int=1,type:int=0)->None:
         """This will generate a syntetic signal with a selected length, a noise level and some categorical variables. The additive series are added at the end while the multiplicative series acts on the original signal
         The TS structure will be populated
@@ -256,7 +261,7 @@ class TimeSeries():
                     sampler_weights:Union[None,str]=None)->None:
         """ This is a crucial point in the data structure. We expect here to have a dataset with time as timestamp.
             There are some checks:
-                1- the duplicates will tbe removed taking the first instance
+                1- the duplicates will be removed taking the first instance
                 
                 2- the frequency will the inferred taking the minumum time distance between samples
                
@@ -277,8 +282,6 @@ class TimeSeries():
             sampler_weights  group (str or None, optional): if it is a column name it will be used as weight for the sampler. Careful that the weight of the sample is the weight value of the fist target value (index)
         """
         
-        
-        
         dataset = data.copy()
         dataset.sort_values(by='time',inplace=True)
         
@@ -291,7 +294,6 @@ class TimeSeries():
             else:
                 differences = dataset[dataset[group]==dataset[group].unique()[0]].time.diff()[1:]
                 
-     
             if isinstance(dataset.time[0], datetime):
                 freq = pd.to_timedelta(differences.min())   
             else:
@@ -300,8 +302,7 @@ class TimeSeries():
                 else:
                     raise TypeError("time must be integer or datetime")
             self.freq = freq 
-            
-            
+                        
             if differences.nunique()>1:
                 beauty_string("There are holes in the dataset i will try to extend the dataframe inserting NAN",'info',self.verbose)
                 beauty_string(f'Detected minumum frequency: {freq}','section',self.verbose)
@@ -311,8 +312,7 @@ class TimeSeries():
             self.freq =  dataset.time.diff()[1:].min()
             if isinstance(dataset.time.dtype, datetime):
                 self.freq = pd.to_timedelta(self.freq)   
-            
-                
+                            
         assert len(target_variables)>0, 'Provide at least one column for target'
         assert 'time'  in dataset.columns, 'The temporal column must be called time'
         if set(target_variables).intersection(set(past_variables))!= set(target_variables): 
@@ -337,7 +337,7 @@ class TimeSeries():
             self.cat_past_var = list(set(self.cat_past_var+[c]))
             self.cat_fut_var = list(set(self.cat_fut_var+[c]))  
             if c in dataset.columns:
-                beauty_string('Categorical {c} already present, it will be added to categorical variable but not call the enriching function','info',self.verbose) 
+                beauty_string(f'Categorical {c} already present, it will be added to categorical variable but not call the enriching function','info',self.verbose) 
             else:
                 self.enrich(dataset,c)
         self.cat_past_var = list(np.sort(self.cat_past_var))
@@ -348,6 +348,26 @@ class TimeSeries():
         self.dataset = dataset
         self.past_variables = past_variables
         self.future_variables = future_variables
+
+        # check future_variables is a subset of past_variables
+        target_set = set(target_variables)
+        past_set = set(self.past_variables) - target_set
+        future_set = set(self.future_variables)
+        cat_set = set(self.cat_var)
+        self.if_shared_past_fut_variables = future_set.issubset(past_set)
+
+        # 1. Past-Only (Numerical & Categorical)
+        self.past_only_num = [v for v in past_set if v not in future_set and v not in cat_set]
+        self.past_only_cat = [v for v in past_set if v not in future_set and v in cat_set]
+        
+        # # 2. Shared (Common to Past & Future)
+        # self.shared_num = [v for v in past_set.intersection(future_set) if v not in cat_set]
+        # self.shared_cat = [v for v in past_set.intersection(future_set) if v in cat_set]
+        
+        # extract past-only variables
+        past_only_covariates_no_target = set(self.past_variables).difference(set(self.future_variables)) - set(target_variables)
+        self.past_only_covariates_no_target = past_only_covariates_no_target
+
         self.target_variables = target_variables
         self.out_vars = len(target_variables)
         self.num_var = list(set(self.past_variables).union(set(self.future_variables)).union(set(self.target_variables)))
@@ -356,6 +376,7 @@ class TimeSeries():
             beauty_string('YOU ARE TRAINING A SILLY MODEL WITH THE TARGETS IN THE INPUTS','section',self.verbose) 
             self.future_variables+=self.target_variables
         self.sampler_weights = sampler_weights
+    
     def plot(self):
         """  
         Easy way to control the loaded data
@@ -387,7 +408,6 @@ class TimeSeries():
                            starting_point:Union[None,dict]=None,
                            skip_step:int=1,
                            is_inference:bool=False
-                         
                            )->MyDataset:
         """ Create the dataset for the training/inference step
 
@@ -410,7 +430,12 @@ class TimeSeries():
                 idx_target: index of target features in the past array
         """
         beauty_string('Creating data loader','block',self.verbose)
-        
+
+        if getattr(self.model, "need_shared_past_fut_variables", False):
+            assert self.if_shared_past_fut_variables, (
+                f"Model {self.model.__class__.__name__} requires shared past/future variables."
+            )
+
         x_num_past_samples = []
         x_num_future_samples = []
         x_cat_past_samples = []
@@ -422,7 +447,7 @@ class TimeSeries():
         
         if starting_point is not None:
             kk = list(starting_point.keys())[0]
-            assert kk not in self.cat_var, beauty_string('CAN NOT USE FEATURE {kk} as starting point it may have a different value due to the normalization step, please add a second column with a suitable name','info',True)
+            assert kk not in self.cat_var, beauty_string(f'CAN NOT USE FEATURE {kk} as starting point it may have a different value due to the normalization step, please add a second column with a suitable name','info',True)
         
         ##overwrite categorical columns
         for c in self.cat_var:
@@ -456,28 +481,38 @@ class TimeSeries():
             for c in self.num_var: 
                 data[c] = self.scaler_num[c].transform(data[c].values.reshape(-1,1)).flatten()
 
-        idx_target = []
+        if self.stacked:
+            skip_stacked = future_steps*future_steps-future_steps
+        else:
+            skip_stacked = 0
+
+        if getattr(self.model, "need_ordered_variables", False):
+            priority_past_num = set(self.past_only_num)
+            # False goes before True
+            self.past_variables.sort(key=lambda x: x not in priority_past_num)
+            self.model.n_past_only_num_vars = len(set(self.past_only_num))
+
+            priority_past_cat = set(self.past_only_cat)
+            self.cat_past_var.sort(key=lambda x: x not in priority_past_cat)
+            self.model.n_past_only_cat_vars = len(set(self.past_only_cat))
+
+        idx_target = [] # save index where target is in past
         for c in self.target_variables:
             if c in self.past_variables:
                 idx_target.append(self.past_variables.index(c))
             
         idx_target_future = []
-        
         for c in self.target_variables:
             if c in self.future_variables:
                 idx_target_future.append(self.future_variables.index(c))    
         if len(idx_target_future)==0:
             idx_target_future = None
-        
 
-        if self.stacked:
-            skip_stacked = future_steps*future_steps-future_steps
-        else:
-            skip_stacked = 0
         for group in data['_GROUP_'].unique():
             tmp = data[data['_GROUP_']==group]
             groups = tmp['_GROUP_'].values  
             t = tmp.time.values 
+
             x_num_past = tmp[self.past_variables].values
             if len(self.future_variables)>0:
                 x_num_future = tmp[self.future_variables].values
@@ -485,6 +520,7 @@ class TimeSeries():
                 x_past_cat = tmp[self.cat_past_var].values
             if len(self.cat_fut_var)>0:
                 x_fut_cat = tmp[self.cat_fut_var].values
+
             y_target = tmp[self.target_variables].values
             if self.sampler_weights is not None:
                 sampler_weights = tmp[self.sampler_weights].values.flatten()
@@ -530,7 +566,6 @@ class TimeSeries():
                         g_samples.append(groups[i])
 
     
-        
         if len(self.future_variables)>0:
             try:
                 x_num_future_samples = np.stack(x_num_future_samples)
@@ -566,8 +601,6 @@ class TimeSeries():
             dd['sampler_weights'] = np.ones(len(y_samples)).astype(np.float32)
         return MyDataset(dd,t_samples,g_samples,idx_target,idx_target_future)
     
-          
-    
     def split_for_train(self,
                         perc_train:Union[float,None]=0.6,
                         perc_valid:Union[float,None]=0.2,
@@ -583,7 +616,7 @@ class TimeSeries():
                         normalize_per_group: bool=False,
                         check_consecutive: bool=True,
                         scaler: str='StandardScaler()' 
-                        )->List[DataLoader]:
+                        )->List[DataLoader| None]:
         """Split the data and create the datasets.
 
         Args:
@@ -608,12 +641,11 @@ class TimeSeries():
 
         beauty_string('Splitting for train','block',self.verbose)
 
-        
         try:
-            ls = self.dataset.shape[0]
+            ls = self.dataset.shape[0] # length of dataset [number of rows]
         except Exception as _:
             beauty_string('Empty dataset','info', True)
-            return None, None, None
+            return [None, None, None]
         
         if range_train is None:
             if self.group is None:
@@ -662,7 +694,6 @@ class TimeSeries():
                     self.scaler_num[c].fit(train[c].values.reshape(-1,1))
                 for c in self.cat_var:                               
                     self.scaler_cat[c] =  OrdinalEncoder(dtype=np.int32,handle_unknown= 'use_encoded_value',unknown_value=train[c].nunique())
-                   
                     self.scaler_cat[c].fit(train[c].values.reshape(-1,1))  
             else:
                 self.normalize_per_group = True
@@ -702,7 +733,6 @@ class TimeSeries():
 
         self.config = config
 
-
         beauty_string('Setting the model','block',self.verbose)
         beauty_string(model,'',self.verbose)
         
@@ -737,12 +767,11 @@ class TimeSeries():
             modifier_params (Union[dict,int], optional): parameters of the modifier
             seed (int, optional): seed for reproducibility
         """
-
         beauty_string('Training the model','block',self.verbose)
-
         self.split_params = split_params
         self.check_custom = False
         train,validation,test = self.split_for_train(**self.split_params)
+
         accelerator = 'gpu' if torch.cuda.is_available() else "cpu"
         strategy = "auto"
         if accelerator == 'gpu':
@@ -809,7 +838,7 @@ class TimeSeries():
         
         
         #logger = CSVLogger("logs", name=dirpath)
-        beauty_string(f'Init aim','section',self.verbose)
+        beauty_string('Init aim','section',self.verbose)
 
 
         #https://stackoverflow.com/questions/49201236/check-the-total-number-of-parameters-in-a-pytorch-model
@@ -895,7 +924,6 @@ class TimeSeries():
                                 gradient_clip_val=gradient_clip_val,
                                 gradient_clip_algorithm=gradient_clip_algorithm)#,devices=1)
         tot_seconds = time.time()
-
 
         beauty_string(f'tuning lr','section',self.verbose)
 
@@ -987,7 +1015,6 @@ class TimeSeries():
                 real = []
                 for batch in dl:
             
-
                     res.append(self.model.inference(batch).cpu().detach().numpy())
                     real.append(batch['y'].cpu().detach().numpy())
 
@@ -1150,6 +1177,7 @@ class TimeSeries():
 
         res['prediction_time'] = res.apply(lambda x: x.time-self.freq*x.lag, axis=1)
         return res
+    
     def inference(self,batch_size:int=100,
                   num_workers:int=4,
                   split_params:Union[None,dict]=None,
@@ -1235,7 +1263,6 @@ class TimeSeries():
                     _ = params.pop(k)
             pickle.dump(params,f)
 
-
     def load(self,model:Base, filename:str,load_last:bool=True,dirpath:Union[str,None]=None,weight_path:Union[str, None]=None)->None:
         """ Load a saved model
 
@@ -1256,10 +1283,12 @@ class TimeSeries():
         with open(filename+'.pkl','rb') as f:
             params = pickle.load(f)
             for p in params:
-                setattr(self,p, params[p])    
+                setattr(self,p, params[p])
+                
         if 'verbose' in self.config['model_configs'].keys():
+            self.config['model_configs'] = dict(self.config['model_configs'])
             self.config['model_configs'].pop('verbose')
-        self.model = model(**self.config['model_configs'],optim_config = self.config['optim_config'],scheduler_config =self.config['scheduler_config'],verbose=self.verbose )
+        self.model = model(**self.config['model_configs'], optim_config = self.config['optim_config'], scheduler_config =self.config['scheduler_config'], verbose=self.verbose )
         
         
         if weight_path is not None:

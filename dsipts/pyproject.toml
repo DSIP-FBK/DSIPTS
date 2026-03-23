@@ -6,6 +6,7 @@ description = "Unified library for timeseries modelling"
 readme = { file = "LONG_DESCRIPTION.md", content-type = "text/markdown" }
 requires-python = ">=3.12"
 dependencies = [
+    "aim>=3.29.1",
     #"aim",
     "beautifulsoup4==4.12.0",
     "bumpver>=2025.1131",
@@ -28,6 +29,7 @@ dependencies = [
     "sphinx>=8.2.3",
     "sphinx-mdinclude>=0.6.2",
     "sphinx-pdj-theme>=0.7.3",
+    "torch>=2.9.1",
     "transformers>=4.56.0",
 ]
 

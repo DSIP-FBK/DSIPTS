@@ -1,0 +1,48 @@
+# @package _global_
+
+model:
+  type: 'chronos2'
+  retrain: true
+  restart: false
+
+ts:
+  name: 'test'
+  version: 1
+  enrich: ['minute']
+  use_covariates: true
+  use_future_covariates: true
+  # silly: false
+
+model_configs:
+  context_length: ${model_configs.past_steps}
+  input_patch_size: 4
+  input_patch_stride: 4
+  max_output_patches: 64
+  output_patch_size: 4
+  time_encoding_scale: ${model_configs.past_steps}
+  use_arcsinh: true
+  use_reg_token: true
+  d_ff: 256
+  d_kv: 32
+  d_model: 128
+  dense_act_fn: "relu" # ${model_configs.activation}
+  dropout_rate: 0.1
+  feed_forward_proj: "relu" # ${model_configs.activation}
+  initializer_factor: 0.05
+  layer_norm_epsilon: 1e-06
+  num_heads: 3
+  num_layers: 2
+  pad_token_id: 0
+  reg_token_id: 1
+  rope_theta: 10000.0
+  vocab_size: 2
+  attn_implementation: 'sdpa' # or 'eager'
+
+  optim: torch.optim.Adam
+  persistence_weight: 0.010
+  loss_type: 'l1'
+  quantiles: [0.1, 0.5, 0.9]
+  
+train_config:
+  batch_size: 128 # chronos works on [bs*num_vars, past/future_length]: start with small batch_size!
+  max_epochs: 100

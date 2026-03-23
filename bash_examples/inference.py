@@ -73,7 +73,6 @@ def inference(conf:DictConfig,split_params=None)->List[pd.DataFrame]:
             losses : containing the losses during the train
     """
 
-
     if conf.dataset.dataset == 'custom': 
         beauty_string('PLEASE WRITE CUSTOM PROCESSING FUNCTION','block',VERBOSE)
         from load_data.load_data_public import load_data

@@ -1,10 +1,11 @@
 dataset:
   dataset: 'weather'  
-  path: null
+  path: '/home/anmartinelli/FBK/dsip-ts/data'
   
 model:
   restart: false
   retrain: true
+
 ts:
   name: 'test'
   version: 1
@@ -27,19 +28,22 @@ model_configs:
   past_steps: 16
   future_steps: 8
   quantiles: []
-  past_channels : null #dataset dependent
-  future_channels : null #dataset dependent
-  embs_past: null #dataset dependent
-  embs_fut: null #dataset dependent
-
-  out_channels: null #dataset dependent
+  # dataset dependent part
+  past_channels : null 
+  future_channels : null
+  embs_past: null 
+  embs_fut: null
+  out_channels: null
+  # prediction_channel_indices: null
+  # exogenous_channel_indices_cont: null
+  # exogenous_channel_indices_cat: null
 
 stack:
   dirpath: null ##leave it null
 
 split_params:
-  perc_train: 0.7
-  perc_valid: 0.1
+  perc_train: 0.2
+  perc_valid: 0.05
   range_train: null
   range_validation: null 
   range_test: null
@@ -49,13 +53,15 @@ split_params:
   past_steps: model_configs@past_steps 
   future_steps: model_configs@future_steps
   scaler: 'StandardScaler()' ## or sklearn.preprocessing.StandardScaler()
+  
 train_config:
   dirpath: tmp
-  num_workers: 0
+  num_workers: 15
   auto_lr_find: false
   devices: [0]                   
   seed: 42   
-  max_epochs: 5 
+  max_epochs: 5
+
 inference:
   output_path: tmp
   load_last: true
