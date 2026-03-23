@@ -1,7 +1,8 @@
-from dsipts import RNN, LinearTS, Persistent, D3VAE, DilatedConv, TFT, Informer,VVA,VQVAEA,CrossFormer,Autoformer,PatchTST,Diffusion,DilatedConvED,TIDE,ITransformer,TimeXER,beauty_string, TTM,Samformer,Duet, Simple,TimesNet,TimeKAN
+from dsipts import RNN, Chronos2, LinearTS, Persistent, D3VAE, DilatedConv, TFT, Informer,VVA,VQVAEA,CrossFormer,Autoformer,PatchTST,Diffusion,DilatedConvED,TIDE,ITransformer,TimeXER,beauty_string, TTM,Samformer,Duet, Simple,TimesNet,TimeKAN
 import numpy as np
 from sklearn.metrics import mean_squared_error
 import os
+
 def rmse(x:np.array,y:np.array)->float:
     """custom RMSE avoinding nan
 
@@ -50,12 +51,13 @@ def mape(x:np.array,y:np.array)->float:
     return np.nanmean(res)
 
 
-def select_model(conf, model_conf,ts):
+def select_model(conf, model_conf, ts):
     
     if conf.model.type == 'linear':
         model =  LinearTS(**model_conf,
                           optim_config = conf.optim_config,
-                          scheduler_config =conf.scheduler_config,verbose=ts.verbose )
+                          scheduler_config =conf.scheduler_config,
+                          verbose=ts.verbose )
         
     elif conf.model.type == 'rnn':
         model =  RNN(**model_conf,
@@ -139,8 +141,15 @@ def select_model(conf, model_conf,ts):
         model =  TimesNet(**model_conf,   optim_config = conf.optim_config,
                           scheduler_config =conf.scheduler_config,verbose=ts.verbose )
     elif conf.model.type == 'timekan':
-        model =  TimeKAN(**model_conf,   optim_config = conf.optim_config,
-                          scheduler_config =conf.scheduler_config,verbose=ts.verbose )
+        model =  TimeKAN(**model_conf,   
+                         optim_config = conf.optim_config,
+                         scheduler_config =conf.scheduler_config,
+                         verbose=ts.verbose )
+    elif conf.model.type == 'chronos2':
+        model =  Chronos2(**model_conf, 
+                          optim_config=conf.optim_config,
+                          scheduler_config=conf.scheduler_config, 
+                          verbose=ts.verbose )
 
     else:
         model = None
@@ -203,8 +212,9 @@ def load_model(ts,conf):
     
     elif conf.model.type == 'timekan':
         ts.load(TimeKAN,os.path.join(conf.train_config.dirpath,'model'),load_last=conf.inference.load_last)
-    
-
+    elif conf.model.type == 'chronos2':
+        ts.load(Chronos2, os.path.join(conf.train_config.dirpath,'model'), load_last=conf.inference.load_last)
+        
 
     else:
         beauty_string('NO VALID MODEL FOUND','block',ts.verbose)

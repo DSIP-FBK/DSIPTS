@@ -4,6 +4,7 @@ model:
   type: 'linear'
   retrain: true
   restart: false
+  
 ts:
   name: 'weather'
   version: 1
@@ -11,6 +12,7 @@ ts:
   use_covariates: false
   use_future_covariates: true
   silly: false
+
 model_configs:
   use_classical_positional_encoder: true 
   emb_dim: 16 
@@ -20,6 +22,7 @@ model_configs:
   kind: 'linear'
   dropout_rate: 0.1
   use_bn: false  
+  
   optim: torch.optim.Adam
   activation: torch.nn.PReLU
   persistence_weight: 0.010
