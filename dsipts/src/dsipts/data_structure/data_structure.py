@@ -38,6 +38,7 @@ if disable_aim is False:
     from aim.pytorch_lightning import AimLogger
 import time
 debug_prediction = False
+
 class DummyScaler():
     def __init__(self):
         pass
@@ -487,15 +488,13 @@ class TimeSeries():
 
         if getattr(self.model, "need_ordered_variables", False):
             priority_past_num = set(self.past_only_num)
+            # False goes before True
             self.past_variables.sort(key=lambda x: x not in priority_past_num)
             self.model.n_past_only_num_vars = len(set(self.past_only_num))
 
             priority_past_cat = set(self.past_only_cat)
             self.cat_past_var.sort(key=lambda x: x not in priority_past_cat)
             self.model.n_past_only_cat_vars = len(set(self.past_only_cat))
-
-            # False goes before True
-
 
         idx_target = [] # save index where target is in past
         for c in self.target_variables:
@@ -601,8 +600,6 @@ class TimeSeries():
         else:
             dd['sampler_weights'] = np.ones(len(y_samples)).astype(np.float32)
         return MyDataset(dd,t_samples,g_samples,idx_target,idx_target_future)
-    
-          
     
     def split_for_train(self,
                         perc_train:Union[float,None]=0.6,
@@ -1180,6 +1177,7 @@ class TimeSeries():
 
         res['prediction_time'] = res.apply(lambda x: x.time-self.freq*x.lag, axis=1)
         return res
+    
     def inference(self,batch_size:int=100,
                   num_workers:int=4,
                   split_params:Union[None,dict]=None,
@@ -1264,7 +1262,6 @@ class TimeSeries():
                 if k in params.keys():
                     _ = params.pop(k)
             pickle.dump(params,f)
-
 
     def load(self,model:Base, filename:str,load_last:bool=True,dirpath:Union[str,None]=None,weight_path:Union[str, None]=None)->None:
         """ Load a saved model

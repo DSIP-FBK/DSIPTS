@@ -148,7 +148,7 @@ class Chronos2(Base): # type: ignore
         )
 
     def can_be_compiled(self):
-        return False
+        return True
     
     def _init_weights(self, module):
         super()._init_weights(module)

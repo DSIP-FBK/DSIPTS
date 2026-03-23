@@ -54,6 +54,7 @@ class Base(pl.LightningModule):
     handle_quantile_loss = False
     description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables,handle_quantile_loss)
     #####################################################################
+
     @abstractmethod
     def __init__(self,verbose:bool,
                  past_steps:int,
@@ -172,6 +173,7 @@ class Base(pl.LightningModule):
         self.future_steps = future_steps
         self.return_additional_loss = False
         beauty_string(self.description,'info',True)
+
     @abstractmethod
     def forward(self, batch:dict)-> torch.tensor:
         """Forlward method used during the training loop
@@ -191,8 +193,6 @@ class Base(pl.LightningModule):
         """
         return None
     
-
-
     def inference(self, batch:dict)->torch.tensor:
         """Usually it is ok to return the output of the forward method but sometimes not (e.g. RNN)
 
@@ -253,7 +253,6 @@ class Base(pl.LightningModule):
         else:
             return optimizer
 
-
     def training_step(self, batch, batch_idx):
         """
         pythotrch lightening stuff
@@ -310,7 +309,6 @@ class Base(pl.LightningModule):
         self.train_epoch_metrics+=loss.detach()
         self.train_epoch_count +=1
         return loss
-
 
     def validation_step(self, batch, batch_idx):
         """
@@ -510,7 +508,4 @@ class Base(pl.LightningModule):
             
         else:
             loss = initial_loss
-
-
-
         return loss
