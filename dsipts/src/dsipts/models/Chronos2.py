@@ -131,7 +131,6 @@ class Chronos2(Base): # type: ignore
                 rope_theta = rope_theta,
                 attn_implementation = attn_implementation,
                 **kwargs,)
-        # encoder_config['is_decoder'] = False
         self.encoder = Chronos2Encoder(encoder_config)
 
         self.num_quantiles = len(self.chronos_config.quantiles)
@@ -517,7 +516,7 @@ class Chronos2(Base): # type: ignore
 
         # remove target from num_past
         n_past_num_vars = number_past_no_cat_vars - n_target_vars
-        mask = torch.ones((batch_size, number_past_no_cat_vars), device=num_past_with_y.device, dtype=torch.bool)
+        mask = torch.ones((batch_size, number_past_no_cat_vars), device=self.device, dtype=torch.bool)
         mask.scatter_(1, target_idx_expanded[:, 0, :], False)
         mask_3d = mask.unsqueeze(1).expand(-1, context_length, -1)
         num_past = num_past_with_y[mask_3d].view(batch_size, context_length, n_past_num_vars)
@@ -530,18 +529,18 @@ class Chronos2(Base): # type: ignore
                 batch['x_cat_past'][:, :, :self.n_past_only_cat_vars], # Past-only Categorical
                 num_past[:, :, self.n_past_only_num_vars:], # Other Numerical
                 batch['x_cat_past'][:, :, self.n_past_only_cat_vars:]  # Other Categorical
-            ], dim=-1)
+            ], dim=-1).to(self.device)
         else:
-            context = torch.cat([past_target, num_past], dim=-1)
+            context = torch.cat([past_target, num_past], dim=-1).to(self.device)
         tot_vars = context.shape[-1]
 
         ### group id
-        group_ids = torch.arange(batch_size)
+        group_ids = torch.arange(batch_size).to(self.device)
         group_ids = torch.repeat_interleave(group_ids, repeats = tot_vars, dim = 0)
 
         ### future_covariates
-        x_num_future = batch.get('x_num_future', torch.empty((batch_size, horizon, 0), device=context.device))
-        x_cat_future = batch.get('x_cat_future', torch.empty((batch_size, horizon, 0), device=context.device))
+        x_num_future = batch.get('x_num_future', torch.empty((batch_size, horizon, 0), device=self.device))
+        x_cat_future = batch.get('x_cat_future', torch.empty((batch_size, horizon, 0), device=self.device))
         future_covariates = torch.cat([x_num_future, x_cat_future.float()], dim=-1)
 
         fut_cov_pad_size = tot_vars - future_covariates.shape[-1]
@@ -559,7 +558,7 @@ class Chronos2(Base): # type: ignore
             future_covariates = None
 
         ### future_target
-        future_target = batch['y']
+        future_target = batch['y'].to(self.device)
         fut_y_pad_size = tot_vars - future_target.shape[-1]
         future_target = nn.functional.pad(future_target, (0, fut_y_pad_size, 0, 0, 0, 0), value=float('nan'))
 

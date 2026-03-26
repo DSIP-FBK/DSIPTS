@@ -498,7 +498,7 @@ class Chronos2EncoderOutput(ModelOutput):
 class Chronos2Encoder(nn.Module):
     def __init__(self, config: Chronos2CoreConfig):
         super().__init__()
-        # assert not config.is_decoder
+        assert not config.is_decoder
 
         self.block = nn.ModuleList([Chronos2EncoderBlock(config) for i in range(config.num_layers)])
         self.final_layer_norm = Chronos2LayerNorm(config.d_model, eps=config.layer_norm_epsilon)
@@ -522,6 +522,7 @@ class Chronos2Encoder(nn.Module):
     def _construct_and_invert_group_time_mask(
         group_ids: torch.Tensor, attention_mask: torch.Tensor, floating_type: torch.dtype
     ) -> torch.Tensor:
+        
         # construct group_mask (batch, batch) from group ids
         # a cell is True if both row and col had the same group id
         group_mask = group_ids[:, None] == group_ids[None, :]

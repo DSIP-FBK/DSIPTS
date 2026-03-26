@@ -68,6 +68,7 @@ class Chronos2CoreConfig(PretrainedConfig):
         attn_implementation: Literal["eager", "sdpa"] | None = None,
         **kwargs,
     ):
+        self.is_decoder = False
         self.vocab_size = vocab_size
         self.d_model = d_model
         self.d_kv = d_kv
