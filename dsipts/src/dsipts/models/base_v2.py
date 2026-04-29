@@ -249,7 +249,14 @@ class Base(pl.LightningModule):
         self.lr = self.optim_config['lr']  ##CHECK THISs
         if self.scheduler_config is not None:
             scheduler = StepLR(optimizer,**self.scheduler_config)
-            return [optimizer], [scheduler]
+            #return [optimizer], [scheduler]
+            return {
+                "optimizer": optimizer,
+                "lr_scheduler": {
+                    "scheduler": scheduler,
+                    "interval": "epoch", # Adjust to 'step' if your StepLR is per-step
+                },
+            }
         else:
             return optimizer
 
