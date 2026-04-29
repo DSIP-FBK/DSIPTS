@@ -1,4 +1,5 @@
-
+## 1.1.34
+- bug fixing lr finder
 ## 1.1.33
 - added chronos v2
 - update python
