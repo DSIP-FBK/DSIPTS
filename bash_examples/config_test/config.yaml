@@ -25,7 +25,7 @@ optim_config:
   weight_decay: 0.001
 
 model_configs:
-  past_steps: 16
+  past_steps: 96
   future_steps: 8
   quantiles: []
   # dataset dependent part

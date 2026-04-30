@@ -44,5 +44,5 @@ model_configs:
   quantiles: [0.1, 0.5, 0.9]
   
 train_config:
-  batch_size: 128 # chronos works on [bs*num_vars, past/future_length]: start with small batch_size!
+  batch_size: 64 # chronos works on [bs*num_vars, past/future_length]: start with small batch_size!
   max_epochs: 100

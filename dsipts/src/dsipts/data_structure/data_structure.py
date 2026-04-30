@@ -19,10 +19,15 @@ except:
     ## older version of lightning
     from pytorch_lightning.callbacks import ModelCheckpoint
     import pytorch_lightning as pl
-    from ..models.base import Base
-    beauty_string('V1','block',True)
-
-    OLD_PL = True
+    if pl.__version__>='2.0.0':
+        from ..models.base_v2 import Base
+        beauty_string('V2','block',True)
+        OLD_PL = False
+    else:
+        from ..models.base import Base
+        beauty_string('V1','block',True)
+        OLD_PL = True
+    
 
 from typing import Union
 import os
