@@ -1,3 +1,5 @@
+## 1.1.35
+- fix lightening quarantine issue
 ## 1.1.34
 - bug fixing lr finder
 ## 1.1.33
