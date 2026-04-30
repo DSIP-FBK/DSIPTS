@@ -13,8 +13,12 @@ try:
     OLD_PL = False
 except:
     import pytorch_lightning as pl
-    OLD_PL = True
-    from .base import Base
+    if pl.__version__>='2.0.0':
+        from .base_v2 import Base
+        OLD_PL = False
+    else:
+        from .base import Base
+        OLD_PL = True
 from typing import List,Union
 from einops import  repeat
 from ..data_structure.utils import beauty_string

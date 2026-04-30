@@ -8,8 +8,12 @@ try:
     OLD_PL = False
 except:
     import pytorch_lightning as pl
-    OLD_PL = True
-    from .base import Base
+    if pl.__version__>='2.0.0':
+        from .base_v2 import Base
+        OLD_PL = False
+    else:
+        from .base import Base
+        OLD_PL = True
 
 
 from .ttm.utils import get_model, get_frequency_token, count_parameters, DEFAULT_FREQUENCY_MAPPING

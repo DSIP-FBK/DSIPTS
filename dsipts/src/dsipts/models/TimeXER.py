@@ -14,8 +14,12 @@ try:
     OLD_PL = False
 except:
     import pytorch_lightning as pl
-    OLD_PL = True
-    from .base import Base
+    if pl.__version__>='2.0.0':
+        from .base_v2 import Base
+        OLD_PL = False
+    else:
+        from .base import Base
+        OLD_PL = True
 from .utils import QuantileLossMO,Permute, get_activation
 from .itransformer.SelfAttention_Family import FullAttention, AttentionLayer
 from .itransformer.Embed import DataEmbedding_inverted

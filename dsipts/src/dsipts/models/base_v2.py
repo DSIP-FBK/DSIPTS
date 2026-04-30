@@ -1,7 +1,10 @@
 
 from torch import optim
 import torch
-import lightning.pytorch as pl
+try:
+    import lightning.pytorch as pl
+except:
+    import pytorch_lightning as pl
 from torch.optim.lr_scheduler import StepLR
 from abc import  abstractmethod
 from .utils import SinkhornDistance, SoftDTWBatch,PathDTWBatch,pairwise_distances
