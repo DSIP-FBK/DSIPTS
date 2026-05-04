@@ -1,3 +1,5 @@
+## 1.1.38
+- Added explicit warning to PYTORCH LIGHTNING
 ## 1.1.35 to 1.1.37
 - fix lightening quarantine issue
 ## 1.1.34

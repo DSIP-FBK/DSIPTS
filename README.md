@@ -2,6 +2,10 @@
 
 # DSIPTS: unified library for timeseries modelling
 > [!CAUTION]
+[PLEASE READ CAREFULLY, check the version of PYTORCH LIGHTNING if installed](https://semgrep.dev/blog/2026/malicious-dependency-in-pytorch-lightning-used-for-ai-training/)
+
+
+> [!CAUTION]
 THE DOCUMENTATION, README and notebook are somehow outdated, some architectures are under review, please be patient and wait for the version 2.0.0 if you want a stable package
 > [!CAUTION]
 Check frequently the [CHANGELOG.md](CHANGELOG.md) file for the updates!
