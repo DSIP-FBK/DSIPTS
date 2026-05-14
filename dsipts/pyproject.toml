@@ -6,7 +6,7 @@ description = "Unified library for timeseries modelling"
 readme = { file = "LONG_DESCRIPTION.md", content-type = "text/markdown" }
 requires-python = ">=3.12"
 dependencies = [
-    "aim>=3.17.0",
+    #"aim>=3.17.0", ##disalbed for now
     "beautifulsoup4>=4.12.0",
     "bumpver>=2025.1131",
     "einops>=0.8.1",

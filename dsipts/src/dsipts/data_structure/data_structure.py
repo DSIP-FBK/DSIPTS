@@ -38,7 +38,7 @@ from datetime import datetime
 from ..models.utils import weight_init_zeros,weight_init
 import logging 
 from .modifiers import *
-disable_aim = False
+disable_aim = True
 
 if disable_aim is False:
     from aim.pytorch_lightning import AimLogger
