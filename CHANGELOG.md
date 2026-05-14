@@ -1,3 +1,5 @@
+## 1.1.39
+- upgrade dependencies
 ## 1.1.38
 - Added explicit warning to PYTORCH LIGHTNING
 ## 1.1.35 to 1.1.37
