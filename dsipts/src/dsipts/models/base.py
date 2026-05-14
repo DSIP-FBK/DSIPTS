@@ -9,7 +9,7 @@ from ..data_structure.utils import beauty_string
 from .samformer.utils import SAM
 from .utils import  get_scope
 import numpy as np
-from aim import Image
+#from aim import Image
 import matplotlib.pyplot as plt
 from typing import List, Union
 from .utils import QuantileLossMO, CPRS

@@ -557,13 +557,13 @@ dependencies = [
     { name = "hydra-optuna-sweeper" },
     { name = "hydra-submitit-launcher" },
     { name = "ipykernel" },
+    { name = "lightning" },
     { name = "matplotlib" },
     { name = "nbformat" },
     { name = "numba" },
     { name = "numpy" },
     { name = "pandas" },
     { name = "plotly" },
-    { name = "pytorch-lightning" },
     { name = "scikit-learn" },
     { name = "sphinx" },
     { name = "sphinx-mdinclude" },
@@ -584,13 +584,13 @@ requires-dist = [
     { name = "hydra-optuna-sweeper", specifier = ">=1.2.0" },
     { name = "hydra-submitit-launcher", specifier = ">=1.2.0" },
     { name = "ipykernel", specifier = ">=6.30.1" },
+    { name = "lightning", specifier = ">2.5.5,!=2.6.2,!=2.6.3" },
     { name = "matplotlib", specifier = ">=3.10.6" },
     { name = "nbformat", specifier = ">=5.10.4" },
     { name = "numba", specifier = ">=0.61.2" },
     { name = "numpy", specifier = ">=2.0.0" },
     { name = "pandas", specifier = ">=2.3.2" },
     { name = "plotly", specifier = ">=6.3.0" },
-    { name = "pytorch-lightning", specifier = ">=2.5.5" },
     { name = "scikit-learn", specifier = ">=1.7.1" },
     { name = "sphinx", specifier = ">=8.2.3" },
     { name = "sphinx-mdinclude", specifier = ">=0.6.2" },
@@ -1202,6 +1202,26 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/60/0b/28a3f9abc75abbf1fa996eb2dd77e1e33a5d1aac62566e3f60a8ec8b8a22/lexid-2021.1006.tar.gz", hash = "sha256:509a3a4cc926d3dbf22b203b18a4c66c25e6473fb7c0e0d30374533ac28bafe5", size = 11525, upload-time = "2021-04-02T20:18:34.668Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/cf/e3/35764404a4b7e2021be1f88f42264c2e92e0c4720273559a62461ce64a47/lexid-2021.1006-py2.py3-none-any.whl", hash = "sha256:5526bb5606fd74c7add23320da5f02805bddd7c77916f2dc1943e6bada8605ed", size = 7587, upload-time = "2021-04-02T20:18:33.129Z" },
+]
+
+[[package]]
+name = "lightning"
+version = "2.6.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "fsspec", extra = ["http"] },
+    { name = "lightning-utilities" },
+    { name = "packaging" },
+    { name = "pytorch-lightning" },
+    { name = "pyyaml" },
+    { name = "torch" },
+    { name = "torchmetrics" },
+    { name = "tqdm" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/15/ad/a1c91a795521be252209d45fb080f28a4f1e7244d3b37121fcc6e3e43034/lightning-2.6.1.tar.gz", hash = "sha256:859104b98c61add6fe60d0c623abf749baf25f2950a66ebdfb4bd18aa7decba9", size = 663175, upload-time = "2026-01-30T14:59:13.92Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4a/6d/42640e15a8c34b57dc7ea922152440c0c6692214a08d5282b6e3eb46ddf4/lightning-2.6.1-py3-none-any.whl", hash = "sha256:30e1adac23004c713663928541bd72ecb1371b7abc9aff9f46b7fd2644988d30", size = 853631, upload-time = "2026-01-30T14:59:11.687Z" },
 ]
 
 [[package]]
