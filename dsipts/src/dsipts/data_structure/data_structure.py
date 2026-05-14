@@ -1013,9 +1013,17 @@ class TimeSeries():
             else:
                 if isinstance(self.model, torch._dynamo.eval_frame.OptimizedModule):
                     mm = self.model._orig_mod 
-                    self.model = mm.__class__.load_from_checkpoint(self.checkpoint_file_last)
+                    try:
+                        self.model = mm.__class__.load_from_checkpoint(self.checkpoint_file_last,weights_only=False)
+                    except:
+                        self.model = mm.__class__.load_from_checkpoint(self.checkpoint_file_last)
+
                 else:
-                    self.model = self.model.__class__.load_from_checkpoint(self.checkpoint_file_last)
+                    try:
+                        self.model = self.model.__class__.load_from_checkpoint(self.checkpoint_file_last,weights_only=False)
+                    except:
+                        self.model = self.model.__class__.load_from_checkpoint(self.checkpoint_file_last)
+
             if debug_prediction:
                 res = []
                 real = []
@@ -1329,7 +1337,11 @@ class TimeSeries():
             if OLD_PL:
                 self.model = self.model.load_from_checkpoint(tmp_path,verbose=self.verbose,)
             else:
-                self.model = self.model.__class__.load_from_checkpoint(tmp_path,verbose=self.verbose,)
+                try:
+                    self.model = self.model.__class__.load_from_checkpoint(tmp_path,verbose=self.verbose,weights_only=False)
+                except:
+                    self.model = self.model.__class__.load_from_checkpoint(tmp_path,verbose=self.verbose)
+
             self.model.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
 
         except Exception as e:
