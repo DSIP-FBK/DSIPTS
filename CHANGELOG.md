@@ -1,3 +1,7 @@
+## 1.1.41
+- 
+## 1.1.40
+- removed aim for now, not working on python>12
 ## 1.1.39
 - upgrade dependencies
 ## 1.1.38

@@ -12,7 +12,7 @@ from ..data_structure.utils import beauty_string
 from .samformer.utils import SAM
 from .utils import  get_scope
 import numpy as np
-from aim import Image
+#from aim import Image
 import matplotlib.pyplot as plt
 from typing import List, Union
 from .utils import QuantileLossMO, CPRS
@@ -371,11 +371,11 @@ class Base(pl.LightningModule):
                 ax.plot(pred,'o-',label='pred')
                 ax.legend()
                 ax.set_title(f'Channel {i} first element first batch validation {int(100*self.count_epoch/self.trainer.max_epochs)}%')
-                try:
-                    self.logger.experiment.track(Image(fig), name='cm_training_end')
-                except:
-                    beauty_string('AIM NOT USED','info',self.verbose)
-                    pass ##no aim probably
+                #try:
+                #    self.logger.experiment.track(Image(fig), name='cm_training_end')
+                #except:
+                #    beauty_string('AIM NOT USED','info',self.verbose)
+                #    pass ##no aim probably
                 #self.log(f"example_{i}", np.stack([real, pred]).T,sync_dist=True)
                 plt.close(fig) 
             
