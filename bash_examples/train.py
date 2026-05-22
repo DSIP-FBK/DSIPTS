@@ -130,13 +130,13 @@ def train(conf: DictConfig) -> None:
     split_params = conf.split_params
     split_params['past_steps'] = model_conf['past_steps']
     split_params['future_steps'] = model_conf['future_steps']
-    ##save now so we can use it during the trainin step (or use intermediate pth files)
+    ## save now so we can use it during the trainin step (or use intermediate pth files)
     ts.dirpath = dirpath
     ts.losses = None
     ts.checkpoint_file_last = os.path.join(dirpath,'checkpoint.ckpt')
     ts.save(os.path.join(conf.train_config.dirpath,'model'))
 
-    ##save the config for the comparison task before training so we can get predictions during the training procedure
+    ## save the config for the comparison task before training so we can get predictions during the training procedure
     path = HydraConfig.get()['runtime']['config_sources'][1]['path']
     used_config = os.path.join(path,'config_used')
     if not os.path.exists(used_config):

@@ -60,7 +60,7 @@ train_config:
   auto_lr_find: false
   devices: [0]                   
   seed: 42   
-  max_epochs: 5
+  max_epochs: 2
 
 inference:
   output_path: tmp

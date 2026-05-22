@@ -314,7 +314,7 @@ class TimeSeries():
                 self.freq = pd.to_timedelta(self.freq)   
                             
         assert len(target_variables)>0, 'Provide at least one column for target'
-        assert 'time'  in dataset.columns, 'The temporal column must be called time'
+        assert 'time' in dataset.columns, 'The temporal column must be called time'
         if set(target_variables).intersection(set(past_variables))!= set(target_variables): 
             if check_past:
                 beauty_string('I will update past column adding all target columns, if you want to avoid this beahviour please use check_pass as false','info',self.verbose)
@@ -1145,7 +1145,6 @@ class TimeSeries():
                 time = time.melt()
             time.rename(columns={'value':'time','variable':'lag'},inplace=True)
 
-                
             tot = [time]
             for i, c in enumerate(self.target_variables):
                 tot.append(pd.DataFrame(real[:,:,i],columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':c}).drop(columns=['variable']))
@@ -1154,8 +1153,7 @@ class TimeSeries():
                 tot.append(pd.DataFrame(res[:,:,i,2],columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':c+'_high'}).drop(columns=['variable']))
 
             res = pd.concat(tot,axis=1)
-        
-            
+                    
         ## BxLxCx1
         else:
             time = pd.DataFrame(time,columns=[i+1 for i in range(res.shape[1])])#.melt()
@@ -1194,7 +1192,6 @@ class TimeSeries():
         skip_step is set to 1 for convenience (generally you want all the predictions)
         You can set split_params to None and use the standard parameters (at your own risck)
    
-
         Args:
             batch_size (int, optional): see inference_on_set. Defaults to 100.
             num_workers (int, optional): inference_on_set. Defaults to 4.

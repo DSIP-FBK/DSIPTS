@@ -59,7 +59,7 @@ def inference_stacked(conf:DictConfig,ts:TimeSeries)->List[pd.DataFrame]:
 
     return res
 
-
+ 
 def inference(conf:DictConfig,split_params=None)->List[pd.DataFrame]:
     """Make inference on a selected set starting from a configuration file
 
@@ -130,7 +130,7 @@ def inference(conf:DictConfig,split_params=None)->List[pd.DataFrame]:
     
 if __name__ == '__main__': 
     parser = argparse.ArgumentParser(description="Train TS models")
-    parser.add_argument("-c", "--config", type=str, help="configurastion file")
+    parser.add_argument("-c", "--config", type=str, help="configuration file")
     args = parser.parse_args()
     conf = OmegaConf.load(args.config) 
     inference(conf)
