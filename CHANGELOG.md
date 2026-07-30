@@ -1,5 +1,5 @@
-## 1.1.41
-- 
+## 1.1.44
+- update loss function 
 ## 1.1.40
 - removed aim for now, not working on python>12
 ## 1.1.39

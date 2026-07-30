@@ -444,78 +444,135 @@ class Base(pl.LightningModule):
             x = y_hat[:,:,:,1]
 
         
-        if self.loss_type == 'linear_penalization': 
-            persistence_error = (2.0-10.0*torch.clamp( torch.abs((y_persistence-x)/(0.001+torch.abs(y_persistence))),min=0.0,max=max(0.05,0.1*(1+np.log10(self.persistence_weight)  ))))
-            loss = torch.mean(torch.abs(x- batch['y'])*persistence_error)
-        
+        if self.loss_type == 'linear_penalization':
+            # persistence_weight in [0,1]: 0 = no penalization, 1 = max.
+            # closeness in [0,1]: 1 when x exactly matches the persistence
+            # baseline (max distance 2 on a [-1,1]-clamped domain), 0 when it's
+            # maximally far from it. weight in [1,1+pw] replaces the old
+            # log10-clamp formula, which was flat (no-op) for pw<0.316 and went
+            # negative (unbounded, sign-flipped loss) for pw>10.
+            pw = min(max(self.persistence_weight, 0.0), 1.0)
+            x_c = torch.clamp(x, -1.0, 1.0)
+            y_persistence_c = torch.clamp(y_persistence, -1.0, 1.0)
+            closeness = torch.clamp(1.0 - torch.abs(y_persistence_c - x_c) / 2.0, 0.0, 1.0)
+            weight = 1.0 + pw*closeness
+            loss = torch.mean(torch.abs(x - batch['y'])*weight)
+
         elif self.loss_type == 'mda':
-            #import pdb
-            #pdb.set_trace()
-            mda =  (1-torch.mean( torch.sign(torch.diff(x,axis=1))*torch.sign(torch.diff(batch['y'],axis=1))))
-            loss =   torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten()) + self.persistence_weight*mda/10
-            
-            
-        
+            # mda (mean directional-agreement error) is in [0,2] by construction
+            # (mean of a +-1/0 product, subtracted from 1); normalize by its own
+            # range instead of the previous arbitrary /10 to land pw in [0,1].
+            pw = min(max(self.persistence_weight, 0.0), 1.0)
+            mda = (1-torch.mean( torch.sign(torch.diff(x,axis=1))*torch.sign(torch.diff(batch['y'],axis=1))))
+            penalty = torch.clamp(mda/2.0, 0.0, 1.0)
+            loss = initial_loss + pw*penalty
+
         elif self.loss_type == 'exponential_penalization':
-            weights = (1+self.persistence_weight*torch.exp(-torch.abs(y_persistence-x)))
+            # weight in [1,1+pw]: clamping x/y_persistence to [-1,1] keeps the
+            # exp() decay meaningful regardless of the data's actual scale.
+            pw = min(max(self.persistence_weight, 0.0), 1.0)
+            x_c = torch.clamp(x, -1.0, 1.0)
+            y_persistence_c = torch.clamp(y_persistence, -1.0, 1.0)
+            weights = (1.0+pw*torch.exp(-torch.abs(y_persistence_c-x_c)))
             loss =  torch.mean(torch.abs(x- batch['y'])*weights)
-         
+
+
         elif self.loss_type=='sinkhorn':
             sinkhorn = SinkhornDistance(eps=0.1, max_iter=100, reduction='mean')
             loss = sinkhorn.compute(x,batch['y'])
 
         elif self.loss_type == 'additive_iv':
-            std = torch.sqrt(torch.var(batch['y'], dim=(1))+ 1e-8) ##--> BSxChannel
-            x_std = torch.sqrt(torch.var(x, dim=(1))+ 1e-8)
-            loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten() + self.persistence_weight*torch.abs(x_std-std).flatten())
-            
+            # persistence_weight in [0,1]: 0 = no penalization, 1 = max.
+            # Bounded assuming x,y are scaled to [-1,1]: std of a [-1,1]-bounded
+            # variable is itself in [0,1], so |x_std-std| is already unit-scale;
+            # the clamp guards against predictions drifting outside that range.
+            pw = min(max(self.persistence_weight, 0.0), 1.0)
+            std = torch.sqrt(torch.var(torch.clamp(batch['y'], -1.0, 1.0), dim=(1))+ 1e-8) ##--> BSxChannel
+            x_std = torch.sqrt(torch.var(torch.clamp(x, -1.0, 1.0), dim=(1))+ 1e-8)
+            penalty = torch.clamp(torch.abs(x_std-std), 0.0, 1.0)
+            loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten()) + pw*penalty.mean()
+
         elif self.loss_type == 'multiplicative_iv':
-            std = torch.sqrt(torch.var(batch['y'], dim=(1))+ 1e-8) ##--> BSxChannel
-            x_std = torch.sqrt(torch.var(x, dim=(1))+ 1e-8)
-            if self.persistence_weight>0:
-                loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1)*torch.abs(x_std-std))   
-            else:
-                loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1))   
+            # Same penalty as additive_iv but scales initial_loss by (1+pw*penalty)
+            # in [1,2] instead of adding it, so it never collapses the fit term to 0.
+            pw = min(max(self.persistence_weight, 0.0), 1.0)
+            std = torch.sqrt(torch.var(torch.clamp(batch['y'], -1.0, 1.0), dim=(1))+ 1e-8) ##--> BSxChannel
+            x_std = torch.sqrt(torch.var(torch.clamp(x, -1.0, 1.0), dim=(1))+ 1e-8)
+            penalty = torch.clamp(torch.abs(x_std-std), 0.0, 1.0)
+            l1 = torch.abs(x-batch['y']).mean(axis=1)
+            loss = torch.mean(l1*(1.0+pw*penalty))
         elif self.loss_type=='global_iv':
-            std_real = torch.sqrt(torch.var(batch['y'], dim=(0,1)))
-            std_predict = torch.sqrt(torch.var(x, dim=(0,1)))
-            loss = initial_loss +  self.persistence_weight*torch.abs(std_real-std_predict).mean()
+            pw = min(max(self.persistence_weight, 0.0), 1.0)
+            std_real = torch.sqrt(torch.var(torch.clamp(batch['y'], -1.0, 1.0), dim=(0,1))+ 1e-8)
+            std_predict = torch.sqrt(torch.var(torch.clamp(x, -1.0, 1.0), dim=(0,1))+ 1e-8)
+            penalty = torch.clamp(torch.abs(std_real-std_predict), 0.0, 1.0)
+            loss = initial_loss + pw*penalty.mean()
 
         elif self.loss_type=='smape':
-            loss = torch.mean(2*torch.abs(x-batch['y']) / (torch.abs(x)+torch.abs(batch['y'])))
+            loss = torch.mean(2*torch.abs(x-batch['y']) / (0.0000001+torch.abs(x)+torch.abs(batch['y'])))
             
         elif self.loss_type=='triplet':
-            loss_fn = torch.nn.TripletMarginLoss(margin=0.01, p=1.0,swap=False)
-            loss =  initial_loss + self.persistence_weight*loss_fn(x, batch['y'], y_persistence)
-                
+            # Manual, channel-count-independent triplet penalty: push x toward
+            # y and away from y_persistence. d_pos/d_neg are per-channel-mean L1
+            # distances, each bounded to [0,2] on a [-1,1]-clamped domain, so
+            # the margin-relu'd difference is bounded to [0,2] -> /2 lands it in
+            # [0,1]. (nn.TripletMarginLoss's default p=1 distance sums over the
+            # channel dim instead of averaging, so its scale grew with channel
+            # count.)
+            pw = min(max(self.persistence_weight, 0.0), 1.0)
+            x_c = torch.clamp(x, -1.0, 1.0)
+            y_c = torch.clamp(batch['y'], -1.0, 1.0)
+            y_persistence_c = torch.clamp(y_persistence, -1.0, 1.0)
+            d_pos = torch.abs(x_c - y_c).mean(dim=-1)
+            d_neg = torch.abs(x_c - y_persistence_c).mean(dim=-1)
+            margin = 0.01
+            penalty = torch.clamp((d_pos - d_neg + margin)/2.0, 0.0, 1.0).mean()
+            loss = initial_loss + pw*penalty
+
+
         elif self.loss_type=='high_order':
-            loss = initial_loss
+            # Each central moment of order i is normalized by its own bound
+            # (2**(i+1), from |X-mean|<=2 on a [-1,1]-clamped variable) so
+            # order-4 doesn't dominate order-2 the way it did with a shared scale.
+            pw = min(max(self.persistence_weight, 0.0), 1.0)
+            y_clamped = torch.clamp(batch['y'], -1.0, 1.0)
+            x_clamped = torch.clamp(x, -1.0, 1.0)
+            penalty = 0.0
             for i in range(2,5):
-                mom_real = standardize_momentum( batch['y'],i)
-                mom_pred = standardize_momentum(x,i)
-                
-                mom_loss = torch.abs(mom_real-mom_pred).mean()
-                loss+=self.persistence_weight*mom_loss
-            
+                mom_real = standardize_momentum(y_clamped,i)
+                mom_pred = standardize_momentum(x_clamped,i)
+                penalty = penalty + torch.clamp(torch.abs(mom_real-mom_pred)/(2.0**(i+1)), 0.0, 1.0).mean()
+            loss = initial_loss + pw*(penalty/3.0)
+
         elif self.loss_type=='dilated':
             #BxLxCxMUL
-
-            alpha = self.persistence_weight 
+            # persistence_weight now mixes base L1 loss vs. the DILATE loss
+            # (0=off/pure L1, 1=full DILATE), decoupled from DILATE's internal
+            # shape/temporal balance, which is fixed at alpha=0.5.
+            pw = min(max(self.persistence_weight, 0.0), 1.0)
+            alpha = 0.5
             gamma = 0.01
-            loss = 0
+            dilate = 0
             ##no multichannel here
-            for i in range(y_hat.shape[2]):                
-                loss+= dilate_loss( batch['y'][:,:,i:i+1],x[:,:,i:i+1], alpha, gamma, y_hat.device)
+            for i in range(y_hat.shape[2]):
+                dilate += dilate_loss( batch['y'][:,:,i:i+1],x[:,:,i:i+1], alpha, gamma, y_hat.device)
+            dilate = dilate / y_hat.shape[2]
+            loss = (1.0-pw)*initial_loss + pw*dilate
             
         elif self.loss_type=='huber':
-            loss = torch.nn.HuberLoss(reduction='mean', delta=self.persistence_weight)   
-            if self.use_quantiles is False:
-                x = y_hat[:,:,:,0]
-            else:
-                x = y_hat[:,:,:,1]
-            BS = x.shape[0]
-            loss = loss(y_hat.reshape(BS,-1), batch['y'].reshape(BS,-1))
-            
+            # persistence_weight in [0,1] mixes base L1 loss vs. a Huber loss
+            # with a fixed delta=1.0 (0=off/pure L1, 1=full Huber), decoupled
+            # from Huber's own delta. Previously pw *was* delta directly, so
+            # the default pw=0.0 silently zeroed the loss entirely (HuberLoss
+            # collapses to a constant 0 when delta=0). This also drops the
+            # reshape to y_hat.reshape(BS,-1), which compared the full
+            # (BS,T,C,MUL) tensor against batch['y'] and broke shape-wise
+            # whenever quantiles were enabled (MUL>1); x is already the
+            # correctly-sliced (BS,T,C) prediction computed above.
+            pw = min(max(self.persistence_weight, 0.0), 1.0)
+            huber_fn = torch.nn.HuberLoss(reduction='mean', delta=1.0)
+            loss = (1.0-pw)*initial_loss + pw*huber_fn(x, batch['y'])
+
         else:
             loss = initial_loss
         return loss
