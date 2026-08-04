@@ -954,8 +954,7 @@ class TimeSeries():
                     from lightning.pytorch.tuner import Tuner
                     tuner = Tuner(trainer)
                     lr_finder = tuner.lr_find(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)
-                    import pdb
-                    pdb.set_trace()
+ 
                     self.model.optim_config['lr'] = lr_finder.suggestion() ## we are using it as optim key
             except Exception as e:
                 beauty_string(f'There is a problem with the finding LR routine {e}','section',self.verbose)
