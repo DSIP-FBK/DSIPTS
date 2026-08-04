@@ -144,7 +144,7 @@ def train(conf: DictConfig) -> None:
 
     tot_seconds = time.time()
     try:
-        valid_loss = ts.train_model(split_params=split_params,**conf.train_config)
+        valid_loss = ts.train_model(split_params=split_params,**dict(conf.train_config))
         ok = True
     except Exception as _:
         beauty_string(traceback.format_exc(),'', True)

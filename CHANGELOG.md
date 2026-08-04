@@ -1,3 +1,5 @@
+## 1.1.45
+- fixed tune learning rate
 ## 1.1.44
 - update loss function 
 ## 1.1.40

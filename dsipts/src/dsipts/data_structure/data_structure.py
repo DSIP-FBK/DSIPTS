@@ -7,6 +7,9 @@ from sklearn.preprocessing import *
 from torch.utils.data import DataLoader
 from .utils import extend_time_df,MetricsCallback, MyDataset, ActionEnum,beauty_string
 from torch.utils.data.sampler import WeightedRandomSampler
+import os
+os.environ["TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD"] = "1"
+
 try:
 
     #new version of lightning
@@ -43,6 +46,10 @@ disable_aim = True
 if disable_aim is False:
     from aim.pytorch_lightning import AimLogger
 import time
+
+
+
+
 debug_prediction = False
 
 class DummyScaler():
@@ -933,7 +940,7 @@ class TimeSeries():
 
         beauty_string(f'tuning lr','section',self.verbose)
 
-     
+
         if auto_lr_find and (weight_exists is False):
             try:
                 if OLD_PL:
@@ -947,6 +954,8 @@ class TimeSeries():
                     from lightning.pytorch.tuner import Tuner
                     tuner = Tuner(trainer)
                     lr_finder = tuner.lr_find(self.model,train_dataloaders=train_dl,val_dataloaders = valid_dl)
+                    import pdb
+                    pdb.set_trace()
                     self.model.optim_config['lr'] = lr_finder.suggestion() ## we are using it as optim key
             except Exception as e:
                 beauty_string(f'There is a problem with the finding LR routine {e}','section',self.verbose)
@@ -1302,7 +1311,10 @@ class TimeSeries():
         if 'verbose' in self.config['model_configs'].keys():
             self.config['model_configs'] = dict(self.config['model_configs'])
             self.config['model_configs'].pop('verbose')
-        self.model = model(**self.config['model_configs'], optim_config = self.config['optim_config'], scheduler_config =self.config['scheduler_config'], verbose=self.verbose )
+        self.model = model(**dict(self.config['model_configs']),
+                           optim_config = dict(self.config['optim_config']),
+                           scheduler_config = dict(self.config['scheduler_config']),
+                           verbose=self.verbose )
         
         
         if weight_path is not None:

@@ -114,6 +114,9 @@ class Base(pl.LightningModule):
    
         beauty_string('V2','block',True)
         super(Base, self).__init__()
+        
+        
+        
         self.save_hyperparameters(logger=False)
         self.count_epoch = 0
         self.initialize = False
