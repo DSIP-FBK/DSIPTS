@@ -27,6 +27,6 @@ model_configs:
   loss_type: 'l1'
   quantiles: []
 train_config:
-  batch_size: 128
+  batch_size: 64
   max_epochs: 600
          
