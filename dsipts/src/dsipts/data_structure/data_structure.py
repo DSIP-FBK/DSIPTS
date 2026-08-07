@@ -52,7 +52,7 @@ import time
 
 debug_prediction = False
 
-class DummyScaler():
+class DummyScaler:
     def __init__(self):
         pass
     def fit(self,x):
