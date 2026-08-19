@@ -5,9 +5,9 @@ model:
   retrain: true
   restart: false
 ts:
-  name: 'simple'
+  name: 'weather'
   version: 1
-  enrich: []
+  enrich: ['hour']
   silly: false
   use_covariates: true
 

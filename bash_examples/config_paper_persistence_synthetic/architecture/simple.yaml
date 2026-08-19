@@ -5,7 +5,7 @@ model:
   retrain: true
   restart: false
 ts:
-  name: 'simple'
+  name: 'synthetic'
   version: 1
   enrich: []
   silly: false

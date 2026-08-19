@@ -5,7 +5,7 @@ model:
   retrain: true
   restart: false
 ts:
-  name: 'test'
+  name: 'synthetic'
   version: 1
   enrich: []
   use_covariates: true

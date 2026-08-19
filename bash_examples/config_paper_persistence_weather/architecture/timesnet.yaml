@@ -5,9 +5,9 @@ model:
   retrain: true
   restart: false
 ts:
-  name: 'test'
+  name: 'weather'
   version: 1
-  enrich: []
+  enrich: [hour]
   use_covariates: true
   silly: false
   use_future_covariates: false
@@ -28,5 +28,5 @@ model_configs:
   quantiles: []
 train_config:
   batch_size: 64
-  max_epochs: 600
+  max_epochs: 1000
          
