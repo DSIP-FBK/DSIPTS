@@ -1,0 +1,26 @@
+models: config_paper_persistence
+#models: ['config_used/linear.yaml']
+dirpath: /storage3/DSIP/agobbi/Projects/ExpTS/paper_persistence_v2
+
+set: 'test'
+name: 'prova'
+rescaling: true
+
+defaults:
+  - _self_
+  - override hydra/launcher: submitit_slurm 
+
+
+
+hydra:
+  launcher:
+    submitit_folder: ${hydra.sweep.dir}/.submitit/%j
+    timeout_min: 6000
+    partition: gpu-V100
+    mem_gb: 8
+    nodes: 1
+    gres: gpu:1
+    name: ${hydra.job.name}
+    _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
+    setup:
+      - source /storage3/DSIP/agobbi/Projects/timeseries/dsipts/.venv/bin/activate  

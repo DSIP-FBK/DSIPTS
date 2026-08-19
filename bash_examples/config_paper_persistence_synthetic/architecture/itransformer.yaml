@@ -16,14 +16,14 @@ model_configs:
   use_classical_positional_encoder: true 
   emb_dim: 4 
   reduction_mode: mean 
-  d_model: 64
-  n_head: 4
-  hidden_size: 64 
+  d_model: 128
+  n_head: 2
+  hidden_size: 128 
   dropout_rate: 0.00
   n_layer_decoder: 2
   use_norm: true
   optim: torch.optim.Adam
-  persistence_weight: 0.1
+  persistence_weight: 1
   loss_type: 'l1'
   activation: torch.nn.ReLU
   class_strategy: 'projection' #projection/average/cls_token

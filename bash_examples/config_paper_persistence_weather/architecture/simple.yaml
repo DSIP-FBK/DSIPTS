@@ -1,0 +1,35 @@
+# @package _global_
+
+model:
+  type: 'simple'
+  retrain: true
+  restart: false
+ts:
+  name: 'simple'
+  version: 1
+  enrich: []
+  silly: false
+  use_covariates: true
+
+model_configs:
+  use_classical_positional_encoder: true 
+  emb_dim: 16 
+  reduction_mode: mean 
+  dropout_rate: 0.000
+  hidden_size: 128
+  
+  optim: torch.optim.Adam
+  activation: torch.nn.ReLU
+  persistence_weight: 0.010
+  loss_type: 'l1'
+  quantiles: []
+
+train_config:
+  batch_size: 64
+  max_epochs: 5000
+  auto_lr_find: false
+
+optim_config:
+  lr: 0.0004
+  weight_decay: 0.0001
+              

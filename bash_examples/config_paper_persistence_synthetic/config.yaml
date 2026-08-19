@@ -1,0 +1,80 @@
+dataset:
+  dataset: 'synthetic'  
+  path: /home/agobbi/Projects/ExpTS/data
+  
+model:
+  restart: false
+  retrain: true
+ts:
+  name: 'test'
+  version: 1
+  enrich: []
+  use_covariates: true
+  use_future_covariates: false
+
+scheduler_config:
+  gamma: 1.0
+  step_size: 100
+
+optim_config:
+  lr: 0.0005
+  weight_decay: 0.01
+
+model_configs:
+  past_steps: 96
+  future_steps: 16
+  quantiles: []
+  past_channels : null #dataset dependent
+  future_channels : null #dataset dependent
+  embs_past: null #dataset dependent
+  embs_fut: null #dataset dependent
+
+  out_channels: null #dataset dependent
+
+stack:
+  dirpath: null ##leave it null
+
+split_params:
+  perc_train: 0.7
+  perc_valid: 0.1
+  range_train: null
+  range_validation: null 
+  range_test: null
+  shift: 0
+  starting_point: null
+  skip_step: 1
+  past_steps: model_configs@past_steps 
+  future_steps: model_configs@future_steps
+  scaler: 'DummyScaler()' ## 'StandardScaler()' ## or sklearn.preprocessing.StandardScaler()
+train_config:
+  dirpath: /home/agobbi/Projects/ExpTS/paper_persistence
+  num_workers: 0
+  auto_lr_find: true
+  devices: [0]                   
+  seed: 42   
+  max_epochs: 5 
+inference:
+  output_path: /home/agobbi/Projects/ExpTS/paper_persistence
+  load_last: true
+  batch_size: 200 
+  num_workers: 4
+  set: "test"
+  rescaling: true
+
+defaults:
+  - _self_
+  - architecture: null #architecture
+  - stack: null        #stack generalization
+  - override hydra/launcher: joblib
+
+hydra:
+  launcher:
+    n_jobs:  2
+    verbose: 1
+    pre_dispatch: 2
+    batch_size: 2
+
+  output_subdir: null 
+  sweeper:
+    params:
+      architecture: glob(*) #architecture

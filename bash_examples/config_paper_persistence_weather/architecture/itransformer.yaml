@@ -1,0 +1,41 @@
+# @package _global_
+
+model:
+  type: 'itransformer'
+  retrain: true
+  restart: false
+ts:
+  name: 'weather'
+  version: 1
+  enrich: [hour]
+  use_covariates: true
+  #use_future_covariates: false
+  silly: false
+
+model_configs:
+  use_classical_positional_encoder: true 
+  emb_dim: 16 
+  reduction_mode: mean 
+  d_model: 64
+  n_head: 2
+  hidden_size: 64 
+  dropout_rate: 0.3
+  n_layer_decoder: 2
+  use_norm: true
+  optim: torch.optim.Adam
+  persistence_weight: 1
+  loss_type: 'l1'
+  activation: torch.nn.ReLU
+  class_strategy: 'projection' #projection/average/cls_token
+  quantiles: []
+train_config:
+  batch_size: 64
+  max_epochs: 5000
+  auto_lr_find: false
+
+optim_config:
+  lr: 0.0001
+  weight_decay: 0.000001
+
+
+

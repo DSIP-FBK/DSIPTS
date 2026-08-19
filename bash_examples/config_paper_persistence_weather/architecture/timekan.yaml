@@ -1,0 +1,33 @@
+# @package _global_
+
+model:
+  type: 'timekan'
+  retrain: true
+  restart: false
+ts:
+  name: 'test'
+  version: 1
+  enrich: []
+  use_covariates: true
+  silly: false
+  use_future_covariates: false
+  
+model_configs:
+  use_classical_positional_encoder: true 
+  emb_dim: 16 
+  reduction_mode: mean 
+  down_sampling_window: 2
+  e_layers: 8
+  moving_avg: 3
+  down_sampling_layers: 2
+  d_model: 256
+  begin_order: 3
+  use_norm: true
+  optim: torch.optim.Adam
+  persistence_weight: 0.010
+  loss_type: 'l1'
+  quantiles: []
+train_config:
+  batch_size: 64
+  max_epochs: 1000
+         

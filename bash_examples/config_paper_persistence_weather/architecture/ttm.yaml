@@ -1,0 +1,42 @@
+# @package _global_
+
+model:
+  type: 'ttm'
+  retrain: true
+  restart: false
+ts:
+  name: 'test'
+  version: 1
+  enrich: []
+  use_covariates: true
+  silly: false
+  use_future_covariates: true
+
+model_configs:
+  model_path: "ibm-granite/granite-timeseries-ttm-r2"
+  freq_prefix_tuning: false
+  freq: oov
+  prefer_l1_loss: true
+  prefer_longer_context: true
+  loss_type: 'mse'
+  decoder_mode: 'mix_channel'
+  fcm_context_length: 42
+  fcm_use_mixer: true
+  fcm_mix_layers: 2
+  enable_forecast_channel_mixing: true
+  fcm_prepend_past: true
+  prediction_channel_indices: null #dataset dependent
+  exogenous_channel_indices_cont: null #dataset dependent
+  exogenous_channel_indices_cat: null #dataset dependent
+  optim: torch.optim.Adam
+
+train_config:
+  batch_size: 64
+  max_epochs: 20
+  auto_lr_find: False
+optim_config:
+  lr: 0.0004
+  weight_decay: 0.001
+  
+
+
