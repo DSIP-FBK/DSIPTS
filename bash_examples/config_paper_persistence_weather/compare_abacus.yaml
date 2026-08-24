@@ -1,4 +1,4 @@
-models: config_paper_persistence
+models: config_paper_persistence_weather
 #models: ['config_used/linear.yaml']
 dirpath: /storage/DSIP/agobbi/Projects/ExpTS/paper_persistence_v2_weather
 

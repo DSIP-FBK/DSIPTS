@@ -39,8 +39,9 @@ def compare(conf:DictConfig)-> None:
         ff = os.path.join(conf.models,'config_used')
         files = [os.path.join(ff,f) for f in os.listdir(ff)]
     else:
-        import pdb
-        pdb.set_trace()
+        beauty_string(f'CAN NOT FIND MODELS','section',VERBOSE)
+        return 
+       
         
     for conf_tmp in files:
 
