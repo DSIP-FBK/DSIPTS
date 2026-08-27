@@ -18,8 +18,8 @@ optim_config:
   weight_decay: 0.00001
 
 model_configs:
-  past_steps: 96
-  future_steps: 16
+  past_steps: 144
+  future_steps: 60
   quantiles: []
   past_channels : null #dataset dependent
   future_channels : null #dataset dependent
