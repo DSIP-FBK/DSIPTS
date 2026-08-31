@@ -19,16 +19,10 @@ from .utils import QuantileLossMO, CPRS
 import torch.nn as nn
 from torch.optim import Adam, AdamW, SGD, RMSprop   
 
-##--- constants for the non standard losses -------------------------------------
-##persistence_weight is the ONLY knob exposed to the configs; these are part of each
-##loss definition, not tunables. Values measured in loss_normalization_wip/STATUS.md
+
 MDA_TAU        = 0.5    ##soft sign temperature for the mda penalty, in sigma units
 REWEIGHT_GAIN  = 4.0    ##contrast of the linear/exponential reweighting family
 TRIPLET_MARGIN = 0.01   ##hinge margin for the triplet penalty
-
-##optional per loss calibration, would tighten the cross loss grad share spread from
-##2.24x to ~1.15x. Left at 1.0 on purpose: grad share drifts +-30% with model quality
-##during training, so tuning past ~2x is fitting noise
 CALIBRATION = {}
 
 
@@ -573,6 +567,21 @@ class Base(pl.LightningModule):
 
         elif self.loss_type=='huber':
             P = nn.functional.huber_loss(x/s, y/s, delta=1.0)
+
+        elif self.loss_type=='fredf':
+            ##FreDF (ICLR 2025): score the residual in the frequency domain instead of
+            ##point by point, which removes the label autocorrelation bias of direct
+            ##multi step forecasting (the bias that pushes a model towards persistence).
+            ##rfft is linear so we transform the residual directly. norm='ortho' keeps
+            ##the transform unitary, so the coefficients stay in the same sigma units as
+            ##the time domain residual and P is comparable to base without extra scaling.
+            ##The explicit sqrt avoids torch.abs()'s NaN gradient at a zero coefficient
+            ##transform over the LAST dim on a contiguous tensor: with dim=1 (the time
+            ##axis in place) torch.compile/inductor asserts on the strides of _fft_r2c
+            ##and the training step dies. We only take a mean afterwards, so moving the
+            ##time axis to the end is free
+            d = torch.fft.rfft(((x-y)/s).transpose(1,2).contiguous(), dim=-1, norm='ortho')
+            P = torch.sqrt(d.real**2 + d.imag**2 + 1e-8).mean()
 
         else:
             return initial_loss

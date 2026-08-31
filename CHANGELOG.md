@@ -1,3 +1,5 @@
+## 1.1.49
+- fredf loss implemented
 ## 1.1.48
 - standardization of persistence loss factors
 ## 1.1.45-46
