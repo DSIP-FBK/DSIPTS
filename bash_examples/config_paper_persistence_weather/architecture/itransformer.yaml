@@ -30,7 +30,7 @@ model_configs:
   quantiles: []
 train_config:
   batch_size: 64
-  max_epochs: 5000
+  max_epochs: 2000
   auto_lr_find: false
 
 optim_config:
