@@ -16,10 +16,10 @@ model_configs:
   use_classical_positional_encoder: true 
   emb_dim: 16 
   reduction_mode: mean 
-  d_model: 64
+  d_model: 32
   n_head: 2
   hidden_size: 64 
-  dropout_rate: 0.3
+  dropout_rate: 0.4
   n_layer_decoder: 2
   use_norm: true
   optim: torch.optim.Adam
@@ -35,7 +35,7 @@ train_config:
 
 optim_config:
   lr: 0.0001
-  weight_decay: 0.000001
+  weight_decay: 0.001
 
 
 
