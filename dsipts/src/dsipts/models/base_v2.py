@@ -19,13 +19,25 @@ from .utils import QuantileLossMO, CPRS
 import torch.nn as nn
 from torch.optim import Adam, AdamW, SGD, RMSprop   
 
-def standardize_momentum(x,order):
-    mean = torch.mean(x,1).unsqueeze(1).repeat(1,x.shape[1],1)
-    num = torch.pow(x-mean,order).mean(axis=1)
-    #den = torch.sqrt(torch.pow(x-mean,2).mean(axis=1)+1e-8)
-    #den = torch.pow(den,order)
+##--- constants for the non standard losses -------------------------------------
+##persistence_weight is the ONLY knob exposed to the configs; these are part of each
+##loss definition, not tunables. Values measured in loss_normalization_wip/STATUS.md
+MDA_TAU        = 0.5    ##soft sign temperature for the mda penalty, in sigma units
+REWEIGHT_GAIN  = 4.0    ##contrast of the linear/exponential reweighting family
+TRIPLET_MARGIN = 0.01   ##hinge margin for the triplet penalty
 
-    return num#/den
+##optional per loss calibration, would tighten the cross loss grad share spread from
+##2.24x to ~1.15x. Left at 1.0 on purpose: grad share drifts +-30% with model quality
+##during training, so tuning past ~2x is fitting noise
+CALIBRATION = {}
+
+
+def central_moment(x,order):
+    """Central moment of a given order along the time axis --> BSxChannel
+
+    :meta private:
+    """
+    return torch.pow(x-torch.mean(x,1,keepdim=True),order).mean(dim=1)
 
 
 def dilate_loss(outputs, targets, alpha, gamma, device):
@@ -408,174 +420,162 @@ class Base(pl.LightningModule):
     def compute_loss(self,batch,y_hat):
         """
         custom loss calculation
-        
+
+        Every non standard loss follows one contract::
+
+            L(pw) = (base + pw*P)/(1+pw)
+
+        where ``pw`` is ``persistence_weight`` clamped to [0,1], ``base`` is the
+        reconstruction error in units of the per channel target sigma and ``P`` is a
+        dimensionless O(1) penalty. ``pw=0`` gives exactly the standard loss, ``pw=1``
+        puts penalty and reconstruction on equal footing (the maximum sane intensity).
+        The ``/(1+pw)`` cap is load bearing: without it the reconstruction term
+        disappears at pw=1 and penalties with no magnitude anchor diverge.
+
+        ``cprs`` and ``long_lag`` are outside the contract, they interpret
+        persistence_weight on their own scale. See
+        loss_normalization_wip/PROPOSED_CHANGES.md
+
         :meta private:
         """
         if self.loss_type=='cprs':
+            ##outside the contract: persistence_weight is the CRPS alpha here
             return self.loss(y_hat,batch['y'])
 
         if self.loss_type=='long_lag':
-
+            ##outside the contract: persistence_weight is the weight of the LAST lag
             batch_size,width,n_variables = batch['y'].shape
-            tmp = torch.abs(y_hat[:,:,:,0]-batch['y'])*torch.linspace(1,self.persistence_weight,width).view(1,width,1).repeat(batch_size,1,n_variables)
+            tmp = torch.abs(y_hat[:,:,:,0]-batch['y'])*torch.linspace(1,self.persistence_weight,width,device=y_hat.device).view(1,width,1).repeat(batch_size,1,n_variables)
             return tmp.mean()
-
-
 
         if self.use_quantiles is False:
             initial_loss = self.loss(y_hat[:,:,:,0], batch['y'])
         else:
             initial_loss = self.loss(y_hat, batch['y'])
-            
+
         if  self.loss_type in ['mse','l1']:
             return initial_loss
-        
-        x =  batch['x_num_past'].to(self.device)
-        
-        idx_target = batch['idx_target'][0]
-        
-        if idx_target is None:
-            beauty_string(f'Can not compute non-standard loss for non autoregressive models, if you want to use custom losses please add check=True wile initialize the time series object','info',self.verbose)
+
+        ##non standard losses are point forecast only. QuantileLossMO sums over the
+        ##horizon instead of averaging it, so it is 0.5*future_steps bigger than L1:
+        ##adding an O(1) penalty to it dilutes the penalty ~32x at future_steps=64.
+        ##Refuse the combination explicitly instead of silently diluting it
+        if self.use_quantiles:
+            beauty_string(f'Non standard loss {self.loss_type} is not supported together with quantiles, falling back to the plain quantile loss. Use quantiles=[] if you want {self.loss_type}','info',self.verbose)
             return initial_loss
-        x_start = x[:,-1,idx_target].unsqueeze(1)
-        y_persistence = x_start.repeat(1,self.future_steps,1)
-        
-        ##generally you want to work without quantile loss
-        if self.use_quantiles is False:
-            x = y_hat[:,:,:,0]
-        else:
-            x = y_hat[:,:,:,1]
 
-        
+        y = batch['y']
+        x = y_hat[:,:,:,0]
+
+        if self.loss_type=='smape':
+            ##outside the contract: the denominator |x|+|y| goes to zero on zero centred
+            ##data, so this is only meaningful on a strictly positive unscaled target
+            if (y.min()<0) and (getattr(self,'_smape_warned',False) is False):
+                self._smape_warned = True
+                beauty_string('smape is undefined for targets that are not strictly positive (the denominator |x|+|y| goes to zero), use it only on a positive unscaled target','info',self.verbose)
+            return torch.mean(2*torch.abs(x-y) / (0.0000001+torch.abs(x)+torch.abs(y)))
+
+        ##per channel target scale, detached, == 1 under StandardScaler. This replaces
+        ##the old clamp(-1,1): clamp has zero gradient outside its range and 32.6% of
+        ##standardized points have |y|>1, so it deleted the gradient on exactly the
+        ##extreme events these penalties exist to capture, and it was not scale
+        ##equivariant (data x10 blew the cross loss spread from 43.6x to 378.7x)
+        s = y.std(dim=(0,1), keepdim=True).detach()
+        s = torch.where(s>1e-6, s, torch.ones_like(s))   ##dead channel --> sigma 1
+        base = (torch.abs(x-y)/s).mean()
+
+        ##persistence_weight is THE knob: 0 = standard loss, 1 = max penalization.
+        ##NB we return `base` and not `initial_loss`: they differ only by the constant
+        ##factor sigma (they are identical under StandardScaler) but returning the
+        ##un-normalized loss here would make the loss magnitude jump by sigma between
+        ##pw=0 and pw>0, which breaks the comparability of a pw sweep under DummyScaler
+        pw = float(min(max(self.persistence_weight, 0.0), 1.0))
+        if pw == 0.0:
+            return base
+
+        ##NB data_structure.py converts an empty idx_target_future to None but NOT an
+        ##empty idx_target, so when the targets are not among the past variables this
+        ##arrives as an EMPTY array, not as None: the old `is None` guard never fired and
+        ##y_persistence came out with 0 channels, crashing on the broadcast below
+        idx_target = batch['idx_target'][0] if 'idx_target' in batch else None
+        if (idx_target is None) or (len(idx_target)==0):
+            beauty_string(f'Can not compute non-standard loss for non autoregressive models, if you want to use custom losses please add check_past=True while initialize the time series object','info',self.verbose)
+            return base
+        x_past = batch['x_num_past'].to(self.device)
+        y_persistence = x_past[:,-1,idx_target].unsqueeze(1).repeat(1,self.future_steps,1)
+
         if self.loss_type == 'linear_penalization':
-            # persistence_weight in [0,1]: 0 = no penalization, 1 = max.
-            # closeness in [0,1]: 1 when x exactly matches the persistence
-            # baseline (max distance 2 on a [-1,1]-clamped domain), 0 when it's
-            # maximally far from it. weight in [1,1+pw] replaces the old
-            # log10-clamp formula, which was flat (no-op) for pw<0.316 and went
-            # negative (unbounded, sign-flipped loss) for pw>10.
-            pw = min(max(self.persistence_weight, 0.0), 1.0)
-            x_c = torch.clamp(x, -1.0, 1.0)
-            y_persistence_c = torch.clamp(y_persistence, -1.0, 1.0)
-            closeness = torch.clamp(1.0 - torch.abs(y_persistence_c - x_c) / 2.0, 0.0, 1.0)
-            weight = 1.0 + pw*closeness
-            loss = torch.mean(torch.abs(x - batch['y'])*weight)
-
-        elif self.loss_type == 'mda':
-            # mda (mean directional-agreement error) is in [0,2] by construction
-            # (mean of a +-1/0 product, subtracted from 1); normalize by its own
-            # range instead of the previous arbitrary /10 to land pw in [0,1].
-            pw = min(max(self.persistence_weight, 0.0), 1.0)
-            mda = (1-torch.mean( torch.sign(torch.diff(x,axis=1))*torch.sign(torch.diff(batch['y'],axis=1))))
-            penalty = torch.clamp(mda/2.0, 0.0, 1.0)
-            loss = initial_loss + pw*penalty
+            ##up weight the reconstruction error where the prediction hugs persistence.
+            ##This family only REWEIGHTS the same L1 term, so its gradient is nearly
+            ##collinear with base and it needs an explicit contrast gain to be felt
+            c = torch.clamp(1.0-torch.abs(y_persistence-x)/(2.0*s), 0.0, 1.0)
+            w = torch.exp(REWEIGHT_GAIN*c)
+            P = ((torch.abs(x-y)/s)*w).sum()/(w.sum()+1e-8)
 
         elif self.loss_type == 'exponential_penalization':
-            # weight in [1,1+pw]: clamping x/y_persistence to [-1,1] keeps the
-            # exp() decay meaningful regardless of the data's actual scale.
-            pw = min(max(self.persistence_weight, 0.0), 1.0)
-            x_c = torch.clamp(x, -1.0, 1.0)
-            y_persistence_c = torch.clamp(y_persistence, -1.0, 1.0)
-            weights = (1.0+pw*torch.exp(-torch.abs(y_persistence_c-x_c)))
-            loss =  torch.mean(torch.abs(x- batch['y'])*weights)
+            c = torch.exp(-torch.abs(y_persistence-x)/s)
+            w = torch.exp(REWEIGHT_GAIN*c)
+            P = ((torch.abs(x-y)/s)*w).sum()/(w.sum()+1e-8)
 
+        elif self.loss_type == 'mda':
+            ##torch.sign has zero gradient everywhere, so the old branch trained
+            ##NOTHING (pw=0/0.1/0.5/1.0 gave identical metrics to 4 decimals over 60
+            ##epochs). tanh is the differentiable replacement
+            dx = torch.tanh(torch.diff(x,dim=1)/(MDA_TAU*s))
+            dy = torch.tanh(torch.diff(y,dim=1)/(MDA_TAU*s))
+            P = ((1.0-dx*dy)/2.0).mean()
 
-        elif self.loss_type=='sinkhorn':
-            sinkhorn = SinkhornDistance(eps=0.1, max_iter=100, reduction='mean')
-            loss = sinkhorn.compute(x,batch['y'])
-
-        elif self.loss_type == 'additive_iv':
-            # persistence_weight in [0,1]: 0 = no penalization, 1 = max.
-            # Bounded assuming x,y are scaled to [-1,1]: std of a [-1,1]-bounded
-            # variable is itself in [0,1], so |x_std-std| is already unit-scale;
-            # the clamp guards against predictions drifting outside that range.
-            pw = min(max(self.persistence_weight, 0.0), 1.0)
-            std = torch.sqrt(torch.var(torch.clamp(batch['y'], -1.0, 1.0), dim=(1))+ 1e-8) ##--> BSxChannel
-            x_std = torch.sqrt(torch.var(torch.clamp(x, -1.0, 1.0), dim=(1))+ 1e-8)
-            penalty = torch.clamp(torch.abs(x_std-std), 0.0, 1.0)
-            loss = torch.mean( torch.abs(x-batch['y']).mean(axis=1).flatten()) + pw*penalty.mean()
-
-        elif self.loss_type == 'multiplicative_iv':
-            # Same penalty as additive_iv but scales initial_loss by (1+pw*penalty)
-            # in [1,2] instead of adding it, so it never collapses the fit term to 0.
-            pw = min(max(self.persistence_weight, 0.0), 1.0)
-            std = torch.sqrt(torch.var(torch.clamp(batch['y'], -1.0, 1.0), dim=(1))+ 1e-8) ##--> BSxChannel
-            x_std = torch.sqrt(torch.var(torch.clamp(x, -1.0, 1.0), dim=(1))+ 1e-8)
-            penalty = torch.clamp(torch.abs(x_std-std), 0.0, 1.0)
-            l1 = torch.abs(x-batch['y']).mean(axis=1)
-            loss = torch.mean(l1*(1.0+pw*penalty))
-        elif self.loss_type=='global_iv':
-            pw = min(max(self.persistence_weight, 0.0), 1.0)
-            std_real = torch.sqrt(torch.var(torch.clamp(batch['y'], -1.0, 1.0), dim=(0,1))+ 1e-8)
-            std_predict = torch.sqrt(torch.var(torch.clamp(x, -1.0, 1.0), dim=(0,1))+ 1e-8)
-            penalty = torch.clamp(torch.abs(std_real-std_predict), 0.0, 1.0)
-            loss = initial_loss + pw*penalty.mean()
-
-        elif self.loss_type=='smape':
-            loss = torch.mean(2*torch.abs(x-batch['y']) / (0.0000001+torch.abs(x)+torch.abs(batch['y'])))
-            
         elif self.loss_type=='triplet':
-            # Manual, channel-count-independent triplet penalty: push x toward
-            # y and away from y_persistence. d_pos/d_neg are per-channel-mean L1
-            # distances, each bounded to [0,2] on a [-1,1]-clamped domain, so
-            # the margin-relu'd difference is bounded to [0,2] -> /2 lands it in
-            # [0,1]. (nn.TripletMarginLoss's default p=1 distance sums over the
-            # channel dim instead of averaging, so its scale grew with channel
-            # count.)
-            pw = min(max(self.persistence_weight, 0.0), 1.0)
-            x_c = torch.clamp(x, -1.0, 1.0)
-            y_c = torch.clamp(batch['y'], -1.0, 1.0)
-            y_persistence_c = torch.clamp(y_persistence, -1.0, 1.0)
-            d_pos = torch.abs(x_c - y_c).mean(dim=-1)
-            d_neg = torch.abs(x_c - y_persistence_c).mean(dim=-1)
-            margin = 0.01
-            penalty = torch.clamp((d_pos - d_neg + margin)/2.0, 0.0, 1.0).mean()
-            loss = initial_loss + pw*penalty
-
+            ##push x towards y and away from persistence. Mean over the channel dim (not
+            ##nn.TripletMarginLoss, whose p=1 distance SUMS over it and so grows with the
+            ##number of channels)
+            d_pos = (torch.abs(x-y)/s).mean(dim=-1)
+            d_neg = (torch.abs(x-y_persistence)/s).mean(dim=-1)
+            P = torch.relu(d_pos-d_neg+TRIPLET_MARGIN).mean()
 
         elif self.loss_type=='high_order':
-            # Each central moment of order i is normalized by its own bound
-            # (2**(i+1), from |X-mean|<=2 on a [-1,1]-clamped variable) so
-            # order-4 doesn't dominate order-2 the way it did with a shared scale.
-            pw = min(max(self.persistence_weight, 0.0), 1.0)
-            y_clamped = torch.clamp(batch['y'], -1.0, 1.0)
-            x_clamped = torch.clamp(x, -1.0, 1.0)
-            penalty = 0.0
+            ##moment of order i is normalized by s**i --> dimensionless with a bounded
+            ##derivative. The i-th root also gives sigma units but its derivative blows
+            ##up near 0 and made this branch ~20x too strong
+            sc = s.squeeze(1)
+            P = 0.0
             for i in range(2,5):
-                mom_real = standardize_momentum(y_clamped,i)
-                mom_pred = standardize_momentum(x_clamped,i)
-                penalty = penalty + torch.clamp(torch.abs(mom_real-mom_pred)/(2.0**(i+1)), 0.0, 1.0).mean()
-            loss = initial_loss + pw*(penalty/3.0)
+                P = P + torch.abs(central_moment(y,i)/sc.pow(i)-central_moment(x,i)/sc.pow(i)).mean()
+            P = P/3.0
+
+        elif self.loss_type == 'additive_iv':
+            P = (torch.abs(x.std(dim=1)-y.std(dim=1))/s.squeeze(1)).mean()
+
+        elif self.loss_type == 'multiplicative_iv':
+            ##same quantity as additive_iv but keeping the multiplicative flavour
+            iv = torch.abs(x.std(dim=1)-y.std(dim=1))/s.squeeze(1)
+            P = ((torch.abs(x-y)/s).mean(dim=1)*(1.0+iv)).mean()
+
+        elif self.loss_type=='global_iv':
+            P = (torch.abs(x.std(dim=(0,1))-y.std(dim=(0,1)))/s.flatten()).mean()
+
+        elif self.loss_type=='sinkhorn':
+            ##p=2 cost --> sqrt to get back to sigma units
+            sinkhorn = SinkhornDistance(eps=0.1, max_iter=100, reduction='mean')
+            P = torch.sqrt(sinkhorn.compute(x/s,y/s)+1e-8)
 
         elif self.loss_type=='dilated':
-            #BxLxCxMUL
-            # persistence_weight now mixes base L1 loss vs. the DILATE loss
-            # (0=off/pure L1, 1=full DILATE), decoupled from DILATE's internal
-            # shape/temporal balance, which is fixed at alpha=0.5.
-            pw = min(max(self.persistence_weight, 0.0), 1.0)
-            alpha = 0.5
-            gamma = 0.01
+            ##no multichannel here, one dilate_loss per output channel. O(T^2) per
+            ##sample, this branch is slow
+            x_n = x/s
+            y_n = y/s
             dilate = 0
-            ##no multichannel here
             for i in range(y_hat.shape[2]):
-                dilate += dilate_loss( batch['y'][:,:,i:i+1],x[:,:,i:i+1], alpha, gamma, y_hat.device)
-            dilate = dilate / y_hat.shape[2]
-            loss = (1.0-pw)*initial_loss + pw*dilate
-            
+                dilate = dilate + dilate_loss(y_n[:,:,i:i+1],x_n[:,:,i:i+1], 0.5, 0.01, y_hat.device)
+            ##dilate_loss accumulates squared distances along a path of length
+            ##future_steps, so it is O(T*d^2): /T then sqrt brings it back to sigma units
+            P = torch.sqrt(dilate/(y_hat.shape[2]*self.future_steps)+1e-8)
+
         elif self.loss_type=='huber':
-            # persistence_weight in [0,1] mixes base L1 loss vs. a Huber loss
-            # with a fixed delta=1.0 (0=off/pure L1, 1=full Huber), decoupled
-            # from Huber's own delta. Previously pw *was* delta directly, so
-            # the default pw=0.0 silently zeroed the loss entirely (HuberLoss
-            # collapses to a constant 0 when delta=0). This also drops the
-            # reshape to y_hat.reshape(BS,-1), which compared the full
-            # (BS,T,C,MUL) tensor against batch['y'] and broke shape-wise
-            # whenever quantiles were enabled (MUL>1); x is already the
-            # correctly-sliced (BS,T,C) prediction computed above.
-            pw = min(max(self.persistence_weight, 0.0), 1.0)
-            huber_fn = torch.nn.HuberLoss(reduction='mean', delta=1.0)
-            loss = (1.0-pw)*initial_loss + pw*huber_fn(x, batch['y'])
+            P = nn.functional.huber_loss(x/s, y/s, delta=1.0)
 
         else:
-            loss = initial_loss
-        return loss
+            return initial_loss
+
+        P = P*CALIBRATION.get(self.loss_type, 1.0)
+        return (base + pw*P)/(1.0+pw)
