@@ -1,4 +1,4 @@
-## 1.1.47
+## 1.1.48
 - standardization of persistence loss factors
 ## 1.1.45-46
 - fixed tune learning rate
