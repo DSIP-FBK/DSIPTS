@@ -1,3 +1,5 @@
+## 1.1.50
+- Early stopping implemented
 ## 1.1.49
 - fredf loss implemented
 ## 1.1.48

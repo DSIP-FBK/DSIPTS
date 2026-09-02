@@ -31,6 +31,7 @@ except:
         beauty_string('V1','block',True)
         OLD_PL = True
         
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
 
 from typing import Union
@@ -755,6 +756,7 @@ class TimeSeries():
                     batch_size:int=100,
                     num_workers:int=4,
                     max_epochs:int=500,
+                    patience: int =  100,
                     auto_lr_find:bool=True,
                     gradient_clip_val:Union[float,None]=None,
                     gradient_clip_algorithm:str="value",
@@ -850,6 +852,7 @@ class TimeSeries():
                                       save_top_k = 1,
                                      filename='checkpoint')
         
+        es = EarlyStopping(monitor="val_loss",patience=patience)
         
         #logger = CSVLogger("logs", name=dirpath)
         beauty_string('Init aim','section',self.verbose)
@@ -915,7 +918,7 @@ class TimeSeries():
             trainer = pl.Trainer(default_root_dir=dirpath,
                                 logger = aim_logger,
                                 max_epochs=max_epochs,
-                                callbacks=[checkpoint_callback,mc],
+                                callbacks=[checkpoint_callback,mc,es],
                                 auto_lr_find=auto_lr_find, 
                                 accelerator=accelerator,
                                 log_every_n_steps=1,
@@ -929,7 +932,7 @@ class TimeSeries():
             trainer = pl.Trainer(default_root_dir=dirpath,
                                 logger = aim_logger,
                                 max_epochs=max_epochs,
-                                callbacks=[checkpoint_callback,mc],
+                                callbacks=[checkpoint_callback,mc,es],
                                 strategy='auto',
                                 devices=devices,
                                 log_every_n_steps=5,

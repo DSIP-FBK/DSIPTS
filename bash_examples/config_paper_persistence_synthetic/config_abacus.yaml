@@ -53,10 +53,11 @@ train_config:
   devices: [0]                   
   seed: 42    
   max_epochs: 100
-  
+  patience: 50
+
 inference:
   output_path: /storage/DSIP/agobbi/Projects/ExpTS/paper_persistence_v2_synthetic
-  load_last: true
+  load_last: false
   batch_size: 200 
   num_workers: 4
   set: "test"
