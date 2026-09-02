@@ -53,7 +53,7 @@ train_config:
   devices: [0]                   
   seed: 42    
   max_epochs: 100
-  patience:50
+  patience: 50
   
 inference:
   output_path: /storage/DSIP/agobbi/Projects/ExpTS/paper_persistence_v2_weather
