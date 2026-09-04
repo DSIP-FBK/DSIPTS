@@ -1,0 +1,41 @@
+# @package _global_
+
+model:
+  type: 'itransformer'
+  retrain: true
+  restart: false
+ts:
+  name: 'ettm2'
+  version: 1
+  enrich: []
+  use_covariates: true
+  #use_future_covariates: false
+  silly: false
+
+model_configs:
+  use_classical_positional_encoder: true 
+  emb_dim: 16 
+  reduction_mode: mean 
+  d_model: 128
+  n_head: 4
+  hidden_size: 128
+  dropout_rate: 0.1
+  n_layer_decoder: 2
+  use_norm: true
+  optim: torch.optim.Adam
+  persistence_weight: 1
+  loss_type: 'l1'
+  activation: torch.nn.ReLU
+  class_strategy: 'projection' #projection/average/cls_token
+  quantiles: []
+train_config:
+  batch_size: 32
+  max_epochs: 2000
+  auto_lr_find: false
+  patience: 200
+optim_config:
+  lr: 0.0001
+  weight_decay: 0.0005
+
+
+

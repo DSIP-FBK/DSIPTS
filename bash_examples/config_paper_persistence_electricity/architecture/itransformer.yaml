@@ -1,0 +1,41 @@
+# @package _global_
+
+model:
+  type: 'itransformer'
+  retrain: true
+  restart: false
+ts:
+  name: 'electricity'
+  version: 1
+  enrich: []
+  use_covariates: true
+  #use_future_covariates: false
+  silly: false
+
+model_configs:
+  use_classical_positional_encoder: true 
+  emb_dim: 16 
+  reduction_mode: mean 
+  d_model: 512
+  n_head: 8
+  hidden_size: 512
+  dropout_rate: 0.1
+  n_layer_decoder: 3
+  use_norm: true
+  optim: torch.optim.Adam
+  persistence_weight: 1
+  loss_type: 'l1'
+  activation: torch.nn.ReLU
+  class_strategy: 'projection' #projection/average/cls_token
+  quantiles: []
+train_config:
+  batch_size: 32
+  max_epochs: 2000
+  auto_lr_find: false
+  patience: 200
+optim_config:
+  lr: 0.0005
+  weight_decay: 0.0005
+
+
+
