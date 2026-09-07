@@ -1,3 +1,5 @@
+## 1.1.51
+- Added default skip_compile=True for triton-torch version issue (under investigation)
 ## 1.1.50
 - Early stopping implemented
 ## 1.1.49

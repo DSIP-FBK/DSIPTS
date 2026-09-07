@@ -764,7 +764,8 @@ class TimeSeries():
                     precision:Union[str,int]=32,
                     modifier:Union[None,str]=None,
                     modifier_params:Union[None,dict]=None,
-                    seed:int=42
+                    seed:int=42,
+                    skip_compile:bool=True
                     )-> float:
         """Train the model
 
@@ -903,7 +904,7 @@ class TimeSeries():
             beauty_string('I can not load a previous model','section',self.verbose)
 
         self.model.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
-        if self.model.can_be_compiled():
+        if self.model.can_be_compiled() and (skip_compile is False):
             try:
                 self.model = torch.compile(self.model)
                 beauty_string('Model COMPILED','block',self.verbose)
