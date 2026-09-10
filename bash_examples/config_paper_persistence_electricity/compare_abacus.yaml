@@ -11,13 +11,12 @@ defaults:
   - override hydra/launcher: submitit_slurm 
 
 
-
 hydra:
   launcher:
     submitit_folder: ${hydra.sweep.dir}/.submitit/%j
     timeout_min: 6000
     partition: h100
-    mem_gb: 8
+    mem_gb: 32
     nodes: 1
     gres: gpu:h100_1g.20gb
     name: ${hydra.job.name}

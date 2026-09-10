@@ -22,8 +22,40 @@ from torch.optim import Adam, AdamW, SGD, RMSprop
 
 MDA_TAU        = 0.5    ##soft sign temperature for the mda penalty, in sigma units
 REWEIGHT_GAIN  = 4.0    ##contrast of the linear/exponential reweighting family
-TRIPLET_MARGIN = 0.01   ##hinge margin for the triplet penalty
-CALIBRATION = {}
+TRIPLET_MARGIN = 0.5    ##hinge margin for the triplet penalty, in sigma units. Was 0.01,
+                        ##which the hinge satisfied for ~88% of the windows as soon as the
+                        ##model beat persistence, so the penalty switched itself off on
+                        ##exactly the datasets where the model is good (electricity/ettm2).
+                        ##Median slack d_neg-d_pos is ~0.84 sigma on a well fit periodic
+                        ##model: 0.5 keeps ~37% of the points inside the hinge
+
+##---- penalty magnitude normalization -------------------------------------------------
+##The contract assumes P is "O(1)", but what decides how much of the objective the penalty
+##actually owns is its size relative to `base`, and that spans 66x across
+##loss_type x dataset x model quality (P/base = 0.054 for high_order on a random walk,
+##3.57 for mda). At a nominal pw=1 that is a penalty share between 5% and 77%, i.e. `pw`
+##is NOT comparable across losses nor across datasets, which makes a pw sweep or a cross
+##loss table unreadable.
+##
+##We pin the penalty by GRADIENT NORM, not by loss value. Matching the values (P ~ base)
+##is cheaper but does not do the job: the value ratio and the gradient ratio are different
+##quantities, and value matching alone left ||grad P||/||grad base|| spanning ~200x
+##(9.9 for global_iv, 0.05 for mda) because a penalty that is small in value can be sharp.
+##Training is driven by gradients, so gradients are what must be matched.
+##
+##P is multiplied by a detached running estimate of ||grad base||/||grad P||, both taken
+##w.r.t. the prediction tensor x. Only the NORM is changed; the penalty's gradient
+##DIRECTION, i.e. everything that makes the loss what it is, is untouched. With this on,
+##the penalty contributes a gradient of magnitude exactly pw*||grad base|| for every loss
+##on every dataset, so `pw` is finally a true intensity knob and pw=1 means one thing in
+##Table 1. The two extra autograd.grad calls only traverse the loss formula, not the
+##network, so the cost is negligible.
+NORMALIZE_PENALTY = True   ##set False to recover the pre-2026-09-10 un-normalized mixing
+PENALTY_EMA       = 0.99   ##momentum of the running ||grad P||/||grad base|| estimate
+PENALTY_CLAMP     = 10.0   ##max amplification/attenuation. A loss that needs more than
+                           ##this is intrinsically too weak (or too sharp) on that data and
+                           ##should be reported as such rather than force fitted
+CALIBRATION = {}           ##optional per-loss multiplier, applied AFTER the normalization
 
 
 def central_moment(x,order):
@@ -143,7 +175,12 @@ class Base(pl.LightningModule):
         self.optim_config = optim_config
         self.scheduler_config = scheduler_config
         self.loss_type = loss_type
-        self.persistence_weight = persistence_weight 
+        self.persistence_weight = persistence_weight
+        ##running estimate of ||grad P||/||grad base|| used by penalty_scale. Deliberately a plain attribute
+        ##and NOT a register_buffer: a buffer would add a state_dict key and break loading
+        ##every checkpoint trained before 2026-09-10. It re-converges in a few batches, so
+        ##resuming a run costs nothing
+        self._penalty_ratio = None
         self.use_classical_positional_encoder = use_classical_positional_encoder
         self.reduction_mode = reduction_mode
         self.past_steps = past_steps
@@ -411,6 +448,41 @@ class Base(pl.LightningModule):
         self.train_epoch_count.zero_()
         self.train_loss_epoch = avg
 
+    def penalty_scale(self, base, P, x):
+        """Factor that pins ``||grad P||`` to ``||grad base||``, so that
+        ``persistence_weight`` means the same thing for every ``loss_type`` and on every
+        dataset. See the NORMALIZE_PENALTY block at the top of this module.
+
+        Returns ``clamp(1/EMA[||grad P||/||grad base||], 1/PENALTY_CLAMP, PENALTY_CLAMP)``,
+        detached, with both gradients taken w.r.t. the prediction tensor ``x``. Since the
+        factor is detached only the NORM of the penalty gradient changes, never its
+        direction.
+
+        The ratio is measured on training batches only (it needs grad) and the running
+        average is frozen during validation, so a validation pass is a deterministic
+        function of the current training state and never drifts the scale with validation
+        data.
+
+        :meta private:
+        """
+        if self.training and torch.is_grad_enabled() and x.requires_grad:
+            ##retain_graph: the real backward over the network still has to run afterwards.
+            ##allow_unused: a penalty can be exactly constant (e.g. a fully satisfied
+            ##hinge), in which case there is no gradient to match and we leave it alone
+            gb = torch.autograd.grad(base, x, retain_graph=True, allow_unused=True)[0]
+            gp = torch.autograd.grad(P, x, retain_graph=True, allow_unused=True)[0]
+            if (gb is not None) and (gp is not None):
+                r = gp.detach().norm()/(gb.detach().norm()+1e-8)
+                if self._penalty_ratio is None:
+                    ##match on the first batch instead of warming up from 1.0, otherwise a
+                    ##loss needing a 10x boost spends its first epochs effectively at pw=0
+                    self._penalty_ratio = r
+                else:
+                    self._penalty_ratio = PENALTY_EMA*self._penalty_ratio+(1.0-PENALTY_EMA)*r
+        if self._penalty_ratio is None:
+            return torch.ones((), device=P.device, dtype=P.dtype)
+        return torch.clamp(1.0/(self._penalty_ratio+1e-8), 1.0/PENALTY_CLAMP, PENALTY_CLAMP)
+
     def compute_loss(self,batch,y_hat):
         """
         custom loss calculation
@@ -421,10 +493,16 @@ class Base(pl.LightningModule):
 
         where ``pw`` is ``persistence_weight`` clamped to [0,1], ``base`` is the
         reconstruction error in units of the per channel target sigma and ``P`` is a
-        dimensionless O(1) penalty. ``pw=0`` gives exactly the standard loss, ``pw=1``
+        dimensionless penalty. ``pw=0`` gives exactly the standard loss, ``pw=1``
         puts penalty and reconstruction on equal footing (the maximum sane intensity).
         The ``/(1+pw)`` cap is load bearing: without it the reconstruction term
         disappears at pw=1 and penalties with no magnitude anchor diverge.
+
+        A branch only has to get the penalty's DIRECTION right. Its magnitude is pinned
+        by :meth:`penalty_scale`, which rescales ``P`` so that ``||grad P||`` matches
+        ``||grad base||``, because the raw ratio spans ~40x across loss_type x dataset x
+        model quality and made ``pw`` mean something different in every cell of Table 1.
+        Do not hand tune a branch's magnitude: tune what it measures.
 
         ``cprs`` and ``long_lag`` are outside the contract, they interpret
         persistence_weight on their own scale. See
@@ -501,14 +579,22 @@ class Base(pl.LightningModule):
         if self.loss_type == 'linear_penalization':
             ##up weight the reconstruction error where the prediction hugs persistence.
             ##This family only REWEIGHTS the same L1 term, so its gradient is nearly
-            ##collinear with base and it needs an explicit contrast gain to be felt
+            ##collinear with base and it needs an explicit contrast gain to be felt.
+            ##w MUST be detached: it is a weighting scheme, not something to optimize.
+            ##P = sum(e_i*w_i)/sum(w_i) with w_i attached gives dP/dw_i = (e_i-P)/sum(w),
+            ##so on every point already better than average (e_i<P, 39-57% of them) the
+            ##gradient asked for a LARGER w_i, i.e. for x_i to move CLOSER to persistence.
+            ##Measured: that term was 19-63% of the penalty gradient and pointed toward
+            ##persistence on 80-100% of those points, i.e. the sign of the mechanism was
+            ##inverted on the two best performing losses of the paper
             c = torch.clamp(1.0-torch.abs(y_persistence-x)/(2.0*s), 0.0, 1.0)
-            w = torch.exp(REWEIGHT_GAIN*c)
+            w = torch.exp(REWEIGHT_GAIN*c).detach()
             P = ((torch.abs(x-y)/s)*w).sum()/(w.sum()+1e-8)
 
         elif self.loss_type == 'exponential_penalization':
+            ##same reweighting, smooth kernel. w detached, see linear_penalization above
             c = torch.exp(-torch.abs(y_persistence-x)/s)
-            w = torch.exp(REWEIGHT_GAIN*c)
+            w = torch.exp(REWEIGHT_GAIN*c).detach()
             P = ((torch.abs(x-y)/s)*w).sum()/(w.sum()+1e-8)
 
         elif self.loss_type == 'mda':
@@ -522,7 +608,9 @@ class Base(pl.LightningModule):
         elif self.loss_type=='triplet':
             ##push x towards y and away from persistence. Mean over the channel dim (not
             ##nn.TripletMarginLoss, whose p=1 distance SUMS over it and so grows with the
-            ##number of channels)
+            ##number of channels). TRIPLET_MARGIN is in sigma units and is what keeps the
+            ##hinge alive on a well fit model: at the old 0.01 the hinge was satisfied
+            ##almost everywhere and P/base fell to 0.088, so this branch was plain L1
             d_pos = (torch.abs(x-y)/s).mean(dim=-1)
             d_neg = (torch.abs(x-y_persistence)/s).mean(dim=-1)
             P = torch.relu(d_pos-d_neg+TRIPLET_MARGIN).mean()
@@ -587,4 +675,6 @@ class Base(pl.LightningModule):
             return initial_loss
 
         P = P*CALIBRATION.get(self.loss_type, 1.0)
+        if NORMALIZE_PENALTY:
+            P = P*self.penalty_scale(base, P, x)
         return (base + pw*P)/(1.0+pw)
