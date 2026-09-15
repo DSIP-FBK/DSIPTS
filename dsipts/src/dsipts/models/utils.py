@@ -90,8 +90,6 @@ class SinkhornDistance():
         return cost#, pi, C
 
     def M(self, C, u, v):
-        "Modified cost for logarithmic updates"
-        "$M_{ij} = (-c_{ij} + u_i + v_j) / \epsilon$"
         return (-C + u.unsqueeze(-1) + v.unsqueeze(-2)) / self.eps
 
     @staticmethod

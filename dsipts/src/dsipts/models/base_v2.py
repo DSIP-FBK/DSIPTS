@@ -20,14 +20,17 @@ import torch.nn as nn
 from torch.optim import Adam, AdamW, SGD, RMSprop   
 
 
-MDA_TAU        = 0.5    ##soft sign temperature for the mda penalty, in sigma units
+MDA_TAU        = 0.5    ##soft sign temperature for the mda penalty, as a fraction of the typical
+                        ##one step change of the target (q at lag 1), NOT of sigma: see SCALES
 REWEIGHT_GAIN  = 4.0    ##contrast of the linear/exponential reweighting family
-TRIPLET_MARGIN = 0.5    ##hinge margin for the triplet penalty, in sigma units. Was 0.01,
-                        ##which the hinge satisfied for ~88% of the windows as soon as the
-                        ##model beat persistence, so the penalty switched itself off on
-                        ##exactly the datasets where the model is good (electricity/ettm2).
-                        ##Median slack d_neg-d_pos is ~0.84 sigma on a well fit periodic
-                        ##model: 0.5 keeps ~37% of the points inside the hinge
+TRIPLET_MARGIN = 0.5    ##hinge margin for the triplet penalty, as a fraction of the truth's own
+                        ##distance from persistence |y-p| (dimensionless). History: 0.01 sigma
+                        ##switched the hinge off on well fit periodic models; 0.5 sigma
+                        ##(2026-09-10) was UNSATISFIABLE on 70% of the weather points, where
+                        ##|y-p| is 0.06 sigma at lag 1 and 0.63 sigma at lag 60, so the hinge
+                        ##never closed even at x=y and pushed every prediction away from
+                        ##persistence (D 1.15, +12.9% MAE). Relative to |y-p| it always closes at
+                        ##x=y and asks x to cover at least (1+margin)/2 = 75% of the way p -> y
 
 ##---- penalty magnitude normalization -------------------------------------------------
 ##The contract assumes P is "O(1)", but what decides how much of the objective the penalty
@@ -56,6 +59,22 @@ PENALTY_CLAMP     = 10.0   ##max amplification/attenuation. A loss that needs mo
                            ##this is intrinsically too weak (or too sharp) on that data and
                            ##should be reported as such rather than force fitted
 CALIBRATION = {}           ##optional per-loss multiplier, applied AFTER the normalization
+
+##---- SCALES (2026-09-15) -------------------------------------------------------------
+##Every scale a penalty divides by is a detached RUNNING estimate over training batches,
+##frozen in eval, never a statistic of the current batch:
+##  s  per channel target sigma           (1,1,C)   was y.std(dim=(0,1)) of the batch
+##  q  per lag persistence (naive) error  (1,T,C)   mean |y-p| over the windows
+##Validation batches are consecutive windows (shuffle=False), so a batch statistic there is
+##a LOCAL one: on weather the batch sigma is 0.30x the global one (median), the validation
+##loss of every contract loss was inflated ~3x (~1900x for high_order's s**4) and, since
+##ModelCheckpoint/EarlyStopping monitored it, the penalty runs picked their checkpoint on a
+##metric that over weights calm periods (see also Base.selection_loss).
+##q replaces sigma wherever a penalty measures a distance FROM PERSISTENCE (linear and
+##exponential kernels, mda soft sign; triplet uses the per point |y-p| directly): on a slow
+##target those distances are a small fraction of sigma, so kernels sized to sigma were flat
+##(71% of the weather points had c>0.8, i.e. plain L1) and the triplet hinge never closed.
+SCALE_EMA = 0.99
 
 
 def central_moment(x,order):
@@ -95,6 +114,9 @@ class Base(pl.LightningModule):
     handle_quantile_loss = False
     description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables,handle_quantile_loss)
     #####################################################################
+
+    ##metric monitored by ModelCheckpoint/EarlyStopping in TimeSeries.train_model, see selection_loss
+    selection_metric = 'val_select'
 
     @abstractmethod
     def __init__(self,verbose:bool,
@@ -181,6 +203,12 @@ class Base(pl.LightningModule):
         ##every checkpoint trained before 2026-09-10. It re-converges in a few batches, so
         ##resuming a run costs nothing
         self._penalty_ratio = None
+        ##running scales of compute_loss (see SCALES at the top) and the validation selection
+        ##accumulator. Plain attributes for the same checkpoint compatibility reason
+        self._target_var = None
+        self._naive_err = None
+        self._val_select_sum = None
+        self._val_select_count = 0
         self.use_classical_positional_encoder = use_classical_positional_encoder
         self.reduction_mode = reduction_mode
         self.past_steps = past_steps
@@ -386,8 +414,12 @@ class Base(pl.LightningModule):
                 "y": batch['y'].detach().cpu(),
                 "y_hat": y_hat.detach().cpu()
             }]               
-        self.validation_epoch_metrics+= (self.compute_loss(batch,y_hat)+score).detach()
+        loss = (self.compute_loss(batch,y_hat)+score).detach()
+        self.validation_epoch_metrics+= loss
         self.validation_epoch_count+=1
+        sel = self.selection_loss(batch,y_hat,loss).detach()
+        self._val_select_sum = sel if self._val_select_sum is None else self._val_select_sum+sel
+        self._val_select_count+=1
         return None
 
     def on_validation_start(self):
@@ -427,10 +459,15 @@ class Base(pl.LightningModule):
             
 
         avg = self.validation_epoch_metrics/self.validation_epoch_count
+        ##models overriding validation_step do not feed the selection accumulator --> select on val_loss
+        sel = avg if self._val_select_count==0 else self._val_select_sum/self._val_select_count
 
         self.validation_epoch_metrics.zero_()
         self.validation_epoch_count.zero_()
+        self._val_select_sum = None
+        self._val_select_count = 0
         self.log("val_loss", avg,sync_dist=True)
+        self.log(self.selection_metric, sel,sync_dist=True)
         beauty_string(f'Epoch: {self.count_epoch} train error: {self.train_loss_epoch:.4f} validation loss: {avg:.4f}','info',self.verbose)
 
     def on_train_epoch_end(self):
@@ -447,6 +484,37 @@ class Base(pl.LightningModule):
         self.train_epoch_metrics.zero_()
         self.train_epoch_count.zero_()
         self.train_loss_epoch = avg
+
+    def running_scale(self, name, value):
+        """Detached running estimate (EMA ``SCALE_EMA``) of a scale statistic stored in the
+        attribute ``name``. Updated on training batches only and frozen in eval, so a
+        validation batch never rescales its own loss. Before the first training batch
+        (sanity check, eval mode probes) the batch value is used; a shape change resets it.
+
+        :meta private:
+        """
+        value = value.detach()
+        old = getattr(self, name)
+        old = old.to(value.device) if (old is not None) and (old.shape==value.shape) else None
+        if self.training and torch.is_grad_enabled():
+            new = value if old is None else SCALE_EMA*old+(1.0-SCALE_EMA)*value
+            setattr(self, name, new)
+            return new
+        return value if old is None else old
+
+    def selection_loss(self, batch, y_hat, loss):
+        """Validation metric that picks the checkpoint and drives early stopping (logged as
+        ``selection_metric``). For the persistence penalty losses it is the plain L1 of the
+        point forecast, i.e. exactly the val_loss of a ``loss_type='l1'`` run, so every
+        loss_type in a comparison is selected on the same criterion rather than on its own
+        objective. l1/mse, quantiles, classification and the losses outside the contract
+        keep selecting on their own loss.
+
+        :meta private:
+        """
+        if self.is_classification or self.use_quantiles or (self.loss_type in ['l1','mse','smape','cprs','long_lag']):
+            return loss
+        return torch.abs(y_hat[:,:,:,0]-batch['y'].to(y_hat.device)).mean()
 
     def penalty_scale(self, base, P, x):
         """Factor that pins ``||grad P||`` to ``||grad base||``, so that
@@ -551,8 +619,10 @@ class Base(pl.LightningModule):
         ##the old clamp(-1,1): clamp has zero gradient outside its range and 32.6% of
         ##standardized points have |y|>1, so it deleted the gradient on exactly the
         ##extreme events these penalties exist to capture, and it was not scale
-        ##equivariant (data x10 blew the cross loss spread from 43.6x to 378.7x)
-        s = y.std(dim=(0,1), keepdim=True).detach()
+        ##equivariant (data x10 blew the cross loss spread from 43.6x to 378.7x).
+        ##Running estimate frozen in eval, NOT the batch std: on the consecutive validation
+        ##windows the batch std is a local one and inflated the validation loss ~3x (SCALES)
+        s = torch.sqrt(self.running_scale('_target_var', y.var(dim=(0,1), keepdim=True)))
         s = torch.where(s>1e-6, s, torch.ones_like(s))   ##dead channel --> sigma 1
         base = (torch.abs(x-y)/s).mean()
 
@@ -575,6 +645,11 @@ class Base(pl.LightningModule):
             return base
         x_past = batch['x_num_past'].to(self.device)
         y_persistence = x_past[:,-1,idx_target].unsqueeze(1).repeat(1,self.future_steps,1)
+        ##per lag scale of the distance from persistence, (1,T,C): the natural unit of every
+        ##kernel asking "how close is x to persistence". On a slow target it is a small
+        ##fraction of sigma (weather: 0.06 sigma at lag 1, 0.63 at lag 60), see SCALES
+        q = self.running_scale('_naive_err', torch.abs(y-y_persistence).mean(dim=0, keepdim=True))
+        q = torch.where(q>1e-6, q, s.expand_as(q))   ##target equal to persistence --> sigma
 
         if self.loss_type == 'linear_penalization':
             ##up weight the reconstruction error where the prediction hugs persistence.
@@ -587,13 +662,14 @@ class Base(pl.LightningModule):
             ##Measured: that term was 19-63% of the penalty gradient and pointed toward
             ##persistence on 80-100% of those points, i.e. the sign of the mechanism was
             ##inverted on the two best performing losses of the paper
-            c = torch.clamp(1.0-torch.abs(y_persistence-x)/(2.0*s), 0.0, 1.0)
+            ##c = 1 at persistence, 0 once x strays twice the typical naive error of its lag
+            c = torch.clamp(1.0-torch.abs(y_persistence-x)/(2.0*q), 0.0, 1.0)
             w = torch.exp(REWEIGHT_GAIN*c).detach()
             P = ((torch.abs(x-y)/s)*w).sum()/(w.sum()+1e-8)
 
         elif self.loss_type == 'exponential_penalization':
             ##same reweighting, smooth kernel. w detached, see linear_penalization above
-            c = torch.exp(-torch.abs(y_persistence-x)/s)
+            c = torch.exp(-torch.abs(y_persistence-x)/q)
             w = torch.exp(REWEIGHT_GAIN*c).detach()
             P = ((torch.abs(x-y)/s)*w).sum()/(w.sum()+1e-8)
 
@@ -601,8 +677,12 @@ class Base(pl.LightningModule):
             ##torch.sign has zero gradient everywhere, so the old branch trained
             ##NOTHING (pw=0/0.1/0.5/1.0 gave identical metrics to 4 decimals over 60
             ##epochs). tanh is the differentiable replacement
-            dx = torch.tanh(torch.diff(x,dim=1)/(MDA_TAU*s))
-            dy = torch.tanh(torch.diff(y,dim=1)/(MDA_TAU*s))
+            ##temperature in units of the typical ONE STEP change (q at lag 1). In sigma units
+            ##a weather step (0.06 sigma) sat in tanh's linear zone: a correlation of the
+            ##increments, not a direction agreement
+            tau = MDA_TAU*q[:,:1,:]
+            dx = torch.tanh(torch.diff(x,dim=1)/tau)
+            dy = torch.tanh(torch.diff(y,dim=1)/tau)
             P = ((1.0-dx*dy)/2.0).mean()
 
         elif self.loss_type=='triplet':
@@ -610,10 +690,13 @@ class Base(pl.LightningModule):
             ##nn.TripletMarginLoss, whose p=1 distance SUMS over it and so grows with the
             ##number of channels). TRIPLET_MARGIN is in sigma units and is what keeps the
             ##hinge alive on a well fit model: at the old 0.01 the hinge was satisfied
-            ##almost everywhere and P/base fell to 0.088, so this branch was plain L1
+            ##almost everywhere and P/base fell to 0.088, so this branch was plain L1.
+            ##The margin is relative to |y-p| of each point (see TRIPLET_MARGIN): a constant
+            ##margin larger than |y-p| can not be met even by x=y
             d_pos = (torch.abs(x-y)/s).mean(dim=-1)
             d_neg = (torch.abs(x-y_persistence)/s).mean(dim=-1)
-            P = torch.relu(d_pos-d_neg+TRIPLET_MARGIN).mean()
+            margin = TRIPLET_MARGIN*(torch.abs(y-y_persistence)/s).mean(dim=-1)
+            P = torch.relu(d_pos-d_neg+margin).mean()
 
         elif self.loss_type=='high_order':
             ##moment of order i is normalized by s**i --> dimensionless with a bounded

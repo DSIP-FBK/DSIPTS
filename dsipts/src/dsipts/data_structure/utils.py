@@ -90,28 +90,27 @@ class MetricsCallback(Callback):
 
         
 
+    def _align(self, losses):
+        ##every validation metric (val_loss, val_select, ...) is trimmed like val_loss always was
+        ##non so perche' le prime due le chiama prima del train
+        n = len(losses['train_loss'])
+        for c in losses:
+            if c!='train_loss':
+                losses[c] = losses[c][-n:] if n>0 else losses[c][2:]
+        return losses
+
     def on_validation_end(self, trainer, pl_module):
         for c in trainer.callback_metrics:
-            self.metrics[c].append(trainer.callback_metrics[c].item())
+            self.metrics.setdefault(c,[]).append(trainer.callback_metrics[c].item())
         ##Write csv in a convenient way
-        tmp  = self.metrics.copy()
-        if len(tmp['train_loss']) >0:
-            tmp['val_loss'] = tmp['val_loss'][-len(tmp['train_loss']):]
-        else:
-            tmp['val_loss'] = tmp['val_loss'][2:]
- 
-        losses = pd.DataFrame(tmp)
+        losses = pd.DataFrame(self._align(self.metrics.copy()))
         losses.to_csv(os.path.join(self.dirpath,'loss.csv'),index=False)
 
-        
+
     def on_train_end(self, trainer, pl_module):
-        losses = self.metrics
-        ##non so perche' le prime due le chiama prima del train
-        if len(losses['train_loss']) >0:
-            losses['val_loss'] =losses['val_loss'][-len(losses['train_loss']):]
-        else:
-            losses['val_loss'] = losses['val_loss'][2:]
-        
+        ##in place on purpose: TimeSeries.train_model reads mc.metrics afterwards
+        losses = self._align(self.metrics)
+
         #losses['val_loss'] = losses['val_loss'][2:]
         losses = pd.DataFrame(losses)
         ##accrocchio per quando ci sono piu' gpu!

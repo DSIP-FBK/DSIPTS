@@ -845,15 +845,18 @@ class TimeSeries():
                 import pickle
                 pickle.dump([res,real],f)
         
+        ##base_v2 models select on a metric shared by every loss_type (Base.selection_loss),
+        ##legacy base.py models do not define it and keep val_loss
+        monitor = getattr(self.model,'selection_metric','val_loss')
         checkpoint_callback = ModelCheckpoint(dirpath=dirpath,
-                                     monitor='val_loss',
+                                     monitor=monitor,
                                       save_last = True,
                                       every_n_epochs =1,
                                       verbose = self.verbose,
                                       save_top_k = 1,
                                      filename='checkpoint')
         
-        es = EarlyStopping(monitor="val_loss",patience=patience)
+        es = EarlyStopping(monitor=monitor,patience=patience)
         
         #logger = CSVLogger("logs", name=dirpath)
         beauty_string('Init aim','section',self.verbose)

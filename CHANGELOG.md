@@ -1,3 +1,5 @@
+## 1.1.53
+- running variance not batch variance
 ## 1.1.52
 - reweighting of non-standard loss function
 ## 1.1.51
