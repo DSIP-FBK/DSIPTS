@@ -7,7 +7,7 @@ model:
 ts:
   name: 'weather'
   version: 1
-  enrich: [hour]
+  enrich: []
   use_covariates: true
   #use_future_covariates: false
   silly: false
