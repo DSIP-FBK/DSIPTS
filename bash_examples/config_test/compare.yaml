@@ -1,7 +1,10 @@
 models: config_test
 #models: ['config_used/linear.yaml']
-dirpath: /home/anmartinelli/FBK/dsip-ts/databash_examples/test
+dirpath: none
 
 set: 'test'
-name: 'prova'
+name: 's1'
 rescaling: false
+#continual:
+#  lr: 0.00001
+#  update_every_n_batches: 1

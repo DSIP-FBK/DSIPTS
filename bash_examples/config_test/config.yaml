@@ -1,13 +1,13 @@
 dataset:
-  dataset: 'weather'  
-  path: '/home/anmartinelli/FBK/dsip-ts/data'
+  dataset: 'synthetic'  
+  path: none
   
 model:
   restart: false
   retrain: true
 
 ts:
-  name: 'test'
+  name: 's1'
   version: 1
   enrich: ['hour']
   use_covariates: true
@@ -38,6 +38,7 @@ model_configs:
   # exogenous_channel_indices_cont: null
   # exogenous_channel_indices_cat: null
 
+
 stack:
   dirpath: null ##leave it null
 
@@ -60,8 +61,15 @@ train_config:
   auto_lr_find: false
   devices: [0]                   
   seed: 42   
-  max_epochs: 5
+  max_epochs: 20
   patience: 1
+  #continual: None
+  #continual:
+  #  continual_learning_fraction: 0.5 ## last half used for continual learning
+  #  batch_size: 8 ##smaller
+  #  max_epochs: 10 ## if streaming online learning otherwise  betwween 5 and 20
+  #  lr: 0.00001 #smaller?
+
 inference:
   output_path: tmp
   load_last: true

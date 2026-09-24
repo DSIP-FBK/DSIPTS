@@ -29,6 +29,8 @@ from .models.Simple import Simple
 from .models.TimesNet import TimesNet
 from .models.TimeKAN import TimeKAN
 from .models.Chronos2 import Chronos2
+from .models.ModernTCN import ModernTCN
+
 from .version import __version__
 try:
     import lightning.pytorch as pl
@@ -49,5 +51,5 @@ __all__ = [
     "Informer", "VVA", "VQVAEA", "CrossFormer", "Autoformer", "PatchTST",
     "Diffusion", "DilatedConvED", "TIDE", "ITransformer", "TimeXER",
     "TTM", "Samformer", "Duet", "Base", "Simple","TimesNet","TimeKAN",
-    "Chronos2"
+    "Chronos2","ModernTCN"
 ]

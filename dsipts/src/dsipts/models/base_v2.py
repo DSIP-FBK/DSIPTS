@@ -103,6 +103,87 @@ def dilate_loss(outputs, targets, alpha, gamma, device):
 	loss = alpha*loss_shape+ (1-alpha)*loss_temporal
 	return loss#, loss_shape, loss_temporal
 
+import torch.nn.functional as F
+
+class DictSOTATSERBuffer:
+    def __init__(self, capacity: int = 1000, alpha: float = 0.6, diversity_weight: float = 0.3):
+        self.capacity = capacity
+        self.alpha = alpha
+        self.diversity_weight = diversity_weight
+        
+        self.buffer_samples = []  # Lista di dict (sample individuale)
+        self.buffer_y_hat = []    # Predizioni storiche
+        self.priorities = []
+
+    def _detach_sample(self, sample_dict, idx):
+        """Estrae il singolo elemento i-esimo da un batch di dizionari e lo sposta su CPU."""
+        single_sample = {}
+        for k, v in sample_dict.items():
+            if isinstance(v, torch.Tensor):
+                single_sample[k] = v[idx].detach().cpu()
+            else:
+                single_sample[k] = v[idx] if hasattr(v, '__getitem__') else v
+        return single_sample
+
+    def _compute_priority(self, sample: dict, y_hat: torch.Tensor) -> float:
+        with torch.no_grad():
+            y = sample['y']
+            loss_score = F.mse_loss(y_hat, y).item()
+            
+            # Calcola la varianza sulle feature numeriche passate se presenti
+            if 'x_num_past' in sample and isinstance(sample['x_num_past'], torch.Tensor):
+                variance_score = torch.var(sample['x_num_past']).item()
+            else:
+                variance_score = 0.0
+                
+            return max(loss_score + self.diversity_weight * variance_score, 1e-5)
+
+    def add(self, batch: dict, y_hat: torch.Tensor):
+        y_hat = y_hat.detach().cpu()
+        batch_size = y_hat.size(0)
+
+        for i in range(batch_size):
+            sample = self._detach_sample(batch, i)
+            p = self._compute_priority(sample, y_hat[i])
+
+            if len(self.buffer_samples) < self.capacity:
+                self.buffer_samples.append(sample)
+                self.buffer_y_hat.append(y_hat[i])
+                self.priorities.append(p)
+            else:
+                min_idx = int(np.argmin(self.priorities))
+                if p > self.priorities[min_idx]:
+                    self.buffer_samples[min_idx] = sample
+                    self.buffer_y_hat[min_idx] = y_hat[i]
+                    self.priorities[min_idx] = p
+
+    def sample(self, batch_size: int, device: torch.device):
+        if len(self.buffer_samples) == 0:
+            return None, None
+
+        real_batch_size = min(batch_size, len(self.buffer_samples))
+        probs = np.array(self.priorities) ** self.alpha
+        probs /= probs.sum()
+
+        indices = np.random.choice(len(self.buffer_samples), size=real_batch_size, replace=False, p=probs)
+
+        # Ricostruisce il batch di dizionari per PyTorch
+        batch_dict = {}
+        first_sample = self.buffer_samples[indices[0]]
+        
+        for k in first_sample.keys():
+            if isinstance(first_sample[k], torch.Tensor):
+                batch_dict[k] = torch.stack([self.buffer_samples[i][k] for i in indices]).to(device)
+            else:
+                batch_dict[k] = [self.buffer_samples[i][k] for i in indices]
+
+        batch_y_hat = torch.stack([self.buffer_y_hat[i] for i in indices]).to(device)
+        return batch_dict, batch_y_hat
+
+    def is_empty(self):
+        return len(self.buffer_samples) == 0
+
+
 
 class Base(pl.LightningModule):
     
@@ -140,7 +221,9 @@ class Base(pl.LightningModule):
                  scheduler_config:dict=None,
                 prediction_channel_indices = None,
                 exogenous_channel_indices_cont= None,
-                exogenous_channel_indices_cat= None):
+                exogenous_channel_indices_cat= None,
+                continual_learning:Union[None,dict]=None
+                ):
         """
         This is the basic model, each model implemented must overwrite the init method and the forward method.
         The inference step is optional, by default it uses the forward method but for recurrent 
@@ -249,6 +332,18 @@ class Base(pl.LightningModule):
 
         self.future_steps = future_steps
         self.return_additional_loss = False
+        self.is_continual_phase = False
+        if continual_learning is not None:
+            self.buffer = DictSOTATSERBuffer(capacity=continual_learning.get('capacity',1000))
+            self.alpha = continual_learning.get('alpha',0.5)
+            self.beta = continual_learning.get('beta',0.5)
+            self.save_buffer = True
+        else:
+            self.save_buffer = False
+            self.buffer = None
+            self.alpha = 0
+            self.beta = 0
+        
         beauty_string(self.description,'info',True)
 
     @abstractmethod
@@ -337,61 +432,52 @@ class Base(pl.LightningModule):
         else:
             return optimizer
 
-    def training_step(self, batch, batch_idx):
-        """
-        pythotrch lightening stuff
-        
-        :meta private:
-        """
-        
-        #loss = self.compute_loss(batch,y_hat)
-        #import pdb
-        #pdb.set_trace()
 
-        if self.has_sam_optim:
+    def _compute_step_loss(self, batch):
+        """Funzione ausiliaria per calcolare la loss totale (Base + Replay DER++)."""
+        if self.return_additional_loss:
+            y_hat, score = self(batch)
+            base_loss = self.compute_loss(batch, y_hat) + score
+        else:
+            y_hat = self(batch)
+            base_loss = self.compute_loss(batch, y_hat)
+
+        total_loss = base_loss
+
+        # Applicazione Replay + Distillazione DER++ solo in Fase 2
+        if self.is_continual_phase and self.buffer is not None and not self.buffer.is_empty():
+            replay_batch, y_hat_past = self.buffer.sample(batch_size=batch['y'].size(0), device=self.device)
             
+            if replay_batch is not None:
+                preds_replay = self(replay_batch)
+                # FIX 4: Usa la loss nativa del modello invece di F.mse_loss hardcodato
+                loss_gt = self.compute_loss(replay_batch, preds_replay) 
+                loss_distill = F.mse_loss(preds_replay, y_hat_past)
+                
+                total_loss = total_loss + self.alpha * loss_gt + self.beta * loss_distill
+
+        return total_loss, y_hat
+
+    def training_step(self, batch, batch_idx):
+        if self.has_sam_optim:
             opt = self.optimizers()
             def closure():
                 opt.zero_grad()
-                if self.return_additional_loss:
-                    y_hat,score = self(batch)
-                    loss = self.compute_loss(batch,y_hat) + score
-                else:
-                    y_hat = self(batch)
-                    loss = self.compute_loss(batch,y_hat)
+                loss, _ = self._compute_step_loss(batch)
                 self.manual_backward(loss)
                 return loss
 
             opt.step(closure)
-            if self.return_additional_loss:
-                y_hat,score = self(batch)
-                loss = self.compute_loss(batch,y_hat)+score
-            else:
-                y_hat = self(batch)
-                loss = self.compute_loss(batch,y_hat)
-            
-            #opt.first_step(zero_grad=True)
-
-            #y_hat = self(batch)
-            #loss = self.compute_loss(batch, y_hat)
-            #self.my_step+=1
-            #self.manual_backward(loss,retain_graph=True)
-            #opt.second_step(zero_grad=True)
-            #self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
-            #self.log("global_step",  self.my_step, on_step=True)  # Correct way to log
-
-   
-            #self.trainer.fit_loop.epoch_loop.manual_optimization.optim_step_progress.increment("optimizer")
+            loss, y_hat = self._compute_step_loss(batch)
         else:
-            if self.return_additional_loss:
-                y_hat,score = self(batch)
-                loss = self.compute_loss(batch,y_hat)+score
-            else:
-                y_hat = self(batch)
-                loss = self.compute_loss(batch,y_hat)
-            
-        self.train_epoch_metrics+=loss.detach()
-        self.train_epoch_count +=1
+            loss, y_hat = self._compute_step_loss(batch)
+
+        self.train_epoch_metrics += loss.detach()
+        self.train_epoch_count += 1
+
+        if self.save_buffer:
+            self.buffer.add(batch, y_hat)
+
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -761,3 +847,14 @@ class Base(pl.LightningModule):
         if NORMALIZE_PENALTY:
             P = P*self.penalty_scale(base, P, x)
         return (base + pw*P)/(1.0+pw)
+    
+    
+    def on_save_checkpoint(self, checkpoint):
+        """Salva il buffer nel file di checkpoint .ckpt."""
+        if hasattr(self, 'buffer') and self.buffer is not None:
+            checkpoint['continual_buffer'] = self.buffer
+
+    def on_load_checkpoint(self, checkpoint):
+        """Ripristina il buffer quando il modello viene ricaricato da checkpoint."""
+        if 'continual_buffer' in checkpoint:
+            self.buffer = checkpoint['continual_buffer']

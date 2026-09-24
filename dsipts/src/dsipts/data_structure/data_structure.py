@@ -422,7 +422,8 @@ class TimeSeries():
                            keep_entire_seq_while_shifting:bool=False,
                            starting_point:Union[None,dict]=None,
                            skip_step:int=1,
-                           is_inference:bool=False
+                           is_inference:bool=False,
+                           continual_learning_fraction:Union[None,float]=None,
                            )->MyDataset:
         """ Create the dataset for the training/inference step
 
@@ -614,7 +615,32 @@ class TimeSeries():
             dd['sampler_weights'] = sampler_weights_samples.astype(np.float32)
         else:
             dd['sampler_weights'] = np.ones(len(y_samples)).astype(np.float32)
-        return MyDataset(dd,t_samples,g_samples,idx_target,idx_target_future)
+            
+        if continual_learning_fraction is not None:
+            ## last part!
+            split_idx = int(len(t)*(1-continual_learning_fraction))
+            data_p1, data_p2 = {}, {}
+            for k, v in dd.items():
+                if k == 'sampler_weights':
+                    data_p1[k] = v[:split_idx] if v is not None else None
+                    data_p2[k] = v[split_idx:] if v is not None else None
+                else:
+                    data_p1[k] = v[:split_idx]
+                    data_p2[k] = v[split_idx:]
+
+            # 3. Istanzia i due Dataset
+            ds_phase1 = MyDataset(
+                data=data_p1, t=t[:split_idx], groups=groups[:split_idx],
+                idx_target=idx_target, idx_target_future=idx_target_future
+            )
+
+            ds_phase2 = MyDataset(
+                data=data_p2, t=t[split_idx:], groups=groups[split_idx:],
+                idx_target=idx_target, idx_target_future=idx_target_future
+            )
+            return (ds_phase1, ds_phase2)
+        else:
+            return MyDataset(dd,t_samples,g_samples,idx_target,idx_target_future)
     
     def split_for_train(self,
                         perc_train:Union[float,None]=0.6,
@@ -630,7 +656,8 @@ class TimeSeries():
                         skip_step:int=1,
                         normalize_per_group: bool=False,
                         check_consecutive: bool=True,
-                        scaler: str='StandardScaler()' 
+                        scaler: str='StandardScaler()',
+                        continual_learning_fraction:Union[None, float]=None,
                         )->List[DataLoader| None]:
         """Split the data and create the datasets.
 
@@ -725,7 +752,7 @@ class TimeSeries():
                             self.scaler_cat[f'{c}_{group}'] =  OrdinalEncoder(dtype=np.int32,handle_unknown= 'use_encoded_value',unknown_value=train[c].nunique())
                             self.scaler_cat[f'{c}_{group}'].fit(tmp[c].values.reshape(-1,1))  
  
-        dl_train = self.create_data_loader(train,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)
+        dl_train = self.create_data_loader(train,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step,continual_learning_fraction=continual_learning_fraction)
         dl_validation = self.create_data_loader(validation,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)
         if test.shape[0]>0:
             dl_test = self.create_data_loader(test,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)
@@ -765,7 +792,8 @@ class TimeSeries():
                     modifier:Union[None,str]=None,
                     modifier_params:Union[None,dict]=None,
                     seed:int=42,
-                    skip_compile:bool=True
+                    skip_compile:bool=True,
+                    continual:Union[None,dict]=None,
                     )-> float:
         """Train the model
 
@@ -783,11 +811,29 @@ class TimeSeries():
             modifier (Union[str,int], optional): if not None a modifier is applyed to the dataloader. Sometimes lightening has very restrictive rules on the dataloader, or we want to use a ML model before or after the DL model (See readme for more information)
             modifier_params (Union[dict,int], optional): parameters of the modifier
             seed (int, optional): seed for reproducibility
+            continual (None or dict): if dict it should contains:
+                #  continual_learning_fraction: 0.5 ## last half used for continual learning
+                #  batch_size: 8 ##smaller
+                #  max_epochs: 10 ## if streaming online learning otherwise  betwween 5 and 20
+                #  lr: 0.00001 #smaller?
+                
+            IF you do so you also need to tell to the model to use the reservoir adding a the dict
+            #continual_learning: 
+            #   alpha: 0.5
+            #  beta: 0.5
+            #  capacity: 1000
+            #this is WIP will be armonized in future
         """
         beauty_string('Training the model','block',self.verbose)
         self.split_params = split_params
         self.check_custom = False
-        train,validation,test = self.split_for_train(**self.split_params)
+        
+        if continual is None:
+            train,validation,test = self.split_for_train(**self.split_params)
+            len_train = len(train)
+        else:
+            train,validation,test = self.split_for_train(**self.split_params,continual_learning_fraction = continual['continual_learning_fraction'])
+            len_train = len(train[0])
 
         accelerator = 'gpu' if torch.cuda.is_available() else "cpu"
         strategy = "auto"
@@ -802,7 +848,7 @@ class TimeSeries():
             devices = 'auto'
             if precision=='auto':
                 precision  = 32
-        beauty_string(f'train:{len(train)}, validation:{len(validation)}, test:{len(test) if test is not None else 0}','section',self.verbose)
+        beauty_string(f'train:{len_train}, validation:{len(validation)}, test:{len(test) if test is not None else 0}','section',self.verbose)
         if (accelerator=='gpu') and (num_workers>0):
             persistent_workers = True
         else:
@@ -817,14 +863,21 @@ class TimeSeries():
         else:
             self.modifier = None
         
-        if self.sampler_weights is not None:
-            beauty_string(f'USING SAMPLER IN TRAIN {min(train.sampler_weights)}-{max(train.sampler_weights)}','section',self.verbose)
+        if continual is not None:
+            beauty_string(f'SPLITTING THE TRAIN IN two: first part normal train, second part continual','section',self.verbose)
+            train_dl = DataLoader(train[0], batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
+            train_phase2 = DataLoader(train[1], batch_size = continual['batch_size'] , shuffle=False,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
 
-            sampler = WeightedRandomSampler(train.sampler_weights, num_samples= len(train))
-            train_dl = DataLoader(train, batch_size = batch_size , shuffle=False,sampler=sampler,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
-
+            
         else:
-            train_dl = DataLoader(train, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
+            if self.sampler_weights is not None:
+                beauty_string(f'USING SAMPLER IN TRAIN {min(train.sampler_weights)}-{max(train.sampler_weights)}','section',self.verbose)
+
+                sampler = WeightedRandomSampler(train.sampler_weights, num_samples= len(train))
+                train_dl = DataLoader(train, batch_size = batch_size , shuffle=False,sampler=sampler,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
+
+            else:
+                train_dl = DataLoader(train, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
         valid_dl = DataLoader(validation, batch_size = batch_size , shuffle=False,drop_last=False,num_workers=num_workers,persistent_workers=persistent_workers)
         
         beauty_string(f'train:{len(train_dl)}, validation:{len(valid_dl)}','section',self.verbose)
@@ -979,6 +1032,9 @@ class TimeSeries():
             else:
                 trainer.fit(self.model, train_dataloaders = train_dl,val_dataloaders = valid_dl)
 
+        
+
+
         self.checkpoint_file_best = checkpoint_callback.best_model_path
         self.checkpoint_file_last = checkpoint_callback.last_model_path 
         if self.checkpoint_file_last=='':
@@ -989,6 +1045,60 @@ class TimeSeries():
             beauty_string('There is a bug on saving best model I will try to fix it','info',self.verbose)
             self.checkpoint_file_best = os.path.join(dirpath, "checkpoint.ckpt")
             trainer.save_checkpoint(os.path.join(dirpath, "checkpoint.ckpt"))
+
+
+        if continual is not None:
+            if self.config['model_configs'].continual_learning is None:
+                raise ValueError("IF YOU ENABLE CONTINUAL LEARNING IN THE TRAINING YOU NEED TO FILL THE continual_learning attribute in model_configs TOO ")
+
+            beauty_string(f'Now I go into continual learning mode','section',self.verbose)          
+
+            base_model_cls = self.model.model.__class__ if hasattr(self.model, 'model') else self.model.__class__
+            self.model = base_model_cls.load_from_checkpoint(self.checkpoint_file_best)
+
+            self.model.is_continual_phase = True
+            self.model.count_epoch = 0         
+            self.model.initialize = False
+            
+            max_epochs = continual['max_epochs']
+            self.model.optim_config['lr']  = continual['lr']
+            monitor = getattr(self.model,'selection_metric','val_loss')
+            checkpoint_callback_p2 = ModelCheckpoint(dirpath=dirpath,
+                                        monitor=monitor,
+                                        save_last = True,
+                                        every_n_epochs =1,
+                                        verbose = self.verbose,
+                                        save_top_k = 1,
+                                        filename='checkpoint_continual')
+            
+            es = EarlyStopping(monitor=monitor,patience=patience)
+            mc = MetricsCallback(dirpath)
+            trainer_p2 = pl.Trainer(default_root_dir=dirpath,
+                                logger = aim_logger,
+                                max_epochs=max_epochs,
+                                callbacks=[checkpoint_callback_p2,mc,es],
+                                strategy='auto',
+                                devices=devices,
+                                log_every_n_steps=5,
+                                enable_progress_bar=False,
+                                precision=precision,
+                                gradient_clip_val=gradient_clip_val,
+                                gradient_clip_algorithm=gradient_clip_algorithm)#,devices=1)
+            trainer_p2.fit(self.model, train_dataloaders = train_phase2,val_dataloaders = valid_dl)
+
+
+            self.checkpoint_file_best = checkpoint_callback_p2.best_model_path
+            self.checkpoint_file_last = checkpoint_callback_p2.last_model_path 
+
+            if self.checkpoint_file_last=='':
+                beauty_string('There is a bug on saving last model I will try to fix it','info',self.verbose)
+                self.checkpoint_file_last = os.path.join(dirpath, "last_continual.ckpt")
+                trainer_p2.save_checkpoint(os.path.join(dirpath, "last_continual.ckpt"))
+            if self.checkpoint_file_best=='':
+                beauty_string('There is a bug on saving best model I will try to fix it','info',self.verbose)
+                self.checkpoint_file_best = os.path.join(dirpath, "checkpoint_continual.ckpt")
+                trainer_p2.save_checkpoint(os.path.join(dirpath, "checkpoint_continual.ckpt"))
+
 
         self.dirpath = dirpath
         
@@ -1018,6 +1128,7 @@ class TimeSeries():
                 os.remove(os.path.join(os.path.join(dirpath,f)))
         if isinstance(self.losses,dict):
             self.losses = pd.DataFrame()
+
 
         try:
             if OLD_PL:
@@ -1079,7 +1190,8 @@ class TimeSeries():
                          num_workers:int=4,
                          split_params:Union[None,dict]=None,set:str='test',
                          rescaling:bool=True,
-                         data:Union[None,torch.utils.data.Dataset]=None)->pd.DataFrame:
+                         data:Union[None,torch.utils.data.Dataset]=None,
+                         continual:Union[None,dict]=None)->pd.DataFrame:
         """This function allows to get the prediction on a particular set (train, test or validation). 
 
         Args:
@@ -1089,6 +1201,7 @@ class TimeSeries():
             set (str, optional): trai, validation or test. Defaults to 'test'.
             rescaling (bool, optional):  If rescaling is true the output will be rescaled to the initial values. . Defaults to True.
             data (None or pd.DataFrame, optional). If not None the inference is performed on the given data. In the case of custom data please call inference because it will normalize the data for you!
+            continual (None or dict): if the model has been trained with the continual learning protocol, we can reuse the reservoir and do some backpropagation step in inference too. This will not replace the checkpoint and save the new reservoir (todo). For now the parameters are lr and update_every_n_batches
         Returns:
             pd.DataFrame: the predicted values in a pandas format
         """
@@ -1132,11 +1245,77 @@ class TimeSeries():
         self.model.to(torch.device("cuda:0" if torch.cuda.is_available() else "cpu"))
         beauty_string(f'Device used: {self.model.device}','info',self.verbose)
 
-        for batch in dl:
-    
+        if continual is not None and self.model.buffer is not None:
+            beauty_string('UPDATING THE NETWORK DURING INFERENCE','section',self.verbose)
 
-            res.append(self.model.inference(batch).cpu().detach().numpy())
-            real.append(batch['y'].cpu().detach().numpy())
+            self.model.is_continual_phase = True
+            device = self.model.device
+            self.model.optim_config['lr']  = continual['lr']
+            opt_config = self.model.configure_optimizers()
+            if isinstance(opt_config, dict):
+                optimizer = opt_config["optimizer"]
+            elif isinstance(opt_config, (list, tuple)):
+                optimizer = opt_config[0]
+            else:
+                optimizer = opt_config
+            update_every_n_batches =  continual['update_every_n_batches']
+
+            for step, batch in enumerate(dl):
+                # Move batch tensors to the model's device
+                batch = {
+                    k: v.to(device) if isinstance(v, torch.Tensor) else v 
+                    for k, v in batch.items()
+                }
+
+
+                self.model.eval()
+                with torch.no_grad():
+                    preds = self.model.inference(batch)
+                    res.append(preds.cpu().numpy())
+                    real.append(batch['y'].cpu().numpy())
+                
+                if (step + 1) % update_every_n_batches == 0:
+                    self.model.train()
+                    if getattr(self.model, 'has_sam_optim', False):
+                        def closure():
+                            optimizer.zero_grad()
+                            loss, _ = self.model._compute_step_loss(batch)
+                            loss.backward()
+                            return loss
+
+                        optimizer.step(closure)
+                
+                        # Recompute y_hat to store in the buffer
+                        with torch.no_grad():
+                            _, y_hat = self.model._compute_step_loss(batch)
+
+                    # B. Standard Optimizer Path (Adam, SGD, etc.)
+                    else:
+                        optimizer.zero_grad()
+                        loss, y_hat = self.model._compute_step_loss(batch)
+                        loss.backward()
+                        
+                        # Gradient clipping if needed
+                        if getattr(self, 'gradient_clip_val', None):
+                            torch.nn.utils.clip_grad_norm_(
+                                self.model.parameters(), 
+                                self.gradient_clip_val
+                            )
+                            
+                        optimizer.step()
+
+                    # ==========================================
+                    # STEP 3: UPDATE RESERVOIR BUFFER
+                    # ==========================================
+                    if self.model.save_buffer and self.model.buffer is not None:
+                        # Add current batch and its prediction to the replay buffer
+                        self.model.buffer.add(batch, y_hat.detach())
+                
+        else:
+            for batch in dl:
+                with torch.no_grad():
+                    res.append(self.model.inference(batch).cpu().numpy())
+                    real.append(batch['y'].cpu().numpy())
 
         res = np.vstack(res)
         real = np.vstack(real)
@@ -1365,3 +1544,5 @@ class TimeSeries():
 
         except Exception as e:
             beauty_string(f'There is a problem loading the weights on file {tmp_path} {e}','section',self.verbose)
+
+        beauty_string(f'RESTORED {tmp_path}','section',self.verbose)

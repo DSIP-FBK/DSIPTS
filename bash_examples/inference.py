@@ -104,7 +104,8 @@ def inference(conf:DictConfig,split_params=None)->List[pd.DataFrame]:
         res = ts.inference_on_set(batch_size = conf.inference.batch_size,
                                 num_workers = conf.inference.num_workers,
                                 set = conf.inference.set,
-                                rescaling =conf.inference.rescaling)
+                                rescaling =conf.inference.rescaling,
+                                continual=conf.inference.get('continual',None))
 
     errors = []
     feat = '_median' if ts.model.use_quantiles else '_pred'
