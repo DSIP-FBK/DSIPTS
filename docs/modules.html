@@ -5,11 +5,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>dsipts &#8212; DSIPTS 1.1.53 documentation</title>
+    <title>dsipts &#8212; DSIPTS 1.1.54 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
     <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
-    <script src="_static/documentation_options.js?v=5a0e8791"></script>
+    <script src="_static/documentation_options.js?v=9187175c"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -103,8 +103,11 @@
 <li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.Base.handle_multivariate"><code class="docutils literal notranslate"><span class="pre">Base.handle_multivariate</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.Base.handle_quantile_loss"><code class="docutils literal notranslate"><span class="pre">Base.handle_quantile_loss</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.Base.inference"><code class="docutils literal notranslate"><span class="pre">Base.inference()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.Base.on_load_checkpoint"><code class="docutils literal notranslate"><span class="pre">Base.on_load_checkpoint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.Base.on_save_checkpoint"><code class="docutils literal notranslate"><span class="pre">Base.on_save_checkpoint()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.Base.on_validation_start"><code class="docutils literal notranslate"><span class="pre">Base.on_validation_start()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.Base.selection_metric"><code class="docutils literal notranslate"><span class="pre">Base.selection_metric</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.Base.training_step"><code class="docutils literal notranslate"><span class="pre">Base.training_step()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="dsipts.html#dsipts.Categorical"><code class="docutils literal notranslate"><span class="pre">Categorical</span></code></a><ul>
@@ -156,6 +159,7 @@
 <li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.Diffusion.normal_kl"><code class="docutils literal notranslate"><span class="pre">Diffusion.normal_kl()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.Diffusion.q_sample"><code class="docutils literal notranslate"><span class="pre">Diffusion.q_sample()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.Diffusion.remove_var"><code class="docutils literal notranslate"><span class="pre">Diffusion.remove_var()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.Diffusion.training_step"><code class="docutils literal notranslate"><span class="pre">Diffusion.training_step()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="dsipts.html#dsipts.DilatedConv"><code class="docutils literal notranslate"><span class="pre">DilatedConv</span></code></a><ul>
@@ -218,6 +222,16 @@
 <li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.LinearTS.handle_future_covariates"><code class="docutils literal notranslate"><span class="pre">LinearTS.handle_future_covariates</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.LinearTS.handle_multivariate"><code class="docutils literal notranslate"><span class="pre">LinearTS.handle_multivariate</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.LinearTS.handle_quantile_loss"><code class="docutils literal notranslate"><span class="pre">LinearTS.handle_quantile_loss</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.html#dsipts.ModernTCN"><code class="docutils literal notranslate"><span class="pre">ModernTCN</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.ModernTCN.can_be_compiled"><code class="docutils literal notranslate"><span class="pre">ModernTCN.can_be_compiled()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.ModernTCN.description"><code class="docutils literal notranslate"><span class="pre">ModernTCN.description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.ModernTCN.forward"><code class="docutils literal notranslate"><span class="pre">ModernTCN.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.ModernTCN.handle_categorical_variables"><code class="docutils literal notranslate"><span class="pre">ModernTCN.handle_categorical_variables</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.ModernTCN.handle_future_covariates"><code class="docutils literal notranslate"><span class="pre">ModernTCN.handle_future_covariates</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.ModernTCN.handle_multivariate"><code class="docutils literal notranslate"><span class="pre">ModernTCN.handle_multivariate</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.html#dsipts.ModernTCN.handle_quantile_loss"><code class="docutils literal notranslate"><span class="pre">ModernTCN.handle_quantile_loss</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="dsipts.html#dsipts.Monash"><code class="docutils literal notranslate"><span class="pre">Monash</span></code></a><ul>

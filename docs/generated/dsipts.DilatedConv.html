@@ -5,11 +5,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>dsipts.DilatedConv &#8212; DSIPTS 1.1.53 documentation</title>
+    <title>dsipts.DilatedConv &#8212; DSIPTS 1.1.54 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
     <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
-    <script src="../_static/documentation_options.js?v=5a0e8791"></script>
+    <script src="../_static/documentation_options.js?v=9187175c"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -245,7 +245,7 @@
 <td><p>Called at the very beginning of fit.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_load_checkpoint</span></code>(checkpoint)</p></td>
-<td><p>Called by Lightning to restore your model.</p></td>
+<td><p>Ripristina il buffer quando il modello viene ricaricato da checkpoint.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_predict_batch_end</span></code>(outputs, batch, batch_idx)</p></td>
 <td><p>Called in the predict loop after the batch.</p></td>
@@ -269,7 +269,7 @@
 <td><p>Called at the beginning of predicting.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_save_checkpoint</span></code>(checkpoint)</p></td>
-<td><p>Called by Lightning when saving a checkpoint to give you a chance to store anything else you might want to save.</p></td>
+<td><p>Salva il buffer nel file di checkpoint .ckpt.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_test_batch_end</span></code>(outputs, batch, batch_idx)</p></td>
 <td><p>Called in the test loop after the batch.</p></td>
@@ -455,7 +455,7 @@
 <td><p>An iterable or collection of iterables specifying training samples.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">training_step</span></code>(batch, batch_idx)</p></td>
-<td><p>pythotrch lightening stuff</p></td>
+<td><p>Here you compute and return the training loss and some additional metrics for e.g. the progress bar or logger.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">transfer_batch_to_device</span></code>(batch, device, ...)</p></td>
 <td><p>Override this hook if your <code class="xref py py-class docutils literal notranslate"><span class="pre">DataLoader</span></code> returns tensors wrapped in a custom data structure.</p></td>
