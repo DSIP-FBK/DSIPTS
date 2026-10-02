@@ -618,7 +618,7 @@ class TimeSeries():
             
         if continual_learning_fraction is not None:
             ## last part!
-            split_idx = int(len(t)*(1-continual_learning_fraction))
+            split_idx = int(len(t_samples)*(1-continual_learning_fraction))
             data_p1, data_p2 = {}, {}
             for k, v in dd.items():
                 if k == 'sampler_weights':
@@ -630,14 +630,15 @@ class TimeSeries():
 
             # 3. Istanzia i due Dataset
             ds_phase1 = MyDataset(
-                data=data_p1, t=t[:split_idx], groups=groups[:split_idx],
+                data=data_p1, t=t_samples[:split_idx], groups=groups[:split_idx],
                 idx_target=idx_target, idx_target_future=idx_target_future
             )
 
             ds_phase2 = MyDataset(
-                data=data_p2, t=t[split_idx:], groups=groups[split_idx:],
+                data=data_p2, t=t_samples[split_idx:], groups=groups[split_idx:],
                 idx_target=idx_target, idx_target_future=idx_target_future
             )
+     
             return (ds_phase1, ds_phase2)
         else:
             return MyDataset(dd,t_samples,g_samples,idx_target,idx_target_future)
@@ -867,7 +868,7 @@ class TimeSeries():
             beauty_string(f'SPLITTING THE TRAIN IN two: first part normal train, second part continual','section',self.verbose)
             train_dl = DataLoader(train[0], batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
             train_phase2 = DataLoader(train[1], batch_size = continual['batch_size'] , shuffle=False,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
-
+    
             
         else:
             if self.sampler_weights is not None:
@@ -880,7 +881,11 @@ class TimeSeries():
                 train_dl = DataLoader(train, batch_size = batch_size , shuffle=True,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)
         valid_dl = DataLoader(validation, batch_size = batch_size , shuffle=False,drop_last=False,num_workers=num_workers,persistent_workers=persistent_workers)
         
-        beauty_string(f'train:{len(train_dl)}, validation:{len(valid_dl)}','section',self.verbose)
+        if continual is not None:
+            beauty_string(f'train:{len(train_dl)},phase2:{len(train_phase2)} validation:{len(valid_dl)}','section',self.verbose)
+
+        else:
+            beauty_string(f'train:{len(train_dl)}, validation:{len(valid_dl)}','section',self.verbose)
 
         if debug_prediction:
             dl = DataLoader(test, batch_size = batch_size , shuffle=False,drop_last=True,num_workers=num_workers,persistent_workers=persistent_workers)

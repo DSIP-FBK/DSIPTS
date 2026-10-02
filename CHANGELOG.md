@@ -1,3 +1,5 @@
+## 1.1.57
+- bug fix continual learning
 ## 1.1.56
 - fixing continual learning no standard loss
 ## 1.1.55
