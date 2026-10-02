@@ -10,12 +10,36 @@ except:
     from pytorch_lightning import Callback
 import torch
 import os
+import sys
 import logging
 from typing import Union
 
+_logger = logging.getLogger('dsipts')
+_fallback_handler = None
+
+def _get_logger() -> logging.Logger:
+    """Logger 'dsipts': INFO by default, propagates to root.
+    If nobody configured logging (e.g. a notebook, no hydra) it prints to stdout by itself;
+    as soon as the root logger gets a handler (hydra, logging.basicConfig) the fallback is removed
+    so messages are not printed twice. Silence with logging.getLogger('dsipts').setLevel(logging.WARNING)
+    """
+    global _fallback_handler
+    if _logger.level == logging.NOTSET:
+        _logger.setLevel(logging.INFO)
+    root_configured = len(logging.getLogger().handlers) > 0
+    if _fallback_handler is None and not root_configured:
+        _fallback_handler = logging.StreamHandler(sys.stdout)
+        _fallback_handler.setFormatter(logging.Formatter('%(message)s'))
+        _logger.addHandler(_fallback_handler)
+        _logger.propagate = False
+    elif _fallback_handler is not None and root_configured:
+        _logger.removeHandler(_fallback_handler)
+        _fallback_handler = None
+        _logger.propagate = True
+    return _logger
+
 def beauty_string(message:str,type:str,verbose:bool):
-    logger = logging.getLogger()  # root logger
-    logger.propagate = True 
+    logger = _get_logger()
     size = 150
     if verbose is True:
         if type=='block':

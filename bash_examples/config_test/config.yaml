@@ -63,12 +63,12 @@ train_config:
   seed: 42   
   max_epochs: 20
   patience: 1
-  continual: null
-  #continual:
-  #  continual_learning_fraction: 0.5 ## last half used for continual learning
-  #  batch_size: 8 ##smaller
-  #  max_epochs: 10 ## if streaming online learning otherwise  betwween 5 and 20
-  #  lr: 0.00001 #smaller?
+  #continual: null
+  continual:
+    continual_learning_fraction: 0.5 ## last half used for continual learning
+    batch_size: 8 ##smaller
+    max_epochs: 10 ## if streaming online learning otherwise  betwween 5 and 20
+    lr: 0.00001 #smaller?
 
 inference:
   output_path: tmp

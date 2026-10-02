@@ -23,10 +23,10 @@ model_configs:
   persistence_weight: 0.010
   loss_type: 'l1'
   quantiles: [] #[0.1,0.5,0.9]
-  #continual_learning:
-  #  alpha: 0.5
-  #  beta: 0.5
-  #  capacity: 1000
+  continual_learning:
+    alpha: 0.5
+    beta: 0.5
+    capacity: 1000
 train_config:
   batch_size: 64
   max_epochs: 5
