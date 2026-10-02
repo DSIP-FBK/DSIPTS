@@ -1,3 +1,5 @@
+## 1.1.55
+- added missing files
 ## 1.1.54
 - added https://github.com/luodhhh/ModernTCN and continual learining with reservoir (WIP see test config folder, config.yaml, compare.yaml, architecture/simple.yaml)
 ## 1.1.53
