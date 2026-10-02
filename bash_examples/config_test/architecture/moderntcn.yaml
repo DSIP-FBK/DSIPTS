@@ -1,0 +1,47 @@
+# @package _global_
+
+model:
+  type: 'moderntcn'
+  retrain: true
+  restart: false
+ts:
+  name: 'test'
+  version: 1
+  enrich: ['minute']
+  use_covariates: true
+  use_future_covariates: true
+  silly: false
+
+model_configs:
+  use_classical_positional_encoder: true 
+  emb_dim: 16  
+  reduction_mode: mean 
+  patch_size: 16
+  patch_stride: 8
+  stem_ratio: 6
+  downsample_ratio: 2
+  ffn_ratio: 2
+  num_blocks:  [1,1,1,1]
+  large_size:   [31,29,13,7] 
+  small_size:  [5,5,5,5]
+  dims: [32,32,32,32]
+  dw_dims: [32,32,32,32]
+  small_kernel_merged: False
+  drop_backbone: 0.05
+  drop_head: 0.0 
+  use_multi_scale: False ##TRUE DOES NOT WORK in the original implementation
+  revin: True
+  affine: False
+  subtract_last: False
+  individual: True            
+  decomposition:  True
+  kernel_size: 25
+  optim: torch.optim.Adam
+  activation: torch.nn.PReLU
+  persistence_weight: 0.010
+  loss_type: 'l1'
+  quantiles: [0.1,0.5,0.9]
+train_config:
+  batch_size: 128
+  max_epochs: 3
+            
