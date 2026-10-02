@@ -1,3 +1,5 @@
+## 1.1.56
+- fixing continual learning no standard loss
 ## 1.1.55
 - added missing files
 ## 1.1.54

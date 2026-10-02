@@ -106,11 +106,11 @@ def dilate_loss(outputs, targets, alpha, gamma, device):
 import torch.nn.functional as F
 
 class DictSOTATSERBuffer:
-    def __init__(self, capacity: int = 1000, alpha: float = 0.6, diversity_weight: float = 0.3):
+    def __init__(self, capacity: int = 1000, alpha: float = 0.6, diversity_weight: float = 0.3,loss= F.mse_loss):
         self.capacity = capacity
         self.alpha = alpha
         self.diversity_weight = diversity_weight
-        
+        self.loss = loss
         self.buffer_samples = []  # Lista di dict (sample individuale)
         self.buffer_y_hat = []    # Predizioni storiche
         self.priorities = []
@@ -128,7 +128,7 @@ class DictSOTATSERBuffer:
     def _compute_priority(self, sample: dict, y_hat: torch.Tensor) -> float:
         with torch.no_grad():
             y = sample['y']
-            loss_score = F.mse_loss(y_hat, y).item()
+            loss_score = self.loss(y_hat, y).item()
             
             # Calcola la varianza sulle feature numeriche passate se presenti
             if 'x_num_past' in sample and isinstance(sample['x_num_past'], torch.Tensor):
@@ -334,7 +334,7 @@ class Base(pl.LightningModule):
         self.return_additional_loss = False
         self.is_continual_phase = False
         if continual_learning is not None:
-            self.buffer = DictSOTATSERBuffer(capacity=continual_learning.get('capacity',1000))
+            self.buffer = DictSOTATSERBuffer(capacity=continual_learning.get('capacity',1000),loss=self.loss)
             self.alpha = continual_learning.get('alpha',0.5)
             self.beta = continual_learning.get('beta',0.5)
             self.save_buffer = True

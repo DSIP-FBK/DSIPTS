@@ -1047,8 +1047,42 @@ class TimeSeries():
             trainer.save_checkpoint(os.path.join(dirpath, "checkpoint.ckpt"))
 
 
+        self.losses = mc.metrics
+
+
+        if debug_prediction:
+            res = []
+            real = []
+            for batch in dl:
+                res.append(self.model.inference(batch).cpu().detach().numpy())
+                real.append(batch['y'].cpu().detach().numpy())
+
+            res = np.vstack(res)
+            real = np.vstack(real)
+            with open('/home/agobbi/Projects/ExpTS/tmp_after_training.pkl','wb') as f:
+                import pickle
+                pickle.dump([res,real],f)
+
+
+
+
+        if isinstance(self.losses,dict):
+            self.losses = pd.DataFrame(self.losses)
+    
+        files = os.listdir(dirpath)
+        for f in files:
+            if '__losses__.csv' in f:
+                if isinstance(self.losses,pd.DataFrame):
+                    pass
+                else:
+                    self.losses = pd.read_csv(os.path.join(os.path.join(dirpath,f)))
+                os.remove(os.path.join(os.path.join(dirpath,f)))
+
+        self.losses['step'] = 'standard'
+
+
         if continual is not None:
-            if self.config['model_configs'].continual_learning is None:
+            if self.config['model_configs']['continual_learning'] is None:
                 raise ValueError("IF YOU ENABLE CONTINUAL LEARNING IN THE TRAINING YOU NEED TO FILL THE continual_learning attribute in model_configs TOO ")
 
             beauty_string(f'Now I go into continual learning mode','section',self.verbose)          
@@ -1071,12 +1105,12 @@ class TimeSeries():
                                         save_top_k = 1,
                                         filename='checkpoint_continual')
             
-            es = EarlyStopping(monitor=monitor,patience=patience)
-            mc = MetricsCallback(dirpath)
+            es2 = EarlyStopping(monitor=monitor,patience=patience)
+            mc2 = MetricsCallback(dirpath)
             trainer_p2 = pl.Trainer(default_root_dir=dirpath,
                                 logger = aim_logger,
                                 max_epochs=max_epochs,
-                                callbacks=[checkpoint_callback_p2,mc,es],
+                                callbacks=[checkpoint_callback_p2,mc2,es2],
                                 strategy='auto',
                                 devices=devices,
                                 log_every_n_steps=5,
@@ -1100,34 +1134,27 @@ class TimeSeries():
                 trainer_p2.save_checkpoint(os.path.join(dirpath, "checkpoint_continual.ckpt"))
 
 
-        self.dirpath = dirpath
-        
-        self.losses = mc.metrics
 
-        files = os.listdir(dirpath)
-        if debug_prediction:
-            res = []
-            real = []
-            for batch in dl:
-                res.append(self.model.inference(batch).cpu().detach().numpy())
-                real.append(batch['y'].cpu().detach().numpy())
+            
+            
+            loss_prev_step = self.losses
+            losses = None
+            if isinstance(mc2.metrics, dict):
+                losses = pd.DataFrame(mc2.metrics)
+                losses['step'] = 'continual'
+                self.losses = pd.concat([loss_prev_step,losses])
 
-            res = np.vstack(res)
-            real = np.vstack(real)
-            with open('/home/agobbi/Projects/ExpTS/tmp_after_training.pkl','wb') as f:
-                import pickle
-                pickle.dump([res,real],f)
-        
-        ##accrocchio per multi gpu
-        for f in files:
-            if '__losses__.csv' in f:
-                if len(self.losses['val_loss'])>0:
-                    self.losses = pd.DataFrame(self.losses)
-                else:
-                    self.losses = pd.read_csv(os.path.join(os.path.join(dirpath,f)))
-                os.remove(os.path.join(os.path.join(dirpath,f)))
-        if isinstance(self.losses,dict):
-            self.losses = pd.DataFrame()
+
+            files = os.listdir(dirpath)
+            for f in files:
+                if '__losses__.csv' in f:
+                    if losses is None:
+                        losses = pd.read_csv(os.path.join(os.path.join(dirpath,f)))
+                        losses['step'] = 'continual'
+                        self.losses = pd.concat(loss_prev_step,losses)
+          
+                    os.remove(os.path.join(os.path.join(dirpath,f)))
+
 
 
         try:
