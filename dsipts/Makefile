@@ -3,7 +3,7 @@
 build:
 	bumpver update --patch
 	uv pip install -e .
-	NEW_VERSION=$$(python -c "from dsipts import __version__ as v; print(v)"); \
+	NEW_VERSION=$$(grep -oP '__version__ = "\K[^"]+' src/dsipts/version.py); \
 	echo "New version: $$NEW_VERSION"; \
 	uv run sphinx-apidoc -o docs/source src/dsipts; \
 	uv run sphinx-build -b html docs/source ../docs; \
