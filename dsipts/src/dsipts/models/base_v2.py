@@ -65,6 +65,8 @@ CALIBRATION = {}           ##optional per-loss multiplier, applied AFTER the nor
 ##frozen in eval, never a statistic of the current batch:
 ##  s  per channel target sigma           (1,1,C)   was y.std(dim=(0,1)) of the batch
 ##  q  per lag persistence (naive) error  (1,T,C)   mean |y-p| over the windows
+##  qa per lag error of the ANCHOR          (1,T,C)   == q when persistence_anchor='last',
+##                                                    mean |y-m| (m = past window mean) for 'mean'
 ##Validation batches are consecutive windows (shuffle=False), so a batch statistic there is
 ##a LOCAL one: on weather the batch sigma is 0.30x the global one (median), the validation
 ##loss of every contract loss was inflated ~3x (~1900x for high_order's s**4) and, since
@@ -214,6 +216,7 @@ class Base(pl.LightningModule):
                  n_classes:int=0,
                  persistence_weight:float=0.0,
                  loss_type: str='l1',
+                 persistence_anchor: str='last',
                  quantiles:List[int]=[],
                  reduction_mode:str = 'mean',
                  use_classical_positional_encoder:bool=False,
@@ -244,6 +247,7 @@ class Base(pl.LightningModule):
             n_classes (int, optional): Number of classes for classification. Defaults to 0.
             persistence_weight (float, optional): Weight for persistence in loss calculation. Defaults to 0.0.
             loss_type (str, optional): Type of loss function to use ('l1' or 'mse'). Defaults to 'l1'.
+            persistence_anchor (str, optional): Reference the anchored penalties (linear/exponential penalization, triplet) push away from: 'last' = last observed value (persistence), 'mean' = mean of the past window. Defaults to 'last'.
             quantiles (List[int], optional): List of quantiles for quantile loss. Defaults to an empty list.
             reduction_mode (str, optional): Mode for reduction for categorical embedding layer ('mean', 'sum', 'none'). Defaults to 'mean'.
             use_classical_positional_encoder (bool, optional): Flag to use classical positional encoding or using embedding layer also for the positions. Defaults to False.
@@ -284,6 +288,8 @@ class Base(pl.LightningModule):
         self.scheduler_config = scheduler_config
         self.loss_type = loss_type
         self.persistence_weight = persistence_weight
+        assert persistence_anchor in ('last','mean'), f'persistence_anchor must be last or mean, got {persistence_anchor}'
+        self.persistence_anchor = persistence_anchor
         ##running estimate of ||grad P||/||grad base|| used by penalty_scale. Deliberately a plain attribute
         ##and NOT a register_buffer: a buffer would add a state_dict key and break loading
         ##every checkpoint trained before 2026-09-10. It re-converges in a few batches, so
@@ -293,6 +299,7 @@ class Base(pl.LightningModule):
         ##accumulator. Plain attributes for the same checkpoint compatibility reason
         self._target_var = None
         self._naive_err = None
+        self._anchor_err = None
         self._val_select_sum = None
         self._val_select_count = 0
         self.use_classical_positional_encoder = use_classical_positional_encoder
@@ -739,6 +746,15 @@ class Base(pl.LightningModule):
         ##fraction of sigma (weather: 0.06 sigma at lag 1, 0.63 at lag 60), see SCALES
         q = self.running_scale('_naive_err', torch.abs(y-y_persistence).mean(dim=0, keepdim=True))
         q = torch.where(q>1e-6, q, s.expand_as(q))   ##target equal to persistence --> sigma
+        ##anchor of the anchored penalties (linear/exponential/triplet): persistence, or the
+        ##mean of the past window, i.e. the shrink-to-the-mean hedge (and the trivial output
+        ##of a RevIN style instance norm). mda keeps q: its temperature is a ONE STEP change
+        if self.persistence_anchor == 'mean':
+            y_anchor = x_past[:,:,idx_target].mean(dim=1, keepdim=True).repeat(1,self.future_steps,1)
+            qa = self.running_scale('_anchor_err', torch.abs(y-y_anchor).mean(dim=0, keepdim=True))
+            qa = torch.where(qa>1e-6, qa, s.expand_as(qa))
+        else:
+            y_anchor, qa = y_persistence, q
 
         if self.loss_type == 'linear_penalization':
             ##up weight the reconstruction error where the prediction hugs persistence.
@@ -752,13 +768,13 @@ class Base(pl.LightningModule):
             ##persistence on 80-100% of those points, i.e. the sign of the mechanism was
             ##inverted on the two best performing losses of the paper
             ##c = 1 at persistence, 0 once x strays twice the typical naive error of its lag
-            c = torch.clamp(1.0-torch.abs(y_persistence-x)/(2.0*q), 0.0, 1.0)
+            c = torch.clamp(1.0-torch.abs(y_anchor-x)/(2.0*qa), 0.0, 1.0)
             w = torch.exp(REWEIGHT_GAIN*c).detach()
             P = ((torch.abs(x-y)/s)*w).sum()/(w.sum()+1e-8)
 
         elif self.loss_type == 'exponential_penalization':
             ##same reweighting, smooth kernel. w detached, see linear_penalization above
-            c = torch.exp(-torch.abs(y_persistence-x)/q)
+            c = torch.exp(-torch.abs(y_anchor-x)/qa)
             w = torch.exp(REWEIGHT_GAIN*c).detach()
             P = ((torch.abs(x-y)/s)*w).sum()/(w.sum()+1e-8)
 
@@ -783,8 +799,8 @@ class Base(pl.LightningModule):
             ##The margin is relative to |y-p| of each point (see TRIPLET_MARGIN): a constant
             ##margin larger than |y-p| can not be met even by x=y
             d_pos = (torch.abs(x-y)/s).mean(dim=-1)
-            d_neg = (torch.abs(x-y_persistence)/s).mean(dim=-1)
-            margin = TRIPLET_MARGIN*(torch.abs(y-y_persistence)/s).mean(dim=-1)
+            d_neg = (torch.abs(x-y_anchor)/s).mean(dim=-1)
+            margin = TRIPLET_MARGIN*(torch.abs(y-y_anchor)/s).mean(dim=-1)
             P = torch.relu(d_pos-d_neg+margin).mean()
 
         elif self.loss_type=='high_order':

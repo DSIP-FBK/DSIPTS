@@ -47,7 +47,7 @@ split_params:
   future_steps: model_configs@future_steps
   scaler: 'StandardScaler()' #'RobustScaler()' ## or sklearn.preprocessing.StandardScaler()
 train_config:
-  dirpath: /storage/DSIP/agobbi/Projects/ExpTS/paper_persistence_v2_weather
+  dirpath: /storage/DSIP/agobbi/Projects/ExpTS/paper_persistence_v3_weather
   num_workers: 0
   auto_lr_find: false
   devices: [0]                   
@@ -56,7 +56,7 @@ train_config:
   patience: 50
   
 inference:
-  output_path: /storage/DSIP/agobbi/Projects/ExpTS/paper_persistence_v2_weather
+  output_path: /storage/DSIP/agobbi/Projects/ExpTS/paper_persistence_v3_weather
   load_last: false
   batch_size: 200 
   num_workers: 4

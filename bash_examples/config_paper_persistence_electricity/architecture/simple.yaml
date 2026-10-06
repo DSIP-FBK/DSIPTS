@@ -22,6 +22,7 @@ model_configs:
   activation: torch.nn.ReLU
   persistence_weight: 0.010
   loss_type: 'l1'
+  persistence_anchor: 'last'   ##'last' (persistence) or 'mean' (past window mean)
   quantiles: []
 
 train_config:

@@ -355,7 +355,7 @@ class Base(pl.LightningModule):
                 ax.plot(pred,'o-',label='pred')
                 ax.legend()
                 ax.set_title(f'Channel {i} first element first batch validation {int(100*self.count_epoch/self.trainer.max_epochs)}%')
-                self.logger.experiment.track(Image(fig), name='cm_training_end')
+                #self.logger.experiment.track(Image(fig), name='cm_training_end')
                 #self.log(f"example_{i}", np.stack([real, pred]).T,sync_dist=True)
                 plt.close(fig) 
         avg = self.validation_epoch_metrics/self.validation_epoch_count

@@ -1,4 +1,4 @@
-## 1.1.57-1.1.58-1.1.59
+## 1.1.57-1.1.58-1.1.59-1.1.60
 - bug fix continual learning
 ## 1.1.56
 - fixing continual learning no standard loss

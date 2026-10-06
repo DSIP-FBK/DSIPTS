@@ -25,6 +25,7 @@ model_configs:
   optim: torch.optim.Adam
   persistence_weight: 1
   loss_type: 'l1'
+  persistence_anchor: 'last'   ##'last' (persistence) or 'mean' (past window mean)
   activation: torch.nn.ReLU
   class_strategy: 'projection' #projection/average/cls_token
   quantiles: []

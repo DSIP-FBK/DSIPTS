@@ -3,7 +3,9 @@ import pandas as pd
 import os
 def load_data(conf):
 
-    data = pd.read_csv(os.path.join(conf.dataset.path,'generated.csv'))
+    ##dataset.file selects the generated variant (e.g. generated_persistent_snr0.5.csv from
+    ##loss_normalization_wip/gen_persistent.py), default the original covariate driven one
+    data = pd.read_csv(os.path.join(conf.dataset.path,conf.dataset.get('file','generated.csv')))
     columns = [c for c in data.columns if c not in ['y','time']]
     
     ts = TimeSeries(conf.ts.name)

@@ -1,6 +1,6 @@
 models: config_paper_persistence_weather
 #models: ['config_used/linear.yaml']
-dirpath: /storage/DSIP/agobbi/Projects/ExpTS/paper_persistence_v2_weather
+dirpath: /storage/DSIP/agobbi/Projects/ExpTS/paper_persistence_v3_weather
 
 set: 'test'
 name: 'weather'

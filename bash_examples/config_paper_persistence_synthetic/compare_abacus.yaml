@@ -1,6 +1,6 @@
 models: config_paper_persistence_synthetic
 #models: ['config_used/linear.yaml']
-dirpath: /storage/DSIP/agobbi/Projects/ExpTS/paper_persistence_v2_synthetic
+dirpath: /storage/DSIP/agobbi/Projects/ExpTS/paper_persistence_v3_synthetic
 
 set: 'test'
 name: 'synthetic'
