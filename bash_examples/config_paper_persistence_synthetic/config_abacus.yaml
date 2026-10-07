@@ -72,10 +72,10 @@ hydra:
   launcher:
     submitit_folder: ${hydra.sweep.dir}/.submitit/%j
     timeout_min: 900
-    partition: h100 
+    partition: h200
     mem_gb: 6
     nodes: 1
-    gres: gpu:h100_1g.20gb
+    gres: gpu:1
     array_parallelism: 4 ##
 
     name: ${hydra.job.name}
