@@ -18,8 +18,8 @@ model_configs:
   reduction_mode: mean 
   d_model: 128
   n_head: 2
-  hidden_size: 128 
-  dropout_rate: 0.00
+  hidden_size: ${model_configs.d_model} ##tied to d_model so the tuning sweep is 1-D in size
+  dropout_rate: 0.2   ##was 0.0: stage 1 (10-06) overfit from epoch 0 in 12/14 runs
   n_layer_decoder: 2
   use_norm: true
   optim: torch.optim.Adam
@@ -36,4 +36,4 @@ train_config:
   patience: 200
 optim_config:
   lr: 0.0001
-  weight_decay: 0.000001
+  weight_decay: 0.0001 ##was 1e-6, see dropout_rate
