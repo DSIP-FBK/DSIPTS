@@ -65,7 +65,11 @@ def compare(conf:DictConfig)-> None:
                 predictions['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
                 if losses is not None:
                     losses['epoch'] = list(range(losses.shape[0]))
-                    losses = losses.melt(id_vars='epoch')
+                    if 'step' in losses.columns:
+                        losses = losses.melt(id_vars=['epoch','step']) ##new version has also step column
+
+                    else: ##old version
+                        losses = losses.melt(id_vars='epoch')
                     losses['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
                 else:
                     beauty_string(f'Can not load losses {conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version} maybe the train procedure is not completed','block',True)
