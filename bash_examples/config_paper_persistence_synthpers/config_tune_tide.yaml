@@ -1,0 +1,17 @@
+## stage 1d (2026-10-08): TiDE gate + size/dropout/lr tuning, l1 only, then freeze the architecture.
+## Gate: SNR 1 test MASE clearly < 1 (ridge 0.849, oracle 0.777); SNR 0.1 ~1.02-1.06 is fine
+## (ridge itself reaches only 1.022 there). 8 jobs per SNR, pass the SNR on the command line:
+##   python train.py --config-dir=config_paper_persistence_synthpers --config-name=config_tune_tide ts.name=persistent_snr1 -m
+## d_model 4 / 8 = 0.43M / 1.59M params (n_add_enc = n_add_dec = 1).
+defaults:
+  - config_abacus
+  - _self_
+
+hydra:
+  sweeper:
+    params:
+      architecture: tide
+      model_configs.loss_type: l1
+      model_configs.d_model: 4,8
+      model_configs.dropout_rate: 0.1,0.3
+      optim_config.lr: 0.0001,0.001

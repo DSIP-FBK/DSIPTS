@@ -1,0 +1,41 @@
+# @package _global_
+## TiDE for the synthpers anchor study (2026-10-08). Replaces iTransformer, which failed stage 1b/1c:
+## with RevIN it loses the y<->x relation, without it it cannot carry the random-walk level.
+## TiDE's linear_target (past target -> horizon) represents persistence exactly, no RevIN involved.
+## Skeleton from config_test/architecture/tide.yaml.
+
+model:
+  type: 'tide'
+  retrain: true
+  restart: false
+ts:
+  name: 'persistent_snr0.5'
+  version: 1
+  enrich: []
+  use_covariates: true
+  use_future_covariates: false
+  silly: false
+
+model_configs:
+  use_classical_positional_encoder: true
+  emb_dim: 4             ##dead: no categoricals under enrich: []
+  reduction_mode: mean
+  hidden_size: 8         ##per-covariate, per-step embedding
+  d_model: 8             ##per-step projection; dense width = future_steps*d_model, params ~ d_model^2 (8 -> 1.6M, 16 -> 8.5M)
+  n_add_enc: 1
+  n_add_dec: 1
+  dropout_rate: 0.3
+  activation: torch.nn.PReLU
+  optim: torch.optim.Adam
+  persistence_weight: 1
+  loss_type: 'l1'
+  persistence_anchor: 'last'   ##'last' (persistence) or 'mean' (past window mean)
+  quantiles: []
+train_config:
+  batch_size: 64
+  max_epochs: 800
+  patience: 200
+  auto_lr_find: false
+optim_config:
+  lr: 0.0001
+  weight_decay: 0.0001
