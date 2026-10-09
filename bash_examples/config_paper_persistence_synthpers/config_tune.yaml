@@ -1,4 +1,5 @@
 ## stage 1b (2026-10-07): regularization tuning with l1 only, then freeze the architecture.
+## SUPERSEDED 2026-10-08: iTransformer failed stages 1b/1c on synthpers; use config_tune_tide.yaml (TiDE). Kept as record.
 ## Stage 1 (lr sweep, d_model 128, dropout 0) overfit from epoch 0 and lost to persistence
 ## even at SNR 0.1, where persistence is the optimum. Target: l1 at SNR 0.1 reaches MASE ~1.0.
 ## Tune on SNR 0.1 (persistence-optimal) and SNR 1 (signal recoverable). 12 jobs:

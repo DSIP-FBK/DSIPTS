@@ -151,7 +151,8 @@ class LinearTS(Base):
         return True                            
     def forward(self, batch):
       
-        x =  batch['x_num_past'].to(self.device)
+        ##clone: nlinear/dlinear/alinear write into x, which would corrupt batch['x_num_past'] (the persistence anchor in compute_loss)
+        x =  batch['x_num_past'].to(self.device).clone()
         idx_target = batch['idx_target'][0]
         
         BS = x.shape[0]

@@ -1,3 +1,5 @@
+## 1.1.61 - 1.1.62
+- custom loss anchor to mean and last value, bug fixing dlinear
 ## 1.1.57-1.1.58-1.1.59-1.1.60
 - bug fix continual learning
 ## 1.1.56

@@ -1,0 +1,44 @@
+# @package _global_
+## NLinear (LinearTS kind=nlinear) for the synthpers anchor study (2026-10-09). Replaces TiDE, which
+## failed stage 1d by OVERFITTING (best epoch 2-40, D > D_opt, SNR 0.1 MASE 1.13+).
+## nlinear subtracts the last target value and adds it back: output = persistence + MLP(all past
+## channels), so the model starts AT the anchor and only learns the deviation. Ridge reaches 0.849
+## (SNR 1), so a near-linear model is the honest learned baseline.
+## params ~ past_steps*past_channels*hidden_size (144*11*16 = 25k at hidden 16).
+
+model:
+  type: 'linear'
+  retrain: true
+  restart: false
+ts:
+  name: 'persistent_snr0.5'
+  version: 1
+  enrich: []
+  use_covariates: true
+  use_future_covariates: false
+  silly: false
+
+model_configs:
+  use_classical_positional_encoder: true
+  emb_dim: 4             ##dead: no categoricals under enrich: []
+  reduction_mode: mean
+  kind: 'nlinear'
+  simple: false          ##simple=true ignores the covariates (univariate), useless here
+  kernel_size: 25        ##only used by dlinear
+  hidden_size: 16        ##must be >= 8 (the MLP halves it three times)
+  dropout_rate: 0.1
+  use_bn: false
+  activation: torch.nn.PReLU
+  optim: torch.optim.Adam
+  persistence_weight: 1
+  loss_type: 'l1'
+  persistence_anchor: 'last'   ##'last' (persistence) or 'mean' (past window mean)
+  quantiles: []
+train_config:
+  batch_size: 64
+  max_epochs: 800
+  patience: 200
+  auto_lr_find: false
+optim_config:
+  lr: 0.0001
+  weight_decay: 0.0001

@@ -1,0 +1,16 @@
+## stage 1e (2026-10-09): NLinear gate + size/weight_decay/lr tuning, l1 only, then freeze the architecture.
+## Gate: SNR 1 test MASE clearly < 1 and ideally near ridge 0.849 (oracle 0.777); SNR 0.1 ~1.02-1.06.
+## Also read D vs D_opt: TiDE over-deviated (D > D_opt). 8 jobs per SNR, pass the SNR on the command line:
+##   python train.py --config-dir=config_paper_persistence_synthpers --config-name=config_tune_nlinear ts.name=persistent_snr1 -m
+defaults:
+  - config_abacus
+  - _self_
+
+hydra:
+  sweeper:
+    params:
+      architecture: nlinear
+      model_configs.loss_type: l1
+      model_configs.hidden_size: 16,64
+      optim_config.weight_decay: 0.0001,0.01
+      optim_config.lr: 0.0001,0.001
