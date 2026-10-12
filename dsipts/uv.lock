@@ -544,7 +544,7 @@ wheels = [
 
 [[package]]
 name = "dsipts"
-version = "1.1.62"
+version = "1.1.63"
 source = { virtual = "." }
 dependencies = [
     { name = "beautifulsoup4" },
