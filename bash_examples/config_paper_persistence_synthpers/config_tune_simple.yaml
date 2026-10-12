@@ -1,0 +1,16 @@
+## stage 1f (2026-10-12): Simple (dropout 0) gate, l1 only, then freeze the architecture.
+## Gate: SNR 1 lags 1-24 test MASE near ridge 0.705 (oracle 0.645; NLinear 0.908), and still D < D_opt (hugs)
+## for the anchor hypothesis to be testable. 8 jobs per SNR, pass the SNR on the command line:
+##   python train.py --config-dir=config_paper_persistence_synthpers --config-name=config_tune_simple ts.name=persistent_snr1 -m
+defaults:
+  - config_abacus
+  - _self_
+
+hydra:
+  sweeper:
+    params:
+      architecture: simple
+      model_configs.loss_type: l1
+      model_configs.hidden_size: 128,512
+      optim_config.weight_decay: 0.00001,0.0001
+      optim_config.lr: 0.0001,0.001

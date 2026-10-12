@@ -1,0 +1,40 @@
+# @package _global_
+## Simple (one hidden layer MLP, models/Simple.py) for the synthpers anchor study (2026-10-12), ported from
+## config_paper_persistence_synthetic/architecture/simple.yaml (dropout 0). Reason: the oracle is a LINEAR function
+## of the 144-step window (ridge reaches lags 1-24 MASE 0.705 at SNR 1), while NLinear hidden 16 squeezes the output
+## through a 16//8 = 2-unit layer with dropout 0.1 (0.908, direction corr with the oracle 0.45).
+## Simple: input -> hidden -> 48 outputs, rank <= hidden_size, no last-value centering (must carry the random-walk level).
+## params ~ past_steps*past_channels*hidden_size (144*11*128 = 203k at hidden 128).
+
+model:
+  type: 'simple'
+  retrain: true
+  restart: false
+ts:
+  name: 'persistent_snr1'
+  version: 1
+  enrich: []
+  use_covariates: true
+  use_future_covariates: false
+  silly: false
+
+model_configs:
+  use_classical_positional_encoder: true
+  emb_dim: 4             ##dead: no categoricals under enrich: []
+  reduction_mode: mean
+  dropout_rate: 0.0
+  hidden_size: 128
+  optim: torch.optim.Adam
+  activation: torch.nn.ReLU
+  persistence_weight: 1
+  loss_type: 'l1'
+  persistence_anchor: 'last'   ##'last' (persistence) or 'mean' (past window mean)
+  quantiles: []
+train_config:
+  batch_size: 64
+  max_epochs: 800
+  patience: 200
+  auto_lr_find: false
+optim_config:
+  lr: 0.001
+  weight_decay: 0.0001

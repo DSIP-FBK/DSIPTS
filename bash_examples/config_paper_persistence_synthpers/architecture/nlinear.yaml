@@ -40,5 +40,5 @@ train_config:
   patience: 200
   auto_lr_find: false
 optim_config:
-  lr: 0.0001
+  lr: 0.001          ##stage 1e pick (val), 2026-10-09
   weight_decay: 0.0001
