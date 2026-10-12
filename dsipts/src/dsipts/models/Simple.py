@@ -40,9 +40,12 @@ class Simple(Base):
                  hidden_size:int,
                  dropout_rate:float=0.1,
                  activation:str='torch.nn.ReLU',
-
+                 center_last:bool=False,
 
                  **kwargs)->None:
+        """center_last: subtract the last observed target value from the target channels and add it back to the
+        output (NLinear-style), so the MLP only learns the deviation from persistence. Needed on non-stationary
+        targets (random walk): without it the MLP must carry the level through its hidden layer."""
        
         super().__init__(**kwargs)
 
@@ -56,6 +59,7 @@ class Simple(Base):
             beauty_string('There is a bug in pytorch lightening, the constructior is called twice','info',self.verbose)
         
         self.save_hyperparameters(logger=False)
+        self.center_last = center_last
       
         
        
@@ -77,6 +81,14 @@ class Simple(Base):
     def forward(self, batch):
       
         x =  batch['x_num_past'].to(self.device)
+        idx_target = batch.get('idx_target',None)
+        center = self.center_last and (idx_target is not None) and (len(idx_target)>0) and idx_target.shape[-1]>0
+        if center:
+            ##clone: never write into batch['x_num_past'] (the persistence anchor in compute_loss)
+            x = x.clone()
+            idx_target = idx_target[0]
+            x_start = x[:,-1,idx_target].unsqueeze(1)          ## BS x 1 x C
+            x[:,:,idx_target] -= x_start
         
         BS = x.shape[0]
         if 'x_cat_future' in batch.keys():
@@ -112,6 +124,8 @@ class Simple(Base):
                     
         res = self.linear(tot)
         res = res.reshape(BS,self.future_steps,-1,self.mul)
+        if center:
+            res = res + x_start.unsqueeze(-1)                   ## BS x 1 x C x 1
        
         ##
 

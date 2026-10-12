@@ -23,6 +23,7 @@ model_configs:
   emb_dim: 4             ##dead: no categoricals under enrich: []
   reduction_mode: mean
   dropout_rate: 0.0
+  center_last: false     ##true = NLinear-style last-value centering (stage 1g); needed on the random walk
   hidden_size: 128
   optim: torch.optim.Adam
   activation: torch.nn.ReLU
