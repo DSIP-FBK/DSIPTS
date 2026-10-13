@@ -1092,7 +1092,7 @@ class TimeSeries():
 
             beauty_string(f'Now I go into continual learning mode','section',self.verbose)          
 
-            base_model_cls = self.model.model.__class__ if hasattr(self.model, 'model') else self.model.__class__
+            base_model_cls = (self.model._orig_mod if isinstance(self.model, torch._dynamo.eval_frame.OptimizedModule) else self.model).__class__
             self.model = base_model_cls.load_from_checkpoint(self.checkpoint_file_best)
 
             self.model.is_continual_phase = True
