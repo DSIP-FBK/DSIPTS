@@ -1,0 +1,20 @@
+## stage 1h (2026-10-13): Simple, centered, LINEAR (activation Identity -> input -> hidden -> 48 is a plain linear map,
+## full rank for hidden >= 48), dropout 0, l1 only. 1g (ReLU, centered) overfit from epoch 0 in all 16 runs
+## (train l1 0.02-0.04 vs val 0.10-0.13, best epoch 0-1), corr with the oracle ~0.5. Unregularized least squares on the
+## same window does NOT overfit (train 0.609 / val 0.777 / test 0.705 MASE lags 1-24 at SNR 1): the signal is linear and
+## the ReLU capacity only memorizes. Gate: SNR 1 lags 1-24 test MASE ~ 0.70-0.75.
+##   python train.py --config-dir=config_paper_persistence_synthpers --config-name=config_tune_simple_lin ts.name=persistent_snr1 -m
+defaults:
+  - config_abacus
+  - _self_
+
+hydra:
+  sweeper:
+    params:
+      architecture: simple
+      model_configs.loss_type: l1
+      model_configs.center_last: true
+      model_configs.activation: torch.nn.Identity
+      model_configs.hidden_size: 64,128
+      optim_config.weight_decay: 0.00001,0.0001
+      optim_config.lr: 0.0001,0.001

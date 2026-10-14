@@ -1,0 +1,18 @@
+## stage 1i (2026-10-14): NLinear WITHOUT the two limits found in §2c, l1 only. Stage-2 NLinear (hidden 16, dropout 0.1)
+## ends in a 16//8 = 2-unit layer: rank-2 ridge already costs 0.43 -> 0.60 MASE at SNR 2 (lags 1-24). Here
+## dropout 0 and hidden 256/512 -> last layer 32/64 units (64 >= 48 = full rank). 8 jobs per SNR.
+## Gate: SNR 2 lags 1-24 test MASE near ridge 0.43 (oracle 0.39); SNR 1 near 0.71 (oracle 0.645).
+##   python train.py --config-dir=config_paper_persistence_synthpers --config-name=config_tune_nlinear_d0 ts.name=persistent_snr2 -m
+defaults:
+  - config_abacus
+  - _self_
+
+hydra:
+  sweeper:
+    params:
+      architecture: nlinear
+      model_configs.loss_type: l1
+      model_configs.dropout_rate: 0
+      model_configs.hidden_size: 256,512
+      optim_config.weight_decay: 0.00001,0.0001
+      optim_config.lr: 0.0001,0.001
