@@ -1,4 +1,6 @@
-## 1.1.61 - 1.1.62
+## 1.1.65
+- added new loss. Notice that some architecture have some bugs if the target is not a past covariate. TODO check if we can avoid to use the `target_index` value and for the model in which it is mandatory we need a flag to say it to the user
+## 1.1.61 - 1.1.64
 - custom loss anchor to mean and last value, bug fixing dlinear
 ## 1.1.57-1.1.58-1.1.59-1.1.60
 - bug fix continual learning
