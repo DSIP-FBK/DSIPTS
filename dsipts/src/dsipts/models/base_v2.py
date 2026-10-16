@@ -859,6 +859,20 @@ class Base(pl.LightningModule):
             d = torch.fft.rfft(((x-y)/s).transpose(1,2).contiguous(), dim=-1, norm='ortho')
             P = torch.sqrt(d.real**2 + d.imag**2 + 1e-8).mean()
 
+        elif self.loss_type=='persistence_shrink':
+            ##the OPPOSITE of the penalties above: ATTRACT x to the anchor (2026-10-16). Post hoc
+            ##shrinkage x' = p + beta*(x-p) fitted on validation gives beta < 1 even for a well
+            ##specified linear model (synthpers: 0.19 at SNR 0.1 -> 0.92 at SNR 2) and always
+            ##lowers test MASE, i.e. a finite sample model deviates from persistence more than its
+            ##skill justifies. This is the training time version. L1 on the deviation (a lasso
+            ##toward the anchor): per point argmin E|x-y| + pw|x-p| is the (1-pw)/2 quantile of y
+            ##on the far side of p, and x = p exactly when p lies within the central pw band, so
+            ##the model deviates only where it is confident (pw=1 --> pure persistence). sigma
+            ##units like base, NOT q: a 1/q kernel would shrink the short lags hardest, where the
+            ##measured beta is closest to 1. Its gradient norm equals base's by construction, so
+            ##penalty_scale is ~1 and pw keeps the quantile reading above
+            P = (torch.abs(x-y_anchor)/s).mean()
+
         else:
             return initial_loss
 
