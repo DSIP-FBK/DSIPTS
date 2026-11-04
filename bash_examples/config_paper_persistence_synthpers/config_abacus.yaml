@@ -1,6 +1,6 @@
 dataset:
   dataset: synthetic
-  path: /storage/DSIP/agobbi/Projects/ExpTS/data
+  path: /storage3/DSIP/agobbi/Projects/ExpTS/data
   ##random walk + lagged covariate signal, see loss_normalization_wip/gen_persistent.py
   ##sweep the SNR through ts.name (it names the weights folder), e.g. ts.name=persistent_snr0.5
   file: generated_${ts.name}.csv
@@ -50,7 +50,7 @@ split_params:
   future_steps: model_configs@future_steps
   scaler: 'StandardScaler()' #'RobustScaler()' ## or sklearn.preprocessing.StandardScaler()
 train_config:
-  dirpath: /storage/DSIP/agobbi/Projects/ExpTS/paper_persistence_v3_synthpers
+  dirpath: /storage3/DSIP/agobbi/Projects/ExpTS/paper_persistence_v3_synthpers
   num_workers: 0
   auto_lr_find: false
   devices: [0]                   
@@ -59,7 +59,7 @@ train_config:
   patience: 50
 
 inference:
-  output_path: /storage/DSIP/agobbi/Projects/ExpTS/paper_persistence_v3_synthpers
+  output_path: /storage3/DSIP/agobbi/Projects/ExpTS/paper_persistence_v3_synthpers
   load_last: false
   batch_size: 200 
   num_workers: 4
@@ -75,16 +75,16 @@ hydra:
   launcher:
     submitit_folder: ${hydra.sweep.dir}/.submitit/%j
     timeout_min: 900
-    partition: h200
+    partition: gpu-V100
     mem_gb: 6
     nodes: 1
-    gres: gpu:1
+    gres: shard:2   ## 2 shards x 4GB VRAM
     array_parallelism: 4 ##
 
     name: ${hydra.job.name}
     _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
     setup:
-      - source /storage/DSIP/agobbi/Projects/DSIPTS/dsipts/.venv/bin/activate  
+      - source /storage3/DSIP/agobbi/Projects/timeseries/dsipts/.venv/bin/activate  
 
 
   output_subdir: null 

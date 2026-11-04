@@ -1,6 +1,6 @@
 models: config_paper_persistence_weather
 #models: ['config_used/linear.yaml']
-dirpath: /storage/DSIP/agobbi/Projects/ExpTS/paper_persistence_v3_weather
+dirpath: /storage3/DSIP/agobbi/Projects/ExpTS/paper_persistence_v3_weather
 
 set: 'test'
 name: 'weather'
@@ -16,11 +16,11 @@ hydra:
   launcher:
     submitit_folder: ${hydra.sweep.dir}/.submitit/%j
     timeout_min: 6000
-    partition: h200
+    partition: gpu-V100
     mem_gb: 8
     nodes: 1
-    gres: gpu:1
+    gres: shard:2   ## 2 shards x 4GB VRAM
     name: ${hydra.job.name}
     _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
     setup:
-      - source /storage/DSIP/agobbi/Projects/DSIPTS/dsipts/.venv/bin/activate  
+      - source /storage3/DSIP/agobbi/Projects/timeseries/dsipts/.venv/bin/activate  
