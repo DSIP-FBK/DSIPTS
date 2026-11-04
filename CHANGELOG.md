@@ -1,3 +1,5 @@
+## 1.1.66 
+- added fix for loading a model saved in another machine (otherwise fail to load the correct pth)
 ## 1.1.65
 - added new loss. Notice that some architecture have some bugs if the target is not a past covariate. TODO check if we can avoid to use the `target_index` value and for the model in which it is mandatory we need a flag to say it to the user
 ## 1.1.61 - 1.1.64

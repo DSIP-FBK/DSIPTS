@@ -1542,6 +1542,12 @@ class TimeSeries():
                 directory = self.dirpath
             else:
                 directory = dirpath
+            ## the pickled dirpath is absolute: if the run was moved (other machine / mount point) fall back to the
+            ## folder holding model.pkl, where train.py also writes checkpoint.ckpt / last.ckpt
+            if directory is None or not os.path.isdir(directory):
+                directory = os.path.dirname(os.path.abspath(filename))
+                beauty_string(f'Saved dirpath not found, loading checkpoints from {directory}','info',self.verbose)
+                self.dirpath = directory
 
             if load_last:
                 
