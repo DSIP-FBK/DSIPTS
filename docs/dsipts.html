@@ -5,11 +5,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>dsipts package &#8212; DSIPTS 1.2.0 documentation</title>
+    <title>dsipts package &#8212; DSIPTS 1.2.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
     <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
-    <script src="_static/documentation_options.js?v=6efca38a"></script>
+    <script src="_static/documentation_options.js?v=ca842793"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -3339,6 +3339,107 @@ idx_target: index of target features in the past array</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="dsipts.TimesNet.handle_quantile_loss">
 <span class="sig-name descname"><span class="pre">handle_quantile_loss</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#dsipts.TimesNet.handle_quantile_loss" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="dsipts.Timestral">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">dsipts.</span></span><span class="sig-name descname"><span class="pre">Timestral</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mistralai/Timestral-5M'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freeze</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_categorical</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric_averaging</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_num_in_past</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_cat_in_past</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_files_only</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsipts.Timestral" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="dsipts.models.html#dsipts.models.base_v2.Base" title="dsipts.models.base_v2.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></a></p>
+<p>Timestral (decoder-only patch transformer, 21 monotone quantiles) wrapped as a dsipts model.</p>
+<dl class="simple">
+<dt>Every variable becomes one row of the model (channel-as-token):</dt><dd><ul class="simple">
+<li><p>targets: x_num_past[:, :, idx_target]  (role TARGET)</p></li>
+<li><p>past numerical / categorical variables that are not future variables  (role PAST_COV)</p></li>
+<li><p>future numerical / categorical variables (role KNOWN_COV): their past values are taken from
+x_num_past / x_cat_past when the same variable is also a past variable (see future_*_in_past),
+otherwise the past part is marked as missing.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Future columns that are targets (idx_target_future) are always dropped: they would leak y.</p>
+<p>Output: (BS, future_steps, out_channels, mul). mul is chosen by Base from quantiles/loss_type and
+each requested level is mapped to the CLOSEST pretrained level (0.01, 0.05, 0.10, …, 0.95, 0.99):</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>quantiles=[]            -&gt; the median (any point loss: l1, mse, the persistence losses, …)</p></li>
+<li><p>quantiles=[q1,q2,q3]    -&gt; the three closest levels (QuantileLossMO)</p></li>
+<li><p>loss_type=’crps’ (M)    -&gt; member i -&gt; level closest to (i+0.5)/M (the convention Base.inference uses)</p></li>
+</ul>
+</div></blockquote>
+<p>Classification is not supported.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_path</strong> (<em>str</em>) – HF Hub repo id or local directory with config.json + model.safetensors.</p></li>
+<li><p><strong>freeze</strong> (<em>str</em>) – ‘none’ = fine-tune everything, ‘backbone’ = train only the quantile head.
+For a pure zero-shot run keep freeze=’none’ and set optim_config.lr=0 (and max_epochs=1):
+Lightning still needs a loss with a gradient, the weights do not move.</p></li>
+<li><p><strong>use_categorical</strong> (<em>bool</em>) – feed x_cat_past / x_cat_future as numeric rows (raw codes, as the official
+code does for multivariate targets). False drops them.</p></li>
+<li><p><strong>symmetric_averaging</strong> (<em>bool</em>) – test-time augmentation of the official forecaster, average the forecast
+with the reflected forecast of the negated input. Doubles the cost, also during training.</p></li>
+<li><p><strong>future_num_in_past</strong> (<em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – for each future numerical variable, its index in the past
+numerical variables or -1. Filled by bash_examples/train.py. None = no future variable is
+assumed to be in the past (works, but shared variables appear twice).</p></li>
+<li><p><strong>future_cat_in_past</strong> (<em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – same for the categorical variables.</p></li>
+<li><p><strong>local_files_only</strong> (<em>bool</em>) – do not contact the HF Hub (use the cache only), e.g. on offline nodes.
+HF_HUB_OFFLINE=1 does the same.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.Timestral.can_be_compiled">
+<span class="sig-name descname"><span class="pre">can_be_compiled</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsipts.Timestral.can_be_compiled" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.Timestral.description">
+<span class="sig-name descname"><span class="pre">description</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Can</span>&#160;&#160; <span class="pre">handle</span> <span class="pre">multivariate</span> <span class="pre">output</span> <span class="pre">\nCan</span>&#160;&#160; <span class="pre">handle</span> <span class="pre">future</span> <span class="pre">covariates\nCan</span>&#160;&#160; <span class="pre">handle</span> <span class="pre">categorical</span> <span class="pre">covariates\nCan</span>&#160;&#160; <span class="pre">handle</span> <span class="pre">Quantile</span> <span class="pre">loss</span> <span class="pre">function\n</span> <span class="pre">PRETRAINED</span> <span class="pre">FOUNDATION</span> <span class="pre">MODEL:</span> <span class="pre">categorical</span> <span class="pre">variables</span> <span class="pre">are</span> <span class="pre">passed</span> <span class="pre">as</span> <span class="pre">raw</span> <span class="pre">codes</span> <span class="pre">(numeric</span> <span class="pre">rows),</span> <span class="pre">quantiles</span> <span class="pre">are</span> <span class="pre">mapped</span> <span class="pre">to</span> <span class="pre">the</span> <span class="pre">closest</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">21</span> <span class="pre">pretrained</span> <span class="pre">levels'</span></span><a class="headerlink" href="#dsipts.Timestral.description" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.Timestral.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="headerlink" href="#dsipts.Timestral.forward" title="Link to this definition">¶</a></dt>
+<dd><p>Forlward method used during the training loop</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch</strong> (<em>dict</em>) – the batch structure. The keys are:
+y : the target variable(s). This is always present
+x_num_past: the numerical past variables. This is always present
+x_num_future: the numerical future variables
+x_cat_past: the categorical past variables
+x_cat_future: the categorical future variables
+idx_target: index of target features in the past array</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>output of the mode;</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.Timestral.handle_categorical_variables">
+<span class="sig-name descname"><span class="pre">handle_categorical_variables</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#dsipts.Timestral.handle_categorical_variables" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.Timestral.handle_future_covariates">
+<span class="sig-name descname"><span class="pre">handle_future_covariates</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#dsipts.Timestral.handle_future_covariates" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.Timestral.handle_multivariate">
+<span class="sig-name descname"><span class="pre">handle_multivariate</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#dsipts.Timestral.handle_multivariate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.Timestral.handle_quantile_loss">
+<span class="sig-name descname"><span class="pre">handle_quantile_loss</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#dsipts.Timestral.handle_quantile_loss" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>

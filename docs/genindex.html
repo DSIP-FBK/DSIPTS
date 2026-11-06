@@ -4,11 +4,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index &#8212; DSIPTS 1.2.0 documentation</title>
+    <title>Index &#8212; DSIPTS 1.2.1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
     <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
-    <script src="_static/documentation_options.js?v=6efca38a"></script>
+    <script src="_static/documentation_options.js?v=ca842793"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="index" title="Index" href="#" />
@@ -125,11 +125,23 @@
 </li>
       <li><a href="dsipts.models.html#dsipts.models.base_v2.DictSOTATSERBuffer.add">add() (dsipts.models.base_v2.DictSOTATSERBuffer method)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.scaler.advancing_block_frames">advancing_block_frames() (in module dsipts.models.timestral.scaler)</a>
+</li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.Chronos2EncoderOutput.all_group_self_attn_weights">all_group_self_attn_weights (dsipts.models.chronos2.layers.Chronos2EncoderOutput attribute)</a>
 </li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.Chronos2EncoderOutput.all_time_self_attn_weights">all_time_self_attn_weights (dsipts.models.chronos2.layers.Chronos2EncoderOutput attribute)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.scaler.apply_affine_asinh_masked">apply_affine_asinh_masked() (in module dsipts.models.timestral.scaler)</a>
+</li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.RoPE.apply_rotary_pos_emb">apply_rotary_pos_emb() (dsipts.models.chronos2.layers.RoPE static method)</a>
+</li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.attend_missing_patches">attend_missing_patches (dsipts.models.timestral.config.TimestralConfig attribute)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.attend_missing_patches">(dsipts.models.timestral.TimestralConfig attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.layers.Attention">Attention (class in dsipts.models.timestral.layers)</a>
 </li>
       <li><a href="dsipts.models.crossformer.html#dsipts.models.crossformer.attn.AttentionLayer">AttentionLayer (class in dsipts.models.crossformer.attn)</a>
 
@@ -145,6 +157,12 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.AttentionOutput">AttentionOutput (class in dsipts.models.chronos2.layers)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.attn_bias">attn_bias (dsipts.models.timestral.config.TimestralConfig attribute)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.attn_bias">(dsipts.models.timestral.TimestralConfig attribute)</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.AttentionOutput.attn_weights">attn_weights (dsipts.models.chronos2.layers.AttentionOutput attribute)</a>
 </li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2CoreConfig.attribute_map">attribute_map (dsipts.models.chronos2.config.Chronos2CoreConfig attribute)</a>
@@ -195,8 +213,6 @@
 </li>
       <li><a href="dsipts.models.timekan.html#dsipts.models.timekan.Layers.BasicConv">BasicConv (class in dsipts.models.timekan.Layers)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.html#dsipts.beauty_string">beauty_string() (in module dsipts)</a>, <a href="generated/dsipts.beauty_string.html#dsipts.beauty_string">[1]</a>
 
       <ul>
@@ -215,9 +231,33 @@
         <li><a href="dsipts.models.vva.html#dsipts.models.vva.minigpt.Block">(class in dsipts.models.vva.minigpt)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.block_schedule">block_schedule (dsipts.models.timestral.config.TimestralConfig attribute)</a>, <a href="dsipts.models.timestral.html#id0">[1]</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.block_schedule">(dsipts.models.timestral.TimestralConfig attribute)</a>, <a href="dsipts.models.timestral.html#id13">[1]</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.block_size">block_size (dsipts.models.timestral.config.TimestralConfig attribute)</a>, <a href="dsipts.models.timestral.html#id1">[1]</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.block_size">(dsipts.models.timestral.TimestralConfig attribute)</a>, <a href="dsipts.models.timestral.html#id14">[1]</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.BNELUConv">BNELUConv (class in dsipts.models.d3vae.neural_operations)</a>
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.BNSwishConv">BNSwishConv (class in dsipts.models.d3vae.neural_operations)</a>
+</li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.masks.build_forecast_positions">build_forecast_positions() (in module dsipts.models.timestral.masks)</a>
+</li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.masks.build_forecast_time_mask">build_forecast_time_mask() (in module dsipts.models.timestral.masks)</a>
+</li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.masks.build_two_stream_positions">build_two_stream_positions() (in module dsipts.models.timestral.masks)</a>
+</li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.masks.build_two_stream_time_mask">build_two_stream_time_mask() (in module dsipts.models.timestral.masks)</a>
+</li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.masks.build_two_stream_variate_mask">build_two_stream_variate_mask() (in module dsipts.models.timestral.masks)</a>
 </li>
       <li><a href="dsipts.data_management.html#dsipts.data_management.public_datasets.build_venice">build_venice() (in module dsipts.data_management.public_datasets)</a>
 </li>
@@ -310,6 +350,8 @@
 </li>
         <li><a href="dsipts.html#dsipts.TimesNet.can_be_compiled">(dsipts.TimesNet method)</a>
 </li>
+        <li><a href="dsipts.html#dsipts.Timestral.can_be_compiled">(dsipts.Timestral method)</a>
+</li>
         <li><a href="dsipts.html#dsipts.TimeXER.can_be_compiled">(dsipts.TimeXER method)</a>
 </li>
         <li><a href="dsipts.html#dsipts.TTM.can_be_compiled">(dsipts.TTM method)</a>
@@ -327,12 +369,14 @@
         <li><a href="dsipts.data_structure.html#dsipts.data_structure.data_structure.Categorical">(class in dsipts.data_structure.data_structure)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.scaler.causal_patch_loc_scale">causal_patch_loc_scale() (in module dsipts.models.timestral.scaler)</a>
+</li>
       <li><a href="dsipts.models.vva.html#dsipts.models.vva.minigpt.CausalSelfAttention">CausalSelfAttention (class in dsipts.models.vva.minigpt)</a>
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Cell">Cell (class in dsipts.models.d3vae.encoder)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.timekan.html#dsipts.models.timekan.Layers.ChebyKANLayer">ChebyKANLayer (class in dsipts.models.timekan.Layers)</a>
 </li>
       <li><a href="dsipts.models.timekan.html#dsipts.models.timekan.Layers.ChebyKANLinear">ChebyKANLinear (class in dsipts.models.timekan.Layers)</a>
@@ -357,9 +401,17 @@
 </li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.Chronos2LayerNorm">Chronos2LayerNorm (class in dsipts.models.chronos2.layers)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.scaler.clamp_nonfinite">clamp_nonfinite() (in module dsipts.models.timestral.scaler)</a>
+</li>
       <li><a href="dsipts.models.duet.html#dsipts.models.duet.layers.SparseDispatcher.combine">combine() (dsipts.models.duet.layers.SparseDispatcher method)</a>
 </li>
       <li><a href="dsipts.models.html#dsipts.models.utils.SinkhornDistance.compute">compute() (dsipts.models.utils.SinkhornDistance method)</a>
+</li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.masks.compute_block_layout">compute_block_layout() (in module dsipts.models.timestral.masks)</a>
+</li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.scaler.compute_causal_statistics">compute_causal_statistics() (in module dsipts.models.timestral.scaler)</a>
+</li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.masks.compute_enc_key_validity">compute_enc_key_validity() (in module dsipts.models.timestral.masks)</a>
 </li>
       <li><a href="dsipts.models.html#dsipts.models.utils.compute_softdtw">compute_softdtw() (in module dsipts.models.utils)</a>
 </li>
@@ -386,7 +438,13 @@
 </li>
       </ul></li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2ForecastingConfig.context_length">context_length (dsipts.models.chronos2.config.Chronos2ForecastingConfig attribute)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.context_length">(dsipts.models.timestral.config.TimestralConfig attribute)</a>, <a href="dsipts.models.timestral.html#id2">[1]</a>
 </li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.context_length">(dsipts.models.timestral.TimestralConfig attribute)</a>, <a href="dsipts.models.timestral.html#id15">[1]</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.Conv2D">Conv2D (class in dsipts.models.d3vae.neural_operations)</a>
 </li>
       <li><a href="dsipts.models.modern_tcn.html#dsipts.models.modern_tcn.layers.conv_bn">conv_bn() (in module dsipts.models.modern_tcn.layers)</a>
@@ -411,6 +469,12 @@
 </li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.utils.count_parameters">count_parameters() (in module dsipts.models.ttm.utils)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.covariate_enabled">covariate_enabled (dsipts.models.timestral.config.TimestralConfig attribute)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.covariate_enabled">(dsipts.models.timestral.TimestralConfig attribute)</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.create_data_loader">create_data_loader() (dsipts.data_structure.data_structure.TimeSeries method)</a>
 
       <ul>
@@ -427,6 +491,8 @@
       </ul></li>
       <li><a href="dsipts.models.html#dsipts.models.utils.CRPS">CRPS (class in dsipts.models.utils)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.scaler.cumulative_welford">cumulative_welford() (in module dsipts.models.timestral.scaler)</a>
+</li>
       <li><a href="dsipts.models.duet.html#dsipts.models.duet.layers.Linear_extractor_cluster.cv_squared">cv_squared() (dsipts.models.duet.layers.Linear_extractor_cluster method)</a>
 </li>
   </ul></td>
@@ -442,7 +508,13 @@
 </li>
       </ul></li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.MHA.d_model">d_model (dsipts.models.chronos2.layers.MHA attribute)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.d_model">(dsipts.models.timestral.config.TimestralConfig attribute)</a>, <a href="dsipts.models.timestral.html#id3">[1]</a>
 </li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.d_model">(dsipts.models.timestral.TimestralConfig attribute)</a>, <a href="dsipts.models.timestral.html#id16">[1]</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.embedding.DataEmbedding">DataEmbedding (class in dsipts.models.d3vae.embedding)</a>
 
       <ul>
@@ -484,6 +556,8 @@
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.diffusion_process.default">default() (in module dsipts.models.d3vae.diffusion_process)</a>
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.model.denoise_net">denoise_net (class in dsipts.models.d3vae.model)</a>
+</li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.scaler.denormalize_quantiles">denormalize_quantiles() (in module dsipts.models.timestral.scaler)</a>
 </li>
       <li><a href="dsipts.html#dsipts.Autoformer.description">description (dsipts.Autoformer attribute)</a>
 
@@ -568,6 +642,8 @@
 </li>
         <li><a href="dsipts.html#dsipts.TimesNet.description">(dsipts.TimesNet attribute)</a>
 </li>
+        <li><a href="dsipts.html#dsipts.Timestral.description">(dsipts.Timestral attribute)</a>
+</li>
         <li><a href="dsipts.html#dsipts.TimeXER.description">(dsipts.TimeXER attribute)</a>
 </li>
         <li><a href="dsipts.html#dsipts.TTM.description">(dsipts.TTM attribute)</a>
@@ -575,6 +651,12 @@
         <li><a href="dsipts.html#dsipts.VQVAEA.description">(dsipts.VQVAEA attribute)</a>
 </li>
         <li><a href="dsipts.html#dsipts.VVA.description">(dsipts.VVA attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.forecaster.TimestralForecaster.device">device (dsipts.models.timestral.forecaster.TimestralForecaster property)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralForecaster.device">(dsipts.models.timestral.TimestralForecaster property)</a>
 </li>
       </ul></li>
       <li><a href="dsipts.models.html#dsipts.models.base_v2.DictSOTATSERBuffer">DictSOTATSERBuffer (class in dsipts.models.base_v2)</a>
@@ -792,8 +874,6 @@
         <li><a href="dsipts.models.d3vae.html#module-dsipts.models.d3vae">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     dsipts.models.d3vae.diffusion_process
 
@@ -815,6 +895,8 @@
         <li><a href="dsipts.models.d3vae.html#module-dsipts.models.d3vae.encoder">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     dsipts.models.d3vae.model
 
@@ -1110,6 +1192,69 @@
 </li>
       </ul></li>
       <li>
+    dsipts.models.timestral
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#module-dsipts.models.timestral">module</a>
+</li>
+      </ul></li>
+      <li>
+    dsipts.models.timestral.config
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#module-dsipts.models.timestral.config">module</a>
+</li>
+      </ul></li>
+      <li>
+    dsipts.models.timestral.covariate_encoding
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#module-dsipts.models.timestral.covariate_encoding">module</a>
+</li>
+      </ul></li>
+      <li>
+    dsipts.models.timestral.forecaster
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#module-dsipts.models.timestral.forecaster">module</a>
+</li>
+      </ul></li>
+      <li>
+    dsipts.models.timestral.layers
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#module-dsipts.models.timestral.layers">module</a>
+</li>
+      </ul></li>
+      <li>
+    dsipts.models.timestral.loading
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#module-dsipts.models.timestral.loading">module</a>
+</li>
+      </ul></li>
+      <li>
+    dsipts.models.timestral.masks
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#module-dsipts.models.timestral.masks">module</a>
+</li>
+      </ul></li>
+      <li>
+    dsipts.models.timestral.model
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#module-dsipts.models.timestral.model">module</a>
+</li>
+      </ul></li>
+      <li>
+    dsipts.models.timestral.scaler
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#module-dsipts.models.timestral.scaler">module</a>
+</li>
+      </ul></li>
+      <li>
     dsipts.models.TimeXER
 
       <ul>
@@ -1256,6 +1401,10 @@
 </li>
       <li><a href="dsipts.models.html#dsipts.models.utils.Embedding_cat_variables">Embedding_cat_variables (class in dsipts.models.utils)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.masks.enc_causal_mask">enc_causal_mask() (in module dsipts.models.timestral.masks)</a>
+</li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.layers.TwoStreamMask.enc_len">enc_len (dsipts.models.timestral.layers.TwoStreamMask attribute)</a>
+</li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.EncCombinerCell">EncCombinerCell (class in dsipts.models.d3vae.neural_operations)</a>
 </li>
       <li><a href="dsipts.html#dsipts.Chronos2.encode">encode() (dsipts.Chronos2 method)</a>
@@ -1334,6 +1483,8 @@
 </li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.FeedForward">FeedForward (class in dsipts.models.chronos2.layers)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.forecaster.ffill_with_mask">ffill_with_mask() (in module dsipts.models.timestral.forecaster)</a>
+</li>
       <li><a href="dsipts.models.timesnet.html#dsipts.models.timesnet.Layers.FFT_for_Period">FFT_for_Period() (in module dsipts.models.timesnet.Layers)</a>
 </li>
       <li><a href="dsipts.models.samformer.html#dsipts.models.samformer.utils.SAM.first_step">first_step() (dsipts.models.samformer.utils.SAM method)</a>
@@ -1370,6 +1521,12 @@
 </li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.utils.ForceReturn">ForceReturn (class in dsipts.models.ttm.utils)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.Forecast">Forecast (class in dsipts.models.timestral)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.forecaster.Forecast">(class in dsipts.models.timestral.forecaster)</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.html#dsipts.ITransformer.forecast">forecast() (dsipts.ITransformer method)</a>
 
       <ul>
@@ -1377,9 +1534,15 @@
 </li>
         <li><a href="dsipts.models.html#dsipts.models.ITransformer.ITransformer.forecast">(dsipts.models.ITransformer.ITransformer method)</a>
 </li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.forecaster.TimestralForecaster.forecast">(dsipts.models.timestral.forecaster.TimestralForecaster method)</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralForecaster.forecast">(dsipts.models.timestral.TimestralForecaster method)</a>
+</li>
         <li><a href="dsipts.html#dsipts.TimesNet.forecast">(dsipts.TimesNet method)</a>
 </li>
       </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.model.PatchRepresentation.forecast_tokens">forecast_tokens() (dsipts.models.timestral.model.PatchRepresentation method)</a>
+</li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.ForecastChannelHeadMixer">ForecastChannelHeadMixer (class in dsipts.models.ttm.modeling_tinytimemixer)</a>
 </li>
       <li><a href="dsipts.html#dsipts.Autoformer.forward">forward() (dsipts.Autoformer method)</a>
@@ -1749,6 +1912,24 @@
 </li>
         <li><a href="dsipts.models.timesnet.html#dsipts.models.timesnet.Layers.TimesBlock.forward">(dsipts.models.timesnet.Layers.TimesBlock method)</a>
 </li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.layers.Attention.forward">(dsipts.models.timestral.layers.Attention method)</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.layers.FusedSwiGLU.forward">(dsipts.models.timestral.layers.FusedSwiGLU method)</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.layers.ResidualBlock.forward">(dsipts.models.timestral.layers.ResidualBlock method)</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.layers.RMSNorm.forward">(dsipts.models.timestral.layers.RMSNorm method)</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.layers.SinCosRoPE.forward">(dsipts.models.timestral.layers.SinCosRoPE method)</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.layers.Transformer.forward">(dsipts.models.timestral.layers.Transformer method)</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.layers.TransformerBlock.forward">(dsipts.models.timestral.layers.TransformerBlock method)</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.model.PatchRepresentation.forward">(dsipts.models.timestral.model.PatchRepresentation method)</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.model.QuantileHead.forward">(dsipts.models.timestral.model.QuantileHead method)</a>
+</li>
         <li><a href="dsipts.models.timexer.html#dsipts.models.timexer.Layers.Encoder.forward">(dsipts.models.timexer.Layers.Encoder method)</a>
 </li>
         <li><a href="dsipts.models.timexer.html#dsipts.models.timexer.Layers.EncoderLayer.forward">(dsipts.models.timexer.Layers.EncoderLayer method)</a>
@@ -1883,6 +2064,8 @@
 </li>
         <li><a href="dsipts.html#dsipts.TimesNet.forward">(dsipts.TimesNet method)</a>
 </li>
+        <li><a href="dsipts.html#dsipts.Timestral.forward">(dsipts.Timestral method)</a>
+</li>
         <li><a href="dsipts.html#dsipts.TimeXER.forward">(dsipts.TimeXER method)</a>
 </li>
         <li><a href="dsipts.html#dsipts.TTM.forward">(dsipts.TTM method)</a>
@@ -1906,6 +2089,18 @@
 </li>
       <li><a href="dsipts.models.timekan.html#dsipts.models.timekan.Layers.FrequencyMixing">FrequencyMixing (class in dsipts.models.timekan.Layers)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.from_dict">from_dict() (dsipts.models.timestral.config.TimestralConfig class method)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.from_dict">(dsipts.models.timestral.TimestralConfig class method)</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.forecaster.TimestralForecaster.from_pretrained">from_pretrained() (dsipts.models.timestral.forecaster.TimestralForecaster class method)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralForecaster.from_pretrained">(dsipts.models.timestral.TimestralForecaster class method)</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.models.crossformer.html#dsipts.models.crossformer.attn.FullAttention">FullAttention (class in dsipts.models.crossformer.attn)</a>
 
       <ul>
@@ -1917,6 +2112,8 @@
 </li>
       </ul></li>
       <li><a href="dsipts.models.modern_tcn.html#dsipts.models.modern_tcn.layers.fuse_bn">fuse_bn() (in module dsipts.models.modern_tcn.layers)</a>
+</li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.layers.FusedSwiGLU">FusedSwiGLU (class in dsipts.models.timestral.layers)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -2030,6 +2227,8 @@
       </ul></li>
       <li><a href="dsipts.models.tft.html#dsipts.models.tft.sub_nn.GRN">GRN (class in dsipts.models.tft.sub_nn)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.masks.group_first_observed_patch">group_first_observed_patch() (in module dsipts.models.timestral.masks)</a>
+</li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.Chronos2EncoderBlockOutput.group_self_attn_weights">group_self_attn_weights (dsipts.models.chronos2.layers.Chronos2EncoderBlockOutput attribute)</a>
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.utils.groups_per_scale">groups_per_scale() (in module dsipts.models.d3vae.utils)</a>
@@ -2129,6 +2328,8 @@
 </li>
         <li><a href="dsipts.html#dsipts.TimesNet.handle_categorical_variables">(dsipts.TimesNet attribute)</a>
 </li>
+        <li><a href="dsipts.html#dsipts.Timestral.handle_categorical_variables">(dsipts.Timestral attribute)</a>
+</li>
         <li><a href="dsipts.html#dsipts.TimeXER.handle_categorical_variables">(dsipts.TimeXER attribute)</a>
 </li>
         <li><a href="dsipts.html#dsipts.TTM.handle_categorical_variables">(dsipts.TTM attribute)</a>
@@ -2225,6 +2426,8 @@
 </li>
         <li><a href="dsipts.html#dsipts.TimesNet.handle_future_covariates">(dsipts.TimesNet attribute)</a>
 </li>
+        <li><a href="dsipts.html#dsipts.Timestral.handle_future_covariates">(dsipts.Timestral attribute)</a>
+</li>
         <li><a href="dsipts.html#dsipts.TimeXER.handle_future_covariates">(dsipts.TimeXER attribute)</a>
 </li>
         <li><a href="dsipts.html#dsipts.TTM.handle_future_covariates">(dsipts.TTM attribute)</a>
@@ -2320,6 +2523,8 @@
         <li><a href="dsipts.html#dsipts.TimeKAN.handle_multivariate">(dsipts.TimeKAN attribute)</a>
 </li>
         <li><a href="dsipts.html#dsipts.TimesNet.handle_multivariate">(dsipts.TimesNet attribute)</a>
+</li>
+        <li><a href="dsipts.html#dsipts.Timestral.handle_multivariate">(dsipts.Timestral attribute)</a>
 </li>
         <li><a href="dsipts.html#dsipts.TimeXER.handle_multivariate">(dsipts.TimeXER attribute)</a>
 </li>
@@ -2419,6 +2624,8 @@
 </li>
         <li><a href="dsipts.html#dsipts.TimesNet.handle_quantile_loss">(dsipts.TimesNet attribute)</a>
 </li>
+        <li><a href="dsipts.html#dsipts.Timestral.handle_quantile_loss">(dsipts.Timestral attribute)</a>
+</li>
         <li><a href="dsipts.html#dsipts.TimeXER.handle_quantile_loss">(dsipts.TimeXER attribute)</a>
 </li>
         <li><a href="dsipts.html#dsipts.TTM.handle_quantile_loss">(dsipts.TTM attribute)</a>
@@ -2426,6 +2633,12 @@
         <li><a href="dsipts.html#dsipts.VQVAEA.handle_quantile_loss">(dsipts.VQVAEA attribute)</a>
 </li>
         <li><a href="dsipts.html#dsipts.VVA.handle_quantile_loss">(dsipts.VVA attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.head_dim">head_dim (dsipts.models.timestral.config.TimestralConfig property)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.head_dim">(dsipts.models.timestral.TimestralConfig property)</a>
 </li>
       </ul></li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.AttentionOutput.hidden_states">hidden_states (dsipts.models.chronos2.layers.AttentionOutput attribute)</a>
@@ -2524,12 +2737,18 @@
 </li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2ForecastingConfig.input_patch_stride">input_patch_stride (dsipts.models.chronos2.config.Chronos2ForecastingConfig attribute)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.scaler.instance_norm_stats">instance_norm_stats() (in module dsipts.models.timestral.scaler)</a>
+</li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.InstanceNorm">InstanceNorm (class in dsipts.models.chronos2.layers)</a>
 </li>
       <li><a href="dsipts.models.tft.html#dsipts.models.tft.sub_nn.InterpretableMultiHead">InterpretableMultiHead (class in dsipts.models.tft.sub_nn)</a>
 </li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.RoPE.inv_freq">inv_freq (dsipts.models.chronos2.layers.RoPE attribute)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.layers.SinCosRoPE.inv_freq">(dsipts.models.timestral.layers.SinCosRoPE attribute)</a>
 </li>
+      </ul></li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.InstanceNorm.inverse">inverse() (dsipts.models.chronos2.layers.InstanceNorm method)</a>
 </li>
       <li><a href="dsipts.data_structure.html#dsipts.data_structure.data_structure.DummyScaler.inverse_transform">inverse_transform() (dsipts.data_structure.data_structure.DummyScaler method)</a>
@@ -2540,6 +2759,8 @@
         <li><a href="dsipts.data_structure.html#dsipts.data_structure.modifiers.ModifierVVA.inverse_transform">(dsipts.data_structure.modifiers.ModifierVVA method)</a>
 </li>
       </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.scaler.invert_affine_asinh">invert_affine_asinh() (in module dsipts.models.timestral.scaler)</a>
+</li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.InvertedResidual">InvertedResidual (class in dsipts.models.d3vae.neural_operations)</a>
 </li>
       <li><a href="dsipts.models.html#dsipts.models.base_v2.DictSOTATSERBuffer.is_empty">is_empty() (dsipts.models.base_v2.DictSOTATSERBuffer method)</a>
@@ -2607,6 +2828,10 @@
       <ul>
         <li><a href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.load">(dsipts.data_structure.data_structure.TimeSeries method)</a>
 </li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.load">(dsipts.models.timestral.config.TimestralConfig class method)</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.load">(dsipts.models.timestral.TimestralConfig class method)</a>
+</li>
         <li><a href="dsipts.html#dsipts.Monash.load">(dsipts.Monash method)</a>
 </li>
         <li><a href="dsipts.html#dsipts.TimeSeries.load">(dsipts.TimeSeries method)</a>
@@ -2614,6 +2839,12 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.load_model">load_model() (in module dsipts.models.timestral)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.loading.load_model">(in module dsipts.models.timestral.loading)</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.load_signal">load_signal() (dsipts.data_structure.data_structure.TimeSeries method)</a>
 
       <ul>
@@ -2667,21 +2898,53 @@
 </li>
         <li><a href="dsipts.models.itransformer.html#dsipts.models.itransformer.SelfAttention_Family.TriangularCausalMask.mask">(dsipts.models.itransformer.SelfAttention_Family.TriangularCausalMask property)</a>
 </li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.layers.TwoStreamMask.mask">(dsipts.models.timestral.layers.TwoStreamMask attribute)</a>
+</li>
       </ul></li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2ForecastingConfig.max_output_patches">max_output_patches (dsipts.models.chronos2.config.Chronos2ForecastingConfig attribute)</a>
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.MeanPoolConv">MeanPoolConv (class in dsipts.models.d3vae.resnet)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.Forecast.median">median (dsipts.models.timestral.Forecast property)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.forecaster.Forecast.median">(dsipts.models.timestral.forecaster.Forecast property)</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.median_index">median_index (dsipts.models.timestral.config.TimestralConfig property)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.median_index">(dsipts.models.timestral.TimestralConfig property)</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.utils.ModelSize.MEDIUM">MEDIUM (dsipts.models.ttm.utils.ModelSize attribute)</a>
 </li>
       <li><a href="dsipts.models.modern_tcn.html#dsipts.models.modern_tcn.layers.ReparamLargeKernelConv.merge_kernel">merge_kernel() (dsipts.models.modern_tcn.layers.ReparamLargeKernelConv method)</a>
 </li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.MHA">MHA (class in dsipts.models.chronos2.layers)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.minimum_scale">minimum_scale (dsipts.models.timestral.config.TimestralConfig attribute)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.minimum_scale">(dsipts.models.timestral.TimestralConfig attribute)</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.MLP">MLP (class in dsipts.models.chronos2.layers)</a>
 </li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.FeedForward.mlp">mlp (dsipts.models.chronos2.layers.FeedForward attribute)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.mlp_bias">mlp_bias (dsipts.models.timestral.config.TimestralConfig attribute)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.mlp_bias">(dsipts.models.timestral.TimestralConfig attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.mlp_hidden_dim">mlp_hidden_dim (dsipts.models.timestral.config.TimestralConfig attribute)</a>, <a href="dsipts.models.timestral.html#id4">[1]</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.mlp_hidden_dim">(dsipts.models.timestral.TimestralConfig attribute)</a>, <a href="dsipts.models.timestral.html#id17">[1]</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.models.xlstm.html#dsipts.models.xlstm.xLSTM.mLSTM">mLSTM (class in dsipts.models.xlstm.xLSTM)</a>
 </li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2CoreConfig.model_type">model_type (dsipts.models.chronos2.config.Chronos2CoreConfig attribute)</a>
@@ -2844,6 +3107,24 @@
 </li>
         <li><a href="dsipts.models.timesnet.html#module-dsipts.models.timesnet.Layers">dsipts.models.timesnet.Layers</a>
 </li>
+        <li><a href="dsipts.models.timestral.html#module-dsipts.models.timestral">dsipts.models.timestral</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#module-dsipts.models.timestral.config">dsipts.models.timestral.config</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#module-dsipts.models.timestral.covariate_encoding">dsipts.models.timestral.covariate_encoding</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#module-dsipts.models.timestral.forecaster">dsipts.models.timestral.forecaster</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#module-dsipts.models.timestral.layers">dsipts.models.timestral.layers</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#module-dsipts.models.timestral.loading">dsipts.models.timestral.loading</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#module-dsipts.models.timestral.masks">dsipts.models.timestral.masks</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#module-dsipts.models.timestral.model">dsipts.models.timestral.model</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#module-dsipts.models.timestral.scaler">dsipts.models.timestral.scaler</a>
+</li>
         <li><a href="dsipts.models.html#module-dsipts.models.TimeXER">dsipts.models.TimeXER</a>
 </li>
         <li><a href="dsipts.models.timexer.html#module-dsipts.models.timexer">dsipts.models.timexer</a>
@@ -2887,6 +3168,8 @@
         <li><a href="dsipts.data_management.html#dsipts.data_management.monash.Monash">(class in dsipts.data_management.monash)</a>
 </li>
       </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.model.monotone_quantiles">monotone_quantiles() (in module dsipts.models.timestral.model)</a>
+</li>
       <li><a href="dsipts.models.autoformer.html#dsipts.models.autoformer.layers.moving_avg">moving_avg (class in dsipts.models.autoformer.layers)</a>
 
       <ul>
@@ -2931,12 +3214,20 @@
 </li>
       <li><a href="dsipts.models.duet.html#dsipts.models.duet.layers.Linear_extractor_cluster.noisy_top_k_gating">noisy_top_k_gating() (dsipts.models.duet.layers.Linear_extractor_cluster method)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.forecaster.nonnegative_context">nonnegative_context() (in module dsipts.models.timestral.forecaster)</a>
+</li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.norm">norm() (in module dsipts.models.d3vae.neural_operations)</a>
+</li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.norm_eps">norm_eps (dsipts.models.timestral.config.TimestralConfig attribute)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.norm_eps">(dsipts.models.timestral.TimestralConfig attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Normal">Normal (class in dsipts.models.d3vae.encoder)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.encoder.Normal">Normal (class in dsipts.models.d3vae.encoder)</a>
-</li>
       <li><a href="dsipts.html#dsipts.Diffusion.normal_kl">normal_kl() (dsipts.Diffusion method)</a>
 
       <ul>
@@ -2951,6 +3242,18 @@
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.normalize_weight_jit">normalize_weight_jit() (in module dsipts.models.d3vae.neural_operations)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.num_heads">num_heads (dsipts.models.timestral.config.TimestralConfig attribute)</a>, <a href="dsipts.models.timestral.html#id5">[1]</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.num_heads">(dsipts.models.timestral.TimestralConfig attribute)</a>, <a href="dsipts.models.timestral.html#id18">[1]</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.num_quantiles">num_quantiles (dsipts.models.timestral.config.TimestralConfig property)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.num_quantiles">(dsipts.models.timestral.TimestralConfig property)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -2989,6 +3292,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.diffusion_process.GaussianDiffusion.p_losses">p_losses() (dsipts.models.d3vae.diffusion_process.GaussianDiffusion method)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.forecaster.pad_to_patch">pad_to_patch() (in module dsipts.models.timestral.forecaster)</a>
+</li>
       <li><a href="dsipts.models.modern_tcn.html#dsipts.models.modern_tcn.layers.ReparamLargeKernelConv.PaddingTwoEdge1d">PaddingTwoEdge1d() (dsipts.models.modern_tcn.layers.ReparamLargeKernelConv method)</a>
 </li>
       <li><a href="dsipts.models.html#dsipts.models.utils.pairwise_distances">pairwise_distances() (in module dsipts.models.utils)</a>
@@ -2997,7 +3302,19 @@
 </li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerModelOutput.patch_input">patch_input (dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerModelOutput attribute)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.patch_size">patch_size (dsipts.models.timestral.config.TimestralConfig attribute)</a>, <a href="dsipts.models.timestral.html#id6">[1]</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.forecaster.TimestralForecaster.patch_size">(dsipts.models.timestral.forecaster.TimestralForecaster property)</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.patch_size">(dsipts.models.timestral.TimestralConfig attribute)</a>, <a href="dsipts.models.timestral.html#id19">[1]</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralForecaster.patch_size">(dsipts.models.timestral.TimestralForecaster property)</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.PatchMixerBlock">PatchMixerBlock (class in dsipts.models.ttm.modeling_tinytimemixer)</a>
+</li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.model.PatchRepresentation">PatchRepresentation (class in dsipts.models.timestral.model)</a>
 </li>
       <li><a href="dsipts.html#dsipts.PatchTST">PatchTST (class in dsipts)</a>, <a href="generated/dsipts.PatchTST.html#dsipts.PatchTST">[1]</a>
 
@@ -3017,6 +3334,8 @@
         <li><a href="dsipts.models.html#dsipts.models.Persistent.Persistent">(class in dsipts.models.Persistent)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.PinballLoss">PinballLoss (class in dsipts.models.ttm.modeling_tinytimemixer)</a>
 </li>
       <li><a href="dsipts.html#dsipts.Categorical.plot">plot() (dsipts.Categorical method)</a>
@@ -3029,8 +3348,6 @@
         <li><a href="dsipts.html#dsipts.TimeSeries.plot">(dsipts.TimeSeries method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.patchtst.html#dsipts.models.patchtst.layers.positional_encoding">positional_encoding() (in module dsipts.models.patchtst.layers)</a>
 </li>
       <li><a href="dsipts.models.autoformer.html#dsipts.models.autoformer.layers.PositionalEmbedding">PositionalEmbedding (class in dsipts.models.autoformer.layers)</a>
@@ -3049,6 +3366,12 @@
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.model.pred_net">pred_net (class in dsipts.models.d3vae.model)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.model.TimestralModel.predict_block">predict_block() (dsipts.models.timestral.model.TimestralModel method)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralModel.predict_block">(dsipts.models.timestral.TimestralModel method)</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerForPredictionOutput.prediction_outputs">prediction_outputs (dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerForPredictionOutput attribute)</a>
 </li>
       <li><a href="dsipts.models.informer.html#dsipts.models.informer.attn.ProbAttention">ProbAttention (class in dsipts.models.informer.attn)</a>
@@ -3077,14 +3400,46 @@
         <li><a href="dsipts.models.html#dsipts.models.Diffusion.Diffusion.q_sample">(dsipts.models.Diffusion.Diffusion method)</a>
 </li>
       </ul></li>
+      <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.diffusion_process.GaussianDiffusion.q_sample_target">q_sample_target() (dsipts.models.d3vae.diffusion_process.GaussianDiffusion method)</a>
+</li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.Forecast.quantile">quantile() (dsipts.models.timestral.Forecast method)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.forecaster.Forecast.quantile">(dsipts.models.timestral.forecaster.Forecast method)</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.quantile_knots">quantile_knots (dsipts.models.timestral.config.TimestralConfig attribute)</a>, <a href="dsipts.models.timestral.html#id7">[1]</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.quantile_knots">(dsipts.models.timestral.TimestralConfig attribute)</a>, <a href="dsipts.models.timestral.html#id20">[1]</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.diffusion_process.GaussianDiffusion.q_sample_target">q_sample_target() (dsipts.models.d3vae.diffusion_process.GaussianDiffusion method)</a>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.Forecast.quantile_levels">quantile_levels (dsipts.models.timestral.Forecast attribute)</a>, <a href="dsipts.models.timestral.html#id11">[1]</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.forecaster.Forecast.quantile_levels">(dsipts.models.timestral.forecaster.Forecast attribute)</a>, <a href="dsipts.models.timestral.html#id9">[1]</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.quantile_width_factor">quantile_width_factor (dsipts.models.timestral.config.TimestralConfig attribute)</a>, <a href="dsipts.models.timestral.html#id8">[1]</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.quantile_width_factor">(dsipts.models.timestral.TimestralConfig attribute)</a>, <a href="dsipts.models.timestral.html#id21">[1]</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.model.QuantileHead">QuantileHead (class in dsipts.models.timestral.model)</a>
 </li>
       <li><a href="dsipts.models.html#dsipts.models.utils.QuantileLossMO">QuantileLossMO (class in dsipts.models.utils)</a>
 </li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2ForecastingConfig.quantiles">quantiles (dsipts.models.chronos2.config.Chronos2ForecastingConfig attribute)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.Forecast.quantiles">(dsipts.models.timestral.Forecast attribute)</a>, <a href="dsipts.models.timestral.html#id12">[1]</a>
 </li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.forecaster.Forecast.quantiles">(dsipts.models.timestral.forecaster.Forecast attribute)</a>, <a href="dsipts.models.timestral.html#id10">[1]</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -3105,6 +3460,8 @@
         <li><a href="dsipts.data_management.html#dsipts.data_management.public_datasets.read_public_dataset">(in module dsipts.data_management.public_datasets)</a>
 </li>
       </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.layers.SinCosRoPE.rebuild_inv_freq">rebuild_inv_freq() (dsipts.models.timestral.layers.SinCosRoPE method)</a>
+</li>
       <li><a href="dsipts.html#dsipts.Diffusion.remove_var">remove_var() (dsipts.Diffusion method)</a>
 
       <ul>
@@ -3121,6 +3478,8 @@
       </ul></li>
       <li><a href="dsipts.models.modern_tcn.html#dsipts.models.modern_tcn.layers.ReparamLargeKernelConv">ReparamLargeKernelConv (class in dsipts.models.modern_tcn.layers)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.forecaster.replace_extreme_values">replace_extreme_values() (in module dsipts.models.timestral.forecaster)</a>
+</li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.Res12_Quadratic">Res12_Quadratic (class in dsipts.models.d3vae.resnet)</a>
 </li>
       <li><a href="dsipts.models.xlstm.html#dsipts.models.xlstm.xLSTM.mLSTM.reset_parameters">reset_parameters() (dsipts.models.xlstm.xLSTM.mLSTM method)</a>
@@ -3131,8 +3490,6 @@
         <li><a href="dsipts.models.xlstm.html#dsipts.models.xlstm.xLSTM.xLSTMBlock.reset_parameters">(dsipts.models.xlstm.xLSTM.xLSTMBlock method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.vva.html#dsipts.models.vva.vqvae.Residual">Residual (class in dsipts.models.vva.vqvae)</a>
 </li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.ResidualBlock">ResidualBlock (class in dsipts.models.chronos2.layers)</a>
@@ -3142,10 +3499,16 @@
 </li>
         <li><a href="dsipts.models.html#dsipts.models.TIDE.ResidualBlock">(class in dsipts.models.TIDE)</a>
 </li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.layers.ResidualBlock">(class in dsipts.models.timestral.layers)</a>
+</li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.tft.html#dsipts.models.tft.sub_nn.ResidualConnection">ResidualConnection (class in dsipts.models.tft.sub_nn)</a>
 </li>
       <li><a href="dsipts.models.vva.html#dsipts.models.vva.vqvae.ResidualStack">ResidualStack (class in dsipts.models.vva.vqvae)</a>
+</li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.loading.resolve_checkpoint">resolve_checkpoint() (in module dsipts.models.timestral.loading)</a>
 </li>
       <li><a href="dsipts.models.duet.html#dsipts.models.duet.layers.RevIN">RevIN (class in dsipts.models.duet.layers)</a>
 
@@ -3159,6 +3522,8 @@
       </ul></li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.utils.RMSELoss">RMSELoss (class in dsipts.models.ttm.utils)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.layers.RMSNorm">RMSNorm (class in dsipts.models.timestral.layers)</a>
+</li>
       <li><a href="dsipts.html#dsipts.RNN">RNN (class in dsipts)</a>, <a href="generated/dsipts.RNN.html#dsipts.RNN">[1]</a>
 
       <ul>
@@ -3169,6 +3534,24 @@
 </li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.RoPE">RoPE (class in dsipts.models.chronos2.layers)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.rope_dim">rope_dim (dsipts.models.timestral.config.TimestralConfig property)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.rope_dim">(dsipts.models.timestral.TimestralConfig property)</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.rope_partial_factor">rope_partial_factor (dsipts.models.timestral.config.TimestralConfig attribute)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.rope_partial_factor">(dsipts.models.timestral.TimestralConfig attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.rope_theta">rope_theta (dsipts.models.timestral.config.TimestralConfig attribute)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.rope_theta">(dsipts.models.timestral.TimestralConfig attribute)</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.layers.RoPE.rotate_half">rotate_half() (dsipts.models.chronos2.layers.RoPE static method)</a>
 </li>
   </ul></td>
@@ -3204,6 +3587,10 @@
       <ul>
         <li><a href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.save">(dsipts.data_structure.data_structure.TimeSeries method)</a>
 </li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.save">(dsipts.models.timestral.config.TimestralConfig method)</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.save">(dsipts.models.timestral.TimestralConfig method)</a>
+</li>
         <li><a href="dsipts.html#dsipts.Monash.save">(dsipts.Monash method)</a>
 </li>
         <li><a href="dsipts.html#dsipts.TimeSeries.save">(dsipts.TimeSeries method)</a>
@@ -3213,6 +3600,12 @@
 
       <ul>
         <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerModelOutput.scale">(dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerModelOutput attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.model.TimestralModel.scale">scale() (dsipts.models.timestral.model.TimestralModel method)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralModel.scale">(dsipts.models.timestral.TimestralModel method)</a>
 </li>
       </ul></li>
       <li><a href="dsipts.models.crossformer.html#dsipts.models.crossformer.cross_encoder.scale_block">scale_block (class in dsipts.models.crossformer.cross_encoder)</a>
@@ -3245,8 +3638,6 @@
         <li><a href="dsipts.models.timekan.html#dsipts.models.timekan.Layers.series_decomp">(class in dsipts.models.timekan.Layers)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.set_model">set_model() (dsipts.data_structure.data_structure.TimeSeries method)</a>
 
       <ul>
@@ -3259,6 +3650,8 @@
         <li><a href="dsipts.html#dsipts.TimeSeries.set_verbose">(dsipts.TimeSeries method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.html#dsipts.Simple">Simple (class in dsipts)</a>
 
       <ul>
@@ -3266,6 +3659,8 @@
 </li>
       </ul></li>
       <li><a href="dsipts.models.patchtst.html#dsipts.models.patchtst.layers.SinCosPosEncoding">SinCosPosEncoding() (in module dsipts.models.patchtst.layers)</a>
+</li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.layers.SinCosRoPE">SinCosRoPE (class in dsipts.models.timestral.layers)</a>
 </li>
       <li><a href="dsipts.models.html#dsipts.models.utils.SinkhornDistance">SinkhornDistance (class in dsipts.models.utils)</a>
 </li>
@@ -3279,6 +3674,12 @@
 </li>
       <li><a href="dsipts.models.duet.html#dsipts.models.duet.layers.SparseDispatcher">SparseDispatcher (class in dsipts.models.duet.layers)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.split_context_horizon_attn">split_context_horizon_attn (dsipts.models.timestral.config.TimestralConfig attribute)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.split_context_horizon_attn">(dsipts.models.timestral.TimestralConfig attribute)</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.data_structure.html#dsipts.data_structure.data_structure.TimeSeries.split_for_train">split_for_train() (dsipts.data_structure.data_structure.TimeSeries method)</a>
 
       <ul>
@@ -3287,6 +3688,12 @@
       </ul></li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.Square">Square (class in dsipts.models.d3vae.resnet)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.stabilize_with_global">stabilize_with_global (dsipts.models.timestral.config.TimestralConfig attribute)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.stabilize_with_global">(dsipts.models.timestral.TimestralConfig attribute)</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.models.modern_tcn.html#dsipts.models.modern_tcn.layers.Stage">Stage (class in dsipts.models.modern_tcn.layers)</a>
 </li>
       <li><a href="dsipts.models.html#dsipts.models.base.standardize_momentum">standardize_momentum() (in module dsipts.models.base)</a>
@@ -3301,8 +3708,24 @@
 </li>
       <li><a href="dsipts.models.html#dsipts.models.Diffusion.SubNet3">SubNet3 (class in dsipts.models.Diffusion)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.forecaster.TimestralForecaster.supports_covariates">supports_covariates (dsipts.models.timestral.forecaster.TimestralForecaster property)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralForecaster.supports_covariates">(dsipts.models.timestral.TimestralForecaster property)</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerPreTrainedModel.supports_gradient_checkpointing">supports_gradient_checkpointing (dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerPreTrainedModel attribute)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.supports_known_covariates">supports_known_covariates (dsipts.models.timestral.config.TimestralConfig property)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.forecaster.TimestralForecaster.supports_known_covariates">(dsipts.models.timestral.forecaster.TimestralForecaster property)</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.supports_known_covariates">(dsipts.models.timestral.TimestralConfig property)</a>
+</li>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralForecaster.supports_known_covariates">(dsipts.models.timestral.TimestralForecaster property)</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.Swish">Swish (class in dsipts.models.d3vae.neural_operations)</a>
 
       <ul>
@@ -3321,6 +3744,8 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.covariate_encoding.target_encode">target_encode() (in module dsipts.models.timestral.covariate_encoding)</a>
+</li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.embedding.TemporalEmbedding">TemporalEmbedding (class in dsipts.models.d3vae.embedding)</a>
 
       <ul>
@@ -3339,6 +3764,12 @@
 
       <ul>
         <li><a href="dsipts.models.html#dsipts.models.TIDE.TIDE">(class in dsipts.models.TIDE)</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.time_attn_gate">time_attn_gate (dsipts.models.timestral.config.TimestralConfig attribute)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.time_attn_gate">(dsipts.models.timestral.TimestralConfig attribute)</a>
 </li>
       </ul></li>
       <li><a href="dsipts.models.autoformer.html#dsipts.models.autoformer.layers.AutoCorrelation.time_delay_agg_full">time_delay_agg_full() (dsipts.models.autoformer.layers.AutoCorrelation method)</a>
@@ -3371,6 +3802,26 @@
       </ul></li>
       <li><a href="dsipts.html#dsipts.TimesNet">TimesNet (class in dsipts)</a>
 </li>
+      <li><a href="dsipts.html#dsipts.Timestral">Timestral (class in dsipts)</a>
+</li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig">TimestralConfig (class in dsipts.models.timestral)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig">(class in dsipts.models.timestral.config)</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralForecaster">TimestralForecaster (class in dsipts.models.timestral)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.forecaster.TimestralForecaster">(class in dsipts.models.timestral.forecaster)</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralModel">TimestralModel (class in dsipts.models.timestral)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.model.TimestralModel">(class in dsipts.models.timestral.model)</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.html#dsipts.TimeXER">TimeXER (class in dsipts)</a>, <a href="generated/dsipts.TimeXER.html#dsipts.TimeXER">[1]</a>
 
       <ul>
@@ -3397,12 +3848,12 @@
 </li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerEncoderOutput">TinyTimeMixerEncoderOutput (class in dsipts.models.ttm.modeling_tinytimemixer)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerForMaskedPrediction">TinyTimeMixerForMaskedPrediction (class in dsipts.models.ttm.modeling_tinytimemixer)</a>
 </li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerForPrediction">TinyTimeMixerForPrediction (class in dsipts.models.ttm.modeling_tinytimemixer)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerForPredictionHead">TinyTimeMixerForPredictionHead (class in dsipts.models.ttm.modeling_tinytimemixer)</a>
 </li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerForPredictionOutput">TinyTimeMixerForPredictionOutput (class in dsipts.models.ttm.modeling_tinytimemixer)</a>
@@ -3431,6 +3882,12 @@
 </li>
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.TinyTimeMixerStdScaler">TinyTimeMixerStdScaler (class in dsipts.models.ttm.modeling_tinytimemixer)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.to_dict">to_dict() (dsipts.models.timestral.config.TimestralConfig method)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.to_dict">(dsipts.models.timestral.TimestralConfig method)</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.embedding.TokenEmbedding">TokenEmbedding (class in dsipts.models.d3vae.embedding)</a>
 
       <ul>
@@ -3463,6 +3920,10 @@
         <li><a href="dsipts.data_structure.html#dsipts.data_structure.modifiers.ModifierVVA.transform">(dsipts.data_structure.modifiers.ModifierVVA method)</a>
 </li>
       </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.layers.Transformer">Transformer (class in dsipts.models.timestral.layers)</a>
+</li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.layers.TransformerBlock">TransformerBlock (class in dsipts.models.timestral.layers)</a>
+</li>
       <li><a href="dsipts.models.patchtst.html#dsipts.models.patchtst.layers.Transpose">Transpose (class in dsipts.models.patchtst.layers)</a>
 </li>
       <li><a href="dsipts.models.informer.html#dsipts.models.informer.attn.TriangularCausalMask">TriangularCausalMask (class in dsipts.models.informer.attn)</a>
@@ -3485,6 +3946,8 @@
       </ul></li>
       <li><a href="dsipts.models.crossformer.html#dsipts.models.crossformer.attn.TwoStageAttentionLayer">TwoStageAttentionLayer (class in dsipts.models.crossformer.attn)</a>
 </li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.layers.TwoStreamMask">TwoStreamMask (class in dsipts.models.timestral.layers)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -3495,10 +3958,16 @@
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.neural_operations.UpSample">UpSample (class in dsipts.models.d3vae.neural_operations)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2ForecastingConfig.use_arcsinh">use_arcsinh (dsipts.models.chronos2.config.Chronos2ForecastingConfig attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.use_asinh">use_asinh (dsipts.models.timestral.config.TimestralConfig attribute)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.use_asinh">(dsipts.models.timestral.TimestralConfig attribute)</a>
+</li>
+      </ul></li>
       <li><a href="dsipts.models.chronos2.html#dsipts.models.chronos2.config.Chronos2ForecastingConfig.use_reg_token">use_reg_token (dsipts.models.chronos2.config.Chronos2ForecastingConfig attribute)</a>
 </li>
   </ul></td>
@@ -3507,10 +3976,20 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.config.TimestralConfig.variate_attn_gate">variate_attn_gate (dsipts.models.timestral.config.TimestralConfig attribute)</a>
+
+      <ul>
+        <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.TimestralConfig.variate_attn_gate">(dsipts.models.timestral.TimestralConfig attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.masks.variate_firewall">variate_firewall() (in module dsipts.models.timestral.masks)</a>
+</li>
       <li><a href="dsipts.models.vva.html#dsipts.models.vva.vqvae.VectorQuantizer">VectorQuantizer (class in dsipts.models.vva.vqvae)</a>
 </li>
       <li><a href="dsipts.models.vva.html#dsipts.models.vva.vqvae.VectorQuantizerEMA">VectorQuantizerEMA (class in dsipts.models.vva.vqvae)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.models.vva.html#dsipts.models.vva.vqvae.VQVAE">VQVAE (class in dsipts.models.vva.vqvae)</a>
 </li>
       <li><a href="dsipts.html#dsipts.VQVAEA">VQVAEA (class in dsipts)</a>, <a href="generated/dsipts.VQVAEA.html#dsipts.VQVAEA">[1]</a>
@@ -3519,8 +3998,6 @@
         <li><a href="dsipts.models.html#dsipts.models.VQVAEA.VQVAEA">(class in dsipts.models.VQVAEA)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="dsipts.html#dsipts.VVA">VVA (class in dsipts)</a>, <a href="generated/dsipts.VVA.html#dsipts.VVA">[1]</a>
 
       <ul>
@@ -3544,6 +4021,8 @@
       <li><a href="dsipts.models.ttm.html#dsipts.models.ttm.modeling_tinytimemixer.weighted_average">weighted_average() (in module dsipts.models.ttm.modeling_tinytimemixer)</a>
 </li>
       <li><a href="dsipts.models.d3vae.html#dsipts.models.d3vae.resnet.weights_init">weights_init() (in module dsipts.models.d3vae.resnet)</a>
+</li>
+      <li><a href="dsipts.models.timestral.html#dsipts.models.timestral.scaler.welford_combine">welford_combine() (in module dsipts.models.timestral.scaler)</a>
 </li>
   </ul></td>
 </tr></table>
