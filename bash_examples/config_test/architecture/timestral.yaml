@@ -1,0 +1,60 @@
+# @package _global_
+# Timestral (Mistral AI) pretrained foundation model, see dsipts/src/dsipts/models/Timestral.py
+#
+# NETWORK / WEIGHTS
+#   The weights (mistralai/Timestral-{5M,28M,123M,209M}) are downloaded from the HF Hub EVERY time the
+#   model is built: at training AND when it is reloaded for inference (the checkpoint is loaded on top).
+#   After the first download they are read from the HF cache (~/.cache/huggingface, or $HF_HOME).
+#   On compute nodes without internet:
+#     1. on a machine with internet (e.g. the login node), download once into the shared cache:
+#          python -c "from huggingface_hub import snapshot_download; snapshot_download('mistralai/Timestral-5M', allow_patterns=['config.json','model.safetensors'])"
+#     2. then set model_configs.local_files_only=true (or export HF_HUB_OFFLINE=1) in the job.
+#   Alternatively point model_path to a local directory holding config.json + model.safetensors.
+#
+# ZERO-SHOT (no fine-tuning)
+#   Lightning needs a loss with a gradient, so run one epoch with learning rate 0: the weights do not move.
+#     python train.py --config-dir=config_test --config-name=config architecture=timestral \
+#         model_configs.freeze=none optim_config.lr=0 optim_config.weight_decay=0 train_config.max_epochs=1
+#   then compare/inference as usual. Note: the official forecaster's symmetric averaging is off by default
+#   here (symmetric_averaging: false); set it to true to reproduce the official zero-shot numbers more closely.
+#
+# FINE-TUNING
+#   freeze: none = full fine-tune, freeze: backbone = only the quantile head. Keep lr small (1e-5 .. 1e-4).
+#   Any loss works: quantiles: [] -> median output (l1, mse, persistence losses); 3 quantiles or crps ->
+#   mapped to the closest of the 21 pretrained levels (0.01, 0.05, 0.10, ..., 0.95, 0.99).
+
+model:
+  type: 'timestral'
+  retrain: true
+  restart: false
+
+ts:
+  name: 'test'
+  version: 1
+  enrich: ['hour']
+  use_covariates: true
+  use_future_covariates: true
+
+model_configs:
+  model_path: 'mistralai/Timestral-5M'   # or -28M / -123M / -209M, or a local dir with config.json + model.safetensors
+  freeze: 'none'                         # 'none' = full fine-tune, 'backbone' = train only the quantile head
+  use_categorical: true                  # categorical variables enter as raw-code numeric rows
+  symmetric_averaging: false             # official test-time augmentation, doubles the cost (also in training)
+  local_files_only: false
+  future_num_in_past: null               # dataset dependent, filled by train.py
+  future_cat_in_past: null               # dataset dependent, filled by train.py
+
+  loss_type: 'l1'
+  persistence_weight: 0.0
+  # quantiles: [] -> median; [0.1,0.5,0.9] -> closest of the 21 pretrained levels (0.01,0.05,...,0.95,0.99)
+  quantiles: []
+
+  # patch size is 32: past_steps that are not a multiple of 32 are left-padded (marked missing)
+
+train_config:
+  batch_size: 64   # rows = batch_size * (targets + covariates): reduce it with many variables
+  max_epochs: 2
+
+optim_config:
+  lr: 0.00001      # fine-tuning a pretrained model: keep it small. lr: 0 + max_epochs: 1 = zero-shot
+  weight_decay: 0.0

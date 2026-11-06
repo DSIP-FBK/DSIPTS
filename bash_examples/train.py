@@ -99,6 +99,12 @@ def train(conf: DictConfig) -> None:
         # model_conf['exogenous_channel_indices_cont'] =  [int(a) for a in list(np.where(np.isin(np.array(ts.past_variables),np.array(ts.future_variables)))[0])]
         # model_conf['exogenous_channel_indices_cat'] = [int(a) for a in list(np.where(np.isin(np.array(ts.cat_past_var),np.array(ts.cat_fut_var)))[0])]
 
+    if conf.model.type == 'timestral':
+        ## for each future variable, its index among the past variables (-1 if past-only absent):
+        ## Timestral then reads a shared variable as ONE known-future row (past + future values)
+        model_conf['future_num_in_past'] = [ts.past_variables.index(v) if v in ts.past_variables else -1 for v in ts.future_variables]
+        model_conf['future_cat_in_past'] = [ts.cat_past_var.index(v) if v in ts.cat_past_var else -1 for v in ts.cat_fut_var]
+
     model = select_model(conf, model_conf, ts)
     if model is None:
         return 1000

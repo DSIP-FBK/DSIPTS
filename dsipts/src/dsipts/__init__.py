@@ -30,6 +30,7 @@ from .models.TimesNet import TimesNet
 from .models.TimeKAN import TimeKAN
 from .models.Chronos2 import Chronos2
 from .models.ModernTCN import ModernTCN
+from .models.Timestral import Timestral
 
 from .version import __version__
 try:
@@ -51,5 +52,5 @@ __all__ = [
     "Informer", "VVA", "VQVAEA", "CrossFormer", "Autoformer", "PatchTST",
     "Diffusion", "DilatedConvED", "TIDE", "ITransformer", "TimeXER",
     "TTM", "Samformer", "Duet", "Base", "Simple","TimesNet","TimeKAN",
-    "Chronos2","ModernTCN"
+    "Chronos2","ModernTCN","Timestral"
 ]
