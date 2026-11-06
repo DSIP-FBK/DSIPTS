@@ -623,7 +623,7 @@ class Embedding_cat_variables(nn.Module):
     
     
     
-class CPRS(nn.Module):
+class CRPS(nn.Module):
     """
     Efficient vectorized implementation of Almost Fair CRPS.
     

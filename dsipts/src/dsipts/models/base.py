@@ -12,7 +12,7 @@ import numpy as np
 #from aim import Image
 import matplotlib.pyplot as plt
 from typing import List, Union
-from .utils import QuantileLossMO, CPRS
+from .utils import QuantileLossMO, CRPS
 import torch.nn as nn
 from torch.optim import Adam, AdamW, SGD, RMSprop   
 
@@ -142,10 +142,10 @@ class Base(pl.LightningModule):
         if n_classes==0:
             self.is_classification = False
             if len(self.quantiles)>0:
-                if self.loss_type=='cprs':
+                if self.loss_type=='crps':
                     self.use_quantiles = True
                     self.mul = len(self.quantiles)
-                    self.loss = CPRS(alpha=self.persistence_weight)
+                    self.loss = CRPS(alpha=self.persistence_weight)
                 else:
                     assert len(self.quantiles)==3, beauty_string('ONLY 3 quantiles premitted','info',True)
                     self.use_quantiles = True
@@ -198,7 +198,7 @@ class Base(pl.LightningModule):
         Returns:
             torch.tensor: result
         """
-        if self.loss_type=='cprs':
+        if self.loss_type=='crps':
             tmp = self(batch)
             tmp = torch.quantile(tmp, torch.tensor([0.05, 0.5, 0.95]), dim=-1).permute(1,2,3,0)
             return tmp
@@ -384,7 +384,7 @@ class Base(pl.LightningModule):
         :meta private:
         """
 
-        if self.loss_type=='cprs':
+        if self.loss_type=='crps':
             return self.loss(y_hat,batch['y'])
 
         if self.loss_type=='long_lag':
