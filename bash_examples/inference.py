@@ -1,3 +1,4 @@
+import re
 
 import argparse
 import pandas as pd
@@ -23,8 +24,8 @@ def inference_stacked(conf:DictConfig,ts:TimeSeries)->List[pd.DataFrame]:
             original_data, columns = read_public_dataset(**f.dataset)
         ##this can be more informative but the names are too long
         #prediction['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
-        model_features = [c for c in prediction.columns if ('pred' in c or 'median' in c)]
-        real_features = [c for c in prediction.columns if not any( k in c for k in ['median','pred','lag','low','high','time']  )]
+        model_features = [c for c in prediction.columns if ('pred' in c or c.endswith('_q0.5'))]
+        real_features = [c for c in prediction.columns if not (any( k in c for k in ['pred','lag','time']) or re.search(r'_q[0-9.e-]+$',c))]
         ##renaming columns
         prediction = prediction[real_features+model_features+['time','lag']]
         mapping = {}            
@@ -108,7 +109,7 @@ def inference(conf:DictConfig,split_params=None)->List[pd.DataFrame]:
                                 continual=conf.inference.get('continual',None))
 
     errors = []
-    feat = '_median' if ts.model.use_quantiles else '_pred'
+    feat = '_q0.5' if ts.model.use_quantiles else '_pred'
     for c in ts.target_variables:
         
         tmp = res.groupby('lag').apply(lambda x: mse(x[f'{c}{feat}'].values,x[c].values)).reset_index().rename(columns={0:'MSE'})

@@ -1,0 +1,37 @@
+# @package _global_
+
+model:
+  type: 'simple'
+  retrain: true
+  restart: false
+ts:
+  name: 'syntetic'
+  version: 2 ##simple.yaml is version 1: different version so the outputs do not overwrite each other
+  enrich: [] #['hour']
+  use_covariates: true # false
+  use_future_covariates: true
+  silly: false
+
+model_configs:
+  use_classical_positional_encoder: true 
+  emb_dim: 16 
+  reduction_mode: mean 
+  dropout_rate: 0.0
+  hidden_size: 512
+  optim: torch.optim.Adam
+  activation: torch.nn.ReLU
+  persistence_weight: 0.0
+  loss_type: 'l1'
+  quantiles: [0.05,0.25,0.5,0.75,0.95] ##any odd number of strictly increasing levels in (0,1) containing 0.5; exported as y_q0.05 ... y_q0.95
+  continual_learning:
+    alpha: 0.5
+    beta: 0.5
+    capacity: 1000
+train_config:
+  batch_size: 64
+  max_epochs: 5
+  
+optim_config:
+  lr: 0.0004
+  weight_decay: 0.0001
+              

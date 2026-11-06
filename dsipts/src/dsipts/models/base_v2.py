@@ -133,7 +133,8 @@ class DictSOTATSERBuffer:
             if y_hat.shape[-1] == 1:
                 loss_score = F.mse_loss(y_hat[:,:,0], y).item()
             else:
-                loss_score = F.mse_loss(y_hat[:,:,1], y).item()
+                ##quantile levels (sorted, odd, containing 0.5) or crps members: the median over the last axis
+                loss_score = F.mse_loss(y_hat.median(dim=-1).values, y).item()
             
             # Calcola la varianza sulle feature numeriche passate se presenti
             if 'x_num_past' in sample and isinstance(sample['x_num_past'], torch.Tensor):
@@ -282,6 +283,15 @@ class Base(pl.LightningModule):
         self.register_buffer("validation_epoch_count", torch.tensor(0))
         
         self.use_quantiles = True if len(quantiles)>0 else False
+        if len(quantiles)>0:
+            ##quantiles are the output levels (exported as <target>_q<level>): an odd number of strictly increasing
+            ##levels in (0,1) that contains the median 0.5
+            assert all(0<q<1 for q in quantiles), beauty_string(f'quantiles must be levels in (0,1), got {list(quantiles)}','info',True)
+            assert all(quantiles[i]<quantiles[i+1] for i in range(len(quantiles)-1)), beauty_string(f'quantiles must be strictly increasing, got {list(quantiles)}','info',True)
+            assert len(quantiles)%2==1 and 0.5 in quantiles, beauty_string(f'quantiles must be an odd number of levels containing 0.5, got {list(quantiles)}','info',True)
+            self.median_idx = list(quantiles).index(0.5)
+        else:
+            self.median_idx = 0
         self.quantiles =  quantiles
         self.optim = optim
         self.optim_config = optim_config
@@ -317,14 +327,19 @@ class Base(pl.LightningModule):
             self.is_classification = False
             if len(self.quantiles)>0:
                 if self.loss_type=='crps':
-                    ##quantiles here only sets the number of ensemble members; inference always returns 0.05/0.5/0.95,
-                    ##and with fewer than 10 members the 0.05/0.95 levels fall outside the members (interval too narrow)
-                    assert len(self.quantiles)>=10, beauty_string(f'crps needs at least 10 ensemble members (len(quantiles)>=10, got {len(self.quantiles)}); the output is always lower/median/upper = quantiles 0.05/0.5/0.95','info',True)
+                    ##one ensemble member per requested level (M=len(quantiles)); inference returns the requested levels.
+                    ##Members sit at levels (i+0.5)/M: levels outside [0.5/M, 1-0.5/M] are clamped to the extreme member
+                    ##persistence_weight is the afCRPS alpha: alpha>0 (fair CRPS) is only valid for stochastic members,
+                    ##here the members are deterministic heads and alpha>0 rewards unbounded spread
+                    assert self.persistence_weight==0, beauty_string(f'crps requires persistence_weight=0 (it is the fair-CRPS alpha, degenerate with deterministic members), got {self.persistence_weight}','info',True)
+                    assert len(self.quantiles)>=10, beauty_string(f'crps needs at least 10 ensemble members (len(quantiles)>=10, got {len(self.quantiles)})','info',True)
+                    M = len(self.quantiles)
+                    if self.quantiles[0]<0.5/M or self.quantiles[-1]>1-0.5/M:
+                        beauty_string(f'crps: with {M} members only levels in [{0.5/M:.4f}, {1-0.5/M:.4f}] are resolved, {self.quantiles[0]} / {self.quantiles[-1]} will be clamped to the extreme members','info',True)
                     self.use_quantiles = True
                     self.mul = len(self.quantiles)
                     self.loss = CRPS(alpha=self.persistence_weight)
                 else:
-                    assert len(self.quantiles)==3, beauty_string('ONLY 3 quantiles premitted','info',True)
                     self.use_quantiles = True
                     self.mul = len(self.quantiles)
                     self.loss = QuantileLossMO(quantiles)
@@ -392,13 +407,13 @@ class Base(pl.LightningModule):
             tmp = self(batch)                                              # (B,H,C,M)
             xs, _ = torch.sort(tmp, dim=-1)
             M = xs.shape[-1]
-            q = torch.tensor([0.05, 0.5, 0.95], device=xs.device, dtype=xs.dtype)
+            q = torch.tensor(list(self.quantiles), device=xs.device, dtype=xs.dtype)
             ##CRPS-optimal members sit at levels (i+0.5)/M, not i/(M-1) as torch.quantile assumes
             pos = (q*M - 0.5).clamp(0, M-1)
             lo = pos.floor().long()
             hi = pos.ceil().long()
             w = pos - lo
-            tmp = xs[..., lo]*(1-w) + xs[..., hi]*w                        # (B,H,C,3)
+            tmp = xs[..., lo]*(1-w) + xs[..., hi]*w                        # (B,H,C,len(quantiles))
             return tmp
             #return tmp.mean(axis=-1).unsqueeze(-1)
         
@@ -543,14 +558,13 @@ class Base(pl.LightningModule):
         if (len(self._val_outputs)>0) & (self.trainer.max_epochs>0):
             ys = torch.cat([o["y"] for o in self._val_outputs])
             y_hats = torch.cat([o["y_hat"] for o in self._val_outputs])
-            if self.use_quantiles:
-                idx = 1
-            else:
-                idx = 0
             for i in range(ys.shape[2]):
                 real =  ys[0,:,i].cpu().detach().numpy()
-    
-                pred =  y_hats[0,:,i,idx].cpu().detach().numpy()
+                if self.loss_type=='crps':
+                    ##y_hat holds the raw (unsorted) ensemble members here
+                    pred =  y_hats[0,:,i,:].median(dim=-1).values.cpu().detach().numpy()
+                else:
+                    pred =  y_hats[0,:,i,self.median_idx].cpu().detach().numpy()
                 fig, ax = plt.subplots(figsize=(7,5))  
                 ax.plot(real,'o-',label='real')
                 ax.plot(pred,'o-',label='pred')

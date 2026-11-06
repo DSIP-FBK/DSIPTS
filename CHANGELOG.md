@@ -1,3 +1,9 @@
+## 1.3.0
+- changed quantile management. Now you can use odd number of quantiles (0.5 must be in the list) care that the output columns changed the names!
+## 1.2.1 
+- added timestra
+## 1.2.0
+- fix CRPS usage
 ## 1.1.68
 - added fix for loading a model saved in another machine (otherwise fail to load the correct pth)
 ## 1.1.65

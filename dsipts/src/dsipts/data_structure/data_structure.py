@@ -1390,9 +1390,9 @@ class TimeSeries():
             tot = [time]
             for i, c in enumerate(self.target_variables):
                 tot.append(pd.DataFrame(real[:,:,i],columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':c}).drop(columns=['variable']))
-                tot.append(pd.DataFrame(res[:,:,i,0],columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':c+'_low'}).drop(columns=['variable']))
-                tot.append(pd.DataFrame(res[:,:,i,1],columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':c+'_median'}).drop(columns=['variable']))
-                tot.append(pd.DataFrame(res[:,:,i,2],columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':c+'_high'}).drop(columns=['variable']))
+                ##one column per requested level: <target>_q<level> (e.g. y_q0.05, y_q0.5, y_q0.95)
+                for j, q in enumerate(self.model.quantiles):
+                    tot.append(pd.DataFrame(res[:,:,i,j],columns=[i+1 for i in range(res.shape[1])]).melt().rename(columns={'value':f'{c}_q{q:g}'}).drop(columns=['variable']))
 
             res = pd.concat(tot,axis=1)
         

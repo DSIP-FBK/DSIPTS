@@ -1,3 +1,4 @@
+import re
 
 
 import pandas as pd
@@ -92,8 +93,8 @@ def train_stack(conf: DictConfig) -> None:
                 
                 ##this can be more informative but the names are too long
                 #prediction['model'] = f'{conf_tmp.model.type}_{conf_tmp.ts.name}_{conf_tmp.ts.version}'
-                model_features = [c for c in prediction.columns if ('_pred' in c or '_median' in c)]
-                real_features = [c for c in prediction.columns if not any( k in c for k in ['median','pred','lag','low','high','time']  )]
+                model_features = [c for c in prediction.columns if ('_pred' in c or c.endswith('_q0.5'))]
+                real_features = [c for c in prediction.columns if not (any( k in c for k in ['pred','lag','time']) or re.search(r'_q[0-9.e-]+$',c))]
                 ##renaming columns
                 prediction = prediction[real_features+model_features+['time','lag']]
                 mapping  ={}
