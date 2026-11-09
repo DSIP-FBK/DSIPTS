@@ -93,10 +93,13 @@ class Chronos2CoreConfig(PretrainedConfig):
         # unused
         kwargs.pop("is_encoder_decoder", None)
         kwargs.pop("eos_token_id", None)
+        # transformers >= 5 no longer defines is_decoder on PretrainedConfig: set it here (encoder only)
+        is_decoder = kwargs.pop("is_decoder", False)
 
         super().__init__(
             pad_token_id=pad_token_id, is_encoder_decoder=False, attn_implementation=attn_implementation, **kwargs
         )
+        self.is_decoder = is_decoder
 
 
 @dataclass
