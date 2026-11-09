@@ -513,13 +513,21 @@ class TimeSeries():
             skip_stacked = 0
 
         if getattr(self.model, "need_ordered_variables", False):
+            ##past-only variables first, then the shared ones IN THE SAME ORDER AS THE FUTURE ONES: the model pairs the
+            ##k-th shared past column with the k-th future column (e.g. Chronos2 pads the future on the left).
+            ##load_signal sorts the past variables but not the future ones, so sorting alone misaligned them.
             priority_past_num = set(self.past_only_num)
-            # False goes before True
-            self.past_variables.sort(key=lambda x: x not in priority_past_num)
+            shared = [v for v in self.future_variables if v in self.past_variables]
+            rest = [v for v in self.past_variables if v not in shared]
+            rest.sort(key=lambda x: x not in priority_past_num)  # False goes before True
+            self.past_variables = rest + shared
             self.model.n_past_only_num_vars = len(set(self.past_only_num))
 
             priority_past_cat = set(self.past_only_cat)
-            self.cat_past_var.sort(key=lambda x: x not in priority_past_cat)
+            shared_cat = [v for v in self.cat_fut_var if v in self.cat_past_var]
+            rest_cat = [v for v in self.cat_past_var if v not in shared_cat]
+            rest_cat.sort(key=lambda x: x not in priority_past_cat)
+            self.cat_past_var = rest_cat + shared_cat
             self.model.n_past_only_cat_vars = len(set(self.past_only_cat))
 
         idx_target = [] # save index where target is in past
