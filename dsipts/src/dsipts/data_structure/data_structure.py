@@ -57,6 +57,17 @@ TIME_STARTING_POINT = {
 }
 
 
+def _stack_as(samples: list, dtype) -> np.ndarray:
+    """np.stack(samples).astype(dtype) without the full-size intermediate copy: the output is allocated once in its
+    final dtype and filled window by window (same values and casting as astype), so the peak RAM is the final size."""
+    if len(samples) == 0:
+        return np.stack(samples)  # same error as before
+    out = np.empty((len(samples),) + np.shape(samples[0]), dtype=dtype)
+    for k, a in enumerate(samples):
+        out[k] = a
+    return out
+
+
 
 
 debug_prediction = False
@@ -606,7 +617,7 @@ class TimeSeries():
     
         if len(self.future_variables)>0:
             try:
-                x_num_future_samples = np.stack(x_num_future_samples)
+                x_num_future_samples = _stack_as(x_num_future_samples, np.float32)
             except Exception as e:
                 beauty_string('WARNING x_num_future_samples is empty and it should not','info',True)
         
@@ -617,16 +628,15 @@ class TimeSeries():
         g_samples = np.stack(g_samples)
 
         if len(self.cat_past_var)>0:
-            x_cat_past_samples = np.stack(x_cat_past_samples).astype(np.int32)
+            x_cat_past_samples = _stack_as(x_cat_past_samples, np.int32)
         if len(self.cat_fut_var)>0:
-            x_cat_future_samples = np.stack(x_cat_future_samples).astype(np.int32)
-        x_num_past_samples = np.stack(x_num_past_samples)
+            x_cat_future_samples = _stack_as(x_cat_future_samples, np.int32)
+        ##filled directly in float32: stacking in float64 and then casting needed ~5x the final RAM
+        x_num_past_samples = _stack_as(x_num_past_samples, np.float32)
         if self.stacked:
-            mod = 0
-        else:
-            mod = 1.0
+            x_num_past_samples[:] = 0  ##was x_num_past*0 (the kept windows are finite)
         dd = {'y':y_samples.astype(np.float32),
-              'x_num_past':(x_num_past_samples*mod).astype(np.float32)}
+              'x_num_past':x_num_past_samples}
         if len(self.cat_past_var)>0:
             dd['x_cat_past'] = x_cat_past_samples
         if len(self.cat_fut_var)>0:
