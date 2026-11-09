@@ -1,3 +1,5 @@
+## 1.4.0
+- bug fixing chronos2, group management and starting point management
 ## 1.3.0
 - changed quantile management. Now you can use odd number of quantiles (0.5 must be in the list) care that the output columns changed the names!
 ## 1.2.1 

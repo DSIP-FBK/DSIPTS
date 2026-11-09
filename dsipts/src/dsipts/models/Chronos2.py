@@ -9,6 +9,18 @@ from .chronos2.layers import ResidualBlock, Chronos2LayerNorm, MLP, MHA, Patch, 
 from .chronos2.config import Chronos2CoreConfig, Chronos2ForecastingConfig
 from transformers.utils.generic import ModelOutput
 from .utils import get_scope
+from ..data_structure.utils import beauty_string
+from typing import Union
+import json
+import os
+
+
+def _pretrained_folder(pretrained:str)->str:
+    """Local folder of a pretrained Chronos-2: the path itself if it exists, otherwise download the HF hub repo."""
+    if os.path.isdir(pretrained):
+        return pretrained
+    from huggingface_hub import snapshot_download
+    return snapshot_download(pretrained, allow_patterns=['config.json','model.safetensors'])
 
 try:
     import lightning.pytorch as pl
@@ -47,31 +59,59 @@ class Chronos2(Base): # type: ignore
     _supports_sdpa: bool = True
 
     def __init__(self,
-                context_length,
-                input_patch_size,
-                input_patch_stride,
-                max_output_patches,
-                output_patch_size,
-                time_encoding_scale,
-                use_arcsinh,
-                use_reg_token,
+                context_length=None,
+                input_patch_size=None,
+                input_patch_stride=None,
+                max_output_patches=None,
+                output_patch_size=None,
+                time_encoding_scale=None,
+                use_arcsinh=None,
+                use_reg_token=None,
 
-                d_ff,
-                d_kv,
-                d_model,
-                dense_act_fn,
-                dropout_rate,
-                feed_forward_proj,
-                initializer_factor,
-                layer_norm_epsilon,
-                num_heads,
-                num_layers,
-                pad_token_id,
-                reg_token_id,
-                rope_theta,
-                vocab_size,
-                attn_implementation,
+                d_ff=None,
+                d_kv=None,
+                d_model=None,
+                dense_act_fn=None,
+                dropout_rate=None,
+                feed_forward_proj=None,
+                initializer_factor=None,
+                layer_norm_epsilon=None,
+                num_heads=None,
+                num_layers=None,
+                pad_token_id=None,
+                reg_token_id=None,
+                rope_theta=None,
+                vocab_size=None,
+                attn_implementation='eager',
+                pretrained:Union[str,None]=None,
                 **kwargs)->None:
+        """Chronos-2 (encoder-only, group attention) as a dsipts model.
+
+        pretrained: None = random init with the architecture given by the arguments. Otherwise a HF hub id
+            (e.g. 'amazon/chronos-2', 'autogluon/chronos-2-small') or a local folder with config.json and
+            model.safetensors: every architecture argument left to None is read from its config.json and the
+            pretrained weights are loaded. The requested `quantiles` must be a subset of the pretrained levels
+            (their rows of the output head are kept), otherwise the output head stays randomly initialised.
+        """
+        pretrained_folder = None
+        if pretrained is not None:
+            pretrained_folder = _pretrained_folder(pretrained)
+            with open(os.path.join(pretrained_folder,'config.json')) as f:
+                hf_config = json.load(f)
+            hf_config.update(hf_config.pop('chronos_config',{}))
+            given = dict(context_length=context_length, input_patch_size=input_patch_size, input_patch_stride=input_patch_stride,
+                         max_output_patches=max_output_patches, output_patch_size=output_patch_size,
+                         time_encoding_scale=time_encoding_scale, use_arcsinh=use_arcsinh, use_reg_token=use_reg_token,
+                         d_ff=d_ff, d_kv=d_kv, d_model=d_model, dense_act_fn=dense_act_fn, dropout_rate=dropout_rate,
+                         feed_forward_proj=feed_forward_proj, initializer_factor=initializer_factor,
+                         layer_norm_epsilon=layer_norm_epsilon, num_heads=num_heads, num_layers=num_layers,
+                         pad_token_id=pad_token_id, reg_token_id=reg_token_id, rope_theta=rope_theta, vocab_size=vocab_size)
+            given = {k:(hf_config[k] if v is None else v) for k,v in given.items()}
+            (context_length, input_patch_size, input_patch_stride, max_output_patches, output_patch_size, time_encoding_scale,
+             use_arcsinh, use_reg_token, d_ff, d_kv, d_model, dense_act_fn, dropout_rate, feed_forward_proj, initializer_factor,
+             layer_norm_epsilon, num_heads, num_layers, pad_token_id, reg_token_id, rope_theta, vocab_size) = given.values()
+        missing = [k for k,v in dict(context_length=context_length, d_model=d_model, num_layers=num_layers).items() if v is None]
+        assert len(missing)==0, f'Chronos2: {missing} not given and no pretrained model to read them from'
 
         super().__init__(**kwargs)
         
@@ -150,6 +190,30 @@ class Chronos2(Base): # type: ignore
             act_fn_name = dense_act_fn,
             dropout_p = dropout_rate,
         )
+        if pretrained_folder is not None:
+            self._load_pretrained(pretrained_folder, list(hf_config['quantiles']))
+
+    def _load_pretrained(self, folder:str, pretrained_quantiles:list)->None:
+        """Load the HF safetensors of a Chronos-2 checkpoint (parameter names match one to one).
+        The output head is laid out as (quantile, patch step): keep the rows of the requested quantiles."""
+        from safetensors.torch import load_file
+        state = load_file(os.path.join(folder,'model.safetensors'))
+        requested = [float(q) for q in self.chronos_config.quantiles]
+        idx = [min(range(len(pretrained_quantiles)), key=lambda i: abs(pretrained_quantiles[i]-q)) for q in requested]
+        p = self.chronos_config.output_patch_size
+        if all(abs(pretrained_quantiles[i]-q)<1e-6 for i,q in zip(idx,requested)):
+            rows = torch.cat([torch.arange(i*p,(i+1)*p) for i in idx])
+            for k in ['output_patch_embedding.output_layer','output_patch_embedding.residual_layer']:
+                state[f'{k}.weight'] = state[f'{k}.weight'][rows]
+                state[f'{k}.bias'] = state[f'{k}.bias'][rows]
+        else:
+            beauty_string(f'Chronos2: quantiles {requested} are not a subset of the pretrained ones {pretrained_quantiles}, the output head is NOT loaded','info',True)
+            state = {k:v for k,v in state.items() if not k.startswith('output_patch_embedding.output_layer') and not k.startswith('output_patch_embedding.residual_layer')}
+        missing, unexpected = self.load_state_dict(state, strict=False)
+        ##the Base buffers (epoch metrics/counters) are not in the checkpoint
+        missing = [k for k in missing if not k.split('.')[-1] in ['train_epoch_metrics','validation_epoch_metrics','train_epoch_count','validation_epoch_count'] and not k.startswith('output_patch_embedding.')]
+        assert len(missing)==0 and len(unexpected)==0, f'Chronos2: pretrained weights do not match, missing={missing} unexpected={unexpected}'
+        beauty_string(f'Chronos2: loaded pretrained weights from {folder}','info',self.verbose)
 
     def can_be_compiled(self):
         return True
@@ -540,7 +604,8 @@ class Chronos2(Base): # type: ignore
         tot_vars = context.shape[-1]
 
         ### group id
-        group_ids = torch.arange(batch_size)
+        ##one group per sample: its target(s) and covariates attend to each other, rows are ordered (b f)
+        group_ids = torch.arange(batch_size, device=context.device)
         group_ids = torch.repeat_interleave(group_ids, repeats = tot_vars, dim = 0)
 
         ### future_covariates
@@ -568,7 +633,8 @@ class Chronos2(Base): # type: ignore
         future_target = nn.functional.pad(future_target, (0, fut_y_pad_size, 0, 0, 0, 0), value=float('nan'))
 
         # aux
-        num_output_patches = horizon // self.chronos_config.output_patch_size +1
+        ##ceil, as in the Chronos-2 pipeline (horizon//p+1 added an extra patch when horizon is a multiple of p)
+        num_output_patches = -(-horizon // self.chronos_config.output_patch_size)
         output_attentions = False
         context_mask = None
         future_covariates_mask = None
@@ -688,15 +754,11 @@ class Chronos2(Base): # type: ignore
         )
 
         ## customizing output
-        quantile_preds = quantile_preds[:batch_size*n_target_vars,:, :horizon] # check
-        # breakpoint()
-        quantile_preds = rearrange(quantile_preds,
-                                   "(b c) q l -> b l c q",
-                                   b = batch_size,
-                                   c = n_target_vars,
-                                #    q = self.num_quantiles, 
-                                #    l = horizon 
-                                   )
+        ##rows are ordered (b f) with the targets first inside each sample: keep the first n_target_vars of every sample
+        ##(slicing the first batch_size*n_target_vars rows took all the variables of the first samples)
+        quantile_preds = rearrange(quantile_preds, "(b f) q l -> b f q l", b=batch_size, f=tot_vars)
+        quantile_preds = quantile_preds[:, :n_target_vars, :, :horizon]
+        quantile_preds = rearrange(quantile_preds, "b c q l -> b l c q")
 
         return quantile_preds
         # return Chronos2Output(

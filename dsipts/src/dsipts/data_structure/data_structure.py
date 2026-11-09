@@ -48,6 +48,14 @@ if disable_aim is False:
     from aim.pytorch_lightning import AimLogger
 import time
 
+##starting_point keys computed from the time column (so they work even when the same name is a categorical column)
+TIME_STARTING_POINT = {
+    'hour': lambda t: t.dt.hour.values,
+    'minute': lambda t: t.dt.minute.values,
+    'dow': lambda t: t.dt.weekday.values,
+    'month': lambda t: t.dt.month.values,
+}
+
 
 
 
@@ -433,7 +441,7 @@ class TimeSeries():
             future_steps (int): future lags to predict
             shift (int, optional): if >0 the future input variables will be shifted (categorical and numerical). For example for attention model it is better to start with a know value of y and use it during the process. Defaults to 0.
             keep_entire_seq_while_shifting (bool, optional): if the dataset is shifted, you may want the future data be of length future_step+shift (like informer), default false
-            starting_point (Union[None,dict], optional): a dictionary indicating if a sample must be considered. It is checked for the first lag in the future (useful in the case your model has to predict only starting from hour 12). Defaults to None.
+            starting_point (Union[None,dict], optional): keep a sample only if its first future step matches ALL the given values, e.g. {'hour':0,'minute':0} for forecasts issued at 00:00. hour, minute, dow and month are read from the time column; other keys must be non categorical columns of the dataset. Defaults to None.
             skip_step (int, optional): list of the categortial variables (same for past and future). Usual there is a skip of one between two saples but for debugging  or training time purposes you can skip some samples. Defaults to 1.
         Returns:
             MyDataset: class that extends torch.utils.data.Dataset (see utils)
@@ -462,9 +470,11 @@ class TimeSeries():
         sampler_weights_samples = []
         
         if starting_point is not None:
-            kk = list(starting_point.keys())[0]
-            assert kk not in self.cat_var, beauty_string(f'CAN NOT USE FEATURE {kk} as starting point it may have a different value due to the normalization step, please add a second column with a suitable name','info',True)
-        
+            for kk in starting_point.keys():
+                ##hour/minute/dow/month are read from the time column (their categorical columns get encoded below)
+                if kk not in TIME_STARTING_POINT:
+                    assert kk not in self.cat_var, beauty_string(f'CAN NOT USE FEATURE {kk} as starting point it may have a different value due to the normalization step, please add a second column with a suitable name','info',True)
+
         ##overwrite categorical columns
         for c in self.cat_var:
             self.enrich(data,c)
@@ -479,23 +489,23 @@ class TimeSeries():
             tot = []
             groups = data[self.group].unique()
             
-            data[self.group] = self.scaler_cat[self.group].transform(data[self.group].values.reshape(-1,1)).flatten()
+            data[self.group] = self.scaler_cat[self.group].transform(data[self.group].to_numpy().reshape(-1,1)).flatten()
             
             for group in groups:
                 tmp = data[data['_GROUP_']==group].copy()
                 
                 for c in self.num_var:
-                    tmp[c] = self.scaler_num[f'{c}_{group}'].transform(tmp[c].values.reshape(-1,1)).flatten()
+                    tmp[c] = self.scaler_num[f'{c}_{group}'].transform(tmp[c].to_numpy().reshape(-1,1)).flatten()
                 for c in self.cat_var:      
                     if c!=self.group:                         
-                        tmp[c] = self.scaler_cat[f'{c}_{group}'].transform(tmp[c].values.reshape(-1,1)).flatten()
+                        tmp[c] = self.scaler_cat[f'{c}_{group}'].transform(tmp[c].to_numpy().reshape(-1,1)).flatten()
                 tot.append(tmp)
             data = pd.concat(tot,ignore_index=True)
         else:
             for c in self.cat_var:
-                data[c] = self.scaler_cat[c].transform(data[c].values.reshape(-1,1)).flatten()
+                data[c] = self.scaler_cat[c].transform(data[c].to_numpy().reshape(-1,1)).flatten()
             for c in self.num_var: 
-                data[c] = self.scaler_num[c].transform(data[c].values.reshape(-1,1)).flatten()
+                data[c] = self.scaler_num[c].transform(data[c].to_numpy().reshape(-1,1)).flatten()
 
         if self.stacked:
             skip_stacked = future_steps*future_steps-future_steps
@@ -542,7 +552,11 @@ class TimeSeries():
                 sampler_weights = tmp[self.sampler_weights].values.flatten()
         
             if starting_point is not None:
-                check = tmp[list(starting_point.keys())[0]].values == starting_point[list(starting_point.keys())[0]]
+                ##every key must match on the first future step, e.g. {'hour':0,'minute':0} = forecasts issued at 00:00
+                check = np.ones(len(tmp), dtype=bool)
+                for kk, vv in starting_point.items():
+                    values = TIME_STARTING_POINT[kk](tmp.time) if kk in TIME_STARTING_POINT else tmp[kk].values
+                    check &= np.asarray(values) == vv
             else:
                 check = [True]*len(y_target)
             
@@ -734,24 +748,24 @@ class TimeSeries():
                 self.normalize_per_group = False
                 for c in self.num_var:
                     self.scaler_num[c] =  eval(scaler)
-                    self.scaler_num[c].fit(train[c].values.reshape(-1,1))
+                    self.scaler_num[c].fit(train[c].to_numpy().reshape(-1,1))
                 for c in self.cat_var:                               
                     self.scaler_cat[c] =  OrdinalEncoder(dtype=np.int32,handle_unknown= 'use_encoded_value',unknown_value=train[c].nunique())
-                    self.scaler_cat[c].fit(train[c].values.reshape(-1,1))  
+                    self.scaler_cat[c].fit(train[c].to_numpy().reshape(-1,1))  
             else:
                 self.normalize_per_group = True
-                self.scaler_cat[self.group] =  OrdinalEncoder(dtype=np.int32,handle_unknown= 'use_encoded_value',unknown_value=train[c].nunique())
-                self.scaler_cat[self.group].fit(train[self.group].values.reshape(-1,1))  
+                self.scaler_cat[self.group] =  OrdinalEncoder(dtype=np.int32,handle_unknown= 'use_encoded_value',unknown_value=train[self.group].nunique())
+                self.scaler_cat[self.group].fit(train[self.group].to_numpy().reshape(-1,1))  
                 for group in train[self.group].unique():
                     tmp = train[train[self.group]==group]
 
                     for c in self.num_var:
                         self.scaler_num[f'{c}_{group}'] =  eval(scaler)
-                        self.scaler_num[f'{c}_{group}'].fit(tmp[c].values.reshape(-1,1))
+                        self.scaler_num[f'{c}_{group}'].fit(tmp[c].to_numpy().reshape(-1,1))
                     for c in self.cat_var:
                         if c!=self.group:                               
                             self.scaler_cat[f'{c}_{group}'] =  OrdinalEncoder(dtype=np.int32,handle_unknown= 'use_encoded_value',unknown_value=train[c].nunique())
-                            self.scaler_cat[f'{c}_{group}'].fit(tmp[c].values.reshape(-1,1))  
+                            self.scaler_cat[f'{c}_{group}'].fit(tmp[c].to_numpy().reshape(-1,1))  
  
         dl_train = self.create_data_loader(train,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step,continual_learning_fraction=continual_learning_fraction)
         dl_validation = self.create_data_loader(validation,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)
@@ -1460,13 +1474,14 @@ class TimeSeries():
                 empty = pd.DataFrame({'time':pd.date_range(data.time.min(),data.time.max()+freq*(steps_in_future+self.split_params['past_steps']+self.split_params['future_steps']),freq=freq)})
   
             else:
-                freq = pd.to_timedelta(np.diff(data[data[self.group==data[self.group].unique()[0]]].time).min())
+                ##the frequency of the training data (a short custom dataset may not show the minimum step)
+                freq = self.freq
                 beauty_string(f'Detected minumum frequency: {freq} supposing constant frequence inside the groups','section',self.verbose)
                 _min = data.groupby(self.group).time.min()
                 _max = data.groupby(self.group).time.max()
                 empty = []
                 for c in data[self.group].unique():
-                    empty.append(pd.DataFrame({self.group:c,'time':pd.date_range(_min.time[_min[self.group]==c].values[0],_max.time[_max[self.group]==c].values[0]+freq*(steps_in_future+self.split_params['past_steps']+self.split_params['future_steps']),freq=freq)}))
+                    empty.append(pd.DataFrame({self.group:c,'time':pd.date_range(_min[c],_max[c]+freq*(steps_in_future+self.split_params['past_steps']+self.split_params['future_steps']),freq=freq)}))
                 empty = pd.concat(empty,ignore_index=True)
             dataset = empty.merge(data,how='left')
             #TODO port it into PTF
