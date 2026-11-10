@@ -172,13 +172,19 @@ class Categorical():
  
 class TimeSeries():
     
-    def __init__(self,name:str,stacked:bool=False):
+    def __init__(self,name:str,stacked:bool=False,global_forecaster:bool=False):
         """Class for generating time series object. If you don't have any time series you can build one fake timeseries using some helping classes (Categorical for instance).
 
 
         Args:
             name (str): name of the series
             stacked (bool): if true it is a stacked model
+            global_forecaster (bool): how the `group` column of `load_signal` is used. False (default, LOCAL forecaster):
+                the group is also a categorical past/future input, so the model can learn one embedding per series;
+                it only makes sense if the series to forecast are the ones seen in training. True (GLOBAL forecaster):
+                the group is NOT an input; it is still used to build the samples (windows never cross two series) and,
+                with normalize_per_group, to scale each series. Use it when the model must forecast series never seen
+                in training.
                 
         Usage:
             For example we can generate a toy timeseries:\n
@@ -197,6 +203,11 @@ class TimeSeries():
         self.stacked = stacked
         self.verbose = True
         self.group = None
+        self.global_forecaster = global_forecaster
+        if global_forecaster:
+            beauty_string('GLOBAL forecaster: the group column (if any) is used to build the samples but it is NOT a categorical input of the model','info',True)
+        else:
+            beauty_string('LOCAL forecaster (default): the group column (if any) is also a categorical input of the model. Use TimeSeries(..., global_forecaster=True) to forecast series not seen in training','info',True)
     
     def __str__(self) -> str:
         return f"Timeseries named {self.name} of length {self.dataset.shape[0]}.\n Categorical variable: {self.cat_var},\n Future variables: {self.future_variables},\n Past variables: {self.past_variables},\n Target variables: {self.target_variables} \n With {'no group' if self.group is None else self.group+' as group' }"
@@ -310,12 +321,15 @@ class TimeSeries():
             cat_future_var (List[str], optional): list of the future categorical variables. Defaults to [].
             check_past (bool, optional): see `target_variables`. Defaults to True.
             group (str or None, optional): if not None the 
-            time serie dataset is considered composed by omogeneus timeseries coming from different realization (for example point of sales, cities, locations) and the relative series are not splitted during the sample generation. Defaults to None
+            time serie dataset is considered composed by omogeneus timeseries coming from different realization (for example point of sales, cities, locations) and the relative series are not splitted during the sample generation. With a LOCAL forecaster (TimeSeries default) it is also added to the categorical past/future variables; with TimeSeries(..., global_forecaster=True) it is not an input of the model. Defaults to None
             check_holes_and_duplicates (bool, optional): if False duplicates or holes will not checked, the dataloader can not correctly work, disable at your own risk. Defaults True
             silly_model (bool, optional): if True, target variables will be added to the pool of the future variables. This can be useful to see if information passes throught the decoder part of your model (if any)
             sampler_weights  group (str or None, optional): if it is a column name it will be used as weight for the sampler. Careful that the weight of the sample is the weight value of the fist target value (index)
         """
         
+        ##copies: the lists are modified below and the defaults are mutable (the group used to stick to the default list)
+        cat_past_var = list(cat_past_var)
+        cat_fut_var = list(cat_fut_var)
         dataset = data.copy()
         dataset.sort_values(by='time',inplace=True)
         
@@ -358,7 +372,13 @@ class TimeSeries():
         self.cat_fut_var = cat_fut_var
 
         self.group = group 
-        if group is not None:
+        if group is not None and getattr(self, 'global_forecaster', False):
+            ##global forecaster: the group only defines the series (samples, per-group scaling), it is not an input
+            if group in cat_past_var or group in cat_fut_var:
+                beauty_string(f'GLOBAL forecaster: {group} removed from the categorical past/future variables','info',self.verbose)
+            self.cat_past_var = [c for c in cat_past_var if c != group]
+            self.cat_fut_var = [c for c in cat_fut_var if c != group]
+        elif group is not None:
             if group not in cat_past_var:
                 beauty_string(f'I will add {group} to the categorical past/future variables','info',self.verbose)
                 self.cat_past_var.append(group)

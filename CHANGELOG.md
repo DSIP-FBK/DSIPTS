@@ -1,3 +1,5 @@
+## 1.5.0
+- lot of bug fixing and differentiation between local and global forecaster
 ## 1.4.0
 - bug fixing chronos2, group management and starting point management
 ## 1.3.0
