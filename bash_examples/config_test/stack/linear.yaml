@@ -5,6 +5,7 @@ ts:
   type: stacked
   enrich: ['hour']
   use_covariates: true ##does not matter but it is mandatory
+  global_forecaster: false  # false (default) = LOCAL: the group (if any) is also a categorical input; true = GLOBAL: the group only builds the samples
   
 model:
   type: linear

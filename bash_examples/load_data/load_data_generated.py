@@ -8,7 +8,7 @@ def load_data(conf):
     data = pd.read_csv(os.path.join(conf.dataset.path,conf.dataset.get('file','generated.csv')))
     columns = [c for c in data.columns if c not in ['y','time']]
     
-    ts = TimeSeries(conf.ts.name)
+    ts = TimeSeries(conf.ts.name,global_forecaster=conf.ts.get('global_forecaster', False))
     
     ts.load_signal(data, 
                    enrich_cat= [],

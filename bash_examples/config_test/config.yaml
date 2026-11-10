@@ -15,6 +15,7 @@ ts:
   #sampler_weights: fake_columns
   sampler_weights: null
   check: true #add the target to past covariates (for some models it is mandatory)
+  global_forecaster: false  # false (default) = LOCAL: the group (if any) is also a categorical input; true = GLOBAL: the group only builds the samples
 
 scheduler_config:
   gamma: 1.0
@@ -64,7 +65,7 @@ train_config:
   max_epochs: 20
   patience: 1
   #continual: null
-  continual:
+  continual: ## only if the architecture has the keys for continual (see simple.yaml)
     continual_learning_fraction: 0.5 ## last half used for continual learning
     batch_size: 8 ##smaller
     max_epochs: 10 ## if streaming online learning otherwise  betwween 5 and 20

@@ -12,6 +12,7 @@ ts:
   enrich: []
   use_covariates: true
   use_future_covariates: false
+  global_forecaster: false  # false (default) = LOCAL: the group (if any) is also a categorical input; true = GLOBAL: the group only builds the samples
 
 scheduler_config:
   gamma: 1.0

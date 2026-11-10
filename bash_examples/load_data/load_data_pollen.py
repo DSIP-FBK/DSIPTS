@@ -21,7 +21,7 @@ def load_data(conf):
    quantile = data.groupby('region').apply(lambda x:np.quantile(x.totals,0.995)).reset_index().rename(columns={0:'quantiles'})
    data = pd.merge(data, quantile)
    data.totals = data.apply(lambda x: min(x.totals, x.quantiles),axis=1)
-   ts = TimeSeries(conf.ts.name,stacked=False)
+   ts = TimeSeries(conf.ts.name,stacked=False,global_forecaster=conf.ts.get('global_forecaster', False))
    ts.load_signal(data,past_variables = meteo + target, 
                   future_variables = meteo,
                   target_variables =target,

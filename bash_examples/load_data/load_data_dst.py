@@ -56,7 +56,7 @@ def load_data(conf):
 
     dati_agg.drop(columns=['data','ora_round'],inplace=True)
     #dati_agg['f'] = 1
-    ts = TimeSeries(conf.ts.name)
+    ts = TimeSeries(conf.ts.name,global_forecaster=conf.ts.get('global_forecaster', False))
 
 
     ts.load_signal(dati_agg, enrich_cat= [],

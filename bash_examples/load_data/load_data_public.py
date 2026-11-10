@@ -3,7 +3,7 @@ import numpy as np
 
 def load_data(conf):
     data, columns = read_public_dataset(**conf.dataset)
-    ts = TimeSeries(conf.ts.name)
+    ts = TimeSeries(conf.ts.name,global_forecaster=conf.ts.get('global_forecaster', False))
     sampler_weights =  conf.ts.get('sampler_weights',None)
     if sampler_weights == 'fake_columns':
         data['fake_columns'] = np.random.rand(data.shape[0]) 
