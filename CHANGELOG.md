@@ -1,3 +1,5 @@
+## 1.6.0 
+- Future covariates (numerical and categorical, possibly absent from the past and with any number of channels) are now supported by ITransformer, TimeKAN and TimesNet, and also feed TimeXER's exogenous attention branch; fixed the PatchTST/Samformer flags, multi-target crashes in Autoformer, Informer, DilatedConvED, Duet and NLinear, and the quantile/target mixing in the ITransformer and TimeXER outputs; TTM now rejects quantiles explcitly
 ## 1.5.0
 - lot of bug fixing and differentiation between local and global forecaster
 ## 1.4.0

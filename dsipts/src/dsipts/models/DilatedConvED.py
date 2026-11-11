@@ -217,7 +217,7 @@ class DilatedConvED(Base):
                                             Permute() if use_bn else nn.Identity() ,
                                             nn.BatchNorm1d(hidden_RNN) if use_bn else nn.Dropout(dropout_rate) ,
                                             Permute() if use_bn else nn.Identity() ,
-                                            nn.Linear(hidden_RNN,self.mul))
+                                            nn.Linear(hidden_RNN,self.out_channels*self.mul)) ## was self.mul: crashed with more than one target
         
         if use_bilinear:
             self.bilinear = torch.nn.Bilinear((hidden_RNN//2*2)*num_layers_RNN,(hidden_RNN//2*2)*num_layers_RNN,hidden_RNN*2)
@@ -231,7 +231,7 @@ class DilatedConvED(Base):
                                                 Permute() if use_bn else nn.Identity() ,
                                                 nn.BatchNorm1d(hidden_RNN) if use_bn else nn.Dropout(dropout_rate) ,
                                                 Permute() if use_bn else nn.Identity() ,
-                                                nn.Linear(hidden_RNN ,self.mul))
+                                                nn.Linear(hidden_RNN ,self.out_channels*self.mul))
     def can_be_compiled(self):
         return True  
 

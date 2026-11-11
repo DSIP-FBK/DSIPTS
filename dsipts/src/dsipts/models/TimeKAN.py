@@ -50,8 +50,14 @@ class TimeKAN(Base):
         self.save_hyperparameters(logger=False)
         self.e_layers = e_layers
         self.emb_past = Embedding_cat_variables(self.past_steps,self.emb_dim,self.embs_past, reduction_mode=self.reduction_mode,use_classical_positional_encoder=self.use_classical_positional_encoder,device = self.device)
-        #self.emb_fut = Embedding_cat_variables(self.future_steps,self.emb_dim,self.embs_fut, reduction_mode=self.reduction_mode,use_classical_positional_encoder=self.use_classical_positional_encoder,device = self.device)
         emb_past_out_channel = self.emb_past.output_channels
+        ## future covariates (numerical and/or categorical) are fused late, per future step, with the
+        ## backbone output: they do not need to exist in the past and can have any number of channels.
+        ## Without future covariates the original head is kept (old checkpoints still load).
+        self.use_future = (self.future_channels>0) or (len(self.embs_fut or [])>0)
+        if self.use_future:
+            self.emb_fut = Embedding_cat_variables(self.future_steps,self.emb_dim,self.embs_fut, reduction_mode=self.reduction_mode,use_classical_positional_encoder=self.use_classical_positional_encoder,device = self.device)
+            emb_fut_out_channel = self.emb_fut.output_channels
         
         
         
@@ -72,7 +78,13 @@ class TimeKAN(Base):
                         self.past_steps,
                         self.future_steps,
                     )
-        self.final_layer = nn.Linear(d_model, self.mul*self.out_channels)
+        if self.use_future:
+            dim = d_model + emb_fut_out_channel + self.future_channels
+            self.final_layer = nn.Sequential(nn.Linear(dim, dim),
+                                             nn.GELU(),
+                                             nn.Linear(dim, self.mul*self.out_channels))
+        else:
+            self.final_layer = nn.Linear(d_model, self.mul*self.out_channels)
         self.down_sampling_layers = down_sampling_layers
         self.down_sampling_window = down_sampling_window
     def can_be_compiled(self):
@@ -121,7 +133,17 @@ class TimeKAN(Base):
             x_list = self.add_blocks[i](x_list)
 
         dec_out = x_list[0]
-        dec_out = self.predict_layer(dec_out.permute(0, 2, 1)).permute( 0, 2, 1)  
+        dec_out = self.predict_layer(dec_out.permute(0, 2, 1)).permute( 0, 2, 1)  ## B, future_steps, d_model
+
+        if self.use_future:
+            tmp_future = [dec_out]
+            if 'x_cat_future' in batch.keys():
+                tmp_future.append(self.emb_fut(BS,batch['x_cat_future'].to(self.device)))
+            else:
+                tmp_future.append(self.emb_fut(BS,None))
+            if 'x_num_future' in batch.keys():
+                tmp_future.append(batch['x_num_future'].to(self.device))
+            dec_out = torch.cat(tmp_future,2)
 
         dec_out = self.final_layer(dec_out)
 

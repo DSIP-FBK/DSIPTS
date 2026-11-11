@@ -24,7 +24,7 @@ class TTM(Base):
     handle_multivariate = True
     handle_future_covariates = True
     handle_categorical_variables = True
-    handle_quantile_loss = True
+    handle_quantile_loss = False ## the TTM head returns one value per prediction channel: self.mul is ignored
     description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables,handle_quantile_loss)
     
     def __init__(self, 
@@ -47,6 +47,8 @@ class TTM(Base):
                 **kwargs)->None:
    
         super().__init__(**kwargs)
+        if self.use_quantiles:
+            raise ValueError('TTM does not support quantiles: its head returns one value per prediction channel (set quantiles: [])')
         self.save_hyperparameters(logger=False)
 
         

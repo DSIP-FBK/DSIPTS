@@ -215,9 +215,10 @@ class LinearTS(Base):
         res = torch.stack(res,2)
 
         if self.kind=='nlinear':
-            #res BxLxCx3
-            #start BxCx1
-            res+=x_start.unsqueeze(1)
+            #res BxLxCxMUL
+            #start Bx1xC -> Bx1xCx1 (one offset per target, shared by the quantiles; unsqueeze(1) gave Bx1x1xC
+            #and crashed with more than one target)
+            res = res + x_start.reshape(BS,1,-1,1)
         
 
         if self.kind=='dlinear':

@@ -33,7 +33,7 @@ from .utils import Embedding_cat_variables
 
 class Samformer(Base):
     handle_multivariate = True
-    handle_future_covariates = False # or at least it seems...
+    handle_future_covariates = True # late fusion: emb_fut + x_num_future enter final_layer
     handle_categorical_variables = False #solo nel encoder
     handle_quantile_loss = False # NOT EFFICIENTLY ADDED, TODO fix this
     description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables,handle_quantile_loss)

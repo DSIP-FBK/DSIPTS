@@ -12,9 +12,10 @@ ts:
   use_future_covariates: true
   silly: false
 model_configs:
-  cat_emb_dim: 16
+  use_classical_positional_encoder: true
+  emb_dim: 16
+  reduction_mode: sum
   kernel_size: 5
-  sum_emb: true
   hidden_size: 24
   kind: 'nlinear'
   quantiles: [0.1,0.5,0.9]

@@ -35,7 +35,7 @@ from .utils import Embedding_cat_variables
 
 class TimeXER(Base):
     handle_multivariate = True
-    handle_future_covariates = True # or at least it seems...
+    handle_future_covariates = True # future tokens in the exogenous (cross-attention) branch + late fusion
     handle_categorical_variables = True #solo nel encoder
     handle_quantile_loss = True # NOT EFFICIENTLY ADDED, TODO fix this
     description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables,handle_quantile_loss)
@@ -93,6 +93,13 @@ class TimeXER(Base):
         self.en_embedding = EnEmbedding(self.past_channels, d_model, patch_len, dropout_rate)
 
         self.ex_embedding = DataEmbedding_inverted(self.past_steps, d_model, embed_type='what?', freq='what?', dropout=dropout_rate)  ##embed, freq not used inside
+        ## future covariates (numerical + categorical embedding) are also exogenous tokens, embedded along the future
+        ## time axis (future_steps -> d_model), so the global token cross-attends to them in every layer (as in the
+        ## TimeXer paper, where exogenous series may cover a different window). They do not need to exist in the past
+        ## and can have any number of channels. Without future covariates no extra module is created.
+        self.use_future = (self.future_channels>0) or (len(self.embs_fut or [])>0)
+        if self.use_future:
+            self.fut_ex_embedding = DataEmbedding_inverted(self.future_steps, d_model, embed_type='what?', freq='what?', dropout=dropout_rate)
 
 
         # Encoder-only architecture
@@ -164,6 +171,8 @@ class TimeXER(Base):
 
         en_embed, n_vars = self.en_embedding(x_enc.permute(0, 2, 1))
         ex_embed = self.ex_embedding(x_enc, emb_past)
+        if self.use_future:
+            ex_embed = torch.cat([ex_embed, self.fut_ex_embedding(tmp_future, None)], 1)
 
         enc_out = self.encoder(en_embed, ex_embed)
         
@@ -181,8 +190,9 @@ class TimeXER(Base):
         if tmp_future is not None:
             tmp_future = self.future_reshape(tmp_future.permute(0, 2, 1))
             dec_out = torch.cat([tmp_future,dec_out],1)
-        dec_out = self.final_linear(dec_out.permute(0, 2, 1))
-        return dec_out.reshape(BS,self.future_steps,self.out_channels,self.mul)
+        dec_out = self.final_linear(dec_out.permute(0, 2, 1)) ## B (S*mul) out
+        ## rows are (S, mul): reshaping straight to (S, out, mul) mixed the quantiles of different targets when mul>1
+        return dec_out.reshape(BS,self.future_steps,self.mul,self.out_channels).permute(0,1,3,2)
         
         #idx_target = batch['idx_target'][0]
         #return dec_out[:, :,idx_target].reshape(BS,self.future_steps,self.out_channels,self.mul)

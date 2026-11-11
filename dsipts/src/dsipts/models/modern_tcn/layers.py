@@ -363,7 +363,11 @@ class ModernTCNModel(nn.Module):
             nn.BatchNorm1d(dims[0])
         )
         self.downsample_layers.append(stem)
-        for i in range(3):
+        assert len(num_blocks)<=len(dims) and len(num_blocks)<=len(dw_dims) and len(num_blocks)<=len(large_size) and len(num_blocks)<=len(small_size), \
+            f'ModernTCN: dims, dw_dims, large_size and small_size need one entry per stage (num_blocks={num_blocks})'
+        ##one downsampling layer between consecutive entries of dims (it was range(3): dims needed exactly 4 entries).
+        ##With the usual 4-entry dims this builds the same 3 layers as before, so old checkpoints still load
+        for i in range(len(dims)-1):
             downsample_layer = nn.Sequential(
                 nn.BatchNorm1d(dims[i]),
                 nn.Conv1d(dims[i], dims[i + 1], kernel_size=downsample_ratio, stride=downsample_ratio),
@@ -416,23 +420,22 @@ class ModernTCNModel(nn.Module):
             self.up_sample_conv.append(up_conv)
 
         # head
+        ##length of the sequence that reaches the head, as forward_feature computes it: the stem gives
+        ##seq_len // patch_stride patches (it pads patch_size-patch_stride steps), then every later stage divides it
+        ##by downsample_ratio, padding up to a multiple (ceil).
+        ##The multi-scale fusion (lat/smooth/up_sample layers above) is NOT applied in forward_feature, so the head
+        ##always sees the last stage: sizing it on the undownsampled patch_num (as was done with use_multi_scale=True)
+        ##crashed with a shape error whenever there was more than one stage.
         patch_num = seq_len // patch_stride
+        for _ in range(self.num_stage - 1):
+            patch_num = -(-patch_num // downsample_ratio)
 
         self.n_vars = c_in
         self.individual = individual
-        d_model = dims[-1]
-        if use_multi_scale:
-            self.head_nf = d_model * patch_num
-            self.head = Flatten_Head(self.individual, self.n_vars, self.head_nf, target_window,
-                                     head_dropout=head_dropout)
-        else:
-
-            if patch_num % pow(downsample_ratio,(self.num_stage - 1)) == 0:
-                self.head_nf = d_model * patch_num // pow(downsample_ratio,(self.num_stage - 1))
-            else:
-                self.head_nf = d_model * (patch_num // pow(downsample_ratio, (self.num_stage - 1))+1)
-            self.head = Flatten_Head(self.individual, self.n_vars, self.head_nf, target_window,
-                                     head_dropout=head_dropout)
+        d_model = dims[self.num_stage - 1] ##channels of the last stage used (dims[-1] only if all 4 stages are used)
+        self.head_nf = d_model * patch_num
+        self.head = Flatten_Head(self.individual, self.n_vars, self.head_nf, target_window,
+                                 head_dropout=head_dropout)
 
     def up_sample(self, x, upsample_ratio):
         _, _, _, N = x.shape

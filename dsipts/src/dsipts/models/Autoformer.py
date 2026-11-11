@@ -142,7 +142,11 @@ class Autoformer(Base):
                                         output_attention=False),
                         d_model, n_head),
                     d_model,
-                    self.out_channels,
+                    ## the trend is accumulated in the space of the past channels (trend_init is built from x and
+                    ## self.projection maps past_channels -> out_channels*mul), so the residual trend must have
+                    ## past_channels too. It was out_channels: it only worked for 1 target, by broadcasting the same
+                    ## residual on every past channel. That case is kept as is so old checkpoints still load.
+                    self.past_channels if self.out_channels>1 else self.out_channels,
                     hidden_size,
                     moving_avg=kernel_size,
                     dropout=dropout_rate,
@@ -176,7 +180,7 @@ class Autoformer(Base):
         
   
         if 'x_num_future' in batch.keys():
-            x_future = batch['x_num_future'].to(self.device)
+            x_future = batch['x_num_future'].to(self.device).clone() ## modified in place: do not corrupt the batch
             x_future[:,-self.pred_len:,idx_target_future] = 0
         
         

@@ -102,45 +102,56 @@ def extend_time_df(x:pd.DataFrame,freq:Union[str,int],group:Union[str,None]=None
 
 
 class MetricsCallback(Callback):
-    """PyTorch Lightning metric callback.
-    
+    """PyTorch Lightning metric callback: one row per epoch with train_loss, val_loss and the other validation metrics.
+
+    - The sanity-check validation (run before training) is skipped.
+    - Lightning logs the train loss of epoch k after the validation of epoch k, so it is read at the next validation
+      (as the previous epoch's) and, for the last epoch, at the end of the training.
+    - ``self.metrics`` is a dict of equal-length lists (columns), as TimeSeries.train_model expects; with
+      max_epochs=1 it has one row (before, the columns had different lengths and the DataFrame failed).
+
     :meta private:
     """
 
     def __init__(self,dirpath):
         super().__init__()
         self.dirpath = dirpath
+        self.rows = {}  ##epoch -> {metric: value}
         self.metrics = {'val_loss':[],'train_loss':[]}
 
-        
+    def _columns(self):
+        epochs = sorted(self.rows)
+        keys = ['val_loss','train_loss'] + sorted({k for r in self.rows.values() for k in r} - {'val_loss','train_loss'})
+        return {k: [self.rows[e].get(k, np.nan) for e in epochs] for k in keys}
 
-    def _align(self, losses):
-        ##every validation metric (val_loss, val_select, ...) is trimmed like val_loss always was
-        ##non so perche' le prime due le chiama prima del train
-        n = len(losses['train_loss'])
-        for c in losses:
-            if c!='train_loss':
-                losses[c] = losses[c][-n:] if n>0 else losses[c][2:]
-        return losses
+    def _set(self, epoch, key, value):
+        if epoch >= 0:
+            self.rows.setdefault(epoch, {})[key] = value
 
     def on_validation_end(self, trainer, pl_module):
-        for c in trainer.callback_metrics:
-            self.metrics.setdefault(c,[]).append(trainer.callback_metrics[c].item())
+        if trainer.sanity_checking:
+            return
+        epoch = trainer.current_epoch
+        for c, v in trainer.callback_metrics.items():
+            if c == 'train_loss':
+                self._set(epoch - 1, c, v.item())  ##logged at the end of the previous training epoch
+            else:
+                self._set(epoch, c, v.item())
+        self.metrics = self._columns()
         ##Write csv in a convenient way
-        losses = pd.DataFrame(self._align(self.metrics.copy()))
-        losses.to_csv(os.path.join(self.dirpath,'loss.csv'),index=False)
-
+        pd.DataFrame(self.metrics).to_csv(os.path.join(self.dirpath,'loss.csv'),index=False)
 
     def on_train_end(self, trainer, pl_module):
-        ##in place on purpose: TimeSeries.train_model reads mc.metrics afterwards
-        losses = self._align(self.metrics)
-
-        #losses['val_loss'] = losses['val_loss'][2:]
-        losses = pd.DataFrame(losses)
+        if 'train_loss' in trainer.callback_metrics and self.rows:
+            self._set(max(self.rows), 'train_loss', trainer.callback_metrics['train_loss'].item())
+        ##TimeSeries.train_model reads mc.metrics afterwards
+        self.metrics = self._columns()
+        losses = pd.DataFrame(self.metrics)
+        losses.to_csv(os.path.join(self.dirpath,'loss.csv'),index=False)  ##now with the last train_loss too
         ##accrocchio per quando ci sono piu' gpu!
         losses.to_csv(os.path.join(self.dirpath,f'{np.random.randint(10000)}__losses__.csv'),index=False)
         print("Saving losses on file because multigpu not working")
-       
+
 
 
 class MyDataset(Dataset):

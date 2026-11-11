@@ -134,7 +134,7 @@ class Informer(Base):
     def forward(self,batch): 
         #x_enc, x_mark_enc, x_dec, x_mark_dec,enc_self_mask=None, dec_self_mask=None, dec_enc_mask=None):
         
-        x_enc = batch['x_num_past'].to(self.device)
+        x_enc = batch['x_num_past'].to(self.device).clone() ## modified in place below (remove_last)
         idx_target_future = batch['idx_target_future'][0]
 
         if 'x_cat_past' in batch.keys():
@@ -144,7 +144,7 @@ class Informer(Base):
 
         enc_self_mask = None
         
-        x_dec = batch['x_num_future'].to(self.device)
+        x_dec = batch['x_num_future'].to(self.device).clone()
         x_dec[:,-self.future_steps:,idx_target_future] = 0
         
         
@@ -174,11 +174,13 @@ class Informer(Base):
         
         #import pdb
         #pdb.set_trace()
-        res = dec_out[:,-self.future_steps:,:].unsqueeze(3)
+        BS = dec_out.shape[0]
+        res = dec_out[:,-self.future_steps:,:].reshape(BS,self.future_steps,-1,self.mul)
         if self.remove_last:
-            res+=x_start.unsqueeze(1)
-        BS = res.shape[0]
-        return  res.reshape(BS,self.future_steps,-1,self.mul)
+            ## x_start is B x 1 x n_targets: one offset per target, shared by all the quantiles
+            ## (was unsqueezed on the wrong axis and crashed with more than one target)
+            res = res + x_start.reshape(BS,1,-1,1)
+        return  res
        
        
        

@@ -31,7 +31,7 @@ from .utils import Embedding_cat_variables
   
 class PatchTST(Base):
     handle_multivariate = True
-    handle_future_covariates = False
+    handle_future_covariates = True
     handle_categorical_variables = True
     handle_quantile_loss = True
     description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables,handle_quantile_loss)

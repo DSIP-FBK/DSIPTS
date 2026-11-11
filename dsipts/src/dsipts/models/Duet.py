@@ -107,7 +107,10 @@ class Duet(Base):
                                                 hidden_size)
         self.CI = CI
         self.n_vars = self.out_channels
-        self.mask_generator = Mahalanobis_mask(self.future_steps)
+        ## the mask is computed on the past window (B x variates x past_steps), so its size is past_steps: with
+        ## future_steps it crashed whenever it is used (more than one target). With one target it is never used and
+        ## future_steps is kept so old checkpoints still load.
+        self.mask_generator = Mahalanobis_mask(self.past_steps if self.n_vars>1 else self.future_steps)
         self.Channel_transformer = Encoder(
             [
                 EncoderLayer(

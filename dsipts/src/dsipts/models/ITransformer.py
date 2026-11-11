@@ -87,6 +87,13 @@ class ITransformer(Base):
         self.use_norm = use_norm
         # Embedding
         self.enc_embedding = DataEmbedding_inverted(self.past_steps, d_model, embed_type='what?', freq='what?', dropout=dropout_rate)  ##embed, freq not used inside
+        ## future covariates (numerical + categorical embedding) become extra variate tokens: each future channel
+        ## is embedded along the future time axis (future_steps -> d_model). They do not need to exist in the past
+        ## and can have any number of channels; their tokens are dropped after the encoder like the past covariates.
+        ## Without future covariates no extra module is created (old checkpoints still load).
+        self.use_future = (self.future_channels>0) or (len(self.embs_fut or [])>0)
+        if self.use_future:
+            self.fut_embedding = DataEmbedding_inverted(self.future_steps, d_model, embed_type='what?', freq='what?', dropout=dropout_rate)
         self.class_strategy = class_strategy
         # Encoder-only architecture
         self.encoder = Encoder(
@@ -124,20 +131,25 @@ class ITransformer(Base):
         # Embedding
         # B L N -> B N E                (B L N -> B L E in the vanilla Transformer)
         enc_out = self.enc_embedding(x_enc, x_mark_enc) # covariates (e.g timestamp) can be also embedded as tokens
+        if x_mark_dec is not None:
+            ## B F Cf -> B Cf E, appended after the past tokens (the first N tokens stay the past variates)
+            enc_out = torch.cat([enc_out, self.fut_embedding(x_mark_dec, None)], 1)
         
         # B N E -> B N E                (B L E -> B L E in the vanilla Transformer)
         # the dimensions of embedded time series has been inverted, and then processed by native attn, layernorm and ffn modules
         enc_out, attns = self.encoder(enc_out, attn_mask=None)
 
-        # B N E -> B N S -> B S N 
-        dec_out = self.projector(enc_out).permute(0, 2, 1)[:, :, :N] # filter the covariates
+        # B N E -> B N (S*mul) -> B S N mul
+        ## NB: the projector output is (S, mul) per token: reshaping (B, S*mul, N) straight to (B, S, N, mul)
+        ## would mix the quantiles of one variate with the outputs of another when mul>1 (identical for mul=1)
+        B = enc_out.shape[0]
+        dec_out = self.projector(enc_out)[:, :N, :] # filter the covariates
+        dec_out = dec_out.reshape(B, N, self.future_steps, self.mul).permute(0, 2, 1, 3)
 
         if self.use_norm:
-
             # De-Normalization from Non-stationary Transformer
-            dec_out = dec_out * (stdev[:, 0, :].unsqueeze(1).repeat(1, self.future_steps*self.mul, 1))
-            dec_out = dec_out + (means[:, 0, :].unsqueeze(1).repeat(1, self.future_steps*self.mul, 1))
-
+            dec_out = dec_out * stdev[:, 0, :].reshape(B, 1, N, 1)
+            dec_out = dec_out + means[:, 0, :].reshape(B, 1, N, 1)
 
         return dec_out
 
@@ -145,10 +157,15 @@ class ITransformer(Base):
 
         x_enc = batch['x_num_past'].to(self.device)
         BS = x_enc.shape[0]
-        if 'x_cat_future' in batch.keys():
-            emb_fut = self.emb_fut(BS,batch['x_cat_future'].to(self.device))
-        else:
-            emb_fut = self.emb_fut(BS,None)
+        future = None
+        if self.use_future:
+            if 'x_cat_future' in batch.keys():
+                future = [self.emb_fut(BS,batch['x_cat_future'].to(self.device))]
+            else:
+                future = [self.emb_fut(BS,None)]
+            if 'x_num_future' in batch.keys():
+                future.append(batch['x_num_future'].to(self.device))
+            future = torch.cat(future, 2)
         if 'x_cat_past' in batch.keys():
             emb_past = self.emb_past(BS,batch['x_cat_past'].to(self.device))
         else:
@@ -157,12 +174,10 @@ class ITransformer(Base):
 
 
 
-        ##row 124 Transformer/experiments/exp_long_term_forecasting.py ma in realta' NON USATO!
-        x_dec = torch.zeros(x_enc.shape[0],self.past_steps,self.out_channels).float().to(self.device)
-        x_dec = torch.cat([batch['y'].to(self.device), x_dec], dim=1).float()
-
-        dec_out = self.forecast(x_enc, emb_past, x_dec, emb_fut)
+        dec_out = self.forecast(x_enc, emb_past, None, future)  ## B S N mul
+        if ('idx_target' not in batch.keys()) or (len(batch['idx_target'][0])==0):
+            raise ValueError('ITransformer predicts the targets from their own past tokens: the targets must be among the past variables')
         idx_target = batch['idx_target'][0]
-        return dec_out[:, :,idx_target].reshape(BS,self.future_steps,self.out_channels,self.mul)
+        return dec_out[:, :, idx_target, :].reshape(BS,self.future_steps,self.out_channels,self.mul)
         
         #return dec_out[:, -self.pred_len:, :]  # [B, L, D]
