@@ -42,7 +42,8 @@ def compute_causal_statistics(
             increment = (x - shifted) * (x - means) * w
             m2 = torch.cumsum(increment, dim=-1)
             variance = m2 / torch.clamp(denominator - 1.0, min=1.0)
-            scales = torch.sqrt(variance).clamp(min=minimum_scale)
+            ##clamp BEFORE the sqrt (same value): sqrt'(0)=inf times clamp'=0 gives a NaN gradient on constant rows
+            scales = torch.sqrt(variance.clamp(min=minimum_scale**2))
             if stabilize_with_global:
                 lo, hi = 10.0 ** (-scale_factor_exponent), 10.0**scale_factor_exponent
                 global_den = (weights * observation_mask).sum(-1, keepdim=True).clamp_min(1.0)
@@ -197,7 +198,9 @@ def advancing_block_frames(
     locs, scales = [], []
     for h in range(n_pred):
         var = (m2 / (cnt - 1.0).clamp(min=1.0)).clamp(min=0.0)
-        scale = var.sqrt().clamp(min=minimum_scale)
+        ##clamp BEFORE the sqrt (same value). The medians come from the model, so this is differentiated while
+        ##fine-tuning: var.sqrt().clamp() gave sqrt'(0)=inf * 0 = NaN on a constant window and the NaN reached every weight
+        scale = var.clamp(min=minimum_scale**2).sqrt()
         locs.append(mean)
         scales.append(scale)
         folded = (sinh_median[:, h] * scale[:, None] + mean[:, None] - offset[:, None]).clamp(-clip, clip)
@@ -221,7 +224,7 @@ def instance_norm_stats(values: Tensor, observation_mask: Tensor, minimum_scale:
     n = mask_f.sum(dim=-1, keepdim=True).clamp(min=1.0)
     loc = (x * mask_f).sum(dim=-1, keepdim=True) / n
     var = (((x - loc) * mask_f) ** 2).sum(dim=-1, keepdim=True) / n
-    scale = var.sqrt().clamp_min(minimum_scale)
+    scale = var.clamp_min(minimum_scale**2).sqrt()  ##clamp before the sqrt: no NaN gradient on constant rows
     is_zero_one = ((values == 0.0) | (values == 1.0) | ~observation_mask).all(dim=-1, keepdim=True)
     is_binary = is_zero_one & observation_mask.any(dim=-1, keepdim=True)
     loc = torch.where(is_binary, torch.zeros_like(loc), loc)

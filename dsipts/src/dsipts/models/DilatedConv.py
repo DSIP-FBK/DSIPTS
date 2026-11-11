@@ -18,7 +18,6 @@ from .utils import QuantileLossMO,Permute, get_activation
 from typing import List, Union
 from ..data_structure.utils import beauty_string
 import numpy as np
-torch.autograd.set_detect_anomaly(True)
 from .utils import  get_scope
 from .utils import Embedding_cat_variables
 

@@ -20,7 +20,6 @@ from ..data_structure.utils import beauty_string
 import numpy as np
 from .utils import  get_scope
 from .utils import Embedding_cat_variables
-torch.autograd.set_detect_anomaly(True)
 
 class GLU(nn.Module):
     def __init__(self, d_model: int):

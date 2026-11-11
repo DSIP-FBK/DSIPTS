@@ -20,7 +20,6 @@ from ..data_structure.utils import beauty_string
 from .utils import  get_scope
 from .xlstm.xLSTM import xLSTM
 from .utils import Embedding_cat_variables
-torch.autograd.set_detect_anomaly(True)
 
 class MyBN(nn.Module):
     def __init__(self,channels):

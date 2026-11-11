@@ -21,7 +21,6 @@ from torch.nn import functional as F
 from ..data_structure.utils import beauty_string
 from .utils import  get_scope
 
-torch.autograd.set_detect_anomaly(True)
 
         
 
