@@ -2,6 +2,7 @@ import torch
 import torch.nn.init as init
 from torch import nn
 import numpy as np
+from typing import Union
 from numba import jit
 from torch.autograd import Function
 
@@ -105,25 +106,78 @@ class SinkhornDistance():
         "Barycenter subroutine, used by kinetic acceleration through extrapolation."
         return tau * u + (1 - tau) * u1
 
+def horizon_weights_tensor(horizon_weights, future_steps:int)->torch.Tensor:
+    """Per-step loss weights over the forecast horizon, as a float tensor of shape (future_steps,).
+    The weights are used as given (not normalised): the user decides their scale.
+
+    Args:
+        horizon_weights: one non-negative weight per future step (list, array or tensor).
+        future_steps: the model horizon; the length must match.
+    """
+    w = torch.as_tensor(np.asarray(horizon_weights, dtype=np.float32)).flatten()
+    assert w.numel()==future_steps, f'horizon_weights must have one weight per future step ({future_steps}), got {w.numel()}'
+    assert bool(torch.isfinite(w).all()) and bool((w>=0).all()) and float(w.sum())>0, 'horizon_weights must be finite, non-negative and not all zero'
+    return w
+
+
+def combine_loss_weights(horizon_weights:Union[torch.Tensor,None], weights:Union[torch.Tensor,None])->Union[torch.Tensor,None]:
+    """Product of the per future step weights (T,) and the per sample weights (B, T) or (B, T, C),
+    as a tensor that broadcasts against (B, T, C); None if there are no weights at all.
+    """
+    w = None if horizon_weights is None else horizon_weights.view(1,-1,1)
+    if weights is not None:
+        sw = weights if weights.dim()==3 else weights.unsqueeze(-1)
+        if w is not None:
+            sw = sw.to(device=w.device, dtype=w.dtype)
+        w = sw if w is None else w*sw
+    return w
+
+
+class HorizonWeightedPointLoss(nn.Module):
+    """L1 or MSE of a point forecast, optionally weighted per future step (horizon_weights, (T,))
+    and per sample (forward weights, (B, T) or (B, T, C)). Without weights it is exactly
+    nn.L1Loss / nn.MSELoss. Input (B, T, C) prediction and target.
+    """
+    def __init__(self, mode:str, horizon_weights:Union[torch.Tensor,None]=None):
+        super().__init__()
+        assert mode in ('l1','mse'), f'mode must be l1 or mse, got {mode}'
+        self.mode = mode
+        self.register_buffer('horizon_weights', horizon_weights, persistent=False)
+
+    def forward(self, preds, target, weights=None):
+        err = preds-target
+        err = torch.abs(err) if self.mode=='l1' else err**2
+        w = combine_loss_weights(self.horizon_weights, weights)
+        return (err if w is None else err*w).mean()
+
+
 class QuantileLossMO(nn.Module):
     """Copied from git
+
+    Optional ``horizon_weights`` (tensor of shape (future_steps,), see horizon_weights_tensor)
+    and per sample ``weights`` passed to forward ((B, T) or (B, T, C)) multiply the pinball
+    loss of each point; they are used as given (not normalised).
     """
-    def __init__(self, quantiles):
+    def __init__(self, quantiles, horizon_weights=None):
         super().__init__()
         self.quantiles = quantiles
-        
-    def forward(self, preds, target):
+        ##not persistent: the weights come from the constructor, so checkpoints keep the same keys
+        self.register_buffer('horizon_weights', horizon_weights, persistent=False)
+
+    def forward(self, preds, target, weights=None):
 
         assert not target.requires_grad
         assert preds.size(0) == target.size(0)
         tot_loss = 0
+        W = combine_loss_weights(self.horizon_weights, weights)  ##broadcasts against (B, T, C)
         for j in range(preds.shape[2]):
+            w = None if W is None else W[:,:,min(j,W.shape[2]-1)]
             losses = []
             ##suppose BxLxCxMUL
             for i, q in enumerate(self.quantiles):
                 errors = target[:,:,j] - preds[:,:,j, i]
-                
-                losses.append(torch.abs(torch.max((q-1) * errors,q * errors)))
+                l = torch.abs(torch.max((q-1) * errors,q * errors))
+                losses.append(l if w is None else l*w)
 
             loss = torch.mean(torch.sum(torch.cat(losses, dim=1), dim=1))
             tot_loss+=loss
@@ -631,10 +685,12 @@ class CRPS(nn.Module):
     with large ensembles.
     """
     
-    def __init__(self, alpha=0.5, reduction='mean'):
+    def __init__(self, alpha=0.5, reduction='mean', horizon_weights=None):
         super().__init__()
         self.alpha = alpha
         self.reduction = reduction
+        ##optional per future step weights (future_steps,), see horizon_weights_tensor; not persistent
+        self.register_buffer('horizon_weights', horizon_weights, persistent=False)
         
     def forward(self, y_hat, target, weights=None):
         """
@@ -679,7 +735,8 @@ class CRPS(nn.Module):
         # Combine terms according to afCRPS formula
         loss = mae_term - (1 - epsilon) * pairwise_term/ (2*n_members * (n_members - 1))
         
-        # Apply weights if provided
+        # Apply weights if provided: per future step (horizon_weights) times per sample (weights)
+        weights = combine_loss_weights(self.horizon_weights, weights)  ##loss is (batch, width, n_variables)
         if weights is not None:
             loss = loss * weights
         #if loss.mean()<-2:

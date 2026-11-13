@@ -31,6 +31,7 @@ from .utils import  get_scope
         
 
 class VQVAEA(Base):
+    supports_loss_weights = False  ##computes its own loss
     handle_multivariate = False
     handle_future_covariates = False
     handle_categorical_variables = False

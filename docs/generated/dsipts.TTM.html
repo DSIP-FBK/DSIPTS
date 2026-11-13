@@ -5,11 +5,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>dsipts.TTM &#8212; DSIPTS 1.6.1 documentation</title>
+    <title>dsipts.TTM &#8212; DSIPTS 1.7.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
     <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
-    <script src="../_static/documentation_options.js?v=d6a008b6"></script>
+    <script src="../_static/documentation_options.js?v=030dc6f6"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -61,6 +61,7 @@ network you should implement your own method</p>
 <li><p><strong>optim</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>None</em><em>]</em><em>, </em><em>optional</em>) – Optimizer type. Defaults to None.</p></li>
 <li><p><strong>optim_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – Configuration for the optimizer. Defaults to None.</p></li>
 <li><p><strong>scheduler_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – Configuration for the learning rate scheduler. Defaults to None.</p></li>
+<li><p><strong>horizon_weights</strong> (<em>List</em><em>[</em><em>float</em><em>]</em><em>, </em><em>optional</em>) – One non-negative loss weight per future step, used as given (not normalised). Works with quantiles, crps, l1 and mse; it also weights the validation loss used to pick the best epoch, and it multiplies the per sample weights of TimeSeries.load_signal(loss_weights=…). Defaults to None (uniform).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
@@ -98,6 +99,7 @@ network you should implement your own method</p>
 <li><p><strong>optim</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>None</em><em>]</em><em>, </em><em>optional</em>) – Optimizer type. Defaults to None.</p></li>
 <li><p><strong>optim_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – Configuration for the optimizer. Defaults to None.</p></li>
 <li><p><strong>scheduler_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – Configuration for the learning rate scheduler. Defaults to None.</p></li>
+<li><p><strong>horizon_weights</strong> (<em>List</em><em>[</em><em>float</em><em>]</em><em>, </em><em>optional</em>) – One non-negative loss weight per future step, used as given (not normalised). Works with quantiles, crps, l1 and mse; it also weights the validation loss used to pick the best epoch, and it multiplies the per sample weights of TimeSeries.load_signal(loss_weights=…). Defaults to None (uniform).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>

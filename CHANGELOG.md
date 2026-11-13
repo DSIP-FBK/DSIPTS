@@ -1,3 +1,5 @@
+## 1.7.0
+- Loss weights, used as given (not normalised) and multiplied together: `horizon_weights` model argument (one weight per future step) and `TimeSeries.load_signal(loss_weights='col')` (a dataset column weighting each target point, e.g. a model that has to be better on Sundays, or 0 to keep a bad target value in the inputs but out of the loss). They work with quantile, crps, l1 and mse losses, weight the validation loss that picks the best epoch too, are not used at inference, and raise an error with the losses and models that would ignore them; samples with NaN in the context are dropped as before, whatever their weight
 ## 1.6.0 
 - Future covariates (numerical and categorical, possibly absent from the past and with any number of channels) are now supported by ITransformer, TimeKAN and TimesNet, and also feed TimeXER's exogenous attention branch; fixed the PatchTST/Samformer flags, multi-target crashes in Autoformer, Informer, DilatedConvED, Duet and NLinear, and the quantile/target mixing in the ITransformer and TimeXER outputs; TTM now rejects quantiles explcitly
 ## 1.5.0

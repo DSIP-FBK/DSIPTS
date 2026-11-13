@@ -302,7 +302,8 @@ class TimeSeries():
                     group:Union[None,str]=None,
                     check_holes_and_duplicates:bool=True,
                     silly_model:bool=False,
-                    sampler_weights:Union[None,str]=None)->None:
+                    sampler_weights:Union[None,str]=None,
+                    loss_weights:Union[None,str]=None)->None:
         """ This is a crucial point in the data structure. We expect here to have a dataset with time as timestamp.
             There are some checks:
                 1- the duplicates will be removed taking the first instance
@@ -325,6 +326,7 @@ class TimeSeries():
             check_holes_and_duplicates (bool, optional): if False duplicates or holes will not checked, the dataloader can not correctly work, disable at your own risk. Defaults True
             silly_model (bool, optional): if True, target variables will be added to the pool of the future variables. This can be useful to see if information passes throught the decoder part of your model (if any)
             sampler_weights  group (str or None, optional): if it is a column name it will be used as weight for the sampler. Careful that the weight of the sample is the weight value of the fist target value (index)
+            loss_weights (str or None, optional): name of a column used as loss weight of each target point: every future step of a sample is weighted by the value of this column at that time (applied to all the targets, multiplied by the model horizon_weights, NOT normalised). It is not an input of the model and it is not scaled. It must be finite and non-negative on the targets of the samples that are kept (samples with NaN in the past context or in the targets are dropped as usual, whatever the weight). It weights both the training and the validation loss (so the best epoch too) and works with quantiles, crps, l1 and mse. Use 0 to exclude a point from the loss while keeping its value in the inputs. Defaults to None.
         """
         
         ##copies: the lists are modified below and the defaults are mutable (the group used to stick to the default list)
@@ -430,6 +432,12 @@ class TimeSeries():
             beauty_string('YOU ARE TRAINING A SILLY MODEL WITH THE TARGETS IN THE INPUTS','section',self.verbose) 
             self.future_variables+=self.target_variables
         self.sampler_weights = sampler_weights
+        if loss_weights is not None:
+            assert loss_weights in dataset.columns, f'loss_weights column {loss_weights} not in the dataset'
+            used = set(self.past_variables)|set(self.future_variables)|set(self.target_variables)|set(self.cat_var)|{'time'}
+            assert loss_weights not in used, f'loss_weights column {loss_weights} can not be also a variable of the model (copy it into another column if you need it as input too)'
+            beauty_string(f'Using the column {loss_weights} as loss weights','info',self.verbose)
+        self.loss_weights = loss_weights
     
     def plot(self):
         """  
@@ -499,6 +507,12 @@ class TimeSeries():
         t_samples = []
         g_samples = []
         sampler_weights_samples = []
+        ##per target point loss weights (load_signal(loss_weights=...)); not used at inference (no loss there,
+        ##and the future targets, hence their weights, may be unknown)
+        loss_weights = None if is_inference else getattr(self, 'loss_weights', None)
+        if loss_weights is not None:
+            assert loss_weights in data.columns, f'loss_weights column {loss_weights} not in the data'
+        loss_weights_samples = []
         
         if starting_point is not None:
             for kk in starting_point.keys():
@@ -589,6 +603,8 @@ class TimeSeries():
             y_target = tmp[self.target_variables].values
             if self.sampler_weights is not None:
                 sampler_weights = tmp[self.sampler_weights].values.flatten()
+            if loss_weights is not None:
+                w_point = tmp[loss_weights].values.astype(np.float32).flatten()
         
             if starting_point is not None:
                 ##every key must match on the first future step, e.g. {'hour':0,'minute':0} = forecasts issued at 00:00
@@ -631,6 +647,8 @@ class TimeSeries():
                         y_samples.append(y_target[i+skip_stacked:i+future_steps+skip_stacked])
                         if self.sampler_weights is not None:
                             sampler_weights_samples.append(sampler_weights[i+skip_stacked])
+                        if loss_weights is not None:
+                            loss_weights_samples.append(w_point[i+skip_stacked:i+future_steps+skip_stacked])
                         t_samples.append(t[i+skip_stacked:i+future_steps+skip_stacked])
                         g_samples.append(groups[i])
 
@@ -663,6 +681,11 @@ class TimeSeries():
             dd['x_cat_future'] = x_cat_future_samples
         if len(self.future_variables)>0:
             dd['x_num_future'] = x_num_future_samples.astype(np.float32)
+        if loss_weights is not None:
+            lw = np.stack(loss_weights_samples).astype(np.float32)
+            bad = ~(np.isfinite(lw) & (lw>=0))
+            assert not bad.any(), f'loss_weights column {loss_weights}: {int(bad.sum())} non finite or negative values on the targets of the kept samples'
+            dd['loss_weights'] = lw
         if self.sampler_weights is not None:
             dd['sampler_weights'] = sampler_weights_samples.astype(np.float32)
         else:
@@ -878,6 +901,9 @@ class TimeSeries():
             #this is WIP will be armonized in future
         """
         beauty_string('Training the model','block',self.verbose)
+        if getattr(self, 'loss_weights', None) is not None:
+            ##fail before building the data: models with their own loss would silently ignore the weights
+            self.model.check_loss_weights_supported('loss_weights')
         self.split_params = split_params
         self.check_custom = False
         

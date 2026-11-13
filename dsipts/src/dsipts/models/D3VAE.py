@@ -47,6 +47,7 @@ def copy_parameters(
 
 
 class D3VAE(Base):              
+    supports_loss_weights = False  ##computes its own loss
     
     def __init__(self,
                  

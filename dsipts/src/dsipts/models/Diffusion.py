@@ -20,6 +20,7 @@ from ..data_structure.utils import beauty_string
 from .utils import  get_scope
 
 class Diffusion(Base):
+    supports_loss_weights = False  ##computes its own loss
     handle_multivariate = False
     handle_future_covariates = True
     handle_categorical_variables = True

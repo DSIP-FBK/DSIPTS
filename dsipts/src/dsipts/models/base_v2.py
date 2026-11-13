@@ -15,7 +15,7 @@ import numpy as np
 #from aim import Image
 import matplotlib.pyplot as plt
 from typing import List, Union
-from .utils import QuantileLossMO, CRPS
+from .utils import QuantileLossMO, CRPS, HorizonWeightedPointLoss, horizon_weights_tensor
 import torch.nn as nn
 from torch.optim import Adam, AdamW, SGD, RMSprop   
 
@@ -192,6 +192,8 @@ class DictSOTATSERBuffer:
 
 
 class Base(pl.LightningModule):
+    ##False in the models that compute their own loss: loss weights would be silently ignored
+    supports_loss_weights = True
     
     ############### SET THE PROPERTIES OF THE ARCHITECTURE##############
     
@@ -229,7 +231,8 @@ class Base(pl.LightningModule):
                 prediction_channel_indices = None,
                 exogenous_channel_indices_cont= None,
                 exogenous_channel_indices_cat= None,
-                continual_learning:Union[None,dict]=None
+                continual_learning:Union[None,dict]=None,
+                horizon_weights:Union[None,List[float]]=None
                 ):
         """
         This is the basic model, each model implemented must overwrite the init method and the forward method.
@@ -256,6 +259,7 @@ class Base(pl.LightningModule):
             optim (Union[str, None], optional): Optimizer type. Defaults to None.
             optim_config (dict, optional): Configuration for the optimizer. Defaults to None.
             scheduler_config (dict, optional): Configuration for the learning rate scheduler. Defaults to None.
+            horizon_weights (List[float], optional): One non-negative loss weight per future step, used as given (not normalised). Works with quantiles, crps, l1 and mse; it also weights the validation loss used to pick the best epoch, and it multiplies the per sample weights of TimeSeries.load_signal(loss_weights=...). Defaults to None (uniform).
         
         Raises:
             AssertionError: If the number of quantiles is not equal to 3 when quantiles are provided.
@@ -346,16 +350,22 @@ class Base(pl.LightningModule):
             else:
                 self.use_quantiles = False
                 self.mul = 1
-                if self.loss_type == 'mse':
-                    self.loss = nn.MSELoss()
-                else:
-                    self.loss = nn.L1Loss()
+                ##same as nn.L1Loss / nn.MSELoss, but it also takes the optional loss weights
+                self.loss = HorizonWeightedPointLoss('mse' if self.loss_type == 'mse' else 'l1')
         else:
             self.is_classification = True
             self.use_quantiles = False
             self.mul = n_classes
             self.loss = torch.nn.CrossEntropyLoss()
             assert self.out_channels==1, "Classification require only one channel"
+
+        ##optional per future step loss weights, e.g. to score only the part of the horizon that is used
+        self.horizon_weights = horizon_weights
+        if horizon_weights is not None:
+            self.check_loss_weights_supported('horizon_weights')
+            w = horizon_weights_tensor(horizon_weights, future_steps)
+            self.loss.register_buffer('horizon_weights', w, persistent=False)
+            beauty_string(f'horizon_weights: min {float(w.min()):.3f}, max {float(w.max()):.3f}','info',self.verbose)
 
 
         self.future_steps = future_steps
@@ -672,6 +682,16 @@ class Base(pl.LightningModule):
             return torch.ones((), device=P.device, dtype=P.dtype)
         return torch.clamp(1.0/(self._penalty_ratio+1e-8), 1.0/PENALTY_CLAMP, PENALTY_CLAMP)
 
+    def check_loss_weights_supported(self, what:str):
+        """Loss weights (horizon_weights, TimeSeries.load_signal(loss_weights=...)) only work with the losses
+        computed in Base.compute_loss: quantiles, crps, l1 and mse. Fail loudly instead of ignoring them.
+
+        :meta private:
+        """
+        assert getattr(self, 'supports_loss_weights', True), f'{what} is not supported by {self.__class__.__name__} (it computes its own loss)'
+        assert not self.is_classification, f'{what} is not supported for classification'
+        assert (self.use_quantiles and self.loss_type!='long_lag') or self.loss_type in ('l1','mse'), f'{what} works with quantiles, crps, l1 and mse, not with loss_type={self.loss_type}'
+
     def compute_loss(self,batch,y_hat):
         """
         custom loss calculation
@@ -699,9 +719,15 @@ class Base(pl.LightningModule):
 
         :meta private:
         """
+        ##optional per sample loss weights (B, T), from TimeSeries.load_signal(loss_weights=...)
+        lw = batch.get('loss_weights', None)
+        if lw is not None:
+            self.check_loss_weights_supported('loss_weights')
+            lw = lw.to(y_hat.device)
+
         if self.loss_type=='crps':
             ##outside the contract: persistence_weight is the CRPS alpha here
-            return self.loss(y_hat,batch['y'])
+            return self.loss(y_hat,batch['y'],weights=lw)
 
         if self.loss_type=='long_lag':
             ##outside the contract: persistence_weight is the weight of the LAST lag
@@ -710,9 +736,9 @@ class Base(pl.LightningModule):
             return tmp.mean()
 
         if self.use_quantiles is False:
-            initial_loss = self.loss(y_hat[:,:,:,0], batch['y'])
+            initial_loss = self.loss(y_hat[:,:,:,0], batch['y']) if lw is None else self.loss(y_hat[:,:,:,0], batch['y'], weights=lw)
         else:
-            initial_loss = self.loss(y_hat, batch['y'])
+            initial_loss = self.loss(y_hat, batch['y'], weights=lw)
 
         if  self.loss_type in ['mse','l1']:
             return initial_loss
