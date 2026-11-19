@@ -504,7 +504,22 @@ class Base(pl.LightningModule):
 
         return total_loss, y_hat
 
+    def _is_frozen(self)->bool:
+        """True when no parameter is trainable (zero-shot foundation model, freeze='all')."""
+        return not any(p.requires_grad for p in self.parameters())
+
     def training_step(self, batch, batch_idx):
+        if self._is_frozen():
+            ## zero-shot: no graph (a 100M+ model with grad OOMs a 16GB V100), no backward, no optimizer step.
+            ## Only batch 0 is evaluated; the rest of the epoch is a cheap dataloader pass. Do NOT end the epoch
+            ## with on_train_batch_start -> -1: Lightning then skips the end-of-epoch validation (no val_select).
+            if batch_idx > 0:
+                return None
+            with torch.no_grad():
+                loss, _ = self._compute_step_loss(batch)
+            self.train_epoch_metrics += loss.detach()
+            self.train_epoch_count += 1
+            return None
         if self.has_sam_optim:
             opt = self.optimizers()
             def closure():

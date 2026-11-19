@@ -17,7 +17,7 @@ ts:
 
 model_configs:
   model_path: 'mistralai/Timestral-209M'
-  freeze: 'none'
+  freeze: 'all'      ## zero-shot: no grad, 1 training batch (base_v2 _is_frozen)
   use_categorical: false
   symmetric_averaging: false
   local_files_only: false

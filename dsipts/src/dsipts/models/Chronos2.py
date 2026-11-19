@@ -84,8 +84,12 @@ class Chronos2(Base): # type: ignore
                 vocab_size=None,
                 attn_implementation='eager',
                 pretrained:Union[str,None]=None,
+                freeze:str='none',
                 **kwargs)->None:
         """Chronos-2 (encoder-only, group attention) as a dsipts model.
+
+        freeze: 'none' = train everything; 'all' = ZERO-SHOT, nothing trainable: Base runs the single
+            training batch under no_grad and ends the epoch there (no activations kept, no backward).
 
         pretrained: None = random init with the architecture given by the arguments. Otherwise a HF hub id
             (e.g. 'amazon/chronos-2', 'autogluon/chronos-2-small') or a local folder with config.json and
@@ -192,6 +196,10 @@ class Chronos2(Base): # type: ignore
         )
         if pretrained_folder is not None:
             self._load_pretrained(pretrained_folder, list(hf_config['quantiles']))
+        assert freeze in ['none','all'], f"Chronos2: freeze must be 'none' or 'all', got {freeze}"
+        if freeze=='all':
+            for p in self.parameters():
+                p.requires_grad = False
 
     def _load_pretrained(self, folder:str, pretrained_quantiles:list)->None:
         """Load the HF safetensors of a Chronos-2 checkpoint (parameter names match one to one).

@@ -20,6 +20,7 @@ ts:
 model_configs:
   pretrained: 'amazon/chronos-2'
   attn_implementation: 'sdpa'
+  freeze: 'all'      ## zero-shot: no grad, 1 training batch (base_v2 _is_frozen)
   optim: torch.optim.Adam
   persistence_weight: 0.0
   loss_type: 'l1'

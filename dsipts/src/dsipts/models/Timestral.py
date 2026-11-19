@@ -63,9 +63,9 @@ class Timestral(Base):
 
         Args:
             model_path (str): HF Hub repo id or local directory with config.json + model.safetensors.
-            freeze (str): 'none' = fine-tune everything, 'backbone' = train only the quantile head.
-                For a pure zero-shot run keep freeze='none' and set optim_config.lr=0 (and max_epochs=1):
-                Lightning still needs a loss with a gradient, the weights do not move.
+            freeze (str): 'none' = fine-tune everything, 'backbone' = train only the quantile head,
+                'all' = ZERO-SHOT: nothing trainable, Base runs the single training batch under no_grad and ends
+                the epoch there (no activations kept, no backward), so only validation/inference cost memory.
             use_categorical (bool): feed x_cat_past / x_cat_future as numeric rows (raw codes, as the official
                 code does for multivariate targets). False drops them.
             symmetric_averaging (bool): test-time augmentation of the official forecaster, average the forecast
@@ -81,7 +81,7 @@ class Timestral(Base):
         self.save_hyperparameters(logger=False)
 
         assert self.n_classes==0, 'Timestral: classification is not supported'
-        assert freeze in ['none','backbone'], f"Timestral: freeze must be 'none' or 'backbone', got {freeze}"
+        assert freeze in ['none','backbone','all'], f"Timestral: freeze must be 'none', 'backbone' or 'all', got {freeze}"
 
         self.timestral = load_model(model_path, local_files_only=local_files_only)
         self.timestral.train() ##no dropout/BN inside, but keep lightning's mode coherent
@@ -118,6 +118,9 @@ class Timestral(Base):
         if freeze=='backbone':
             for name, p in self.timestral.named_parameters():
                 p.requires_grad = name.startswith('head.')
+        elif freeze=='all':
+            for p in self.parameters():
+                p.requires_grad = False
         n_tot = sum(p.numel() for p in self.timestral.parameters())
         n_train = sum(p.numel() for p in self.timestral.parameters() if p.requires_grad)
         beauty_string(f'Timestral {model_path}: {n_tot} parameters, {n_train} trainable, patch {cfg.patch_size}, levels {[knots[i] for i in idx]}','info',self.verbose)

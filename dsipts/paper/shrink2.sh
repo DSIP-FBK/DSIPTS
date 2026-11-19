@@ -26,6 +26,9 @@ rsync -avz -e "ssh -F $HOME/.ssh/config_jump" --exclude='*.ckpt' --exclude='*.pk
 ## ==== C. ZERO-SHOT foundation models (2026-11-19): does post-hoc / rolling beta improve a model nobody trained here?
 ## Chronos-2 (amazon/chronos-2) and Timestral-209M, 1 epoch at lr 0 (weights do not move), 3 datasets = 6 jobs.
 ## Deterministic -> no seeds. Smoke-tested on the laptop (load + forward only): shapes OK, lag-1 forecast ~ last value.
+## 2026-11-19 OOM fix: the first launch died in training_step (lr 0 still built the full autograd graph: 14 GB on a V100).
+## Configs now set freeze: all -> base_v2 runs batch 0 under no_grad and skips the rest; val_loss identical to lr 0.
+## NB shard:2 does not cap VRAM, two jobs can land on the same GPU. Failed runs left no last.ckpt, relaunch as is.
 ## C0. once, on the LOGIN node (compute nodes may have no internet):
 python -c "from huggingface_hub import snapshot_download as d; d('amazon/chronos-2', allow_patterns=['config.json','model.safetensors']); d('mistralai/Timestral-209M', allow_patterns=['config.json','model.safetensors'])"
 export HF_HUB_OFFLINE=1    ## slurm passes the launching shell's environment to the jobs
