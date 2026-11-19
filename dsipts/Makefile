@@ -1,7 +1,7 @@
 
 .PHONY: build
 build:
-	bumpver update --minor
+	bumpver update --patch
 	uv pip install -e .
 	NEW_VERSION=$$(grep -oP '__version__ = "\K[^"]+' src/dsipts/version.py); \
 	echo "New version: $$NEW_VERSION"; \
