@@ -5,11 +5,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>dsipts package &#8212; DSIPTS 1.7.1 documentation</title>
+    <title>dsipts package &#8212; DSIPTS 1.8.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
     <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
-    <script src="_static/documentation_options.js?v=a77542ef"></script>
+    <script src="_static/documentation_options.js?v=b51e6972"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -249,6 +249,7 @@
 <li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.D3VAE.D3VAE"><code class="docutils literal notranslate"><span class="pre">D3VAE</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.D3VAE.D3VAE.can_be_compiled"><code class="docutils literal notranslate"><span class="pre">D3VAE.can_be_compiled()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.D3VAE.D3VAE.forward"><code class="docutils literal notranslate"><span class="pre">D3VAE.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.D3VAE.D3VAE.handle_gmm"><code class="docutils literal notranslate"><span class="pre">D3VAE.handle_gmm</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.D3VAE.D3VAE.inference"><code class="docutils literal notranslate"><span class="pre">D3VAE.inference()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.D3VAE.D3VAE.supports_loss_weights"><code class="docutils literal notranslate"><span class="pre">D3VAE.supports_loss_weights</span></code></a></li>
 </ul>
@@ -266,6 +267,7 @@
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.Diffusion.Diffusion.gaussian_log_likelihood"><code class="docutils literal notranslate"><span class="pre">Diffusion.gaussian_log_likelihood()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.Diffusion.Diffusion.handle_categorical_variables"><code class="docutils literal notranslate"><span class="pre">Diffusion.handle_categorical_variables</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.Diffusion.Diffusion.handle_future_covariates"><code class="docutils literal notranslate"><span class="pre">Diffusion.handle_future_covariates</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.Diffusion.Diffusion.handle_gmm"><code class="docutils literal notranslate"><span class="pre">Diffusion.handle_gmm</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.Diffusion.Diffusion.handle_multivariate"><code class="docutils literal notranslate"><span class="pre">Diffusion.handle_multivariate</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.Diffusion.Diffusion.handle_quantile_loss"><code class="docutils literal notranslate"><span class="pre">Diffusion.handle_quantile_loss</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.Diffusion.Diffusion.improving_weight_during_training"><code class="docutils literal notranslate"><span class="pre">Diffusion.improving_weight_during_training()</span></code></a></li>
@@ -415,6 +417,7 @@
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.Persistent.Persistent.forward"><code class="docutils literal notranslate"><span class="pre">Persistent.forward()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.Persistent.Persistent.handle_categorical_variables"><code class="docutils literal notranslate"><span class="pre">Persistent.handle_categorical_variables</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.Persistent.Persistent.handle_future_covariates"><code class="docutils literal notranslate"><span class="pre">Persistent.handle_future_covariates</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.Persistent.Persistent.handle_gmm"><code class="docutils literal notranslate"><span class="pre">Persistent.handle_gmm</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.Persistent.Persistent.handle_multivariate"><code class="docutils literal notranslate"><span class="pre">Persistent.handle_multivariate</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.Persistent.Persistent.handle_quantile_loss"><code class="docutils literal notranslate"><span class="pre">Persistent.handle_quantile_loss</span></code></a></li>
 </ul>
@@ -502,6 +505,7 @@
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.TTM.TTM.forward"><code class="docutils literal notranslate"><span class="pre">TTM.forward()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.TTM.TTM.handle_categorical_variables"><code class="docutils literal notranslate"><span class="pre">TTM.handle_categorical_variables</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.TTM.TTM.handle_future_covariates"><code class="docutils literal notranslate"><span class="pre">TTM.handle_future_covariates</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.TTM.TTM.handle_gmm"><code class="docutils literal notranslate"><span class="pre">TTM.handle_gmm</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.TTM.TTM.handle_multivariate"><code class="docutils literal notranslate"><span class="pre">TTM.handle_multivariate</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.TTM.TTM.handle_quantile_loss"><code class="docutils literal notranslate"><span class="pre">TTM.handle_quantile_loss</span></code></a></li>
 </ul>
@@ -529,6 +533,7 @@
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.VQVAEA.VQVAEA.gpt"><code class="docutils literal notranslate"><span class="pre">VQVAEA.gpt()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.VQVAEA.VQVAEA.handle_categorical_variables"><code class="docutils literal notranslate"><span class="pre">VQVAEA.handle_categorical_variables</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.VQVAEA.VQVAEA.handle_future_covariates"><code class="docutils literal notranslate"><span class="pre">VQVAEA.handle_future_covariates</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.VQVAEA.VQVAEA.handle_gmm"><code class="docutils literal notranslate"><span class="pre">VQVAEA.handle_gmm</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.VQVAEA.VQVAEA.handle_multivariate"><code class="docutils literal notranslate"><span class="pre">VQVAEA.handle_multivariate</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.VQVAEA.VQVAEA.handle_quantile_loss"><code class="docutils literal notranslate"><span class="pre">VQVAEA.handle_quantile_loss</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.VQVAEA.VQVAEA.inference"><code class="docutils literal notranslate"><span class="pre">VQVAEA.inference()</span></code></a></li>
@@ -546,6 +551,7 @@
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.VVA.VVA.generate"><code class="docutils literal notranslate"><span class="pre">VVA.generate()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.VVA.VVA.handle_categorical_variables"><code class="docutils literal notranslate"><span class="pre">VVA.handle_categorical_variables</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.VVA.VVA.handle_future_covariates"><code class="docutils literal notranslate"><span class="pre">VVA.handle_future_covariates</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.VVA.VVA.handle_gmm"><code class="docutils literal notranslate"><span class="pre">VVA.handle_gmm</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.VVA.VVA.handle_multivariate"><code class="docutils literal notranslate"><span class="pre">VVA.handle_multivariate</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.VVA.VVA.handle_quantile_loss"><code class="docutils literal notranslate"><span class="pre">VVA.handle_quantile_loss</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.VVA.VVA.inference"><code class="docutils literal notranslate"><span class="pre">VVA.inference()</span></code></a></li>
@@ -564,7 +570,9 @@
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base.Base.handle_quantile_loss"><code class="docutils literal notranslate"><span class="pre">Base.handle_quantile_loss</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base.Base.inference"><code class="docutils literal notranslate"><span class="pre">Base.inference()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base.Base.on_validation_start"><code class="docutils literal notranslate"><span class="pre">Base.on_validation_start()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base.Base.rescale_output"><code class="docutils literal notranslate"><span class="pre">Base.rescale_output()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base.Base.supports_loss_weights"><code class="docutils literal notranslate"><span class="pre">Base.supports_loss_weights</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base.Base.use_gmm"><code class="docutils literal notranslate"><span class="pre">Base.use_gmm</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.base.dilate_loss"><code class="docutils literal notranslate"><span class="pre">dilate_loss()</span></code></a></li>
@@ -575,14 +583,17 @@
 <li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.base_v2.Base"><code class="docutils literal notranslate"><span class="pre">Base</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base_v2.Base.description"><code class="docutils literal notranslate"><span class="pre">Base.description</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base_v2.Base.forward"><code class="docutils literal notranslate"><span class="pre">Base.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base_v2.Base.gmm_to_levels"><code class="docutils literal notranslate"><span class="pre">Base.gmm_to_levels()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base_v2.Base.handle_categorical_variables"><code class="docutils literal notranslate"><span class="pre">Base.handle_categorical_variables</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base_v2.Base.handle_future_covariates"><code class="docutils literal notranslate"><span class="pre">Base.handle_future_covariates</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base_v2.Base.handle_gmm"><code class="docutils literal notranslate"><span class="pre">Base.handle_gmm</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base_v2.Base.handle_multivariate"><code class="docutils literal notranslate"><span class="pre">Base.handle_multivariate</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base_v2.Base.handle_quantile_loss"><code class="docutils literal notranslate"><span class="pre">Base.handle_quantile_loss</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base_v2.Base.inference"><code class="docutils literal notranslate"><span class="pre">Base.inference()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base_v2.Base.on_load_checkpoint"><code class="docutils literal notranslate"><span class="pre">Base.on_load_checkpoint()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base_v2.Base.on_save_checkpoint"><code class="docutils literal notranslate"><span class="pre">Base.on_save_checkpoint()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base_v2.Base.on_validation_start"><code class="docutils literal notranslate"><span class="pre">Base.on_validation_start()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base_v2.Base.rescale_output"><code class="docutils literal notranslate"><span class="pre">Base.rescale_output()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base_v2.Base.selection_metric"><code class="docutils literal notranslate"><span class="pre">Base.selection_metric</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base_v2.Base.supports_loss_weights"><code class="docutils literal notranslate"><span class="pre">Base.supports_loss_weights</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.base_v2.Base.training_step"><code class="docutils literal notranslate"><span class="pre">Base.training_step()</span></code></a></li>
@@ -605,6 +616,10 @@
 <li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.Embedding_cat_variables"><code class="docutils literal notranslate"><span class="pre">Embedding_cat_variables</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.Embedding_cat_variables.forward"><code class="docutils literal notranslate"><span class="pre">Embedding_cat_variables.forward()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.Embedding_cat_variables.get_cat_n_embd"><code class="docutils literal notranslate"><span class="pre">Embedding_cat_variables.get_cat_n_embd()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.GaussianMixtureNLL"><code class="docutils literal notranslate"><span class="pre">GaussianMixtureNLL</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.GaussianMixtureNLL.forward"><code class="docutils literal notranslate"><span class="pre">GaussianMixtureNLL.forward()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.HorizonWeightedPointLoss"><code class="docutils literal notranslate"><span class="pre">HorizonWeightedPointLoss</span></code></a><ul>
@@ -646,6 +661,8 @@
 <li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.dtw_hessian_prod"><code class="docutils literal notranslate"><span class="pre">dtw_hessian_prod()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.get_activation"><code class="docutils literal notranslate"><span class="pre">get_activation()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.get_scope"><code class="docutils literal notranslate"><span class="pre">get_scope()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.gmm_params"><code class="docutils literal notranslate"><span class="pre">gmm_params()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.gmm_quantiles"><code class="docutils literal notranslate"><span class="pre">gmm_quantiles()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.horizon_weights_tensor"><code class="docutils literal notranslate"><span class="pre">horizon_weights_tensor()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.my_max"><code class="docutils literal notranslate"><span class="pre">my_max()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="dsipts.models.html#dsipts.models.utils.my_max_hessian_product"><code class="docutils literal notranslate"><span class="pre">my_max_hessian_product()</span></code></a></li>
@@ -742,7 +759,7 @@ idx_target: index of target features in the past array</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="dsipts.Base">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">dsipts.</span></span><span class="sig-name descname"><span class="pre">Base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embs_past</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embs_fut</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persistence_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'l1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persistence_anchor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'last'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_classical_positional_encoder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emb_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prediction_channel_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exogenous_channel_indices_cont</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exogenous_channel_indices_cat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">continual_learning</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizon_weights</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsipts.Base" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">dsipts.</span></span><span class="sig-name descname"><span class="pre">Base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">past_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embs_past</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embs_fut</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persistence_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'l1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persistence_anchor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'last'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantiles</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_classical_positional_encoder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">emb_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scheduler_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prediction_channel_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exogenous_channel_indices_cont</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exogenous_channel_indices_cat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">continual_learning</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizon_weights</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_gaussians</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsipts.Base" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">LightningModule</span></code></p>
 <p>This is the basic model, each model implemented must overwrite the init method and the forward method.
 The inference step is optional, by default it uses the forward method but for recurrent
@@ -769,6 +786,10 @@ network you should implement your own method</p>
 <li><p><strong>optim</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>None</em><em>]</em><em>, </em><em>optional</em>) – Optimizer type. Defaults to None.</p></li>
 <li><p><strong>optim_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – Configuration for the optimizer. Defaults to None.</p></li>
 <li><p><strong>scheduler_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – Configuration for the learning rate scheduler. Defaults to None.</p></li>
+<li><p><strong>n_gaussians</strong> (<em>int</em><em>, </em><em>optional</em>) – mixture components with loss_type=’gmm_nll’ (ignored otherwise). The model then
+outputs mul=3*n_gaussians values per step and target ([logits | log sigma | mu]), is trained with the
+mixture NLL, and inference returns the mixture quantiles at <cite>quantiles</cite> (the median if quantiles=[]).
+Defaults to 2.</p></li>
 <li><p><strong>horizon_weights</strong> (<em>List</em><em>[</em><em>float</em><em>]</em><em>, </em><em>optional</em>) – One non-negative loss weight per future step, used as given (not normalised). Works with quantiles, crps, l1 and mse; it also weights the validation loss used to pick the best epoch, and it multiplies the per sample weights of TimeSeries.load_signal(loss_weights=…). Defaults to None (uniform).</p></li>
 </ul>
 </dd>
@@ -807,6 +828,13 @@ idx_target: index of target features in the past array</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.Base.gmm_to_levels">
+<span class="sig-name descname"><span class="pre">gmm_to_levels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_hat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="headerlink" href="#dsipts.Base.gmm_to_levels" title="Link to this definition">¶</a></dt>
+<dd><p>gmm_nll: raw mixture parameters (B,H,C,3K) -&gt; mixture quantiles (B,H,C,len(quantiles)), the median if
+quantiles=[]. Models overriding inference must call it.</p>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="dsipts.Base.handle_categorical_variables">
 <span class="sig-name descname"><span class="pre">handle_categorical_variables</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#dsipts.Base.handle_categorical_variables" title="Link to this definition">¶</a></dt>
@@ -815,6 +843,11 @@ idx_target: index of target features in the past array</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="dsipts.Base.handle_future_covariates">
 <span class="sig-name descname"><span class="pre">handle_future_covariates</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#dsipts.Base.handle_future_covariates" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.Base.handle_gmm">
+<span class="sig-name descname"><span class="pre">handle_gmm</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#dsipts.Base.handle_gmm" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -860,6 +893,16 @@ idx_target: index of target features in the past array</p>
 <dt class="sig sig-object py" id="dsipts.Base.on_validation_start">
 <span class="sig-name descname"><span class="pre">on_validation_start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsipts.Base.on_validation_start" title="Link to this definition">¶</a></dt>
 <dd><p>Called at the beginning of validation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.Base.rescale_output">
+<span class="sig-name descname"><span class="pre">rescale_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">res</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="headerlink" href="#dsipts.Base.rescale_output" title="Link to this definition">¶</a></dt>
+<dd><p>Bring an output computed in a normalized frame back to the data frame: <code class="docutils literal notranslate"><span class="pre">res*scale</span> <span class="pre">+</span> <span class="pre">loc</span></code>.</p>
+<p>Use it for every fixed rescaling applied in forward AFTER the output head (RevIN de-normalization,
+last value re-centering, …): res is (B,H,C,mul), loc and scale broadcastable to (B,H,C,1).
+For point/quantile/crps/classification outputs it is exactly <code class="docutils literal notranslate"><span class="pre">res*scale</span> <span class="pre">+</span> <span class="pre">loc</span></code>. With gmm_nll only mu
+takes loc and scale, log sigma takes log(scale) and the mixture logits are left untouched.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1040,6 +1083,11 @@ idx_target: index of target features in the past array</p>
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.Chronos2.handle_gmm">
+<span class="sig-name descname"><span class="pre">handle_gmm</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#dsipts.Chronos2.handle_gmm" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="dsipts.Chronos2.handle_multivariate">
 <span class="sig-name descname"><span class="pre">handle_multivariate</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#dsipts.Chronos2.handle_multivariate" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1164,6 +1212,10 @@ network you should implement your own method</p>
 <li><p><strong>optim</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>None</em><em>]</em><em>, </em><em>optional</em>) – Optimizer type. Defaults to None.</p></li>
 <li><p><strong>optim_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – Configuration for the optimizer. Defaults to None.</p></li>
 <li><p><strong>scheduler_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – Configuration for the learning rate scheduler. Defaults to None.</p></li>
+<li><p><strong>n_gaussians</strong> (<em>int</em><em>, </em><em>optional</em>) – mixture components with loss_type=’gmm_nll’ (ignored otherwise). The model then
+outputs mul=3*n_gaussians values per step and target ([logits | log sigma | mu]), is trained with the
+mixture NLL, and inference returns the mixture quantiles at <cite>quantiles</cite> (the median if quantiles=[]).
+Defaults to 2.</p></li>
 <li><p><strong>horizon_weights</strong> (<em>List</em><em>[</em><em>float</em><em>]</em><em>, </em><em>optional</em>) – One non-negative loss weight per future step, used as given (not normalised). Works with quantiles, crps, l1 and mse; it also weights the validation loss used to pick the best epoch, and it multiplies the per sample weights of TimeSeries.load_signal(loss_weights=…). Defaults to None (uniform).</p></li>
 </ul>
 </dd>
@@ -1201,6 +1253,11 @@ idx_target: index of target features in the past array</p>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.D3VAE.handle_gmm">
+<span class="sig-name descname"><span class="pre">handle_gmm</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#dsipts.D3VAE.handle_gmm" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="dsipts.D3VAE.inference">
@@ -1325,6 +1382,11 @@ know continuous variable presence here</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="dsipts.Diffusion.handle_future_covariates">
 <span class="sig-name descname"><span class="pre">handle_future_covariates</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#dsipts.Diffusion.handle_future_covariates" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.Diffusion.handle_gmm">
+<span class="sig-name descname"><span class="pre">handle_gmm</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#dsipts.Diffusion.handle_gmm" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -1735,6 +1797,99 @@ idx_target: index of target features in the past array</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="dsipts.Duet.handle_quantile_loss">
 <span class="sig-name descname"><span class="pre">handle_quantile_loss</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#dsipts.Duet.handle_quantile_loss" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="dsipts.GroupedTransformer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">dsipts.</span></span><span class="sig-name descname"><span class="pre">GroupedTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">latent_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_heads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attn_bias</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlp_layers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_emb</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_norm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_clamp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group_gate_init</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-3.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">causal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">future_num_in_past</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsipts.GroupedTransformer" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="dsipts.models.html#dsipts.models.base_v2.Base" title="dsipts.models.base_v2.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></a></p>
+<p>Grouped time-series transformer from s4casting (Alliander).</p>
+<p>Every variable (targets, past covariates, known-future covariates) is a series over the whole window
+past+future, with a mask that marks where it is observed (targets and past covariates: past only, future
+covariates: future, plus the past when they are also past variables). Each series is cut in patches
+(values + mask -&gt; latent_dim), then each layer does time attention (RoPE) over the patches of a series and
+a gated group attention over the series of a patch. The target series are decoded back to time steps and
+the future part is returned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>latent_dim</strong> (<em>int</em>) – embedding size. latent_dim // n_heads must be even (RoPE).</p></li>
+<li><p><strong>n_heads</strong> (<em>int</em>) – attention heads.</p></li>
+<li><p><strong>n_layers</strong> (<em>int</em>) – transformer layers.</p></li>
+<li><p><strong>patch_size</strong> (<em>int</em>) – patch length. past_steps is left-padded and future_steps right-padded to a multiple
+of it (padding is marked missing), so the past/future boundary falls on a patch boundary.</p></li>
+<li><p><strong>dropout_rate</strong> (<em>float</em>) – dropout in attention and MLP.</p></li>
+<li><p><strong>attn_bias</strong> (<em>bool</em>) – bias of the qkv/out projections.</p></li>
+<li><p><strong>mlp_layers</strong> (<em>int</em>) – layers of the feed-forward block (&gt;=2).</p></li>
+<li><p><strong>out_emb</strong> (<em>int</em><em>, </em><em>optional</em>) – size of the decoded per-step embedding before the output head, default latent_dim.</p></li>
+<li><p><strong>use_norm</strong> (<em>bool</em>) – per-window instance norm of every series with masked statistics (RevIN-like, as in
+s4casting); the targets are de-normalized with the statistics of their past.</p></li>
+<li><p><strong>norm_clamp</strong> (<em>float</em><em>, </em><em>optional</em>) – clamp of the normalized inputs, None = off.</p></li>
+<li><p><strong>norm_eps</strong> (<em>float</em>) – added to the instance std.</p></li>
+<li><p><strong>group_gate_init</strong> (<em>float</em>) – initial logit of the group-attention gate (sigmoid(-3)~0.05: starts almost off).</p></li>
+<li><p><strong>causal</strong> (<em>bool</em>) – causal time attention (a patch sees only previous patches). Group attention is never causal.</p></li>
+<li><p><strong>future_num_in_past</strong> (<em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – for each future numerical variable, its index among the past
+variables (-1 if absent). A shared variable then becomes ONE series with past and future values;
+without it, it appears twice (filled by train.py).</p></li>
+</ul>
+</dd>
+</dl>
+<p>Any DSIPTS loss works (l1/mse, quantiles, crps, persistence losses, classification) and also
+loss_type=’gmm_nll’ (s4casting’s GMMHead + NLL, n_gaussians components, now in Base): the de-normalization
+goes through Base.rescale_output, which treats the mixture parameters correctly.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.GroupedTransformer.can_be_compiled">
+<span class="sig-name descname"><span class="pre">can_be_compiled</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dsipts.GroupedTransformer.can_be_compiled" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.GroupedTransformer.description">
+<span class="sig-name descname"><span class="pre">description</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Can</span>&#160;&#160; <span class="pre">handle</span> <span class="pre">multivariate</span> <span class="pre">output</span> <span class="pre">\nCan</span>&#160;&#160; <span class="pre">handle</span> <span class="pre">future</span> <span class="pre">covariates\nCan</span>&#160;&#160; <span class="pre">handle</span> <span class="pre">categorical</span> <span class="pre">covariates\nCan</span>&#160;&#160; <span class="pre">handle</span> <span class="pre">Quantile</span> <span class="pre">loss</span> <span class="pre">function\n</span> <span class="pre">Grouped</span> <span class="pre">time-series</span> <span class="pre">transformer</span> <span class="pre">(s4casting):</span> <span class="pre">time</span> <span class="pre">attention</span> <span class="pre">+</span> <span class="pre">variable</span> <span class="pre">(group)</span> <span class="pre">attention</span> <span class="pre">on</span> <span class="pre">patches'</span></span><a class="headerlink" href="#dsipts.GroupedTransformer.description" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="dsipts.GroupedTransformer.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="headerlink" href="#dsipts.GroupedTransformer.forward" title="Link to this definition">¶</a></dt>
+<dd><p>Forlward method used during the training loop</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch</strong> (<em>dict</em>) – the batch structure. The keys are:
+y : the target variable(s). This is always present
+x_num_past: the numerical past variables. This is always present
+x_num_future: the numerical future variables
+x_cat_past: the categorical past variables
+x_cat_future: the categorical future variables
+idx_target: index of target features in the past array</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>output of the mode;</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.GroupedTransformer.handle_categorical_variables">
+<span class="sig-name descname"><span class="pre">handle_categorical_variables</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#dsipts.GroupedTransformer.handle_categorical_variables" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.GroupedTransformer.handle_future_covariates">
+<span class="sig-name descname"><span class="pre">handle_future_covariates</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#dsipts.GroupedTransformer.handle_future_covariates" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.GroupedTransformer.handle_multivariate">
+<span class="sig-name descname"><span class="pre">handle_multivariate</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#dsipts.GroupedTransformer.handle_multivariate" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.GroupedTransformer.handle_quantile_loss">
+<span class="sig-name descname"><span class="pre">handle_quantile_loss</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#dsipts.GroupedTransformer.handle_quantile_loss" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -2246,6 +2401,11 @@ idx_target: index of target features in the past array</p>
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.Persistent.handle_gmm">
+<span class="sig-name descname"><span class="pre">handle_gmm</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#dsipts.Persistent.handle_gmm" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="dsipts.Persistent.handle_multivariate">
 <span class="sig-name descname"><span class="pre">handle_multivariate</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#dsipts.Persistent.handle_multivariate" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -2702,6 +2862,10 @@ network you should implement your own method</p>
 <li><p><strong>optim</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>None</em><em>]</em><em>, </em><em>optional</em>) – Optimizer type. Defaults to None.</p></li>
 <li><p><strong>optim_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – Configuration for the optimizer. Defaults to None.</p></li>
 <li><p><strong>scheduler_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – Configuration for the learning rate scheduler. Defaults to None.</p></li>
+<li><p><strong>n_gaussians</strong> (<em>int</em><em>, </em><em>optional</em>) – mixture components with loss_type=’gmm_nll’ (ignored otherwise). The model then
+outputs mul=3*n_gaussians values per step and target ([logits | log sigma | mu]), is trained with the
+mixture NLL, and inference returns the mixture quantiles at <cite>quantiles</cite> (the median if quantiles=[]).
+Defaults to 2.</p></li>
 <li><p><strong>horizon_weights</strong> (<em>List</em><em>[</em><em>float</em><em>]</em><em>, </em><em>optional</em>) – One non-negative loss weight per future step, used as given (not normalised). Works with quantiles, crps, l1 and mse; it also weights the validation loss used to pick the best epoch, and it multiplies the per sample weights of TimeSeries.load_signal(loss_weights=…). Defaults to None (uniform).</p></li>
 </ul>
 </dd>
@@ -2756,6 +2920,11 @@ idx_target: index of target features in the past array</p>
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.TTM.handle_gmm">
+<span class="sig-name descname"><span class="pre">handle_gmm</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#dsipts.TTM.handle_gmm" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="dsipts.TTM.handle_multivariate">
 <span class="sig-name descname"><span class="pre">handle_multivariate</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#dsipts.TTM.handle_multivariate" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -2769,41 +2938,18 @@ idx_target: index of target features in the past array</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="dsipts.TimeKAN">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">dsipts.</span></span><span class="sig-name descname"><span class="pre">TimeKAN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">down_sampling_window</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e_layers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_avg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">down_sampling_layers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">begin_order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_norm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsipts.TimeKAN" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">dsipts.</span></span><span class="sig-name descname"><span class="pre">TimeKAN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">down_sampling_window</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e_layers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moving_avg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">down_sampling_layers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">begin_order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_norm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'legacy'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#dsipts.TimeKAN" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="dsipts.models.html#dsipts.models.base_v2.Base" title="dsipts.models.base_v2.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></a></p>
-<p>This is the basic model, each model implemented must overwrite the init method and the forward method.
-The inference step is optional, by default it uses the forward method but for recurrent
-network you should implement your own method</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>verbose</strong> (<em>bool</em>) – Flag to enable verbose logging.</p></li>
-<li><p><strong>past_steps</strong> (<em>int</em>) – Number of past time steps to consider.</p></li>
-<li><p><strong>future_steps</strong> (<em>int</em>) – Number of future time steps to predict.</p></li>
-<li><p><strong>past_channels</strong> (<em>int</em>) – Number of channels in the past input data.</p></li>
-<li><p><strong>future_channels</strong> (<em>int</em>) – Number of channels in the future input data.</p></li>
-<li><p><strong>out_channels</strong> (<em>int</em>) – Number of output channels.</p></li>
-<li><p><strong>embs_past</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>) – List of embedding dimensions for past data.</p></li>
-<li><p><strong>embs_fut</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>) – List of embedding dimensions for future data.</p></li>
-<li><p><strong>n_classes</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of classes for classification. Defaults to 0.</p></li>
-<li><p><strong>persistence_weight</strong> (<em>float</em><em>, </em><em>optional</em>) – Weight for persistence in loss calculation. Defaults to 0.0.</p></li>
-<li><p><strong>loss_type</strong> (<em>str</em><em>, </em><em>optional</em>) – Type of loss function to use (‘l1’ or ‘mse’). Defaults to ‘l1’.</p></li>
-<li><p><strong>persistence_anchor</strong> (<em>str</em><em>, </em><em>optional</em>) – Reference the anchored penalties (linear/exponential penalization, triplet) push away from: ‘last’ = last observed value (persistence), ‘mean’ = mean of the past window. Defaults to ‘last’.</p></li>
-<li><p><strong>quantiles</strong> (<em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – List of quantiles for quantile loss. Defaults to an empty list.</p></li>
-<li><p><strong>reduction_mode</strong> (<em>str</em><em>, </em><em>optional</em>) – Mode for reduction for categorical embedding layer (‘mean’, ‘sum’, ‘none’). Defaults to ‘mean’.</p></li>
-<li><p><strong>use_classical_positional_encoder</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag to use classical positional encoding or using embedding layer also for the positions. Defaults to False.</p></li>
-<li><p><strong>emb_dim</strong> (<em>int</em><em>, </em><em>optional</em>) – Dimension of categorical embeddings. Defaults to 16.</p></li>
-<li><p><strong>optim</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>None</em><em>]</em><em>, </em><em>optional</em>) – Optimizer type. Defaults to None.</p></li>
-<li><p><strong>optim_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – Configuration for the optimizer. Defaults to None.</p></li>
-<li><p><strong>scheduler_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – Configuration for the learning rate scheduler. Defaults to None.</p></li>
-<li><p><strong>horizon_weights</strong> (<em>List</em><em>[</em><em>float</em><em>]</em><em>, </em><em>optional</em>) – One non-negative loss weight per future step, used as given (not normalised). Works with quantiles, crps, l1 and mse; it also weights the validation loss used to pick the best epoch, and it multiplies the per sample weights of TimeSeries.load_signal(loss_weights=…). Defaults to None (uniform).</p></li>
-</ul>
+<dl>
+<dt>norm_mode:</dt><dd><dl class="simple">
+<dt>‘legacy’ (default, so that the models trained so far reload unchanged): the historical behaviour, with</dt><dd><p>three known bugs: Normalize gets non_norm=use_norm (use_norm=True means NO normalization), with
+use_norm=False the input is normalized but the output is never de-normalized, and the (B,N,T)
+tensor is reshaped to (B,T,N), mixing time and channels before <cite>project</cite>.</p>
 </dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><ul class="simple">
-<li><p><strong>AssertionError</strong> – If the number of quantiles is not equal to 3 when quantiles are provided.</p></li>
-<li><p><strong>AssertionError</strong> – If the number of output channels is not 1 for classification tasks.</p></li>
-</ul>
+<dt>‘revin’: RevIN as in the original TimeKAN: inputs normalized per window (affine), channels kept in</dt><dd><p>place, output de-normalized with the statistics of the targets (needs idx_target). use_norm ignored.</p>
+</dd>
+</dl>
+<p>‘none’: no normalization, channels kept in place. use_norm ignored.</p>
 </dd>
 </dl>
 <dl class="py method">
@@ -3288,6 +3434,10 @@ network you should implement your own method</p>
 <li><p><strong>optim</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>None</em><em>]</em><em>, </em><em>optional</em>) – Optimizer type. Defaults to None.</p></li>
 <li><p><strong>optim_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – Configuration for the optimizer. Defaults to None.</p></li>
 <li><p><strong>scheduler_config</strong> (<em>dict</em><em>, </em><em>optional</em>) – Configuration for the learning rate scheduler. Defaults to None.</p></li>
+<li><p><strong>n_gaussians</strong> (<em>int</em><em>, </em><em>optional</em>) – mixture components with loss_type=’gmm_nll’ (ignored otherwise). The model then
+outputs mul=3*n_gaussians values per step and target ([logits | log sigma | mu]), is trained with the
+mixture NLL, and inference returns the mixture quantiles at <cite>quantiles</cite> (the median if quantiles=[]).
+Defaults to 2.</p></li>
 <li><p><strong>horizon_weights</strong> (<em>List</em><em>[</em><em>float</em><em>]</em><em>, </em><em>optional</em>) – One non-negative loss weight per future step, used as given (not normalised). Works with quantiles, crps, l1 and mse; it also weights the validation loss used to pick the best epoch, and it multiplies the per sample weights of TimeSeries.load_signal(loss_weights=…). Defaults to None (uniform).</p></li>
 </ul>
 </dd>
@@ -3448,6 +3598,11 @@ idx_target: index of target features in the past array</p>
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.Timestral.handle_gmm">
+<span class="sig-name descname"><span class="pre">handle_gmm</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#dsipts.Timestral.handle_gmm" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="dsipts.Timestral.handle_multivariate">
 <span class="sig-name descname"><span class="pre">handle_multivariate</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#dsipts.Timestral.handle_multivariate" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -3544,6 +3699,11 @@ Most likely you’ll want to make sure to be in model.eval() mode of operation f
 <dl class="py attribute">
 <dt class="sig sig-object py" id="dsipts.VQVAEA.handle_future_covariates">
 <span class="sig-name descname"><span class="pre">handle_future_covariates</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#dsipts.VQVAEA.handle_future_covariates" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.VQVAEA.handle_gmm">
+<span class="sig-name descname"><span class="pre">handle_gmm</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#dsipts.VQVAEA.handle_gmm" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -3669,6 +3829,11 @@ Most likely you’ll want to make sure to be in model.eval() mode of operation f
 <dl class="py attribute">
 <dt class="sig sig-object py" id="dsipts.VVA.handle_future_covariates">
 <span class="sig-name descname"><span class="pre">handle_future_covariates</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#dsipts.VVA.handle_future_covariates" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="dsipts.VVA.handle_gmm">
+<span class="sig-name descname"><span class="pre">handle_gmm</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#dsipts.VVA.handle_gmm" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
