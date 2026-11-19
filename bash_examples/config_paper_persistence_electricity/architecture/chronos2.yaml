@@ -1,0 +1,36 @@
+# @package _global_
+## Chronos-2 (amazon/chronos-2, 120M) ZERO-SHOT for the shrinkage study (2026-11-19, PLAN §7): one epoch at lr 0,
+## the pretrained weights do not move; the epoch only exists because Lightning needs one before saving the model.
+## Architecture read from the HF config.json (every architecture arg left null). Point forecast = median:
+## quantiles must be a subset of the 21 pretrained levels, otherwise the output head is NOT loaded (stays random).
+## Offline compute nodes: download once on the login node, then export HF_HUB_OFFLINE=1 before launching.
+
+model:
+  type: 'chronos2'
+  retrain: true
+  restart: false
+ts:
+  name: 'electricity'
+  version: 1
+  enrich: []
+  use_covariates: true
+  use_future_covariates: false
+  silly: false
+
+model_configs:
+  pretrained: 'amazon/chronos-2'
+  attn_implementation: 'sdpa'
+  optim: torch.optim.Adam
+  persistence_weight: 0.0
+  loss_type: 'l1'
+  quantiles: [0.1, 0.5, 0.9]
+train_config:
+  batch_size: 4     ## rows = batch_size * n_variables (weather 21, electricity 321, ettm2 7)
+  max_epochs: 1
+  patience: 1
+  auto_lr_find: false
+optim_config:
+  lr: 0.0
+  weight_decay: 0.0
+inference:
+  batch_size: 8

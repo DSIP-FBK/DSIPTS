@@ -1,0 +1,38 @@
+# @package _global_
+## Linear Simple (2026-11-19): second architecture for the weather shrinkage study (PLAN §3e/§7), so the beta < 1 result
+## is not tied to iTransformer + RevIN. Frozen from synthpers stage 1j (h64, wd 1e-4, lr 1e-3, dropout 0,
+## Identity activation, NLinear-style last-value centering); no per-dataset tuning (protocol: freeze, then compare).
+
+model:
+  type: 'simple'
+  retrain: true
+  restart: false
+ts:
+  name: 'weather'
+  version: 1
+  enrich: []
+  use_covariates: true
+  use_future_covariates: false
+  silly: false
+
+model_configs:
+  use_classical_positional_encoder: true
+  emb_dim: 4             ##dead: no categoricals under enrich: []
+  reduction_mode: mean
+  dropout_rate: 0.0
+  center_last: true
+  hidden_size: 64
+  optim: torch.optim.Adam
+  activation: torch.nn.Identity
+  persistence_weight: 1
+  loss_type: 'l1'
+  persistence_anchor: 'last'
+  quantiles: []
+train_config:
+  batch_size: 64
+  max_epochs: 800
+  patience: 200
+  auto_lr_find: false
+optim_config:
+  lr: 0.001
+  weight_decay: 0.0001
