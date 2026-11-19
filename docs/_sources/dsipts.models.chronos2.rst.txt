@@ -1,0 +1,29 @@
+dsipts.models.chronos2 package
+==============================
+
+Submodules
+----------
+
+dsipts.models.chronos2.config module
+------------------------------------
+
+.. automodule:: dsipts.models.chronos2.config
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+dsipts.models.chronos2.layers module
+------------------------------------
+
+.. automodule:: dsipts.models.chronos2.layers
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: dsipts.models.chronos2
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -1,0 +1,42 @@
+# @package _global_
+# Grouped time-series transformer from s4casting (Alliander), see dsipts/src/dsipts/models/GroupedTransformer.py
+# past_steps / future_steps that are not a multiple of patch_size are padded (marked missing)
+
+model:
+  type: 'grouped_transformer'
+  retrain: true
+  restart: false
+ts:
+  name: 'test'
+  version: 1
+  enrich: ['hour']
+  use_covariates: true
+  use_future_covariates: true
+  silly: false
+
+model_configs:
+  use_classical_positional_encoder: true
+  emb_dim: 16
+  reduction_mode: mean
+  latent_dim: 64          # latent_dim // n_heads must be even (RoPE)
+  n_heads: 4
+  n_layers: 2
+  patch_size: 8
+  dropout_rate: 0.1
+  attn_bias: true
+  mlp_layers: 2
+  out_emb: null           # null = latent_dim
+  use_norm: true          # masked per-window instance norm (RevIN-like)
+  norm_clamp: 10.0
+  norm_eps: 0.00001
+  group_gate_init: -3.0
+  causal: false
+  future_num_in_past: null   # dataset dependent, filled by train.py
+  optim: torch.optim.AdamW
+  persistence_weight: 0.0
+  loss_type: 'l1'          # any DSIPTS loss, or gmm_nll (Gaussian mixture, uses n_gaussians)
+  n_gaussians: 2            # only with loss_type: gmm_nll
+  quantiles: [0.1,0.5,0.9]  # with gmm_nll: the levels returned by inference ([] = median)
+train_config:
+  batch_size: 32
+  max_epochs: 1

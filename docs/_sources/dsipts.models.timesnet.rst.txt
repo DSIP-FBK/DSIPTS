@@ -1,0 +1,21 @@
+dsipts.models.timesnet package
+==============================
+
+Submodules
+----------
+
+dsipts.models.timesnet.Layers module
+------------------------------------
+
+.. automodule:: dsipts.models.timesnet.Layers
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: dsipts.models.timesnet
+   :members:
+   :show-inheritance:
+   :undoc-members:

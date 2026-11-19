@@ -1,0 +1,21 @@
+dsipts.models.grouped\_transformer package
+==========================================
+
+Submodules
+----------
+
+dsipts.models.grouped\_transformer.layers module
+------------------------------------------------
+
+.. automodule:: dsipts.models.grouped_transformer.layers
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: dsipts.models.grouped_transformer
+   :members:
+   :show-inheritance:
+   :undoc-members:

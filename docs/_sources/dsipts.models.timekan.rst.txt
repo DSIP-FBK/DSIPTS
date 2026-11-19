@@ -1,0 +1,21 @@
+dsipts.models.timekan package
+=============================
+
+Submodules
+----------
+
+dsipts.models.timekan.Layers module
+-----------------------------------
+
+.. automodule:: dsipts.models.timekan.Layers
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: dsipts.models.timekan
+   :members:
+   :show-inheritance:
+   :undoc-members:

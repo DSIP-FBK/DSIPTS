@@ -1,0 +1,77 @@
+dsipts.models.timestral package
+===============================
+
+Submodules
+----------
+
+dsipts.models.timestral.config module
+-------------------------------------
+
+.. automodule:: dsipts.models.timestral.config
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+dsipts.models.timestral.covariate\_encoding module
+--------------------------------------------------
+
+.. automodule:: dsipts.models.timestral.covariate_encoding
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+dsipts.models.timestral.forecaster module
+-----------------------------------------
+
+.. automodule:: dsipts.models.timestral.forecaster
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+dsipts.models.timestral.layers module
+-------------------------------------
+
+.. automodule:: dsipts.models.timestral.layers
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+dsipts.models.timestral.loading module
+--------------------------------------
+
+.. automodule:: dsipts.models.timestral.loading
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+dsipts.models.timestral.masks module
+------------------------------------
+
+.. automodule:: dsipts.models.timestral.masks
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+dsipts.models.timestral.model module
+------------------------------------
+
+.. automodule:: dsipts.models.timestral.model
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+dsipts.models.timestral.scaler module
+-------------------------------------
+
+.. automodule:: dsipts.models.timestral.scaler
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: dsipts.models.timestral
+   :members:
+   :show-inheritance:
+   :undoc-members:

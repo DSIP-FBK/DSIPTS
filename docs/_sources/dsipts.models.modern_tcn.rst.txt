@@ -1,0 +1,21 @@
+dsipts.models.modern\_tcn package
+=================================
+
+Submodules
+----------
+
+dsipts.models.modern\_tcn.layers module
+---------------------------------------
+
+.. automodule:: dsipts.models.modern_tcn.layers
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: dsipts.models.modern_tcn
+   :members:
+   :show-inheritance:
+   :undoc-members:
