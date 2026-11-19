@@ -48,6 +48,7 @@ def copy_parameters(
 
 class D3VAE(Base):              
     supports_loss_weights = False  ##computes its own loss
+    handle_gmm = False   ## loss_type=gmm_nll refused, see Base.handle_gmm
     
     def __init__(self,
                  

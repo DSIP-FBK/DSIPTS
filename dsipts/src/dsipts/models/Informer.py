@@ -179,7 +179,7 @@ class Informer(Base):
         if self.remove_last:
             ## x_start is B x 1 x n_targets: one offset per target, shared by all the quantiles
             ## (was unsqueezed on the wrong axis and crashed with more than one target)
-            res = res + x_start.reshape(BS,1,-1,1)
+            res = self.rescale_output(res, loc=x_start.reshape(BS,1,-1,1))
         return  res
        
        

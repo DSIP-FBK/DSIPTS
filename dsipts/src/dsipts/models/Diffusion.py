@@ -25,6 +25,7 @@ class Diffusion(Base):
     handle_future_covariates = True
     handle_categorical_variables = True
     handle_quantile_loss = False
+    handle_gmm = False   ## loss_type=gmm_nll refused, see Base.handle_gmm
     description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables,handle_quantile_loss)
     def __init__(self, 
                  d_model: int,

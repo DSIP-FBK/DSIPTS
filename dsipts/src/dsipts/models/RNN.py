@@ -157,7 +157,7 @@ class RNN(Base):
 
     def forward(self, batch):
   
-        x =  batch['x_num_past'].to(self.device)
+        x =  batch['x_num_past'].to(self.device).clone() ## modified in place below (remove_last): never write into the batch
 
         BS = x.shape[0]
         if 'x_cat_future' in batch.keys():
@@ -210,7 +210,8 @@ class RNN(Base):
         res = res.reshape(B,L,-1,self.mul)
         
         if self.remove_last:
-            res+=x_start.unsqueeze(1)
+            ## B x 1 x C -> B x 1 x C x 1 (was unsqueeze(1) = B x 1 x 1 x C: crashed with more than one target)
+            res = self.rescale_output(res, loc=x_start.reshape(B,1,-1,1))
       
         return res
 

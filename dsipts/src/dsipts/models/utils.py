@@ -751,3 +751,61 @@ class CRPS(nn.Module):
             return loss.mean()
         else:
             raise ValueError(f"Invalid reduction: {self.reduction}")
+
+
+#####################################################################################################
+## Gaussian mixture output (loss_type='gmm_nll'), from s4casting (Alliander, MPL-2.0) GMMHead/SubsetNLLLoss.
+## The last dimension of y_hat (mul = 3*K) is [mixture logits (K) | log sigma (K) | mu (K)]; mu and sigma are in
+## the same (DSIPTS scaled) space as y. Models that rescale their output in forward must use Base.rescale_output.
+#####################################################################################################
+GMM_LOG_SIGMA_CLAMP = 15.0
+
+def gmm_params(y_hat:torch.Tensor, n_gaussians:int):
+    """(B,H,C,3K) -> logpi, sigma, mu, each (B,H,C,K), in fp32"""
+    K = n_gaussians
+    y_hat = y_hat.float()
+    logpi = torch.log_softmax(y_hat[..., :K], dim=-1)
+    sigma = torch.exp(y_hat[..., K:2*K].clamp(-GMM_LOG_SIGMA_CLAMP, GMM_LOG_SIGMA_CLAMP))
+    mu = y_hat[..., 2*K:3*K]
+    return logpi, sigma, mu
+
+
+@torch.no_grad()
+def gmm_quantiles(y_hat:torch.Tensor, n_gaussians:int, levels, n_iter:int=50)->torch.Tensor:
+    """Quantiles of the mixture by bisection on its CDF: (B,H,C,3K) -> (B,H,C,len(levels))"""
+    logpi, sigma, mu = gmm_params(y_hat, n_gaussians)
+    pi = logpi.exp().unsqueeze(-2)                                ## B,H,C,1,K
+    s, m = sigma.unsqueeze(-2), mu.unsqueeze(-2)
+    lv = torch.tensor(list(levels), device=mu.device, dtype=mu.dtype).view(1, 1, 1, -1)
+    shape = mu.shape[:-1]+(len(levels),)
+    lo = (mu-10*sigma).min(-1, keepdim=True).values.expand(shape).clone()
+    hi = (mu+10*sigma).max(-1, keepdim=True).values.expand(shape).clone()
+    for _ in range(n_iter):
+        mid = 0.5*(lo+hi)
+        cdf = (pi*0.5*(1+torch.erf((mid.unsqueeze(-1)-m)/(s*1.4142135623730951)))).sum(-1)
+        below = cdf<lv
+        lo = torch.where(below, mid, lo)
+        hi = torch.where(below, hi, mid)
+    return 0.5*(lo+hi)
+
+
+class GaussianMixtureNLL(nn.Module):
+    def __init__(self, n_gaussians:int, sigma_regularisation:float=0.0):
+        """Negative log likelihood of y under the mixture (without the constant 0.5*log(2pi), as
+        nn.GaussianNLLLoss(eps=1e-6)), averaged over the finite targets, plus sigma_regularisation*mean(sigma^2)."""
+        super().__init__()
+        self.n_gaussians = n_gaussians
+        self.sigma_regularisation = sigma_regularisation
+
+    def forward(self, y_hat:torch.Tensor, y:torch.Tensor)->torch.Tensor:
+        logpi, sigma, mu = gmm_params(y_hat, self.n_gaussians)
+        y = y.to(mu.device).float().unsqueeze(-1)                  ## B,H,C,1
+        ok = torch.isfinite(y)
+        y = torch.where(ok, y, torch.zeros_like(y))
+        var = (sigma**2).clamp(min=1e-6)
+        log_n = -0.5*(torch.log(var)+(y-mu)**2/var)
+        nll = -torch.logsumexp(logpi+log_n, dim=-1)                ## B,H,C
+        nll = nll[ok.squeeze(-1)].mean()
+        if self.sigma_regularisation>0:
+            nll = nll+self.sigma_regularisation*(sigma**2).mean()
+        return nll

@@ -16,6 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import List, Union
 from .utils import QuantileLossMO, CRPS, HorizonWeightedPointLoss, horizon_weights_tensor
+from .utils import GaussianMixtureNLL, gmm_quantiles
 import torch.nn as nn
 from torch.optim import Adam, AdamW, SGD, RMSprop   
 
@@ -77,6 +78,9 @@ CALIBRATION = {}           ##optional per-loss multiplier, applied AFTER the nor
 ##target those distances are a small fraction of sigma, so kernels sized to sigma were flat
 ##(71% of the weather points had c>0.8, i.e. plain L1) and the triplet hinge never closed.
 SCALE_EMA = 0.99
+
+GMM_SIGMA_REG = 0.0   ##loss_type='gmm_nll': weight of mean(sigma^2) added to the NLL (s4casting's
+                      ##sigma_regularisation_factor), keeps the components from widening. Off by default
 
 
 def central_moment(x,order):
@@ -194,6 +198,9 @@ class DictSOTATSERBuffer:
 class Base(pl.LightningModule):
     ##False in the models that compute their own loss: loss weights would be silently ignored
     supports_loss_weights = True
+    ##False in the models that cannot output a Gaussian mixture (pretrained quantile heads, own losses/inference):
+    ##loss_type='gmm_nll' is refused there
+    handle_gmm = True
     
     ############### SET THE PROPERTIES OF THE ARCHITECTURE##############
     
@@ -232,7 +239,8 @@ class Base(pl.LightningModule):
                 exogenous_channel_indices_cont= None,
                 exogenous_channel_indices_cat= None,
                 continual_learning:Union[None,dict]=None,
-                horizon_weights:Union[None,List[float]]=None
+                horizon_weights:Union[None,List[float]]=None,
+                n_gaussians:int=2
                 ):
         """
         This is the basic model, each model implemented must overwrite the init method and the forward method.
@@ -259,6 +267,10 @@ class Base(pl.LightningModule):
             optim (Union[str, None], optional): Optimizer type. Defaults to None.
             optim_config (dict, optional): Configuration for the optimizer. Defaults to None.
             scheduler_config (dict, optional): Configuration for the learning rate scheduler. Defaults to None.
+            n_gaussians (int, optional): mixture components with loss_type='gmm_nll' (ignored otherwise). The model then
+                outputs mul=3*n_gaussians values per step and target ([logits | log sigma | mu]), is trained with the
+                mixture NLL, and inference returns the mixture quantiles at `quantiles` (the median if quantiles=[]).
+                Defaults to 2.
             horizon_weights (List[float], optional): One non-negative loss weight per future step, used as given (not normalised). Works with quantiles, crps, l1 and mse; it also weights the validation loss used to pick the best epoch, and it multiplies the per sample weights of TimeSeries.load_signal(loss_weights=...). Defaults to None (uniform).
         
         Raises:
@@ -327,9 +339,20 @@ class Base(pl.LightningModule):
         self.emb_dim = emb_dim
         self.out_channels = out_channels
         self.n_classes = n_classes
+        self.n_gaussians = n_gaussians
+        self.use_gmm = (n_classes==0) and (self.loss_type=='gmm_nll')
         if n_classes==0:
             self.is_classification = False
-            if len(self.quantiles)>0:
+            if self.use_gmm:
+                ##Gaussian mixture head: mul = 3K raw parameters, see rescale_output and models/utils.py.
+                ##quantiles are only the levels returned by inference (use_quantiles keeps inference_on_set coherent)
+                assert getattr(self, 'handle_gmm', True), beauty_string(f'{self.__class__.__name__} does not support loss_type=gmm_nll','info',True)
+                assert n_gaussians>=1, beauty_string(f'n_gaussians must be >= 1, got {n_gaussians}','info',True)
+                if self.persistence_weight!=0:
+                    beauty_string('gmm_nll: persistence_weight is ignored','info',True)
+                self.mul = 3*n_gaussians
+                self.loss = GaussianMixtureNLL(n_gaussians, GMM_SIGMA_REG)
+            elif len(self.quantiles)>0:
                 if self.loss_type=='crps':
                     ##one ensemble member per requested level (M=len(quantiles)); inference returns the requested levels.
                     ##Members sit at levels (i+0.5)/M: levels outside [0.5/M, 1-0.5/M] are clamped to the extreme member
@@ -413,6 +436,8 @@ class Base(pl.LightningModule):
             torch.tensor: result
         """
         
+        if self.use_gmm:
+            return self.gmm_to_levels(self(batch))
         if self.loss_type=='crps':
             tmp = self(batch)                                              # (B,H,C,M)
             xs, _ = torch.sort(tmp, dim=-1)
@@ -429,6 +454,35 @@ class Base(pl.LightningModule):
         
         return self(batch)
         
+    def gmm_to_levels(self, y_hat:torch.Tensor)->torch.Tensor:
+        """gmm_nll: raw mixture parameters (B,H,C,3K) -> mixture quantiles (B,H,C,len(quantiles)), the median if
+        quantiles=[]. Models overriding inference must call it."""
+        levels = list(self.quantiles) if self.use_quantiles else [0.5]
+        return gmm_quantiles(y_hat, self.n_gaussians, levels)
+
+    def rescale_output(self, res:torch.Tensor, loc:Union[torch.Tensor,None]=None, scale:Union[torch.Tensor,None]=None)->torch.Tensor:
+        """Bring an output computed in a normalized frame back to the data frame: ``res*scale + loc``.
+
+        Use it for every fixed rescaling applied in forward AFTER the output head (RevIN de-normalization,
+        last value re-centering, ...): res is (B,H,C,mul), loc and scale broadcastable to (B,H,C,1).
+        For point/quantile/crps/classification outputs it is exactly ``res*scale + loc``. With gmm_nll only mu
+        takes loc and scale, log sigma takes log(scale) and the mixture logits are left untouched.
+        """
+        if not self.use_gmm:
+            if scale is not None:
+                res = res*scale
+            if loc is not None:
+                res = res+loc
+            return res
+        K = self.n_gaussians
+        logit, log_sigma, mu = res[..., :K], res[..., K:2*K], res[..., 2*K:]
+        if scale is not None:
+            mu = mu*scale
+            log_sigma = log_sigma+torch.log(scale.abs().clamp(min=1e-12))   ##sigma*|scale|: a negative scale (RevIN affine) only flips mu
+        if loc is not None:
+            mu = mu+loc
+        return torch.cat([logit, log_sigma, mu], dim=-1)
+
     def configure_optimizers(self):
         """
         Each model has optim_config and scheduler_config
@@ -588,6 +642,9 @@ class Base(pl.LightningModule):
                 if self.loss_type=='crps':
                     ##y_hat holds the raw (unsorted) ensemble members here
                     pred =  y_hats[0,:,i,:].median(dim=-1).values.cpu().detach().numpy()
+                elif self.use_gmm:
+                    ##y_hat holds the raw mixture parameters here
+                    pred = gmm_quantiles(y_hats[0:1,:,i:i+1,:], self.n_gaussians, [0.5])[0,:,0,0].cpu().numpy()
                 else:
                     pred =  y_hats[0,:,i,self.median_idx].cpu().detach().numpy()
                 fig, ax = plt.subplots(figsize=(7,5))  
@@ -658,7 +715,7 @@ class Base(pl.LightningModule):
 
         :meta private:
         """
-        if self.is_classification or self.use_quantiles or (self.loss_type in ['l1','mse','smape','crps','long_lag']):
+        if self.is_classification or self.use_quantiles or self.use_gmm or (self.loss_type in ['l1','mse','smape','crps','long_lag']):
             return loss
         return torch.abs(y_hat[:,:,:,0]-batch['y'].to(y_hat.device)).mean()
 
@@ -704,6 +761,7 @@ class Base(pl.LightningModule):
         :meta private:
         """
         assert getattr(self, 'supports_loss_weights', True), f'{what} is not supported by {self.__class__.__name__} (it computes its own loss)'
+        assert not getattr(self, 'use_gmm', False), f'{what} is not supported with loss_type=gmm_nll'
         assert not self.is_classification, f'{what} is not supported for classification'
         assert (self.use_quantiles and self.loss_type!='long_lag') or self.loss_type in ('l1','mse'), f'{what} works with quantiles, crps, l1 and mse, not with loss_type={self.loss_type}'
 
@@ -739,6 +797,10 @@ class Base(pl.LightningModule):
         if lw is not None:
             self.check_loss_weights_supported('loss_weights')
             lw = lw.to(y_hat.device)
+
+        if self.use_gmm:
+            ##outside the contract: mixture negative log likelihood, see models/utils.py GaussianMixtureNLL
+            return self.loss(y_hat, batch['y'])
 
         if self.loss_type=='crps':
             ##outside the contract: persistence_weight is the CRPS alpha here

@@ -250,7 +250,7 @@ class DilatedConv(Base):
             torch.tensor: result
         """
 
-        x =  batch['x_num_past'].to(self.device)
+        x =  batch['x_num_past'].to(self.device).clone() ## modified in place below (remove_last): never write into the batch
         BS = x.shape[0]
         if 'x_cat_future' in batch.keys():
             emb_fut = self.emb_fut(BS,batch['x_cat_future'].to(self.device))
@@ -318,7 +318,8 @@ class DilatedConv(Base):
         B = res.shape[0]
         res = res.reshape(B,self.future_steps,-1,self.mul)
         if self.remove_last:
-            res+=x_start.unsqueeze(1)
+            ## B x 1 x C -> B x 1 x C x 1 (was unsqueeze(1) = B x 1 x 1 x C: crashed with more than one target)
+            res = self.rescale_output(res, loc=x_start.reshape(B,1,-1,1))
 
       
         return res, score
@@ -326,4 +327,6 @@ class DilatedConv(Base):
     def inference(self, batch:dict)->torch.tensor:
 
         res, score = self(batch)
+        if self.use_gmm:
+            return self.gmm_to_levels(res)
         return res

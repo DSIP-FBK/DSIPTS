@@ -125,7 +125,7 @@ class Simple(Base):
         res = self.linear(tot)
         res = res.reshape(BS,self.future_steps,-1,self.mul)
         if center:
-            res = res + x_start.unsqueeze(-1)                   ## BS x 1 x C x 1
+            res = self.rescale_output(res, loc=x_start.unsqueeze(-1))   ## BS x 1 x C x 1
        
         ##
 

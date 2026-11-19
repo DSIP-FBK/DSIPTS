@@ -148,8 +148,7 @@ class ITransformer(Base):
 
         if self.use_norm:
             # De-Normalization from Non-stationary Transformer
-            dec_out = dec_out * stdev[:, 0, :].reshape(B, 1, N, 1)
-            dec_out = dec_out + means[:, 0, :].reshape(B, 1, N, 1)
+            dec_out = self.rescale_output(dec_out, loc=means[:, 0, :].reshape(B, 1, N, 1), scale=stdev[:, 0, :].reshape(B, 1, N, 1))
 
         return dec_out
 

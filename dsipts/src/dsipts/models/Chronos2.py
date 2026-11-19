@@ -50,6 +50,7 @@ class Chronos2(Base): # type: ignore
     handle_future_covariates = True
     handle_categorical_variables = True
     handle_quantile_loss = True
+    handle_gmm = False   ## loss_type=gmm_nll refused, see Base.handle_gmm
 
     description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables,handle_quantile_loss)
     

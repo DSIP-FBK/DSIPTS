@@ -32,6 +32,7 @@ class Timestral(Base):
     handle_future_covariates = True
     handle_categorical_variables = True
     handle_quantile_loss = True
+    handle_gmm = False   ## loss_type=gmm_nll refused, see Base.handle_gmm
     description = get_scope(handle_multivariate,handle_future_covariates,handle_categorical_variables,handle_quantile_loss)
     description += '\n PRETRAINED FOUNDATION MODEL: categorical variables are passed as raw codes (numeric rows), quantiles are mapped to the closest of the 21 pretrained levels'
 

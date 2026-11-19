@@ -216,6 +216,16 @@ class Base(pl.LightningModule):
         
         return self(batch)
         
+    use_gmm = False   ##loss_type='gmm_nll' exists only in base_v2
+
+    def rescale_output(self, res:torch.Tensor, loc=None, scale=None)->torch.Tensor:
+        """res*scale + loc, see base_v2.Base.rescale_output (no Gaussian mixture in the legacy base)"""
+        if scale is not None:
+            res = res*scale
+        if loc is not None:
+            res = res+loc
+        return res
+
     def configure_optimizers(self):
         """
         Each model has optim_config and scheduler_config

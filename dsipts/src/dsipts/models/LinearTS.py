@@ -218,11 +218,11 @@ class LinearTS(Base):
             #res BxLxCxMUL
             #start Bx1xC -> Bx1xCx1 (one offset per target, shared by the quantiles; unsqueeze(1) gave Bx1x1xC
             #and crashed with more than one target)
-            res = res + x_start.reshape(BS,1,-1,1)
+            res = self.rescale_output(res, loc=x_start.reshape(BS,1,-1,1))
         
 
         if self.kind=='dlinear':
-            res = res+trend.unsqueeze(3)
+            res = self.rescale_output(res, loc=trend.unsqueeze(3))
         
             
         return res

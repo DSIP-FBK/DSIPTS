@@ -23,6 +23,7 @@ model_configs:
   d_model: 6
   begin_order: 2
   use_norm: true
+  norm_mode: revin        # legacy (default, old checkpoints) | revin | none, see TimeKAN.py
   optim: torch.optim.AdamW
   persistence_weight: 0.010
   loss_type: 'l1'

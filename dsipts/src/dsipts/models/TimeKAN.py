@@ -40,12 +40,23 @@ class TimeKAN(Base):
                  d_model: int,
                  begin_order: int,
                  use_norm:bool,
+                 norm_mode:str='legacy',
                  **kwargs)->None:
-             
-        
-        
-        
+        """
+        norm_mode:
+            'legacy' (default, so that the models trained so far reload unchanged): the historical behaviour, with
+                three known bugs: Normalize gets non_norm=use_norm (use_norm=True means NO normalization), with
+                use_norm=False the input is normalized but the output is never de-normalized, and the (B,N,T)
+                tensor is reshaped to (B,T,N), mixing time and channels before `project`.
+            'revin': RevIN as in the original TimeKAN: inputs normalized per window (affine), channels kept in
+                place, output de-normalized with the statistics of the targets (needs idx_target). use_norm ignored.
+            'none': no normalization, channels kept in place. use_norm ignored.
+        """
         super().__init__(**kwargs)
+        assert norm_mode in ('legacy','revin','none'), f'norm_mode must be legacy, revin or none, got {norm_mode}'
+        self.norm_mode = norm_mode
+        if norm_mode=='legacy':
+            beauty_string('TimeKAN norm_mode=legacy: known input bugs kept for old checkpoints, use norm_mode=revin for new runs','info',True)
        
         self.save_hyperparameters(logger=False)
         self.e_layers = e_layers
@@ -70,7 +81,7 @@ class TimeKAN(Base):
         self.layer = e_layers
         self.normalize_layers = torch.nn.ModuleList(
             [
-                Normalize(self.enc_in, affine=True, non_norm=use_norm)
+                Normalize(self.enc_in, affine=True, non_norm=use_norm if norm_mode=='legacy' else (norm_mode=='none'))
                 for i in range(down_sampling_layers + 1)
             ]
         )
@@ -123,8 +134,11 @@ class TimeKAN(Base):
         for i, x in zip(range(len(x_enc)), x_enc, ):
             B, T, N = x.size()
             x = self.normalize_layers[i](x, 'norm')
-            x = x.permute(0, 2, 1).contiguous().reshape(B * N, T, 1)
-            x_list.append(self.project(x.reshape(B, T, N)))
+            if self.norm_mode=='legacy':
+                ## historical (B,N,T) -> (B,T,N) memory reinterpretation, kept bit for bit for old checkpoints
+                x = x.permute(0, 2, 1).contiguous().reshape(B * N, T, 1)
+                x = x.reshape(B, T, N)
+            x_list.append(self.project(x))
 
 
 
@@ -146,5 +160,16 @@ class TimeKAN(Base):
             dec_out = torch.cat(tmp_future,2)
 
         dec_out = self.final_layer(dec_out)
+        dec_out = dec_out.reshape(BS,self.future_steps,self.out_channels,self.mul)
 
-        return dec_out.reshape(BS,self.future_steps,self.out_channels,self.mul)
+        if self.norm_mode=='revin' and not self.is_classification:
+            idx_target = batch.get('idx_target', None)
+            if idx_target is not None and idx_target.numel()>0:
+                ## inverse of Normalize at full resolution, for the target channels (they are the first
+                ## past_channels columns of x_past, so idx_target indexes them directly)
+                nl = self.normalize_layers[0]
+                idx = idx_target[0].long()
+                scale = nl.stdev[:, :, idx]/(nl.affine_weight[idx]+nl.eps*nl.eps)            ## B,1,C
+                loc = nl.mean[:, :, idx]-nl.affine_bias[idx]*scale
+                dec_out = self.rescale_output(dec_out, loc=loc.unsqueeze(-1), scale=scale.unsqueeze(-1))
+        return dec_out
