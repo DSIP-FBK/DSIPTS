@@ -176,6 +176,8 @@ class Timestral(Base):
         return q[:, :n_tgt]
 
     def forward(self, batch:dict)->torch.Tensor:
+        ##inference_on_set passes CPU batches (Lightning moves them only in fit): move to the model device here
+        batch = {k:(v.to(self.device) if torch.is_tensor(v) else v) for k,v in batch.items()}
         x = batch['x_num_past'].float()
         B, L, Cp = x.shape
         H = self.future_steps

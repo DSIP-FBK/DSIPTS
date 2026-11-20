@@ -1,3 +1,11 @@
+## 1.8.1
+- fixed chronos and timestral for comparison (device)
+
+## 1.8.0
+- fixed timeKAN
+- added gnn loss
+- added group transformer model https://github.com/alliander-opensource/s4casting/blob/main/src/s4casting/model/transformer.py
+
 ## 1.7.0
 - Loss weights, used as given (not normalised) and multiplied together: `horizon_weights` model argument (one weight per future step) and `TimeSeries.load_signal(loss_weights='col')` (a dataset column weighting each target point, e.g. a model that has to be better on Sundays, or 0 to keep a bad target value in the inputs but out of the loss). They work with quantile, crps, l1 and mse losses, weight the validation loss that picks the best epoch too, are not used at inference, and raise an error with the losses and models that would ignore them; samples with NaN in the context are dropped as before, whatever their weight
 ## 1.6.0 

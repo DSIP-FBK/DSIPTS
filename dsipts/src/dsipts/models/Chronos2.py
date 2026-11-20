@@ -583,6 +583,8 @@ class Chronos2(Base): # type: ignore
         self,
         batch
     ):
+        ##inference_on_set passes CPU batches (Lightning moves them only in fit): move to the model device here
+        batch = {k:(v.to(self.device) if torch.is_tensor(v) else v) for k,v in batch.items()}
         # ADAPT from BATCH to STANDARD CHRONOS2 INPUTS
         batch_size, horizon, n_target_vars = batch['y'].shape
         num_past_with_y = batch['x_num_past']
