@@ -1,0 +1,93 @@
+## Exchange rate (daily, 8 series, target OT) — round 3 (2026-11-23, PLAN §8): the AE's "persistence is the right forecast" case.
+## Copy of the ETTm2 setup with past 96 / future 96 (standard LTSF). Prediction: beta -> 0, shrink recovers naive.
+dataset:
+  dataset: exchange_rate
+  path: /storage3/DSIP/agobbi/Projects/ExpTS/data
+  
+model:
+  restart: false
+  retrain: true
+
+ts:
+  name: 'exchange'
+  version: 1
+  enrich: []
+  use_covariates: true
+  use_future_covariates: false
+  global_forecaster: false  # false (default) = LOCAL: the group (if any) is also a categorical input; true = GLOBAL: the group only builds the samples
+
+scheduler_config:
+  gamma: 1.0
+  step_size: 100
+
+optim_config:
+  lr: 0.0005
+  weight_decay: 0.0001
+
+model_configs:
+  past_steps: 96
+  future_steps: 96
+  quantiles: []
+  past_channels : null #dataset dependent
+  future_channels : null #dataset dependent
+  embs_past: null #dataset dependent
+  embs_fut: null #dataset dependent
+  out_channels: null #dataset dependent
+
+stack:
+  dirpath: null
+
+split_params:
+  perc_train: 0.7
+  perc_valid: 0.1
+  range_train: null
+  range_validation: null 
+  range_test: null
+  shift: 0
+  starting_point: null
+  skip_step: 1
+  past_steps: model_configs@past_steps 
+  future_steps: model_configs@future_steps
+  scaler: 'StandardScaler()' #'RobustScaler()' ## or sklearn.preprocessing.StandardScaler()
+train_config:
+  dirpath: /storage3/DSIP/agobbi/Projects/ExpTS/paper_persistence_v3_exchange
+  num_workers: 0
+  auto_lr_find: false
+  devices: [0]                   
+  seed: 42    
+  max_epochs: 100
+  patience: 50
+  
+inference:
+  output_path: /storage3/DSIP/agobbi/Projects/ExpTS/paper_persistence_v3_exchange
+  load_last: false
+  batch_size: 200 
+  num_workers: 4
+  set: "test"
+  rescaling: true
+
+defaults:
+  - _self_
+  - architecture: null 
+  - override hydra/launcher: submitit_slurm #joblib 
+
+hydra:
+  launcher:
+    submitit_folder: ${hydra.sweep.dir}/.submitit/%j
+    timeout_min: 900
+    partition: gpu-V100
+    mem_gb: 6
+    nodes: 1
+    gres: shard:2   ## 2 shards x 4GB VRAM
+    array_parallelism: 4 ##
+
+    name: ${hydra.job.name}
+    _target_: hydra_plugins.hydra_submitit_launcher.submitit_launcher.SlurmLauncher
+    setup:
+      - source /storage3/DSIP/agobbi/Projects/timeseries/dsipts/.venv/bin/activate  
+
+
+  output_subdir: null 
+  sweeper:
+    params:
+      architecture: glob(*) #architecture

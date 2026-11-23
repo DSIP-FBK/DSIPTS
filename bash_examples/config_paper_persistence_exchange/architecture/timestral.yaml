@@ -1,0 +1,39 @@
+# @package _global_
+## Timestral-209M (Mistral AI) ZERO-SHOT for the shrinkage study (2026-11-19, PLAN §7): one epoch at lr 0,
+## the pretrained weights do not move. quantiles [] -> median of the 21 pretrained levels = point forecast.
+## Offline compute nodes: download once on the login node, then local_files_only=true (or HF_HUB_OFFLINE=1).
+
+model:
+  type: 'timestral'
+  retrain: true
+  restart: false
+ts:
+  name: 'exchange'
+  version: 1
+  enrich: []
+  use_covariates: true
+  use_future_covariates: false
+  silly: false
+
+model_configs:
+  model_path: 'mistralai/Timestral-209M'
+  freeze: 'all'      ## zero-shot: no grad, 1 training batch (base_v2 _is_frozen)
+  use_categorical: false
+  symmetric_averaging: false
+  local_files_only: false
+  future_num_in_past: null    ## filled by train.py
+  future_cat_in_past: null
+  optim: torch.optim.Adam
+  persistence_weight: 0.0
+  loss_type: 'l1'
+  quantiles: []
+train_config:
+  batch_size: 64     ## rows = batch_size * n_variables (weather 21, electricity 321, ettm2 7)
+  max_epochs: 1
+  patience: 1
+  auto_lr_find: false
+optim_config:
+  lr: 0.0
+  weight_decay: 0.0
+inference:
+  batch_size: 128
