@@ -122,7 +122,7 @@ def inference(conf:DictConfig,split_params=None)->List[pd.DataFrame]:
     beauty_string(errors,'',VERBOSE)
 
     if not os.path.exists(os.path.join(conf.inference.output_path,'csv')):
-        os.makedirs(os.path.join(conf.inference.output_path,'csv'))
+        os.makedirs(os.path.join(conf.inference.output_path,'csv'),exist_ok=True)
     filename = os.path.join(conf.inference.output_path,'csv',f'{conf.model.type}_{ts.name}_{conf.ts.version}_{conf.inference.set}.csv')
 
     errors.to_csv(filename,index=False)

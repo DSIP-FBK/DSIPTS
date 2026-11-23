@@ -24,9 +24,9 @@ def compare(conf:DictConfig)-> None:
     
     ##CREATE FOLDER IF NOT EXISTS
     if not os.path.exists(os.path.join(conf.dirpath,'plots')):
-        os.makedirs(os.path.join(conf.dirpath,'plots'))
+        os.makedirs(os.path.join(conf.dirpath,'plots'),exist_ok=True)
     if not os.path.exists(os.path.join(conf.dirpath,'csv')):
-        os.makedirs(os.path.join(conf.dirpath,'csv'))
+        os.makedirs(os.path.join(conf.dirpath,'csv'),exist_ok=True)
     
     res = []
     tot_losses = []

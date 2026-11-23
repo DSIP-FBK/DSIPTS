@@ -128,7 +128,7 @@ def train(conf: DictConfig) -> None:
     if  (os.path.exists(dirpath)) and (conf.model.get('restart',False) is False):
         shutil.rmtree(dirpath)
     if  os.path.exists(dirpath) is False:
-        os.makedirs(dirpath)
+        os.makedirs(dirpath,exist_ok=True)
     conf.train_config.dirpath = dirpath
     ts.set_model(model,config=dict(model_configs=model_conf,
                                     optim_config=conf.optim_config,
@@ -147,7 +147,7 @@ def train(conf: DictConfig) -> None:
     path = HydraConfig.get()['runtime']['config_sources'][1]['path']
     used_config = os.path.join(path,'config_used')
     if not os.path.exists(used_config):
-        os.mkdir(used_config)
+        os.makedirs(used_config,exist_ok=True)
 
     tot_seconds = time.time()
     try:
