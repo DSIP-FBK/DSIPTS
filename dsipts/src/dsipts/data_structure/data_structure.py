@@ -5,7 +5,7 @@ from typing import List, Tuple
 from sklearn.preprocessing import LabelEncoder, OrdinalEncoder
 from sklearn.preprocessing import * 
 from torch.utils.data import DataLoader
-from .utils import extend_time_df,MetricsCallback, MyDataset, ActionEnum,beauty_string
+from .utils import extend_time_df,MetricsCallback, MyDataset, LazyDataset, ActionEnum,beauty_string
 from torch.utils.data.sampler import WeightedRandomSampler
 import os
 os.environ["TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD"] = "1"
@@ -471,7 +471,8 @@ class TimeSeries():
                            skip_step:int=1,
                            is_inference:bool=False,
                            continual_learning_fraction:Union[None,float]=None,
-                           )->MyDataset:
+                           lazy:bool=False,
+                           )->Union[MyDataset,LazyDataset]:
         """ Create the dataset for the training/inference step
 
         Args:
@@ -482,6 +483,9 @@ class TimeSeries():
             keep_entire_seq_while_shifting (bool, optional): if the dataset is shifted, you may want the future data be of length future_step+shift (like informer), default false
             starting_point (Union[None,dict], optional): keep a sample only if its first future step matches ALL the given values, e.g. {'hour':0,'minute':0} for forecasts issued at 00:00. hour, minute, dow and month are read from the time column; other keys must be non categorical columns of the dataset. Defaults to None.
             skip_step (int, optional): list of the categortial variables (same for past and future). Usual there is a skip of one between two saples but for debugging  or training time purposes you can skip some samples. Defaults to 1.
+            lazy (bool, optional): if True the windows are not copied: each group's (normalized) arrays are stored once
+                and the samples are cut on the fly (`LazyDataset`, same batches as `MyDataset`). Memory ~ the data instead
+                of ~ n_samples x (past_steps + future_steps). The modifiers are not supported. Defaults to False.
         Returns:
             MyDataset: class that extends torch.utils.data.Dataset (see utils)
                 keys of a batch:
@@ -587,6 +591,7 @@ class TimeSeries():
         if len(idx_target_future)==0:
             idx_target_future = None
 
+        lazy_arrays, lazy_labels, lazy_gid, lazy_pos = [], [], [], []
         for group in data['_GROUP_'].unique():
             tmp = data[data['_GROUP_']==group]
             groups = tmp['_GROUP_'].values  
@@ -614,7 +619,21 @@ class TimeSeries():
                     check &= np.asarray(values) == vv
             else:
                 check = [True]*len(y_target)
-            
+
+            if lazy:
+                ##the group's arrays, stored once, in the dtypes of the stacked samples (see the casts below)
+                g_lazy = len(lazy_arrays)
+                arr = {'y': y_target.astype(np.float32), 'x_num_past': x_num_past.astype(np.float32), 't': t}
+                if len(self.cat_past_var)>0:
+                    arr['x_cat_past'] = x_past_cat.astype(np.int32)
+                if len(self.cat_fut_var)>0:
+                    arr['x_cat_future'] = x_fut_cat.astype(np.int32)
+                if len(self.future_variables)>0:
+                    arr['x_num_future'] = x_num_future.astype(np.float32)
+                if loss_weights is not None:
+                    arr['loss_weights'] = w_point
+                n_before = len(lazy_pos)
+
             for i in range(past_steps,tmp.shape[0]-future_steps-skip_stacked,skip_step):
                 if check[i]:
 
@@ -629,7 +648,12 @@ class TimeSeries():
                         xx+=y_target[i+skip_stacked:i+future_steps+skip_stacked].min()
                     
                     if np.isfinite(x_num_past[i-past_steps:i].min()  + xx):
-                        
+                        if lazy:
+                            lazy_gid.append(g_lazy)
+                            lazy_pos.append(i)
+                            if self.sampler_weights is not None:
+                                sampler_weights_samples.append(sampler_weights[i+skip_stacked])
+                            continue
                         x_num_past_samples.append(x_num_past[i-past_steps:i])
                         if len(self.future_variables)>0:
                             if keep_entire_seq_while_shifting:
@@ -652,6 +676,17 @@ class TimeSeries():
                         t_samples.append(t[i+skip_stacked:i+future_steps+skip_stacked])
                         g_samples.append(groups[i])
 
+            if lazy and len(lazy_pos)>n_before:  ##keep only the groups with at least one sample
+                if self.stacked:
+                    arr['x_num_past'][:] = 0  ##as below (the kept windows are finite)
+                lazy_arrays.append(arr)
+                lazy_labels.append(groups[0])
+
+        if lazy:
+            return self._lazy_dataset(lazy_arrays, lazy_labels, lazy_gid, lazy_pos, sampler_weights_samples,
+                                      loss_weights, past_steps, future_steps, shift, skip_stacked,
+                                      keep_entire_seq_while_shifting, idx_target, idx_target_future,
+                                      continual_learning_fraction)
     
         if len(self.future_variables)>0:
             try:
@@ -705,12 +740,12 @@ class TimeSeries():
 
             # 3. Istanzia i due Dataset
             ds_phase1 = MyDataset(
-                data=data_p1, t=t_samples[:split_idx], groups=groups[:split_idx],
+                data=data_p1, t=t_samples[:split_idx], groups=g_samples[:split_idx],
                 idx_target=idx_target, idx_target_future=idx_target_future
             )
 
             ds_phase2 = MyDataset(
-                data=data_p2, t=t_samples[split_idx:], groups=groups[split_idx:],
+                data=data_p2, t=t_samples[split_idx:], groups=g_samples[split_idx:],
                 idx_target=idx_target, idx_target_future=idx_target_future
             )
      
@@ -718,6 +753,39 @@ class TimeSeries():
         else:
             return MyDataset(dd,t_samples,g_samples,idx_target,idx_target_future)
     
+    def _lazy_dataset(self, arrays, labels, gid, pos, sampler_weights_samples, loss_weights, past_steps, future_steps,
+                      shift, skip_stacked, keep_entire_seq_while_shifting, idx_target, idx_target_future,
+                      continual_learning_fraction):
+        """`create_data_loader(lazy=True)`: the LazyDataset (or the two continual learning parts) of the kept samples.
+
+        :meta private:
+        """
+        gid = np.asarray(gid, dtype=np.int64)
+        pos = np.asarray(pos, dtype=np.int64)
+        if len(pos)==0:
+            beauty_string('WARNING no valid sample in this set','info',True)
+        if loss_weights is not None and len(pos)>0:
+            ##same check as the stacked version, on the target rows of the kept samples (bad rows counted with a cumsum)
+            n_bad = 0
+            for g, a in enumerate(arrays):
+                lw = a['loss_weights']
+                cum = np.concatenate([[0], np.cumsum(~(np.isfinite(lw) & (lw>=0)))])
+                p = pos[gid==g] + skip_stacked
+                n_bad += int((cum[p+future_steps] - cum[p]).sum())
+            assert n_bad==0, f'loss_weights column {loss_weights}: {n_bad} non finite or negative values on the targets of the kept samples'
+        if self.sampler_weights is not None:
+            sw = np.asarray(sampler_weights_samples, dtype=np.float32)
+        else:
+            sw = np.ones(len(pos), dtype=np.float32)
+        ds = LazyDataset(arrays, labels, gid, pos, past_steps, future_steps, shift, skip_stacked,
+                         keep_entire_seq_while_shifting, sw, idx_target, idx_target_future)
+        beauty_string(f'Lazy dataset: {len(ds)} samples from {len(arrays)} groups','info',self.verbose)
+        if continual_learning_fraction is not None:
+            ## last part, as in the stacked version (same sample order: group by group, then time)
+            split_idx = int(len(ds)*(1-continual_learning_fraction))
+            return (ds.subset(slice(0, split_idx)), ds.subset(slice(split_idx, None)))
+        return ds
+
     def split_for_train(self,
                         perc_train:Union[float,None]=0.6,
                         perc_valid:Union[float,None]=0.2,
@@ -734,6 +802,7 @@ class TimeSeries():
                         check_consecutive: bool=True,
                         scaler: str='StandardScaler()',
                         continual_learning_fraction:Union[None, float]=None,
+                        lazy:bool=False,
                         )->List[DataLoader| None]:
         """Split the data and create the datasets.
 
@@ -753,6 +822,7 @@ class TimeSeries():
             normalize_per_group (boolean, optional): if true and self.group is not None, the variables are scaled respect to the groups. Default False
             check_consecutive (boolean, optional): if false it skips the check on the consecutive ranges. Default True
             scaler: instance of a sklearn.preprocessing scaler. Default 'StandardScaler()'
+            lazy (bool, optional): windows cut on the fly instead of copied (see `create_data_loader`). Default False
         Returns:
             List[DataLoader,DataLoader,DataLoadtrainer]: three dataloader used for training or inference
         """
@@ -828,10 +898,10 @@ class TimeSeries():
                             self.scaler_cat[f'{c}_{group}'] =  OrdinalEncoder(dtype=np.int32,handle_unknown= 'use_encoded_value',unknown_value=train[c].nunique())
                             self.scaler_cat[f'{c}_{group}'].fit(tmp[c].to_numpy().reshape(-1,1))  
  
-        dl_train = self.create_data_loader(train,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step,continual_learning_fraction=continual_learning_fraction)
-        dl_validation = self.create_data_loader(validation,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)
+        dl_train = self.create_data_loader(train,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step,continual_learning_fraction=continual_learning_fraction,lazy=lazy)
+        dl_validation = self.create_data_loader(validation,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step,lazy=lazy)
         if test.shape[0]>0:
-            dl_test = self.create_data_loader(test,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step)
+            dl_test = self.create_data_loader(test,past_steps,future_steps,shift,keep_entire_seq_while_shifting,starting_point,skip_step,lazy=lazy)
         else:
             dl_test = None
         return dl_train,dl_validation,dl_test
@@ -935,6 +1005,7 @@ class TimeSeries():
             
             
         if modifier is not None:
+            assert not self.split_params.get('lazy', False), 'the modifiers need the stacked windows: use split_params lazy=False'
             modifier = eval(modifier)
             modifier = modifier(**modifier_params)
             train, validation = modifier.fit_transform(train=train,val=validation)

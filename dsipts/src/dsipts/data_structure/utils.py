@@ -199,6 +199,96 @@ class MyDataset(Dataset):
             sample['idx_target_future'] = self.idx_target_future
         return sample
 
+
+class LazyDataset(Dataset):
+    """Same samples as `MyDataset`, but the windows are cut on the fly instead of being copied in memory.
+
+    `MyDataset` stores every window (past_steps + future_steps rows), so with overlapping windows each row is copied
+    many times (e.g. 3072 + 288 steps with one window per day: ~35 copies). Here every group's arrays are stored once
+    (already normalized, float32 / int32) and a sample is only (group, position): `__getitem__` slices the arrays.
+    A batch has the same keys, shapes, dtypes and values as with `MyDataset`.
+
+    Not available in lazy mode: `.data` (the stacked arrays, used by the modifiers).
+
+    Args:
+        arrays (list): one dict per group with the per-row arrays: 'x_num_past', 'y', 't' and, if present,
+            'x_num_future', 'x_cat_past', 'x_cat_future', 'loss_weights'
+        labels (list): the group label of each element of `arrays`
+        gid (np.array): group (index in `arrays`) of each sample
+        pos (np.array): position i of each sample (first future row = i + skip_stacked)
+        past_steps (int), future_steps (int), shift (int), skip_stacked (int), keep_entire_seq_while_shifting (bool):
+            as in `TimeSeries.create_data_loader`
+        sampler_weights (np.array): weight of each sample
+        idx_target (Union[np.array,None]), idx_target_future (Union[np.array,None]): as in `MyDataset`
+    """
+
+    def __init__(self, arrays: list, labels: list, gid: np.ndarray, pos: np.ndarray, past_steps: int, future_steps: int,
+                 shift: int, skip_stacked: int, keep_entire_seq_while_shifting: bool, sampler_weights: np.ndarray,
+                 idx_target: Union[np.array, None], idx_target_future: Union[np.array, None]):
+        self.arrays = arrays
+        self.labels = np.asarray(labels)
+        self.gid = np.asarray(gid, dtype=np.int64)
+        self.pos = np.asarray(pos, dtype=np.int64)
+        self.past_steps = past_steps
+        self.future_steps = future_steps
+        self.shift = shift
+        self.skip_stacked = skip_stacked
+        self.keep_entire_seq_while_shifting = keep_entire_seq_while_shifting
+        self.sampler_weights = np.asarray(sampler_weights, dtype=np.float32)
+        self.idx_target = np.array(idx_target) if idx_target is not None else None
+        self.idx_target_future = np.array(idx_target_future) if idx_target_future is not None else None
+        ##same key order as MyDataset
+        keys = ['y', 'x_num_past', 'x_cat_past', 'x_cat_future', 'x_num_future', 'loss_weights']
+        self.keys = [k for k in keys if len(arrays) > 0 and k in arrays[0]]
+
+    def subset(self, sel) -> 'LazyDataset':
+        """The samples `sel` (indices or slice), sharing the same arrays (no copy). Used for continual learning."""
+        return LazyDataset(self.arrays, self.labels, self.gid[sel], self.pos[sel], self.past_steps, self.future_steps,
+                           self.shift, self.skip_stacked, self.keep_entire_seq_while_shifting, self.sampler_weights[sel],
+                           self.idx_target, self.idx_target_future)
+
+    def _slice(self, k: str, i: int) -> slice:
+        ss = self.skip_stacked
+        if k in ('x_num_past', 'x_cat_past'):
+            return slice(i - self.past_steps, i)
+        if k in ('x_num_future', 'x_cat_future'):
+            end = i + self.future_steps + ss if self.keep_entire_seq_while_shifting else i + self.future_steps - self.shift + ss
+            return slice(i - self.shift + ss, end)
+        return slice(i + ss, i + self.future_steps + ss)  # y, loss_weights, t
+
+    def __len__(self):
+        return len(self.pos)
+
+    def __getitem__(self, idxs):
+        if np.ndim(idxs) == 0:
+            a, i = self.arrays[self.gid[idxs]], self.pos[idxs]
+            sample = {k: a[k][self._slice(k, i)] for k in self.keys}
+        else:  ##batch of indices (MyDataset supports it through numpy indexing)
+            items = [self[int(j)] for j in np.arange(len(self))[idxs]]
+            sample = {k: np.stack([it[k] for it in items]) for k in self.keys}
+        if self.idx_target is not None:
+            sample['idx_target'] = self.idx_target
+        if self.idx_target_future is not None:
+            sample['idx_target_future'] = self.idx_target_future
+        return sample
+
+    @property
+    def t(self) -> np.ndarray:
+        """Time of the target rows of each sample (n_samples x future_steps), as `MyDataset.t`; built on demand."""
+        if len(self) == 0:
+            return np.empty((0, self.future_steps))
+        return np.stack([self.arrays[g]['t'][self._slice('t', i)] for g, i in zip(self.gid, self.pos)])
+
+    @property
+    def groups(self) -> np.ndarray:
+        """Group label of each sample, as `MyDataset.groups`."""
+        return self.labels[self.gid]
+
+    @property
+    def data(self):
+        raise AttributeError('LazyDataset does not store the stacked windows (.data): use split_for_train(lazy=False)')
+
+
 class ActionEnum(Enum):
     """action of categorical variable
     

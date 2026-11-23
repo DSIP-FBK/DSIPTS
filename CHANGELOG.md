@@ -1,3 +1,6 @@
+## 1.9.0
+- Added lazy batching for large pandas dataset
+
 ## 1.8.1
 - fixed chronos and timestral for comparison (device)
 
