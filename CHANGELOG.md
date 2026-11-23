@@ -1,4 +1,4 @@
-## 1.9.0
+## 1.9.1
 - Added lazy batching for large pandas dataset
 
 ## 1.8.1
