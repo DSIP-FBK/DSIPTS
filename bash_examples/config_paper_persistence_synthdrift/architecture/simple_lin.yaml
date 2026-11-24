@@ -1,0 +1,37 @@
+# @package _global_
+## linear Simple frozen from synthpers stage 1j (val-pick at SNR 1): center_last, Identity, hidden 64, wd 1e-4, lr 1e-3.
+## Same model as config_paper_persistence_weather/architecture/simple_lin.yaml (round 2 block B).
+
+model:
+  type: 'simple'
+  retrain: true
+  restart: false
+ts:
+  name: 'drift_none'
+  version: 1
+  enrich: []
+  use_covariates: true
+  use_future_covariates: false
+  silly: false
+
+model_configs:
+  use_classical_positional_encoder: true
+  emb_dim: 4
+  reduction_mode: mean
+  dropout_rate: 0.0
+  center_last: true
+  hidden_size: 64
+  optim: torch.optim.Adam
+  activation: torch.nn.Identity
+  persistence_weight: 1
+  loss_type: 'l1'
+  persistence_anchor: 'last'
+  quantiles: []
+train_config:
+  batch_size: 64
+  max_epochs: 800
+  patience: 200
+  auto_lr_find: false
+optim_config:
+  lr: 0.001
+  weight_decay: 0.0001
