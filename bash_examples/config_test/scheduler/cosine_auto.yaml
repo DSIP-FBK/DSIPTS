@@ -1,0 +1,11 @@
+# @package _global_
+# Cosine over the whole planned training: total_steps = max_epochs x steps per epoch (Lightning
+# trainer.estimated_stepping_batches). Only sensible when the run really goes to train_config.max_epochs (no early
+# stop, or a small max_epochs): with early stopping the lr has barely decayed when the training ends.
+#   python train.py --config-dir=config_test --config-name=config architecture=linear scheduler=cosine_auto \
+#     train_config.max_epochs=3
+scheduler_config:
+  type: cosine
+  total_steps: auto
+  min_lr_ratio: 0.1
+  warmup_steps: 0

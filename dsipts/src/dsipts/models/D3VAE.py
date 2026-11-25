@@ -22,7 +22,7 @@ from .d3vae.model import diffusion_generate, denoise_net,pred_net
 from .utils import Embedding_cat_variables
 
 
-from torch.optim.lr_scheduler import StepLR
+from .schedulers import build_scheduler
 
 def copy_parameters(
     net_source: torch.nn.Module,
@@ -114,11 +114,10 @@ class D3VAE(Base):
         """
         optimizer = optim.Adam(self.denoise_net.parameters(),  **self.optim_config)
         self.lr = self.optim_config['lr']
-        if self.scheduler_config is not None:
-            scheduler = StepLR(optimizer,**self.scheduler_config)
-            return [optimizer], [scheduler]
-        else:
+        lr_scheduler = build_scheduler(optimizer, self.scheduler_config, getattr(self, '_trainer', None))
+        if lr_scheduler is None:
             return optimizer
+        return {"optimizer": optimizer, "lr_scheduler": lr_scheduler}
         
         
         

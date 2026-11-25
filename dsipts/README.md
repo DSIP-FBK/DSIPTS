@@ -314,6 +314,29 @@ These models are under review because broken or not aligned with the recent dist
 - **VQVAE** adaptation of [vqvae for images](https://nbviewer.org/github/zalandoresearch/pytorch-vq-vae/blob/master/vq-vae.ipynb) decribed in this [paper](https://arxiv.org/abs/1711.00937) paired with [GPT](https://github.com/karpathy/minGPT) transformer.
 - **VVA** like VQVAE but the tokenization step is performed using a clustering standard procedure.
 
+## Learning rate schedulers
+Every model takes a `scheduler_config` (next to `optim_config`), a plain dict:
+
+| `scheduler_config` | what | stepped |
+|---|---|---|
+| `None` (default) | constant lr = `optim_config['lr']` | - |
+| `dict(step_size=10, gamma=0.5)` (no `type`, or `type='step'`) | `StepLR`: lr × gamma every `step_size` epochs | once per epoch |
+| `dict(type='cosine', total_steps=N, min_lr_ratio=0.1, warmup_steps=0)` | linear warmup to lr over `warmup_steps`, then cosine from lr to `min_lr_ratio`×lr at `total_steps` (warmup included), then constant | after every optimizer step |
+
+`total_steps` is required for the cosine and should be given explicitly: the steps per epoch are `len(train) // batch_size`
+(`train_model` logs `train:<steps per epoch>, validation:<...>` at the start), so for E epochs `total_steps = E × steps`.
+`total_steps='auto'` uses `max_epochs × steps per epoch` (Lightning `estimated_stepping_batches`): with early stopping
+the training ends long before and the lr has barely decayed. `min_lr_ratio=0.1`, `warmup_steps=0` is the schedule of
+[s4casting](https://github.com/alliander-opensource/s4casting) (cosine from lr to lr/10 over the training steps).
+
+```python
+model = GroupedTransformer(**model_configs, optim='torch.optim.RAdam', optim_config=dict(lr=3e-5),
+                           scheduler_config=dict(type='cosine', total_steps=2 * 282623, min_lr_ratio=0.1))
+```
+The lr reached at each epoch is saved in the `lr` column of `loss.csv`. A per-step scheduler is refused with the
+`SAM` optimizer (manual optimization: Lightning does not step it). VVA and VQVAEA ignore `scheduler_config`.
+Implementation: `dsipts/models/schedulers.py`; hydra examples: `bash_examples/config_test/scheduler/`.
+
 ## Metrics
 In some cases the persistence model is hard to beat and even the more complex model can fall in the persistence trap that propagates the last seen values. 
 For this reason a set of metrics can be used trying to avoid the model to get stuck in the trap. In particular we implemented: MSE, L1, sinkhorn divergence, dilated

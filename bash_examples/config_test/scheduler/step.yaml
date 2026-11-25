@@ -1,0 +1,8 @@
+# @package _global_
+# StepLR, stepped once per EPOCH: lr = optim_config.lr * gamma ** (epoch // step_size).
+# A scheduler_config without `type` is a StepLR (same as before dsipts 1.10); `type: step` is the explicit form.
+#   python train.py --config-dir=config_test --config-name=config architecture=linear scheduler=step
+scheduler_config:
+  type: step
+  step_size: 5      # epochs between two decays
+  gamma: 0.5        # lr multiplier at each decay

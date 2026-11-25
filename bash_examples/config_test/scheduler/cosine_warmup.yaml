@@ -1,0 +1,11 @@
+# @package _global_
+# Linear warmup from lr / warmup_steps to optim_config.lr over warmup_steps optimizer steps, then cosine down to
+# min_lr_ratio * lr at total_steps (warmup included), then constant. Useful for transformers trained from scratch
+# with a large lr. See cosine.yaml for how to choose total_steps.
+#   python train.py --config-dir=config_test --config-name=config architecture=grouped_transformer \
+#     scheduler=cosine_warmup scheduler_config.total_steps=5000 scheduler_config.warmup_steps=250
+scheduler_config:
+  type: cosine
+  total_steps: 1000
+  min_lr_ratio: 0.0   # decay to 0
+  warmup_steps: 50    # must be < total_steps

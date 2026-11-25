@@ -32,6 +32,10 @@ def train(conf: DictConfig) -> None:
             version_modifier+=t.split('optim_config.')[1] ##cerco solo quelli che modifico
         elif 'split_params' in t:
             version_modifier+=t.split('split_params.')[1] ##cerco solo quelli che modifico
+        elif 'scheduler_config' in t:
+            version_modifier+=t.split('scheduler_config.')[1] ##e.g. total_steps=2000
+        elif t.startswith('scheduler='):
+            version_modifier+=t.replace('=','_') ##scheduler group (config_test/scheduler), e.g. scheduler_cosine
     version = str(conf.ts.version)
     if version_modifier!='':
         version = version+'_'+version_modifier

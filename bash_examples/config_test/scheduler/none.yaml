@@ -1,0 +1,4 @@
+# @package _global_
+# No scheduler: constant learning rate optim_config.lr (the dsipts default).
+#   python train.py --config-dir=config_test --config-name=config architecture=linear scheduler=none
+scheduler_config: null

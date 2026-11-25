@@ -2,7 +2,7 @@
 from torch import optim
 import torch
 import pytorch_lightning as pl
-from torch.optim.lr_scheduler import StepLR
+from .schedulers import build_scheduler, is_per_step
 from abc import  abstractmethod
 from .utils import SinkhornDistance, SoftDTWBatch,PathDTWBatch,pairwise_distances
 from ..data_structure.utils import beauty_string
@@ -104,7 +104,11 @@ class Base(pl.LightningModule):
             emb_dim (int, optional): Dimension of categorical embeddings. Defaults to 16.
             optim (Union[str, None], optional): Optimizer type. Defaults to None.
             optim_config (dict, optional): Configuration for the optimizer. Defaults to None.
-            scheduler_config (dict, optional): Configuration for the learning rate scheduler. Defaults to None.
+            scheduler_config (dict, optional): Learning rate scheduler. None = constant lr; a dict without `type`
+                (e.g. {step_size: 10, gamma: 0.5}) = StepLR stepped once per epoch; {type: cosine, total_steps: N,
+                min_lr_ratio: 0.1, warmup_steps: 0} = per optimizer step, linear warmup then cosine from lr to
+                min_lr_ratio*lr over total_steps, then constant (total_steps is required, or 'auto' =
+                max_epochs x steps per epoch). See dsipts.models.schedulers. Defaults to None.
             horizon_weights (List[float], optional): One non-negative loss weight per future step, used as given (not normalised). Works with quantiles, crps, l1 and mse; it also weights the validation loss used to pick the best epoch, and it multiplies the per sample weights of TimeSeries.load_signal(loss_weights=...). Defaults to None (uniform).
         
         Raises:
@@ -262,11 +266,15 @@ class Base(pl.LightningModule):
             beauty_string(optimizer,'',self.verbose)
             self.initialize = True
         self.lr = self.optim_config['lr']
-        if self.scheduler_config is not None:
-            scheduler = StepLR(optimizer,**self.scheduler_config)
-            return [optimizer], [scheduler]
-        else:
+        ##None = no scheduler; StepLR per epoch; cosine per optimizer step (see models/schedulers.py)
+        if self.has_sam_optim and self.scheduler_config is not None:
+            ##manual optimization: Lightning does not step the schedulers (a StepLR was always silently ignored)
+            assert not is_per_step(self.scheduler_config), 'a per-step scheduler (cosine) is not supported with the SAM optimizer'
+            beauty_string('WARNING: with SAM the scheduler is not stepped (manual optimization)','info',True)
+        lr_scheduler = build_scheduler(optimizer, self.scheduler_config, getattr(self, '_trainer', None))
+        if lr_scheduler is None:
             return optimizer
+        return {"optimizer": optimizer, "lr_scheduler": lr_scheduler}
 
 
     def training_step(self, batch, batch_idx):

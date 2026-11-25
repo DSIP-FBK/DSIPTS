@@ -1,3 +1,15 @@
+## 1.10.0
+- Learning rate schedulers (`dsipts/models/schedulers.py`): `scheduler_config` keeps None = no scheduler (default) and a
+  dict without `type` = StepLR per epoch (unchanged), and adds `type: cosine` stepped after every optimizer step:
+  optional linear warmup (`warmup_steps`), cosine from lr to `min_lr_ratio`*lr (default 0.1) over `total_steps`
+  (required: an int, or `auto` = max_epochs x steps per epoch), then constant. `warmup_steps=0, min_lr_ratio=0.1` = the
+  s4casting schedule. Used by base_v2, base and D3VAE; a per-step scheduler with SAM is refused.
+- `loss.csv` has an `lr` column (lr at each epoch's validation).
+- `TimeSeries.load` works when `scheduler_config` (or `optim_config`) is None or missing (`dict(None)` crashed).
+- hydra examples: `bash_examples/config_test/scheduler/` (`scheduler=none|step|cosine|cosine_warmup|cosine_auto`);
+  `config_test/config.yaml` and `config_slurm.yaml` use `scheduler_config: null` instead of the constant StepLR
+  (gamma 1.0, same behaviour); `train.py` adds the scheduler choice to the run version.
+
 ## 1.9.1
 - Added lazy batching for large pandas dataset
 

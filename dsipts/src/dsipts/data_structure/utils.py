@@ -102,13 +102,16 @@ def extend_time_df(x:pd.DataFrame,freq:Union[str,int],group:Union[str,None]=None
 
 
 class MetricsCallback(Callback):
-    """PyTorch Lightning metric callback: one row per epoch with train_loss, val_loss and the other validation metrics.
+    """PyTorch Lightning metric callback: one row per epoch with train_loss, val_loss, lr and the other validation metrics.
 
     - The sanity-check validation (run before training) is skipped.
     - Lightning logs the train loss of epoch k after the validation of epoch k, so it is read at the next validation
       (as the previous epoch's) and, for the last epoch, at the end of the training.
     - ``self.metrics`` is a dict of equal-length lists (columns), as TimeSeries.train_model expects; with
       max_epochs=1 it has one row (before, the columns had different lengths and the DataFrame failed).
+    - ``lr`` is the learning rate of the first optimizer param group at the validation of the epoch: for a per-step
+      scheduler (cosine) the lr after the last step of the epoch, for a per-epoch StepLR the lr used in that epoch
+      (it steps after the validation). To check a schedule, see models/schedulers.py.
 
     :meta private:
     """
@@ -132,6 +135,8 @@ class MetricsCallback(Callback):
         if trainer.sanity_checking:
             return
         epoch = trainer.current_epoch
+        if trainer.optimizers:
+            self._set(epoch, 'lr', float(trainer.optimizers[0].param_groups[0]['lr']))
         for c, v in trainer.callback_metrics.items():
             if c == 'train_loss':
                 self._set(epoch - 1, c, v.item())  ##logged at the end of the previous training epoch

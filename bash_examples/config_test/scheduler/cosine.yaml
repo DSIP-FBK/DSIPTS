@@ -1,0 +1,15 @@
+# @package _global_
+# Cosine decay, stepped after every OPTIMIZER STEP (batch), no warmup: lr goes from optim_config.lr to
+# min_lr_ratio * lr over total_steps steps, then stays there. min_lr_ratio 0.1 and no warmup = the s4casting schedule.
+#
+# total_steps is REQUIRED and should be set explicitly: steps per epoch = len(train) // batch_size (train_model logs
+# "train:<steps per epoch>, validation:<...>" at the start), so for E epochs total_steps = E * steps per epoch.
+# total_steps: auto = trainer.estimated_stepping_batches (max_epochs x steps per epoch): the decay then spans
+# max_epochs, NOT the epoch where early stopping stops, so the lr barely decays with a large max_epochs.
+#   python train.py --config-dir=config_test --config-name=config architecture=linear scheduler=cosine \
+#     scheduler_config.total_steps=2000
+scheduler_config:
+  type: cosine
+  total_steps: 1000   # set it to epochs x steps per epoch of YOUR run
+  min_lr_ratio: 0.1   # final lr = 0.1 * optim_config.lr
+  warmup_steps: 0

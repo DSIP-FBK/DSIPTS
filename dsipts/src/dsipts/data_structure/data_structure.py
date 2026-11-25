@@ -1679,9 +1679,12 @@ class TimeSeries():
         if 'verbose' in self.config['model_configs'].keys():
             self.config['model_configs'] = dict(self.config['model_configs'])
             self.config['model_configs'].pop('verbose')
+        ##optim/scheduler config may be missing or None (None = no scheduler): dict(None) used to crash here
+        optim_config = self.config.get('optim_config')
+        scheduler_config = self.config.get('scheduler_config')
         self.model = model(**dict(self.config['model_configs']),
-                           optim_config = dict(self.config['optim_config']),
-                           scheduler_config = dict(self.config['scheduler_config']),
+                           optim_config = dict(optim_config) if optim_config is not None else None,
+                           scheduler_config = dict(scheduler_config) if scheduler_config is not None else None,
                            verbose=self.verbose )
         
         

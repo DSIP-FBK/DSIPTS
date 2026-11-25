@@ -17,9 +17,8 @@ ts:
   check: true #add the target to past covariates (for some models it is mandatory)
   global_forecaster: false  # false (default) = LOCAL: the group (if any) is also a categorical input; true = GLOBAL: the group only builds the samples
 
-scheduler_config:
-  gamma: 1.0
-  step_size: 100
+# learning rate scheduler: null = constant lr; examples in scheduler/ (scheduler=none|step|cosine|cosine_warmup|cosine_auto)
+scheduler_config: null
 
 optim_config:
   lr: 0.00001
@@ -82,6 +81,7 @@ inference:
 defaults:
   - _self_
   - architecture: null #architecture
+  - scheduler: null    #lr scheduler examples (scheduler/), null = keep scheduler_config above
   - stack: null        #stack generalization
   - override hydra/launcher: joblib
 

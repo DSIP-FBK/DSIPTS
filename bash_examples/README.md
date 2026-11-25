@@ -329,6 +329,17 @@ python train.py -m --config-dir=config_test --config-name=config
 ```
 
 
+# Learning rate schedulers
+`config_test/scheduler/` has one file per scheduler (`none`, `step`, `cosine`, `cosine_warmup`, `cosine_auto`, see the
+comments inside and the "Learning rate schedulers" section of the dsipts README). The default (`scheduler: null` in the
+defaults list) keeps `scheduler_config: null`, a constant lr. Set `total_steps` of the cosine to epochs × steps per epoch
+of your run (logged by `train_model` as `train:<steps per epoch>`):
+```
+python train.py --config-dir=config_test --config-name=config architecture=linear scheduler=cosine scheduler_config.total_steps=2000
+```
+The scheduler choice and the `scheduler_config.*` overrides are added to the run version, and the lr of each epoch is in
+the `lr` column of `loss.csv`.
+
 # Same model differtent parameters
 It is possible also to perform a fine tuning procedure on a specific model, in this case:
 ```
